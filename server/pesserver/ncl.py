@@ -1,6 +1,6 @@
 """fox::ncl NclMio wire codec — the real PES 2021 gate/command protocol.
 
-Recovered 2026-11-04 (static RE of PES2021.exe 1.01.00 + live capture), see notes/network-map.html:
+Recovered 2026-11-04 (static RE of PES2021.exe 1.01.00 + live capture), see docs/protocol.html:
 
   frame   = XOR_5b9f2e64( header8 | md5(header8 + body) | body )      NclMio parse 0x1418548c0
   header8 = u16 kind | u16 body_len | u32 seq   (big-endian; body_len <= 0x410)

@@ -98,7 +98,7 @@
       <rect y="48" width="70" height="18" rx="5" fill="#ffffff"/><circle cx="58" cy="57" r="4" fill="#3ccf8e"/>
     </g>
     <text x="150" y="122" class="sans" font-size="24" font-weight="800" fill="#ffffff" text-anchor="middle">Your server</text>
-    <text x="150" y="148" class="sans" font-size="15" fill="#cfe9dc" text-anchor="middle">Docker · runs anywhere · free web link</text>
+    <text x="150" y="148" class="sans" font-size="15" fill="#cfe9dc" text-anchor="middle">Linux or Docker Desktop · free web link</text>
     <text x="150" y="176" class="sans" font-size="15" fill="#8fe3bd" text-anchor="middle">admin page · live scores · league table</text>
   </g>
 </svg>

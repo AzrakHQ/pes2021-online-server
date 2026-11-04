@@ -58,9 +58,11 @@ nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin:14px 0 0}
 nav a{color:var(--accent);text-decoration:none}
 .log li{margin:4px 0}
 .theme{float:right;font-size:12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer}
+code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </style>
 </head>
 <body>
+<div style="max-width:980px;margin:0 auto;padding:14px 20px 0;font:15px system-ui,sans-serif"><a href="./" style="text-decoration:none">← PES 2021 Online: back to the main page</a></div>
 <main>
 <button class="theme" id="theme" type="button">Theme</button>
 <h1>PES 2021 — client ↔ server network map</h1>
@@ -104,22 +106,22 @@ nav a{color:var(--accent);text-decoration:none}
   <text x="120" y="184" text-anchor="middle" class="muted" font-size="13">fox::ncl NclMio</text>
   <text x="120" y="204" text-anchor="middle" class="muted" font-size="13">client 1.01.00</text>
   <rect class="box" x="270" y="125" width="150" height="80" rx="10"/>
-  <text x="345" y="155" text-anchor="middle" font-weight="700">netshim.so</text>
-  <text x="345" y="175" text-anchor="middle" class="muted" font-size="12">LD_PRELOAD getaddrinfo</text>
-  <text x="345" y="192" text-anchor="middle" class="muted" font-size="12">*.konami.net → server (hosts file)</text>
+  <text x="345" y="155" text-anchor="middle" font-weight="700">hosts file</text>
+  <text x="345" y="175" text-anchor="middle" class="muted" font-size="12">written by the join line</text>
+  <text x="345" y="192" text-anchor="middle" class="muted" font-size="12">*.konami.net → your server</text>
   <path class="ar" d="M220 165 H270"/>
   <rect class="hl" x="500" y="20" width="420" height="70" rx="10"/>
   <text x="520" y="48" font-weight="700">Gate  tcp/10000</text>
   <text x="520" y="70" class="muted" font-size="13">pes21-x64-gate.cs.konami.net · NclMio msgpack commands</text>
   <rect class="box" x="500" y="110" width="420" height="60" rx="10"/>
-  <text x="520" y="136" font-weight="700">HTTP  tcp/80 → 8080</text>
-  <text x="520" y="156" class="muted" font-size="13">URL-list targets (EULA, web) — not yet requested</text>
+  <text x="520" y="136" font-weight="700">HTTP  tcp/8080 · HTTPS tcp/443</text>
+  <text x="520" y="156" class="muted" font-size="13">web API (Steam auth, live update, relay) · GateInfo.php</text>
   <rect class="box" x="500" y="190" width="420" height="60" rx="10"/>
   <text x="520" y="216" font-weight="700">STUN / NTL  udp/3478</text>
   <text x="520" y="236" class="muted" font-size="13">ntleu.service.konami.net · NAT type / public mapping</text>
   <rect class="box" x="500" y="260" width="420" height="55" rx="10" stroke-dasharray="5 4"/>
   <text x="520" y="284" font-weight="700">Peer ↔ peer match traffic</text>
-  <text x="520" y="302" class="muted" font-size="13">kps dlcp / msp (RC4 link) · not yet reached</text>
+  <text x="520" y="302" class="muted" font-size="13">direct UDP between the two games · never touches the server</text>
   <path class="ar" d="M420 150 C460 150 460 55 500 55"/>
   <path class="ar" d="M420 160 H500"/>
   <path class="ar" d="M420 172 C460 172 460 220 500 220"/>
@@ -148,7 +150,7 @@ nav a{color:var(--accent);text-decoration:none}
     <text x="900" y="119" text-anchor="end" font-size="12" font-weight="700" fill="var(--ok)">LIVE</text>
     <rect class="box" x="20" y="40" width="920" height="44" rx="8"/>
     <text x="40" y="67" font-weight="700">Command</text><text x="220" y="67" class="muted">CMD_GET_SVRLIST · CMD_GET_URLLIST · CMD_AUTH_STEAM · CMD_LOGIN · … (435 names)</text>
-    <text x="900" y="67" text-anchor="end" font-size="12" font-weight="700" fill="var(--inf)">IN PROGRESS</text>
+    <text x="900" y="67" text-anchor="end" font-size="12" font-weight="700" fill="var(--ok)">LIVE</text>
   </g>
 </svg>
 </div>
@@ -168,7 +170,7 @@ nav a{color:var(--accent);text-decoration:none}
   <path class="ar" d="M790 200 H174" marker-end="url(#a)"/>
   <text x="480" y="184" text-anchor="middle" font-size="13">result NOERR · server_num · svrlist [ svrtype, svraddr, svrport, svrgid, … ]</text>
   <path class="ln" d="M170 255 H786" stroke-dasharray="5 4"/>
-  <text x="480" y="248" text-anchor="middle" font-size="13" fill="var(--unk)">next requests: being discovered live</text>
+  <text x="480" y="248" text-anchor="middle" font-size="13" class="muted">then URL list, version, time, nation list … (see Login sequence)</text>
 </svg>
 </div>
 <div class="note"><b>Correction (2026-11-04).</b> The 152-byte "hello" is not a key exchange. It is an ordinary <code>CMD_GET_SVRLIST</code> request, and the client speaks first. The RC4 / dlcp code found earlier is real, but it is a different link (see <a href="#dlcp">Not the gate</a>). The old "reply must be 16 bytes" result was a side effect: our reply was decoded as a command, and a 16-byte body produced a garbage length that crashed the client's MessagePack reader.</div>
@@ -243,8 +245,9 @@ nav a{color:var(--accent);text-decoration:none}
 <tr><td>CMD_GET_SVRTIME</td><td>svrtype, client</td><td>result, date</td><td><span class="tag t-static">STATIC</span></td></tr>
 <tr><td>CMD_GET_SVRVERSION</td><td>svrtype, client, patch_version, dlc_version, livedata_version</td><td>result, version, patch_version, dlc_version, eula_version, eula_myclub_version, livedata_version, eula_privacy_* versions</td><td><span class="tag t-static">STATIC</span></td></tr>
 <tr><td>CMD_GET_URLLIST</td><td>svrtype, client, lang</td><td>result, url_num, ulist[ type, url ]</td><td><span class="tag t-static">STATIC</span></td></tr>
-<tr><td>CMD_AUTH_STEAM, CMD_LOGIN</td><td>?</td><td>?</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
-<tr><td>CMD_GET_LOBBYLIST, CMD_JOIN_LOBBY, CMD_CREATEJOIN_ROOM, CMD_JOIN_ROOM_NTL, CMD_SEND_MATCHING_RESULT …</td><td>?</td><td>?</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
+<tr><td>CMD_AUTH_STEAM (HTTP form), CMD_LOGIN</td><td>steamid, package_type / username, hash, platform, sku</td><td>result (raw msgpack map)</td><td><span class="tag t-ok">LIVE</span></td></tr>
+<tr><td>Matchmaking: CMD_START_MATCHING, CMD_WATCH_MATCHING …</td><td colspan="2">see <a href="#mm2">Matchmaking protocol</a> and <a href="#mmlive">Matchmaking — live</a></td><td><span class="tag t-ok">LIVE</span></td></tr>
+<tr><td>CMD_GET_LOBBYLIST, CMD_JOIN_LOBBY, CMD_CREATEJOIN_ROOM, CMD_JOIN_ROOM_NTL</td><td colspan="2">field names known from the parsers; not used by Quick Match, not implemented yet</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
 </table></div>
 <p class="sub">Result codes: <code>NOERR</code>, <code>ERR_NOTFOUND</code>, <code>ERR_LOGIN_FAILED</code>, <code>ERR_DIFFERENT_PATCHVERSION</code>, <code>ERR_SERVERNOTREADY</code>, … Server types: <code>GATE</code>, <code>ACCOUNT</code>, <code>GAME</code>.</p>
 
@@ -255,7 +258,7 @@ nav a{color:var(--accent);text-decoration:none}
   <li>Its UDP socket is bound to the network interface, so it cannot reach 127.0.0.1 — the redirect target must be the machine's LAN address. <span class="tag t-ok">LIVE</span></li>
   <li>Probe order: (1) 32-byte Binding Request with vendor attr <code>0xF000</code> (8 bytes: <code>05730000 00000002</code>); (2) TLS to port 443 with SNI <code>ntl.service.konami.net</code> (no HTTP request seen after the handshake yet); (3) 64-byte Binding Requests every 5 s with vendor attrs <code>0x9090</code> (24 B, starts <code>10000001</code>) and <code>0x9091</code> (12 B, <code>00010104 00000000 &lt;counter&gt;</code>). A plain Binding Success is not accepted. <span class="tag t-ok">LIVE</span></li>
   <li>A plain Binding Success (XOR-MAPPED + MAPPED, same tid) <b>is</b> accepted for the 0xF000 "MappingTestIA" probe. The 0x9090/0x9091 packets are post-test <b>keepalives</b> (RP_P2P_HEADER / RP_RELIABILITY); a new serial every 5 s means they are being answered. Don't send OTHER-ADDRESS unless a real alternate IP:port exists. <span class="tag t-ok">LIVE</span></li>
-  <li><b>GateInfo.php</b>: <code>POST https://ntl.service.konami.net/ntl/api/GateInfo.php</code>, User-Agent <code>NTL HttpModule/0.1</code>, body <code>req={"titleCode":"PES2021",…}</code>. WinHTTP default certificate validation (no pinning) — solved by a local dev CA installed only in the game's Wine prefix (<code>tools/install-ca.py</code>). Reply is text lines: <code>STATUS: 200</code>, <code>API_STATUS: 0</code>, <code>LOG_ACTIVE: 0</code>, <code>SERVER_TIME: &lt;unix&gt;</code>. <span class="tag t-ok">LIVE</span></li>
+  <li><b>GateInfo.php</b>: <code>POST https://ntl.service.konami.net/ntl/api/GateInfo.php</code>, User-Agent <code>NTL HttpModule/0.1</code>, body <code>req={"titleCode":"PES2021",…}</code>. WinHTTP default certificate validation (no pinning) — solved by a private CA, name-constrained to <code>konami.net</code>, that the join line trusts: on Windows in the machine Root store, on Linux only inside the game's Proton prefix (<code>server/pesserver/web/install-ca-proton.py</code> writes it into <code>system.reg</code>). Reply is text lines: <code>STATUS: 200</code>, <code>API_STATUS: 0</code>, <code>LOG_ACTIVE: 0</code>, <code>SERVER_TIME: &lt;unix&gt;</code>. <span class="tag t-ok">LIVE</span></li>
 </ul>
 </div>
 
@@ -270,7 +273,7 @@ nav a{color:var(--accent);text-decoration:none}
 <tr><td>CMD_CREATEJOIN_ROOM / CMD_JOIN_ROOM_NTL</td><td>rooms</td><td>room_id / room_owner + peer addresses</td></tr>
 <tr><td>CMD_GET_MATCHID / CMD_SEND_MATCHING_RESULT</td><td>match id / result report</td><td>match_id, upload / result</td></tr>
 </table></div>
-<p>Address blobs are <code>{address_family, sa_data}</code> with <code>sa_data</code> a raw Windows sockaddr payload carried in a msgpack <i>string</i> (non-UTF-8 bytes) — the server must decode strings leniently. Two concurrent game clients run from <code>game/</code> and <code>game2/</code> (symlinked game files, own CPY.ini SteamID → distinct username = hex(SteamID), own Proton prefix).</p>
+<p>Address blobs are <code>{address_family, sa_data}</code> with <code>sa_data</code> a raw Windows sockaddr payload carried in a msgpack <i>string</i> (non-UTF-8 bytes) — the server must decode strings leniently.</p>
 
 <h2 id="mmlive">Matchmaking — live</h2>
 <div class="panel"><ol>
@@ -315,14 +318,13 @@ nav a{color:var(--accent);text-decoration:none}
   <li><b>Player setup is served by the server</b>: <code>irm http://SERVER/join | iex</code> (PowerShell User-Agent → <code>join.ps1</code>, self-elevates) or <code>curl -fsSL http://SERVER/join | bash</code> (→ <code>join.sh</code>); a browser gets an instructions page. The scripts come with the address from the request's <code>Host</code> header filled in. On Linux the CA goes straight into the prefix's <code>system.reg</code> (<code>[Software\\Microsoft\\SystemCertificates\\Root\\Certificates\\&lt;SHA1&gt;]</code>, <code>"Blob"=hex:</code> 20,00,00,00 01,00,00,00 len DER), so no Wine/Proton is needed; earlier server CAs are removed. Verified: GateInfo over HTTPS passes with a CA written this way. <span class="tag t-ok">LIVE</span></li>
   <li>First start generates a private CA plus a certificate for <code>*.konami.net</code>, <code>*.service.konami.net</code>, <code>*.cs.konami.net</code> and the IP, in <code>server-data/certs/</code>; the CA is downloadable at <code>http://&lt;ip&gt;:8080/ca.crt</code>.</li>
   <li><b>Docker bridge vs. the NAT test</b>: the client's STUN socket is bound to the network interface (Wine maps <code>IP_UNICAST_IF</code> to <code>SO_BINDTODEVICE</code>). A game on the <i>same Linux PC</i> as a bridged container therefore never reaches it: the DNAT'd packet must go out via docker0, but the socket is pinned to the NIC. Verified with a device-bound test socket (no reply on the bridge, reply with host networking). Remote players are unaffected. <span class="tag t-ok">LIVE</span></li>
-  <li>What the join scripts do: hosts-file entries for <code>pes21-x64-gate.cs.konami.net</code>, <code>pes21-x64-stun.cs.konami.net</code>, <code>ntl / ntleu / ntlus / ntljp.service.konami.net</code>, and trust the CA (<code>certutil -addstore -f Root ca.crt</code>). No change to the game files.</li>
+  <li>What the join scripts do: hosts-file entries for <code>pes21-x64-gate.cs.konami.net</code>, <code>pes21-x64-stun.cs.konami.net</code>, <code>ntl / ntleu / ntlus / ntljp.service.konami.net</code>, and trust the server CA (Windows: <code>Import-Certificate</code> into <code>Cert:\LocalMachine\Root</code>; Linux: the game's Proton prefix only). The CA carries a critical <code>nameConstraints</code> extension (permitted <code>DNS:konami.net</code>, all IPs excluded), so it cannot vouch for any other site. No change to the game files.</li>
 </ol></div>
 </ol>
-<p class="sub">Dev loop: <code>tools/to-matchmaking.sh</code> drives a client from the menu into the queue; <code>curl 'http://127.0.0.1:8080/admin/push?kind=0x60&amp;rqid=start'</code> re-sends the match notification in a chosen variant without restarting anything.</p>
 </div>
 
 <h2 id="dlcp">Not the gate: kps::dlcp</h2>
-<p>Real, statically mapped, but not used on the gate connection. Most likely the peer-to-peer match link. Kept here because matchmaking will need it later.</p>
+<p>Real, statically mapped, but not used on the gate connection. Most likely the peer-to-peer match link. Quick Match doesn't need it: matches work without the server touching this link.</p>
 <div class="tw"><table>
 <tr><th>Item</th><th>Value</th></tr>
 <tr><td>Link cipher</td><td>RC4 ("Arcfour"), KSA 0x14204c700, PRGA 0x14204cad0</td></tr>
@@ -340,24 +342,11 @@ nav a{color:var(--accent);text-decoration:none}
 <tr><td class="mono">server/pesserver/gate.py · service.py</td><td>TCP gate loop (handler crashes are caught and answered) · dispatch and session bookkeeping</td></tr>
 <tr><td class="mono">server/pesserver/stun.py · httpgate.py</td><td>RFC 5389 binding · HTTP 8080 web-API + HTTPS 8443 GateInfo.php + <code>/ca.crt</code></td></tr>
 <tr><td class="mono">server/Dockerfile · docker-compose.yml</td><td>one-container deployment; <code>docker-entrypoint.sh</code> generates the CA and certificate</td></tr>
-<tr><td class="mono">tools/netshim/netshim.so</td><td>LD_PRELOAD resolver redirect and port map</td></tr>
 </table></div>
 <p>Run: <code>docker compose up</code>, or <code>python3 -m pesserver serve</code> (ncl is the default codec). Every request is logged decoded (<code>RX … CMD_…</code>).</p>
 
-<h2 id="tooling">Dev tooling</h2>
-<p class="sub">Local development setup used while reverse-engineering (two game instances on one Linux PC). Apart from the server itself and the <code>notes/re</code> scripts, these tools are not part of the published repo.</p>
-<div class="tw"><table>
-<tr><th>Tool</th><th>What it does</th></tr>
-<tr><td class="mono">tools/pes.py replay</td><td>Replays every recorded real-client request (logs/rx.jsonl) through the current handlers offline and validates each reply against the client's parser schemas. Sub-second.</td></tr>
-<tr><td class="mono">tools/pes.py status / events</td><td>Per-command matrix (seen live, handler vs schema default); merged server + crash timeline with crash sites mapped to commands.</td></tr>
-<tr><td class="mono">tools/dev-launch.sh</td><td>Runs the game in a Wine virtual desktop window: never minimizes, can be screenshotted while covered.</td></tr>
-<tr><td class="mono">tools/pkey.sh · pes.py key/shot/flow</td><td>Brief-focus key injection; log-gated login flow (waits for the expected request instead of fixed delays).</td></tr>
-<tr><td class="mono">notes/re/extract_schemas.py</td><td>Bulk schema extraction (22 s for 398 commands).</td></tr>
-<tr><td class="mono">server: schema validation</td><td>Handled replies are validated against the client's parser schema on every send (unit tests cover every handler).</td></tr>
-<tr><td class="mono">tools/dev-launch.sh (PES_INSTANCE=2)</td><td>Second game instance from <code>game2/</code> (symlinked files, own Steam ID and prefix) so two players run on one PC.</td></tr>
-<tr><td class="mono">tools/rematch-and-play.sh · autoplay.sh</td><td>Drive both clients from the menu into a match and keep both players active (one xdotool chain per player per turn, ~3 s/cycle — slower input triggers the game's NO_OPERATION AFK abort).</td></tr>
-<tr><td class="mono">notes/re/errcode.py</td><td>Decodes on-screen error codes to source file + line.</td></tr>
-</table></div>
+<h2 id="tooling">How it was tested</h2>
+<p class="sub">Every finding marked LIVE was checked against the unmodified game (Steam, 1.01.00, run with Proton on Linux). A recorded log of real client requests is replayed through the server's handlers offline and each reply is validated against the reply formats extracted from the game (<code>server/tests</code>). End-to-end runs drove two game clients through login, the network test, matchmaking and complete 90-minute matches. The local test harness itself is not part of the published repo.</p>
 
 <h2 id="method">How we found it</h2>
 <ol>
@@ -401,7 +390,7 @@ nav a{color:var(--accent);text-decoration:none}
   <li><b>2026-11-04</b> — Full login to the MENU server; player creation persisted in our DB; session key derivation (base64) learned live.</li>
   <li><b>2026-11-04</b> — Bulk schema extraction for 398 commands; schema-typed defaults; replay + timeline tooling; virtual-desktop dev launcher.</li>
   <li><b>2026-11-04</b> — Encoding rules: nested msgpack blobs for lists/objects, strict string types, server types GATE/ACCOUNT/MENU.</li>
-  <li><b>2026-11-04</b> — <b>Gate protocol cracked.</b> Blowfish-ECB with the static 56-byte key turns the client "hello" into MessagePack <code>CMD_GET_SVRLIST</code>. New NclCodec + command handlers in the server.</li>
+  <li><b>2026-11-04</b> — <b>Gate protocol decoded.</b> Blowfish-ECB with the static 56-byte key turns the client "hello" into MessagePack <code>CMD_GET_SVRLIST</code>. New NclCodec + command handlers in the server.</li>
   <li><b>2026-11-04</b> — Wine <code>+seh</code> tracing located the client's NclMio decoder at the crash site.</li>
   <li><b>2026-11-04</b> — Earlier RC4 "key exchange" interpretation of the gate withdrawn; dlcp material moved to its own section.</li>
   <li><b>2026-11-04</b> — Live redirect working; real client requests reach our server.</li>

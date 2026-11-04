@@ -40,8 +40,8 @@ get matched.
 
 | Problem | Fix |
 |---|---|
-| Friend can't connect / "Failed to connect with opponent" | Everyone installs [Tailscale](https://tailscale.com). The host reinstalls with `... \| PUBLIC_IP=<host's Tailscale IP> sh` |
-| "Couldn't open router ports" | Turn on **UPnP** in your router settings and run the install again |
+| Friend can't connect / "Failed to connect with opponent" | Everyone installs [Tailscale](https://tailscale.com). The host runs the install line again with `PUBLIC_IP=<host's Tailscale IP>` before `sh`, then everyone runs their join line again |
+| "Router ports are closed" | Turn on **UPnP** in your router settings and run the install again |
 | "Unable to connect to the server" | Run the join line again |
 | Undo on a player's PC | Run the join line with `leave` instead of `join` |
 
@@ -62,7 +62,7 @@ For friends outside your house, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7
 
 ---
 
-**How it works:** the full reverse-engineered network protocol is written up at
-[mohamedalirashad.github.io/pes2021-private-server/notes/network-map.html](https://mohamedalirashad.github.io/pes2021-private-server/notes/network-map.html).
+**Website:** [mohamedalirashad.github.io/pes2021-private-server](https://mohamedalirashad.github.io/pes2021-private-server/):
+how to play, and how PES 2021's online mode works, in plain words.
 Developers: see also [`server/README.md`](server/README.md).
 Fan preservation project, not affiliated with Konami.

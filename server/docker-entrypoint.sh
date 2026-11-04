@@ -13,25 +13,27 @@ JOIN_PORT="${JOIN_PORT:-80}"
 CERTS=/data/certs
 mkdir -p "$CERTS"
 
-if [ ! -f "$CERTS/ca.crt" ]; then
+# The CA is name-constrained to konami.net: players trust it, but it cannot vouch for any other
+# website. A CA from an older version (no constraint) is replaced; players then rerun the join line.
+if [ ! -f "$CERTS/ca.crt" ] || ! openssl x509 -in "$CERTS/ca.crt" -noout -ext nameConstraints 2>/dev/null | grep -q konami.net; then
+  if [ -f "$CERTS/ca.crt" ]; then
+    echo "[entrypoint] replacing the old certificate authority with a konami.net-only one (players: run the join line again)"
+    mv "$CERTS/ca.crt" "$CERTS/ca.crt.old"
+  fi
   echo "[entrypoint] creating the server certificate authority"
   openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/CN=PES2021 Private Server CA" \
     -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign" \
+    -addext "nameConstraints=critical,permitted;DNS:konami.net,excluded;IP:0.0.0.0/0.0.0.0,excluded;IP:0:0:0:0:0:0:0:0/0:0:0:0:0:0:0:0" \
     -keyout "$CERTS/ca.key" -out "$CERTS/ca.crt" 2>/dev/null
+  rm -f "$CERTS/server.crt"
 fi
-CERT_ID="${PUBLIC_IP:-auto}"
-# (Re)issue the server certificate when missing or when PUBLIC_IP changed; the CA stays the same.
-if [ ! -f "$CERTS/server.crt" ] || [ "$(cat "$CERTS/public_ip" 2>/dev/null)" != "$CERT_ID" ]; then
+# The server certificate covers the Konami hostnames only (no IP addresses).
+if [ ! -f "$CERTS/server.crt" ]; then
   echo "[entrypoint] issuing the server certificate"
-  SAN="DNS:*.konami.net,DNS:*.service.konami.net,DNS:*.cs.konami.net,DNS:ntl.service.konami.net,IP:127.0.0.1"
-  case "$PUBLIC_IP" in
-    *[!0-9.]*|"") ;;
-    *) SAN="$SAN,IP:$PUBLIC_IP" ;;
-  esac
   openssl req -newkey rsa:2048 -nodes -subj "/CN=ntl.service.konami.net" \
     -keyout "$CERTS/server.key" -out "$CERTS/server.csr" 2>/dev/null
   cat > "$CERTS/leaf.ext" <<EOF
-subjectAltName=$SAN
+subjectAltName=DNS:ntl.service.konami.net,DNS:*.service.konami.net,DNS:*.cs.konami.net,DNS:*.konami.net
 basicConstraints=CA:FALSE
 keyUsage=digitalSignature,keyEncipherment
 extendedKeyUsage=serverAuth
@@ -40,7 +42,6 @@ EOF
     -days 825 -sha256 -extfile "$CERTS/leaf.ext" -out "$CERTS/leaf.crt" 2>/dev/null
   cat "$CERTS/leaf.crt" "$CERTS/ca.crt" > "$CERTS/server.crt"
   rm -f "$CERTS/server.csr"
-  echo "$CERT_ID" > "$CERTS/public_ip"
 fi
 
 export PESSERVER_HTTP_PORT="$HTTP_PORT" PYTHONUNBUFFERED=1

@@ -13,7 +13,7 @@ bold() { printf '\033[1m%s\033[0m\n' "$*"; }
 
 if [ "$(uname -s)" != Linux ]; then
   echo "This installer is for Linux. On Windows or macOS, install Docker Desktop and follow"
-  echo "https://github.com/MohamedAliRashad/pes2021-private-server#windows-or-macos-host"
+  echo "https://github.com/MohamedAliRashad/pes2021-private-server#hosting-from-windows-or-mac"
   exit 1
 fi
 SUDO=""; [ "$(id -u)" = 0 ] || SUDO="sudo"

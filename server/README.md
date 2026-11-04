@@ -63,6 +63,6 @@ Environment variables:
 Unhandled commands are logged as `UNHANDLED CMD_…` and answered with a bare `{result: NOERR}`, so
 the client keeps its own defaults. Implementing a new command means adding an
 `@cmd("CMD_…")` handler in `pescmds.py` or `pesmatch.py`. The full protocol write-up is
-[`notes/network-map.html`](../notes/network-map.html).
+[`docs/protocol.html`](../docs/protocol.html).
 
 Tests: `python3 -m pytest` (in `server/`).
