@@ -5,6 +5,7 @@
 set -eu
 : "${PUBLIC_IP:?set PUBLIC_IP to the address players use to reach this server (LAN or public IP)}"
 HTTP_PORT="${HTTP_PORT:-8080}"
+HTTPS_PORT="${HTTPS_PORT:-8443}"   # 443 when the container uses host networking
 CERTS=/data/certs
 mkdir -p "$CERTS"
 
@@ -36,4 +37,4 @@ export PESSERVER_PUBLIC_ADDR="$PUBLIC_IP" PESSERVER_HTTP_PORT="$HTTP_PORT" PYTHO
 export PESSERVER_RXLOG="${PESSERVER_RXLOG:-/data/rx.jsonl}"
 exec python3 -m pesserver --db /data/pesserver.db serve \
   --host 0.0.0.0 --public-ip "$PUBLIC_IP" --codec ncl \
-  --gate-port 10000 --http-port 8080 --https-port 8443 --stun-port 3478
+  --gate-port 10000 --http-port "$HTTP_PORT" --https-port "$HTTPS_PORT" --stun-port 3478

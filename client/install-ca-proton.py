@@ -25,7 +25,7 @@ def main():
     if "--ca" not in args:
         sys.exit(__doc__)
     i = args.index("--ca"); ca = args[i + 1]; del args[i:i + 2]
-    prefixes = [os.path.expanduser(a) for a in args if a != "--remove"]
+    prefixes = [os.path.abspath(os.path.expanduser(a)) for a in args if a != "--remove"]
     if not prefixes or not all(os.path.isdir(p) for p in prefixes):
         sys.exit("give an existing Proton prefix directory (…/compatdata/1259970/pfx)")
     if not os.path.exists(PROTON):
@@ -43,7 +43,10 @@ def main():
     for pfx in prefixes:
         env = {**os.environ, "WINEPREFIX": pfx, "WINEDEBUG": "-all", "WINEFSYNC": "1"}
         r = subprocess.run([PROTON, "regedit", "/S", path], env=env, capture_output=True, text=True, timeout=120)
-        print(f"{'removed' if remove else 'installed'} CA {thumb} in {pfx} (rc={r.returncode})")
+        if r.returncode:
+            print(r.stdout[-800:], r.stderr[-800:])
+            sys.exit(f"FAILED to update {pfx} (regedit rc={r.returncode}); is the game closed?")
+        print(f"{'removed' if remove else 'installed'} CA {thumb} in {pfx}")
     os.unlink(path)
 
 

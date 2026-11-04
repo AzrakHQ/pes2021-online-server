@@ -1,12 +1,13 @@
 # PES 2021 private server.   PUBLIC_IP = the address players' games connect to.
-#   PUBLIC_IP=192.168.1.50 docker compose up -d --build
+#   echo PUBLIC_IP=192.168.1.50 > .env      (once; docker compose reads .env automatically)
+#   docker compose up -d --build
 services:
   pesserver:
     build: ./server
     container_name: pesserver
     restart: unless-stopped
     environment:
-      PUBLIC_IP: ${PUBLIC_IP:?set PUBLIC_IP (e.g. your LAN or public IP)}
+      PUBLIC_IP: ${PUBLIC_IP:-}   # from .env; the container refuses to start without it
     ports:
       - "10000:10000/tcp"   # game gate (login, menus, matchmaking)
       - "8080:8080/tcp"     # HTTP web-API (auth, live-update list, game relay)

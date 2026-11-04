@@ -3,6 +3,7 @@
 !/.gitignore
 !/README.md
 !/docker-compose.yml
+!/docker-compose.host.yml
 !/server/
 !/client/
 !/notes/

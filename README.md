@@ -42,16 +42,23 @@ You need [Docker](https://docs.docker.com/get-docker/) with Docker Compose.
 ```bash
 git clone https://github.com/MohamedAliRashad/pes2021-private-server.git
 cd pes2021-private-server
-PUBLIC_IP=192.168.1.50 docker compose up -d --build
+echo "PUBLIC_IP=192.168.1.50" > .env                       # the IP players connect to (see below)
+echo "COMPOSE_FILE=docker-compose.host.yml" >> .env        # Linux hosts only (recommended)
+docker compose up -d --build
 ```
 
 - **`PUBLIC_IP`:** the address the **players' PCs** use to reach the server. Use the LAN IP on a
   LAN, the Tailscale/ZeroTier IP on a virtual LAN, or a public IP if you forward ports.
+- **`COMPOSE_FILE` line (Linux only):** this runs the container on the host's own network. It is
+  **required if you also play on the server PC**: the game's network test sends UDP from a socket
+  bound to the network card, and that socket can't reach Docker's internal bridge. On Windows or
+  macOS with Docker Desktop, leave this line out.
 - **First start:** the server creates its own certificate authority in `./server-data/certs/`.
 - **Check it works:** open `http://PUBLIC_IP:8080/ca.crt` in a browser. It should download a
   file.
 
-Ports, which `docker-compose.yml` already maps. Open them in your firewall:
+Open these ports in your firewall, and forward them on your router for internet play without a
+VPN:
 
 | Port | Used for |
 |---|---|
@@ -60,17 +67,17 @@ Ports, which `docker-compose.yml` already maps. Open them in your firewall:
 | 443/tcp | the game's HTTPS network test |
 | 3478/udp | NAT test (STUN) |
 
-Useful commands:
+Useful commands (run them in the repo folder):
 
 ```bash
 docker compose logs -f        # watch players log in and matches start
 docker compose restart        # restart
 docker compose down           # stop (player names and the certificate stay in ./server-data)
+git pull && docker compose up -d --build    # update to the latest version
 ```
 
-If you change `PUBLIC_IP` later, just run the `docker compose up -d` line again with the new IP.
-The server reissues its certificate under the same CA. Players only update the IP: they run
-their setup script again with the new address.
+To change `PUBLIC_IP` later, edit `.env` and run `docker compose up -d`. The server reissues its
+certificate under the same CA. Players only rerun their setup script with the new address.
 
 ---
 

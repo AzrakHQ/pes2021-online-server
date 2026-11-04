@@ -310,8 +310,9 @@ nav a{color:var(--accent);text-decoration:none}
 
 <h2 id="deploy">Deployment</h2>
 <div class="panel"><ol>
-  <li>Host: <code>PUBLIC_IP=&lt;ip&gt; docker compose up -d --build</code>. Ports: 10000/tcp gate, 8080/tcp web-API, 443/tcp GateInfo (HTTPS), 3478/udp STUN, 7600/udp relay placeholder.</li>
+  <li>Host: <code>echo PUBLIC_IP=&lt;ip&gt; &gt; .env; docker compose up -d --build</code> (Linux: add <code>COMPOSE_FILE=docker-compose.host.yml</code> to <code>.env</code> for host networking). Ports: 10000/tcp gate, 8080/tcp web-API, 443/tcp GateInfo (HTTPS), 3478/udp STUN, 7600/udp relay placeholder.</li>
   <li>First start generates a private CA plus a certificate for <code>*.konami.net</code>, <code>*.service.konami.net</code>, <code>*.cs.konami.net</code> and the IP, in <code>server-data/certs/</code>; the CA is downloadable at <code>http://&lt;ip&gt;:8080/ca.crt</code>.</li>
+  <li><b>Docker bridge vs. the NAT test</b>: the client's STUN socket is bound to the network interface (Wine maps <code>IP_UNICAST_IF</code> to <code>SO_BINDTODEVICE</code>). A game on the <i>same Linux PC</i> as a bridged container therefore never reaches it: the DNAT'd packet must go out via docker0, but the socket is pinned to the NIC. Verified with a device-bound test socket (no reply on the bridge, reply with host networking). Remote players are unaffected. <span class="tag t-ok">LIVE</span></li>
   <li>Players: hosts-file entries for <code>pes21-x64-gate.cs.konami.net</code>, <code>pes21-x64-stun.cs.konami.net</code>, <code>ntl / ntleu / ntlus / ntljp.service.konami.net</code>, and trust the CA (<code>certutil -addstore -f Root ca.crt</code>). No change to the game files.</li>
 </ol></div>
 </ol>
@@ -388,6 +389,7 @@ nav a{color:var(--accent);text-decoration:none}
 
 <h2 id="log">Changelog</h2>
 <ul class="log">
+  <li><b>2026-11-04</b> — Docker end-to-end: fresh container, CA from <code>/ca.crt</code> installed with the player script, new players created, matched and playing through the container. Found the bridge/NAT-test limitation; added the host-network compose file.</li>
   <li><b>2026-11-04</b> — <b>Complete 90-minute online match between two clients</b>, through full time, highlights, result reporting and back to the menu, then straight into a second pairing. Kick-off, both halves, half-time, fouls and cards, clocks in sync. Fixes: member <code>side</code>, real team list, real SERVER_ENV timeouts, bare-NOERR defaults. Error-code decoder. Old RC4 code removed; Docker deployment.</li>
   <li><b>2026-11-04</b> — <b>Two clients matched, P2P-connected and in the online Match Menu</b>; Kick Off syncs both into GAMELOAD. Keys: matching_state FINISH push, all 53 URL types (GET_GAMERELAY), relay of SYNC/SYSTEM notices.</li>
   <li><b>2026-11-04</b> — NAT test passes: GateInfo.php over TLS with a local CA trusted only in the game prefixes.</li>
