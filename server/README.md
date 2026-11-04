@@ -23,7 +23,7 @@ Ports below 1024 need root; otherwise use e.g. `--https-port 8443` and forward 4
 |---|---|---|
 | 80/tcp | player pages: `/` instructions, `/join`, `/leave` (setup script picked by User-Agent) | `httpgate.py`, `web/` |
 | 443/tcp | HTTPS `GateInfo.php` (NAT test) | `httpgate.py` |
-| 8080/tcp | web API (form POST → msgpack), `/ca.crt`, `/banner`, also the player pages | `httpgate.py` |
+| 8080/tcp | web API (form POST → msgpack), `/ca.crt`, `/banner`, the player pages, `/admin` (password) | `httpgate.py` |
 | 10000/tcp | game gate: login, menus, matchmaking (NclMio protocol) | `gate.py`, `ncl.py` |
 | 3478/udp | STUN binding (NAT test) | `stun.py` |
 | 7600/udp | game-relay placeholder (logs only) | `stun.py` |
@@ -40,6 +40,8 @@ Environment variables:
 | `PESSERVER_HTTP_PORT` | port used in URL lists (default 8080) |
 | `PESSERVER_RXLOG` | path of a JSONL log of every decoded message (optional) |
 | `UPNP` | `0` = don't open router ports |
+| `TUNNEL` | `0` = no free `trycloudflare.com` web address (needs `cloudflared`, included in the image) |
+| `ADMIN_PASSWORD` | fixed admin password (default: random, saved in `<data>/admin_password`) |
 | `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
 
 ## Code layout
@@ -51,7 +53,8 @@ Environment variables:
 | `pesserver/pesmatch.py` | Quick Match queue and pairing, `CMD_WATCH_MATCHING` push, game relay info, peer notice relay |
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |
-| `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner |
+| `pesserver/netsetup.py` | address detection, UPnP port mapping, Cloudflare quick tunnel, per-client advertised address, startup banner |
+| `pesserver/events.py` | live activity for the admin page: online players, match phases and scores, saved results |
 | `pesserver/web/` | player page, `join.ps1` / `join.sh` (served with the server address filled in), Proton CA installer |
 | `pesserver/schemas.json` | response schemas of ~400 commands, extracted from the client (`notes/re/extract_schemas.py`) |
 | `pesserver/service.py`, `gate.py` | session handling and dispatch |

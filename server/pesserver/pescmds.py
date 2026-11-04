@@ -319,6 +319,16 @@ def validate(msgid, resp):
 
 
 def dispatch(svc, sess, msgid, req):
+    resp = _dispatch(svc, sess, msgid, req)
+    try:
+        from . import events
+        events.observe(svc, sess, msgid, req)
+    except Exception:  # noqa: BLE001 - the admin feed must never break the game
+        log.exception("events.observe %s", msgid)
+    return resp
+
+
+def _dispatch(svc, sess, msgid, req):
     fn = HANDLERS.get(msgid)
     if fn is None:
         # Minimal reply on purpose: client parsers only overwrite keys that are present, so absent keys

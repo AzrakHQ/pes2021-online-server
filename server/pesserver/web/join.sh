@@ -1,7 +1,7 @@
 #!/bin/bash
 # PES 2021 private server - player setup for Linux / Steam Deck (Steam + Proton).
-#   join:  curl -fsSL http://@@SERVER@@/join | bash
-#   undo:  curl -fsSL http://@@SERVER@@/leave | bash
+#   join:  curl -fsSL @@BASE@@/join | bash
+#   undo:  curl -fsSL @@BASE@@/leave | bash
 # Points the game's Konami hostnames at the server (/etc/hosts, needs sudo) and trusts the server's
 # certificate inside the game's Proton prefix only. Optional: PES_PREFIX=/path/to/pfx.
 set -euo pipefail
@@ -24,9 +24,14 @@ if [ "$UNINSTALL" = 1 ]; then
   exit 0
 fi
 
-if [[ "$SERVER" =~ ^[0-9]+(\.[0-9]+){3}$ ]]; then IP="$SERVER"
-else IP="$(getent ahostsv4 "$SERVER" | awk 'NR==1{print $1}')"; fi
-[ -n "$IP" ] || { echo "Could not resolve $SERVER"; exit 1; }
+# The game needs an IP address. Use the first of the server's addresses that answers as this server
+# (its LAN address when you're in the same house, its internet address otherwise).
+ADDRS="@@ADDRS@@"
+IP=""
+for a in $ADDRS; do
+  if curl -fsS -m 3 "http://$a:8080/status" 2>/dev/null | grep -q '"id": "@@SID@@"'; then IP="$a"; break; fi
+done
+[ -n "$IP" ] || IP="${ADDRS##* }"
 
 python3 "$TMP/ca.py" --ca "$TMP/ca.crt" ${PES_PREFIX:+"$PES_PREFIX"}
 if [ "${PES_SKIP_HOSTS:-0}" != 1 ]; then

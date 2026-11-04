@@ -23,6 +23,7 @@ async def serve(service, codec_factory, host="0.0.0.0", port=10000, idle=300):
 
         sess = Session(peer[0], send)
         sess.local_ip = writer.get_extra_info("sockname")[0]   # the address this client reached us on
+        sess.close = writer.close                               # admin "kick"
         sess.codec = codec
         log.info("connect %s", peer)
         try:
@@ -45,6 +46,11 @@ async def serve(service, codec_factory, host="0.0.0.0", port=10000, idle=300):
         except (ProtocolError, ConnectionError) as e:
             log.warning("protocol/connection error from %s: %s", peer, e)
         finally:
+            try:
+                from . import events
+                events.disconnected(service, sess)
+            except Exception:  # noqa: BLE001
+                log.exception("events.disconnected")
             service.disconnected(sess)
             writer.close()
             log.info("disconnect %s", peer)

@@ -1,9 +1,10 @@
 # PES 2021 private server - player setup for Windows.
-#   join:  irm http://@@SERVER@@/join | iex
-#   undo:  irm http://@@SERVER@@/leave | iex
+#   join:  irm @@BASE@@/join | iex
+#   undo:  irm @@BASE@@/leave | iex
 # Points the game's Konami hostnames at the server (hosts file) and trusts the server's certificate
 # authority. Asks for administrator rights once.
 $ErrorActionPreference = "Stop"
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 $PesServer = "@@SERVER@@"
 $PesBase = "@@BASE@@"
 $PesUninstall = @@UNINSTALL@@ -eq 1
@@ -34,12 +35,17 @@ if ($PesUninstall) {
     return
 }
 
-$ip = $PesServer -as [ipaddress]
-if ($ip) { $ip = $ip.IPAddressToString } else {
-    $ip = ([System.Net.Dns]::GetHostAddresses($PesServer) |
-           Where-Object { $_.AddressFamily -eq "InterNetwork" } | Select-Object -First 1).IPAddressToString
+# The game needs an IP address. Use the first of the server's addresses that answers as this server
+# (its LAN address when you're in the same house, its internet address otherwise).
+$addrs = "@@ADDRS@@".Split(" ")
+$ip = $null
+foreach ($a in $addrs) {
+    try {
+        $s = Invoke-RestMethod -UseBasicParsing -TimeoutSec 3 -Uri "http://${a}:8080/status"
+        if ($s.id -eq "@@SID@@") { $ip = $a; break }
+    } catch { }
 }
-if (-not $ip) { throw "Could not resolve $PesServer" }
+if (-not $ip) { $ip = $addrs[-1] }
 
 $ca = Join-Path $env:TEMP "pes2021-ca.crt"
 Invoke-WebRequest -UseBasicParsing -Uri "$PesBase/ca.crt" -OutFile $ca

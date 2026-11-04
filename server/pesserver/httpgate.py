@@ -18,11 +18,16 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 body = await reader.readexactly(min(int(headers["content-length"]), 1 << 16))
             log.info("HTTP %s %s hdr=%s body=%r", method, path, headers, body[:300])
             route = path.split("?", 1)[0].rstrip("/").lower()
-            if method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
+            status = "200 OK"
+            if route == "/admin" or route.startswith("/admin/api/"):
+                status, out, ctype = await _admin(service, method, route, headers, body)
+            elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
                                              "/leave.ps1", "/install-ca-proton.py", "/banner"):
                 out, ctype = _web(service, route, headers, writer)
             elif path.startswith("/status"):
-                out = json.dumps({"online": len(service.online), "queued": len(service.mm.queue),
+                from . import pesmatch
+                out = json.dumps({"id": server_id(), "online": len(service.online),
+                                  "queued": len(pesmatch._state(service)["queue"]),
                                   "rooms": len(service.mm.rooms)}).encode(); ctype = "application/json"
             elif path.rstrip("/") == "/ca.crt":
                 # The private CA players must trust (NTL GateInfo.php runs over HTTPS with OS validation).
@@ -67,7 +72,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 ctype = "text/html; charset=utf-8"
             else:
                 out = b"ok"; ctype = "text/plain"
-            writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: " + ctype.encode() +
+            writer.write(b"HTTP/1.1 " + status.encode() + b"\r\nCache-Control: no-store\r\nContent-Type: " + ctype.encode() +
                          b"\r\nContent-Length: " + str(len(out)).encode() + b"\r\nConnection: close\r\n\r\n" + out)
             await writer.drain()
         except Exception as e:  # noqa
@@ -80,6 +85,54 @@ def make_handler(service, stun_host, stun_port, gate_port):
 
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
+_SID = []
+
+
+def server_id():
+    """Short id of this server (from its CA), so join scripts can tell our server from another
+    device at the same LAN address."""
+    if not _SID:
+        import hashlib
+        ca = os.path.join(os.environ.get("PESSERVER_CERTS", "/data/certs"), "ca.crt")
+        try:
+            _SID.append(hashlib.sha1(open(ca, "rb").read()).hexdigest()[:12])
+        except OSError:
+            _SID.append("nocert")
+    return _SID[0]
+
+
+async def _admin(service, method, route, headers, body):
+    """Admin page (/admin) and its JSON API, protected by the admin password."""
+    import hmac
+    from . import events, netsetup
+    if route == "/admin":
+        return "200 OK", open(os.path.join(WEB, "admin.html"), "rb").read(), "text/html; charset=utf-8"
+    pw = getattr(service, "admin_password", None)
+    given = headers.get("authorization", "")[7:] if headers.get("authorization", "").startswith("Bearer ") else ""
+    if not pw or not hmac.compare_digest(given.encode(), pw.encode()):
+        await asyncio.sleep(1)                # slow down password guessing
+        return "401 Unauthorized", b'{"error":"wrong password"}', "application/json"
+    if route == "/admin/api/state":
+        snap = events.snapshot(service)
+        st = netsetup.STATE
+        main = st.get("url") or "http://" + netsetup.game_addrs()[-1]
+        snap["server"] = {"url": st.get("url"), "main": main, "lan": st["lan"], "wan": st["wan"],
+                          "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
+                          "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
+                          "join_windows": f"irm {main}/join | iex", "join_linux": f"curl -fsSL {main}/join | bash"}
+        return "200 OK", json.dumps(snap).encode(), "application/json"
+    if route == "/admin/api/kick" and method == "POST":
+        try:
+            pid = int(json.loads(body or b"{}").get("pid"))
+        except (ValueError, TypeError):
+            return "400 Bad Request", b'{"error":"pid"}', "application/json"
+        sess = service.online.get(pid)
+        if sess is None or not hasattr(sess, "close"):
+            return "404 Not Found", b'{"error":"not online"}', "application/json"
+        events.feed(service, f"{events.name_of(service, pid)} was kicked by the admin", "warn")
+        sess.close()
+        return "200 OK", b'{"ok":true}', "application/json"
+    return "404 Not Found", b'{"error":"unknown"}', "application/json"
 
 
 def _web(service, route, headers, writer):
@@ -94,7 +147,7 @@ def _web(service, route, headers, writer):
         host = netsetup.advertised_addr(service, conn)
     server = host.rsplit(":", 1)[0] if host.count(":") == 1 else host
     if route == "/banner":
-        return (netsetup.banner() if netsetup.STATE["ready"] else "starting").encode(), "text/plain; charset=utf-8"
+        return (netsetup.banner(color=False) if netsetup.STATE["ready"] else "starting").encode(), "text/plain; charset=utf-8"
     if route == "/install-ca-proton.py":
         return open(os.path.join(WEB, "install-ca-proton.py"), "rb").read(), "text/x-python"
     ua = headers.get("user-agent", "").lower()
@@ -105,7 +158,12 @@ def _web(service, route, headers, writer):
     else:
         name, ctype = "index.html", "text/html; charset=utf-8"
     text = open(os.path.join(WEB, name), encoding="utf-8").read()
-    text = (text.replace("@@SERVER@@", server).replace("@@BASE@@", "http://" + host)
+    scheme = "https" if headers.get("x-forwarded-proto") == "https" or host.endswith(".trycloudflare.com") else "http"
+    addrs = netsetup.game_addrs()
+    if netsetup._ip(server):                  # reached by IP: that address works for this player
+        addrs = [server] + [a for a in addrs if a != server]
+    text = (text.replace("@@SERVER@@", server).replace("@@BASE@@", f"{scheme}://{host}")
+                .replace("@@ADDRS@@", " ".join(addrs)).replace("@@SID@@", server_id())
                 .replace("@@UNINSTALL@@", "1" if "/leave" in route else "0"))
     return text.encode(), ctype
 

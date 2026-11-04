@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 log = logging.getLogger("pesserver.net")
 
-STATE = {"ready": False, "lan": None, "wan": None, "upnp": None, "upnp_error": None, "cgnat": False, "mapped": []}
+STATE = {"ready": False, "url": None, "lan": None, "wan": None, "upnp": None, "upnp_error": None, "cgnat": False, "mapped": []}
 
 # The ports the game (and the /join page) need from the outside.
 PORTS = [(80, "TCP"), (443, "TCP"), (8080, "TCP"), (10000, "TCP"), (3478, "UDP"), (7600, "UDP")]
@@ -226,28 +226,94 @@ def teardown():
             pass
 
 
-def banner(http_port=8080):
-    """Human-readable 'how to join' text (startup log, /banner, install.sh)."""
-    lan, wan = STATE["lan"] or lan_ip(), STATE["wan"]
-    j = lambda a: (f"   Windows (PowerShell):    irm http://{a}/join | iex\n"
-                   f"   Linux / Steam Deck:      curl -fsSL http://{a}/join | bash\n")
-    out = ["", "=" * 72, " PES 2021 private server is running", "=" * 72,
-           f" Players on your network ({lan}):", j(lan)]
-    if os.environ.get("PESSERVER_PUBLIC_ADDR"):
-        a = os.environ["PESSERVER_PUBLIC_ADDR"]
-        if a != lan:
-            out += [f" Players using {a}:", j(a)]
-    elif wan:
-        out += [f" Players over the internet ({wan}):", j(wan)]
-        if STATE["cgnat"]:
-            out.append(" !  Your internet provider shares one public IP between customers (CGNAT), so\n"
-                       "    internet players can't reach you directly. Use a VPS, or Tailscale/ZeroTier.")
-        elif STATE["mapped"]:
-            out.append(f"    Router ports opened automatically (UPnP): {', '.join(STATE['mapped'])}")
-        else:
-            out.append(f"    Router ports were NOT opened ({STATE['upnp_error'] or 'UPnP off'}).\n"
-                       "    For internet play, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to "
-                       f"{lan}.")
-    out += [" Players run one of these once, then start PES 2021 -> eFootball -> Quick Match.",
-            " The same page is at http://<address>/ in a browser.", "=" * 72, ""]
+# ---- public web address (Cloudflare quick tunnel) ------------------------------------------------
+async def run_tunnel(port, on_url=None):
+    """Keep a free Cloudflare quick tunnel (https://<words>.trycloudflare.com -> http://127.0.0.1:port)
+    running. No account needed. The URL changes when the tunnel restarts."""
+    import asyncio, shutil
+    exe = shutil.which("cloudflared")
+    if not exe:
+        STATE["url_error"] = "cloudflared not installed"
+        return
+    while True:
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                exe, "tunnel", "--no-autoupdate", "--url", f"http://127.0.0.1:{port}",
+                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
+            async for line in proc.stderr:
+                m = re.search(rb"https://[a-z0-9-]+\.trycloudflare\.com", line)
+                if m and STATE.get("url") != m.group(0).decode():
+                    STATE["url"] = m.group(0).decode()
+                    log.info("public web address: %s", STATE["url"])
+                    if on_url:
+                        on_url(STATE["url"])
+            await proc.wait()
+            log.warning("tunnel exited (rc=%s); restarting in 30 s", proc.returncode)
+        except Exception as e:  # noqa: BLE001
+            log.warning("tunnel: %s", e)
+        STATE["url"] = None
+        await asyncio.sleep(30)
+
+
+def game_addrs():
+    """Addresses the game can use to reach this server, best first (the join scripts pick the first
+    one that answers /status with our server id)."""
+    pinned = os.environ.get("PESSERVER_PUBLIC_ADDR")
+    if pinned:
+        return [pinned]
+    out = []
+    for a in (STATE["lan"] or lan_ip(), STATE["wan"]):
+        if a and a not in out:
+            out.append(a)
+    return out
+
+
+def admin_password(data_dir):
+    """ADMIN_PASSWORD, or a random one created once in <data>/admin_password."""
+    pw = os.environ.get("ADMIN_PASSWORD")
+    if pw:
+        return pw
+    path = os.path.join(data_dir, "admin_password")
+    try:
+        return open(path).read().strip()
+    except OSError:
+        import secrets
+        alphabet = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        pw = "-".join("".join(secrets.choice(alphabet) for _ in range(4)) for _ in range(3))
+        with open(path, "w") as f:
+            f.write(pw + "\n")
+        os.chmod(path, 0o600)
+        return pw
+
+
+def banner(password=None, color=True):
+    """The startup screen (docker logs, install.sh)."""
+    c = (lambda code, t: f"\033[{code}m{t}\033[0m") if color else (lambda code, t: t)
+    B, D, G, C, Y = (lambda t: c("1", t)), (lambda t: c("2", t)), (lambda t: c("1;32", t)), \
+                    (lambda t: c("1;36", t)), (lambda t: c("1;33", t))
+    lan, wan, url = STATE["lan"] or lan_ip(), STATE["wan"], STATE.get("url")
+    pinned = os.environ.get("PESSERVER_PUBLIC_ADDR")
+    main = url or f"http://{pinned or wan or lan}"
+    line = D("  " + "─" * 66)
+    out = ["", line, f"   ⚽  {B('PES 2021 SERVER')}" + " " * 39 + G("● ONLINE"), line, "",
+           f"   {B('Your server')}    {C(main)}", "",
+           f"   {B('Send this to your friends')} {D('(they run it once)')}",
+           f"     Windows       {C(f'irm {main}/join | iex')}",
+           f"     Linux / Deck  {C(f'curl -fsSL {main}/join | bash')}"]
+    if not url and not pinned and wan and wan != lan:
+        out.append(D(f"     Same house?   use http://{lan} instead"))
+    out += ["", f"   {B('Admin page')}     {C(main + '/admin')}" + (D(f"   (or http://{lan}/admin)") if url else "")]
+    if password:
+        out.append(f"   {B('Password')}       {Y(password)}")
+    net = [f"LAN {lan}"] + ([f"Internet {wan}"] if wan else []) + ([f"fixed {pinned}"] if pinned else [])
+    if STATE["mapped"]:
+        net.append(G("router ports open ✓"))
+    out += ["", f"   {B('Network')}        " + D(" · ").join(net)]
+    if STATE["cgnat"]:
+        out.append(Y("   !  Your internet provider shares one public IP (CGNAT): friends outside your house\n"
+                     "      can't connect. Use Tailscale (see the README) or a cloud server."))
+    elif wan and not STATE["mapped"] and not pinned:
+        out.append(Y("   !  Router ports are closed") + D(f" ({STATE['upnp_error'] or 'UPnP off'}). For friends outside "
+                 f"your house,\n      enable UPnP on your router or forward TCP 80,443,8080,10000 + UDP 3478,7600 to {lan}."))
+    out += [line, ""]
     return "\n".join(out)

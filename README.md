@@ -13,18 +13,20 @@ Paste this in a terminal:
 curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh
 ```
 
-When it finishes, it shows a **join line** for your friends. Send it to them.
-Friends in your house use the *"your network"* line; everyone else uses the *"internet"* line.
+When it finishes, you get:
+- **your server's web address**, like `https://brave-tiger-moon.trycloudflare.com`;
+- **the line to send your friends**, which works for friends at home and far away;
+- **your admin page and password**, which show who's online, live scores, results and a league table.
 
 ## 2. Players: join (once)
 
 - **Windows:** open **PowerShell**, paste the join line, and click **Yes** when asked.
   ```
-  irm http://SERVER/join | iex
+  irm https://your-server-address/join | iex
   ```
 - **Linux / Steam Deck:** start the game once, close it, then paste in a terminal:
   ```
-  curl -fsSL http://SERVER/join | bash
+  curl -fsSL https://your-server-address/join | bash
   ```
 
 ## 3. Play
@@ -41,8 +43,9 @@ get matched.
 | "Unable to connect to the server" | Run the join line again |
 | Undo on a player's PC | Run the join line with `leave` instead of `join` |
 
-Server commands: `docker logs -f pesserver` (status and join lines) · `docker restart pesserver` ·
+Server commands: `docker logs pesserver` (shows the address and password again) · `docker restart pesserver` ·
 `docker rm -f pesserver` (stop). To update, run the install line again.
+The web address changes when the server restarts. Friends who already joined don't need to do anything.
 
 <details id="hosting-from-windows-or-mac"><summary><b>Hosting from Windows or Mac</b></summary>
 

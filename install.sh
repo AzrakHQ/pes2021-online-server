@@ -41,14 +41,13 @@ $DOCKER run -d --name pesserver --network host --restart unless-stopped \
   -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -v pesserver-data:/data "$IMAGE" >/dev/null
 
 i=0
-until out="$(curl -fsS http://127.0.0.1:8080/banner 2>/dev/null)" && [ "$out" != starting ]; do
+until out="$($DOCKER exec pesserver cat /data/banner.txt 2>/dev/null)" && [ -n "$out" ]; do
   i=$((i + 1))
-  if [ "$i" -gt 60 ]; then echo "The server did not start. See: $DOCKER logs pesserver"; exit 1; fi
+  if [ "$i" -gt 90 ]; then echo "The server did not start. See: $DOCKER logs pesserver"; exit 1; fi
   sleep 1
 done
-echo "$out"
-echo " Manage it:  $DOCKER logs -f pesserver   |   $DOCKER restart pesserver   |   $DOCKER rm -f pesserver"
-echo
+printf '%s\n' "$out"
+printf '   \033[2mStatus: %s logs -f pesserver   ·   Stop: %s rm -f pesserver   ·   Update: run this again\033[0m\n\n' "$DOCKER" "$DOCKER"
 
 # Playing on this PC too? Offer to set up the local game (needs a terminal to answer).
 for d in "$HOME/.steam/steam" "$HOME/.local/share/Steam"; do

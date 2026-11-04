@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PES 2021 Admin</title>
+<style>
+  :root { --bg:#f4f6f8; --fg:#14171c; --muted:#5f6876; --card:#fff; --line:#e1e5ea; --accent:#0a7d4f; --accent2:#e8f6ef;
+          --live:#d92d20; --warn:#b54708; --code:#eef1f4; --shadow:0 1px 2px rgba(16,24,40,.06); }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1014; --fg:#e7eaee; --muted:#98a2b3; --card:#161a20; --line:#272d36;
+          --accent:#3ccf8e; --accent2:#12261d; --live:#ff6b5f; --warn:#f5a524; --code:#1e232b; --shadow:none; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 48px; }
+  header { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+  h1 { font-size:22px; margin:0; }
+  .pill { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; padding:3px 10px; border-radius:99px; background:var(--accent2); color:var(--accent); }
+  .pill.live { background:transparent; color:var(--live); border:1px solid var(--live); }
+  .dot { width:8px; height:8px; border-radius:50%; background:currentColor; }
+  .muted { color:var(--muted); }
+  .grow { flex:1; }
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+  .tile { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow); }
+  .tile b { display:block; font-size:28px; line-height:1.1; }
+  .tile span { color:var(--muted); font-size:13px; }
+  .grid { display:grid; grid-template-columns:1.4fr 1fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px; min-width:0; }
+  h2 { font-size:15px; margin:0 0 12px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { text-align:left; color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; border-bottom:1px solid var(--line); }
+  td { padding:8px; border-bottom:1px solid var(--line); }
+  tr:last-child td { border-bottom:0; }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .match { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:10px; }
+  .match .side { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .match .side.away { text-align:right; }
+  .score { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; text-align:center; }
+  .phase { grid-column:1/-1; text-align:center; font-size:13px; }
+  .cmd { display:flex; gap:8px; margin:6px 0 10px; }
+  code { flex:1; min-width:0; background:var(--code); border-radius:8px; padding:9px 12px; font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overflow-x:auto; white-space:nowrap; }
+  button { border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:8px; padding:6px 12px; cursor:pointer; font:inherit; font-size:13px; }
+  button:hover { border-color:var(--accent); color:var(--accent); }
+  button.danger:hover { border-color:var(--live); color:var(--live); }
+  .feed { list-style:none; margin:0; padding:0; max-height:420px; overflow:auto; }
+  .feed li { display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .feed li:last-child { border-bottom:0; }
+  .feed time { color:var(--muted); font-variant-numeric:tabular-nums; min-width:44px; }
+  .k-goal { font-weight:600; } .k-result { color:var(--accent); font-weight:600; } .k-warn { color:var(--warn); }
+  .empty { color:var(--muted); font-size:14px; padding:8px 0; }
+  .net { display:flex; flex-wrap:wrap; gap:6px 18px; font-size:14px; }
+  .warn { color:var(--warn); font-size:14px; margin-top:8px; }
+  #login { max-width:360px; margin:12vh auto; }
+  #login input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--fg); font:inherit; margin:8px 0 12px; }
+  #login button { width:100%; padding:10px; font-size:15px; background:var(--accent); color:#fff; border-color:var(--accent); }
+  #err { color:var(--live); font-size:14px; min-height:20px; }
+  @media (max-width: 800px) { .tiles { grid-template-columns:repeat(2,1fr); } .grid { grid-template-columns:1fr; } .hide-sm { display:none; } }
+</style>
+</head>
+<body>
+<div id="login" class="card" hidden>
+  <h1>⚽ PES 2021 Admin</h1>
+  <p class="muted">The password is shown in the server's terminal when it starts (or run <code style="display:inline;padding:2px 6px">docker logs pesserver</code>).</p>
+  <form id="lf"><input id="pw" type="password" placeholder="Admin password" autocomplete="current-password" autofocus>
+  <button type="submit">Sign in</button></form>
+  <div id="err"></div>
+</div>
+
+<main id="app" hidden>
+  <header>
+    <h1>⚽ PES 2021 Server</h1>
+    <span class="pill"><span class="dot"></span>Online</span>
+    <span class="muted" id="uptime"></span>
+    <span class="grow"></span>
+    <button id="logout">Sign out</button>
+  </header>
+
+  <div class="tiles">
+    <div class="tile"><b id="t-online">0</b><span>players online</span></div>
+    <div class="tile"><b id="t-search">0</b><span>looking for a match</span></div>
+    <div class="tile"><b id="t-live">0</b><span>matches live</span></div>
+    <div class="tile"><b id="t-played">0</b><span>matches played</span></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card"><h2>Live matches</h2><div id="live"></div></div>
+      <div class="card"><h2>Online now</h2><div id="online"></div></div>
+      <div class="card"><h2>Recent results</h2><div id="results"></div></div>
+      <div class="card"><h2>Players</h2><div id="players"></div></div>
+    </div>
+    <div>
+      <div class="card">
+        <h2>Invite friends</h2>
+        <div class="muted" style="font-size:13px">Windows (PowerShell)</div>
+        <div class="cmd"><code id="jw"></code><button data-copy="jw">Copy</button></div>
+        <div class="muted" style="font-size:13px">Linux / Steam Deck</div>
+        <div class="cmd"><code id="jl"></code><button data-copy="jl">Copy</button></div>
+        <div class="muted" style="font-size:13px">Instructions page</div>
+        <div class="cmd"><code id="jp"></code><button data-copy="jp">Copy</button></div>
+      </div>
+      <div class="card"><h2>Activity</h2><ul class="feed" id="feed"></ul></div>
+      <div class="card"><h2>Network</h2><div class="net" id="net"></div><div id="netwarn"></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let pw = ""; try { pw = localStorage.getItem("pes-admin") || ""; } catch (e) {}
+let timer = null;
+
+function ago(t, now) {
+  const s = Math.max(0, Math.round(now - t));
+  if (s < 60) return s + "s"; if (s < 3600) return Math.floor(s / 60) + "m";
+  if (s < 86400) return Math.floor(s / 3600) + "h " + Math.floor(s % 3600 / 60) + "m";
+  return Math.floor(s / 86400) + "d";
+}
+const clock = t => new Date(t * 1000).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
+const day = t => new Date(t * 1000).toLocaleDateString([], {month: "short", day: "numeric"});
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, {...opts, headers: {...(opts.headers || {}), Authorization: "Bearer " + pw}});
+  if (r.status === 401) throw new Error("auth");
+  return r.json();
+}
+
+function showLogin(msg) {
+  clearInterval(timer); $("app").hidden = true; $("login").hidden = false; $("err").textContent = msg || "";
+}
+
+async function refresh() {
+  let d;
+  try { d = await api("/admin/api/state"); } catch (e) {
+    if (e.message === "auth") { try { localStorage.removeItem("pes-admin"); } catch (_) {} return showLogin(pw ? "Wrong password." : ""); }
+    return;  // network hiccup: keep the last view
+  }
+  $("login").hidden = true; $("app").hidden = false;
+  const now = d.now;
+  $("uptime").textContent = "up " + ago(now - d.uptime, now);
+  $("t-online").textContent = d.online.length;
+  $("t-search").textContent = d.searching;
+  $("t-live").textContent = d.live.length;
+  $("t-played").textContent = d.results.length >= 50 ? "50+" : d.results.length;
+
+  $("live").innerHTML = d.live.length ? d.live.map(m => `
+    <div class="match">
+      <div class="side">${esc(m.home_name)}</div>
+      <div class="score">${m.home_score} – ${m.away_score}</div>
+      <div class="side away">${esc(m.away_name)}</div>
+      <div class="phase"><span class="pill live"><span class="dot"></span>${esc(m.phase)}</span>
+        <span class="muted">&nbsp;${m.kickoff ? "kicked off " + ago(m.kickoff, now) + " ago" : "getting ready"}</span></div>
+    </div>`).join("") : `<div class="empty">No match right now.</div>`;
+
+  $("online").innerHTML = d.online.length ? `<table><tr><th>Player</th><th>Status</th><th class="hide-sm">IP</th><th class="num">Online</th><th></th></tr>` +
+    d.online.map(p => `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.status)}</td><td class="hide-sm muted">${esc(p.ip)}</td>
+      <td class="num muted">${ago(p.since, now)}</td><td class="num"><button class="danger" data-kick="${p.pid}" data-name="${esc(p.name)}">Kick</button></td></tr>`).join("") + `</table>`
+    : `<div class="empty">Nobody is online. Share the invite commands to get friends in.</div>`;
+
+  $("results").innerHTML = d.results.length ? `<table><tr><th>When</th><th>Home</th><th class="num">Score</th><th>Away</th></tr>` +
+    d.results.slice(0, 15).map(r => `<tr><td class="muted">${day(r.ended)} ${clock(r.ended)}</td><td>${esc(r.home_name)}</td>
+      <td class="num"><b>${r.home_score} – ${r.away_score}</b></td><td>${esc(r.away_name)}${r.reason ? ` <span class="muted">(ended early)</span>` : ""}</td></tr>`).join("") + `</table>`
+    : `<div class="empty">No finished matches yet.</div>`;
+
+  const ranked = [...d.players].sort((a, b) => (b.won * 3 + b.drawn) - (a.won * 3 + a.drawn) || b.played - a.played);
+  $("players").innerHTML = ranked.length ? `<table><tr><th>#</th><th>Player</th><th class="num">P</th><th class="num">W</th><th class="num">D</th><th class="num">L</th><th class="num">Pts</th><th class="num hide-sm">Last seen</th></tr>` +
+    ranked.map((p, i) => `<tr><td class="muted">${i + 1}</td><td><b>${esc(p.name)}</b>${p.online ? ` <span class="pill" style="padding:0 8px;font-size:11px">online</span>` : ""}</td>
+      <td class="num">${p.played}</td><td class="num">${p.won}</td><td class="num">${p.drawn}</td><td class="num">${p.lost}</td>
+      <td class="num"><b>${p.won * 3 + p.drawn}</b></td><td class="num muted hide-sm">${p.last_login ? ago(p.last_login, now) + " ago" : "–"}</td></tr>`).join("") + `</table>`
+    : `<div class="empty">No players yet.</div>`;
+
+  $("feed").innerHTML = d.feed.length ? d.feed.map(f => `<li><time>${clock(f.t)}</time><span class="k-${f.kind}">${esc(f.text)}</span></li>`).join("")
+    : `<li class="empty">Nothing yet.</li>`;
+
+  const s = d.server;
+  $("jw").textContent = s.join_windows; $("jl").textContent = s.join_linux; $("jp").textContent = s.main;
+  const net = [];
+  if (s.url) net.push(`<span>Web address <b>${esc(s.url)}</b></span>`);
+  net.push(`<span>LAN <b>${esc(s.lan)}</b></span>`);
+  if (s.wan) net.push(`<span>Internet <b>${esc(s.wan)}</b></span>`);
+  if (s.pinned) net.push(`<span>Fixed address <b>${esc(s.pinned)}</b></span>`);
+  net.push(`<span>Router ports <b>${s.ports_open.length ? "open ✓" : "closed"}</b></span>`);
+  $("net").innerHTML = net.join("");
+  $("netwarn").innerHTML = s.cgnat ? `<div class="warn">Your internet provider shares one public IP (CGNAT). Friends outside your network can't connect directly; use Tailscale.</div>`
+    : (!s.ports_open.length && s.wan && !s.pinned) ? `<div class="warn">Router ports are closed${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Enable UPnP on your router for friends outside your network.</div>` : "";
+}
+
+document.addEventListener("click", async e => {
+  const c = e.target.closest("[data-copy]");
+  if (c) { navigator.clipboard?.writeText($(c.dataset.copy).textContent).then(() => { c.textContent = "Copied"; setTimeout(() => c.textContent = "Copy", 1400); }); }
+  const k = e.target.closest("[data-kick]");
+  if (k && confirm(`Kick ${k.dataset.name}? Their game will disconnect from the server.`)) {
+    await api("/admin/api/kick", {method: "POST", body: JSON.stringify({pid: +k.dataset.kick})}).catch(() => {});
+    refresh();
+  }
+});
+$("lf").onsubmit = e => { e.preventDefault(); pw = $("pw").value.trim(); try { localStorage.setItem("pes-admin", pw); } catch (_) {} start(); };
+$("logout").onclick = () => { pw = ""; try { localStorage.removeItem("pes-admin"); } catch (_) {} showLogin(); };
+
+function start() { clearInterval(timer); refresh(); timer = setInterval(refresh, 3000); }
+pw ? start() : showLogin();
+</script>
+</body>
+</html>
