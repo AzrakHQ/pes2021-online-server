@@ -31,7 +31,8 @@ async def run(a):
     from . import netsetup
     data_dir = _os.path.dirname(_os.path.abspath(a.db))
     svc.admin_password = netsetup.admin_password(data_dir)
-    banner_file = _os.path.join(data_dir, "banner.txt")
+    # inside the container, not the data volume: a stale copy must never be shown by install.sh
+    banner_file = _os.environ.get("PESSERVER_BANNER_FILE", "/tmp/pesserver-banner.txt")
     try:
         _os.unlink(banner_file)
     except OSError:

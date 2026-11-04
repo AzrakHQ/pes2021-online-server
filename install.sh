@@ -41,7 +41,7 @@ $DOCKER run -d --name pesserver --network host --restart unless-stopped \
   -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -v pesserver-data:/data "$IMAGE" >/dev/null
 
 i=0
-until out="$($DOCKER exec pesserver cat /data/banner.txt 2>/dev/null)" && [ -n "$out" ]; do
+until out="$($DOCKER exec pesserver cat /tmp/pesserver-banner.txt 2>/dev/null)" && [ -n "$out" ]; do
   i=$((i + 1))
   if [ "$i" -gt 90 ]; then echo "The server did not start. See: $DOCKER logs pesserver"; exit 1; fi
   sleep 1
