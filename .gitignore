@@ -3,9 +3,10 @@
 !/.gitignore
 !/README.md
 !/docker-compose.yml
-!/docker-compose.host.yml
+!/docker-compose.bridge.yml
+!/install.sh
+!/.github/
 !/server/
-!/client/
 !/notes/
 /notes/*
 !/notes/network-map.html
@@ -19,7 +20,6 @@
 server-data/
 server/certs/
 *.db
-client/.ca.crt
 __pycache__/
 *.pyc
 .pytest_cache/

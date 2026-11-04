@@ -1,18 +1,103 @@
 # PES 2021 Private Server
 
-Play **eFootball PES 2021 SEASON UPDATE** (PC, Steam, v1.01.00) online again: Quick Match
-between two players, through a server you run yourself.
+Play **eFootball PES 2021 SEASON UPDATE** (PC, Steam, v1.01.00) online again, on a server you run
+yourself. Konami shut down the official servers; this one speaks the game's own network protocol,
+so **the game is not modified**.
 
-Konami shut down the official servers. This server speaks the game's own network protocol, so
-**the game is not modified**. Each player only points a few Konami hostnames at your server and
-trusts its certificate.
+**What works:** login, online menus, the network test, eFootball **Quick Match** matchmaking, full
+90-minute matches between players, results, and straight back into the next match.
+**Not yet:** myClub, rankings, events, rooms/lobbies, and a relay for players who can't connect to
+each other directly.
 
-**What works:** login, online menus, the network test, eFootball **Quick Match**
-matchmaking, a full 90-minute match between two players, results, and back to the menu for the
-next match.
+---
 
-**Not yet:** myClub, rankings and ratings, events, rooms and lobbies, and a relay for players who
-cannot connect to each other directly.
+## 1. Host the server: one command
+
+On any Linux machine (gaming PC, home server, Raspberry Pi, VPS):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh
+```
+
+That's it. The installer:
+- installs Docker if it's missing;
+- starts the server, which restarts by itself after a reboot;
+- opens the needed ports on your router automatically (UPnP);
+- prints the command your players run:
+
+```
+========================================================================
+ PES 2021 private server is running
+========================================================================
+ Players on your network (192.168.1.50):
+   Windows (PowerShell):    irm http://192.168.1.50/join | iex
+   Linux / Steam Deck:      curl -fsSL http://192.168.1.50/join | bash
+
+ Players over the internet (203.0.113.7):
+   Windows (PowerShell):    irm http://203.0.113.7/join | iex
+   Linux / Steam Deck:      curl -fsSL http://203.0.113.7/join | bash
+    Router ports opened automatically (UPnP): 80/tcp, 443/tcp, 8080/tcp, 10000/tcp, 3478/udp, 7600/udp
+========================================================================
+```
+
+If PES 2021 is installed on the same PC, the installer offers to set it up too, so the host can play.
+
+**Manage it:** `docker logs -f pesserver` (see who logs in and which matches start; it also shows the
+player commands again), `docker restart pesserver`, `docker rm -f pesserver` (stop). Run the
+installer again to update; player names and the certificate are kept.
+
+**Options** (put them before `sh`, e.g. `... | UPNP=0 sh`):
+
+| Variable | Effect |
+|---|---|
+| `UPNP=0` | don't touch the router; forward the ports yourself |
+| `PUBLIC_IP=<addr>` | give every player this address (e.g. a Tailscale/ZeroTier IP) instead of auto-detecting |
+
+<details id="windows-or-macos-host"><summary><b>Windows or macOS host (Docker Desktop)</b></summary>
+
+Docker Desktop runs containers inside a VM, so the server can't see your network or talk to your
+router. Download this repo (**Code → Download ZIP**), then in the repo folder:
+
+```
+echo PUBLIC_IP=192.168.1.50 > .env
+docker compose -f docker-compose.bridge.yml up -d
+docker compose -f docker-compose.bridge.yml logs
+```
+`PUBLIC_IP` is the address your players use. For internet play, forward TCP 80, 443, 8080 and 10000
+and UDP 3478 and 7600 on your router to this PC.
+</details>
+
+<details><summary><b>VPS / cloud server</b></summary>
+
+The installer works as-is. Allow these ports in the provider's firewall: TCP 80, 443, 8080, 10000 and
+UDP 3478, 7600. A small instance is enough; the server uses about 50 MB of RAM.
+</details>
+
+## 2. Players: one command
+
+Each player runs the line from the host's banner once. Use the "your network" line on the same LAN,
+and the "internet" line otherwise. Opening `http://<server>/` in a browser shows the same commands
+with copy buttons.
+
+- **Windows:** open PowerShell (Start menu → type `powershell`) and paste
+  `irm http://SERVER/join | iex`. Accept the administrator prompt. When PES 2021 first goes
+  online and Windows Firewall asks, click **Allow**.
+- **Linux / Steam Deck:** start the game once from Steam, close it, then in a terminal run
+  `curl -fsSL http://SERVER/join | bash`. It asks for your sudo password; on a Steam Deck, set one
+  first with `passwd` in Desktop Mode.
+
+The script points the game's Konami hostnames at the server (hosts file) and trusts the server's
+certificate. On Linux the certificate is trusted only inside the game's Proton prefix. To undo it,
+use the same command with `leave` instead of `join`.
+
+## 3. Play
+
+1. Start PES 2021 and press a button on the title screen. The first time only, choose your region,
+   open each document on the terms screen, tick *I agree*, press *Accept*, and pick a user name.
+2. Main menu → **eFootball** → **Quick Match**. The game tests your network, then says
+   *No new Live Update available*. Press **OK**.
+3. Choose a team → **Go to Matchmaking**. When two players are searching, the server pairs them.
+   Press **Proceed** at *View Opponent*, then both press **Kick Off**.
 
 ---
 
@@ -21,161 +106,45 @@ cannot connect to each other directly.
 ```
  Player A (PES 2021) ──┐                     ┌── Player B (PES 2021)
                        ├──>  this server  <──┤      login, menus, matchmaking
-                       │    (Docker)         │
+                       │                     │
                        └─────── UDP ─────────┘      the match itself: player to player
 ```
 
-The server handles login and matchmaking. During the match the two games talk **directly to
-each other**, so the two players must be able to reach each other over UDP.
-
-- **Same LAN:** nothing extra is needed.
-- **Over the internet:** the easiest way is to put everyone on one virtual LAN with
-  [Tailscale](https://tailscale.com) or ZeroTier, and use the server's Tailscale/ZeroTier IP
-  everywhere below.
-
----
-
-## Step 1: Host the server (one person)
-
-You need [Docker](https://docs.docker.com/get-docker/) with Docker Compose.
-
-```bash
-git clone https://github.com/MohamedAliRashad/pes2021-private-server.git
-cd pes2021-private-server
-echo "PUBLIC_IP=192.168.1.50" > .env                       # the IP players connect to (see below)
-echo "COMPOSE_FILE=docker-compose.host.yml" >> .env        # Linux hosts only (recommended)
-docker compose up -d --build
-```
-
-- **`PUBLIC_IP`:** the address the **players' PCs** use to reach the server. Use the LAN IP on a
-  LAN, the Tailscale/ZeroTier IP on a virtual LAN, or a public IP if you forward ports.
-- **`COMPOSE_FILE` line (Linux only):** this runs the container on the host's own network. It is
-  **required if you also play on the server PC**: the game's network test sends UDP from a socket
-  bound to the network card, and that socket can't reach Docker's internal bridge. On Windows or
-  macOS with Docker Desktop, leave this line out.
-- **First start:** the server creates its own certificate authority in `./server-data/certs/`.
-- **Check it works:** open `http://PUBLIC_IP:8080/ca.crt` in a browser. It should download a
-  file.
-
-Open these ports in your firewall, and forward them on your router for internet play without a
-VPN:
-
-| Port | Used for |
-|---|---|
-| 10000/tcp | login, menus, matchmaking |
-| 8080/tcp | web API, certificate download |
-| 443/tcp | the game's HTTPS network test |
-| 3478/udp | NAT test (STUN) |
-
-Useful commands (run them in the repo folder):
-
-```bash
-docker compose logs -f        # watch players log in and matches start
-docker compose restart        # restart
-docker compose down           # stop (player names and the certificate stay in ./server-data)
-git pull && docker compose up -d --build    # update to the latest version
-```
-
-To change `PUBLIC_IP` later, edit `.env` and run `docker compose up -d`. The server reissues its
-certificate under the same CA. Players only rerun their setup script with the new address.
-
----
-
-## Step 2: Set up each player's PC (every player, once)
-
-You need the official Steam game, version 1.01.00. The game files are not touched.
-
-### Windows
-
-1. Download this repo: **Code → Download ZIP** on GitHub, then unzip it.
-2. Open **PowerShell as administrator**: Start menu → type `powershell` → right-click →
-   *Run as administrator*.
-3. Run the setup script, replacing `SERVER_IP` with the host's `PUBLIC_IP`. You may need to
-   change the path to where you unzipped the repo.
-   ```powershell
-   cd $HOME\Downloads\pes2021-private-server-main\client
-   powershell -ExecutionPolicy Bypass -File .\windows-setup.ps1 -Server SERVER_IP
-   ```
-   The script adds the Konami hostnames to your `hosts` file, pointing at the server. It also
-   adds the server's certificate to Windows' trusted roots.
-4. When PES 2021 first goes online and Windows Firewall asks, click **Allow**.
-
-To undo everything: `powershell -ExecutionPolicy Bypass -File .\windows-setup.ps1 -Uninstall`
-
-<details><summary>Manual setup (instead of the script)</summary>
-
-1. As administrator, add these lines to `C:\Windows\System32\drivers\etc\hosts`:
-   ```
-   SERVER_IP  pes21-x64-gate.cs.konami.net
-   SERVER_IP  pes21-x64-stun.cs.konami.net
-   SERVER_IP  ntl.service.konami.net
-   SERVER_IP  ntleu.service.konami.net
-   SERVER_IP  ntlus.service.konami.net
-   SERVER_IP  ntljp.service.konami.net
-   ```
-2. Download `http://SERVER_IP:8080/ca.crt`, then in an administrator command prompt run
-   `certutil -addstore -f Root ca.crt`.
-</details>
-
-### Linux / Steam Deck (Proton)
-
-Start the game once with Proton so its prefix exists, close it, then run:
-
-```bash
-git clone https://github.com/MohamedAliRashad/pes2021-private-server.git
-cd pes2021-private-server/client
-./linux-setup.sh SERVER_IP          # asks for sudo to edit /etc/hosts
-```
-
-The script does two things:
-- adds the same hostnames to `/etc/hosts`;
-- trusts the certificate **only inside the game's Wine prefix**, which is
-  `~/.steam/steam/steamapps/compatdata/1259970/pfx`.
-
-If your Proton version or prefix is somewhere else, set `PROTON_WINE=/path/to/proton/files/bin/wine`
-and/or `PES_PREFIX=/path/to/pfx`.
-
-To undo: `./linux-setup.sh --uninstall`
-
----
-
-## Step 3: Play
-
-1. Start PES 2021 and press a button on the title screen. The first time only:
-   - choose your country or region;
-   - open each document on the terms screen, tick *I agree* and press *Accept*;
-   - pick a user name.
-2. Main menu → **eFootball** → **Quick Match**. The game tests your network, then says
-   *No new Live Update available*. Press **OK**.
-3. Choose a team → **Go to Matchmaking**. When two players are searching, the server pairs them.
-   Press **Proceed** at *View Opponent*.
-4. In the pre-match menu, both players press **Kick Off**. Have fun.
-
----
+The server handles login and matchmaking. During a match the two games talk **directly to each
+other** over UDP.
+- **Same LAN:** always works.
+- **Over the internet:** the game does its own NAT traversal, which works with most home routers. If
+  two players can't connect ("Failed to connect with opponent"), put everyone on one virtual LAN
+  with [Tailscale](https://tailscale.com) or [ZeroTier](https://zerotier.com) (both free for small
+  groups), and install the server with `PUBLIC_IP=<the host's Tailscale/ZeroTier IP>`.
+- **Your ISP shares one public IP between customers (CGNAT):** the banner warns you. Internet
+  players can't reach a server at home then; use a VPS or Tailscale/ZeroTier.
 
 ## Troubleshooting
 
 | What you see | What to check |
 |---|---|
-| "Unable to connect to the server" at login | The hosts entries are missing, or port 10000 can't be reached. Test `http://SERVER_IP:8080/ca.crt` in a browser on that PC. |
-| The network test fails, or eFootball modes are locked | The certificate isn't trusted (run the setup again), or port 443 or UDP 3478 is blocked on the server. |
-| Matchmaking keeps searching | Both players must be in eFootball **Quick Match** and searching at the same time. Check `docker compose logs`. |
-| "Failed to connect with opponent" | The two players' PCs can't reach each other over UDP. Use Tailscale/ZeroTier or a LAN. |
+| "Unable to connect to the server" at login | Rerun the join command. Check that `http://SERVER/` opens in a browser on that PC. |
+| The network test fails, or eFootball modes are locked | The certificate isn't trusted (rerun the join command with the game closed), or ports 443/tcp and 3478/udp aren't reachable. |
+| Matchmaking keeps searching | Both players must be in eFootball **Quick Match** and searching at the same time. Check `docker logs pesserver`. |
+| "Failed to connect with opponent" | The two players' PCs can't reach each other over UDP; see *Over the internet* above. |
 | The match ends with a "no operation" message | The game's own AFK rule: a player gave no input for about 50 seconds. |
-
-Server logs show every request decoded: `docker compose logs -f | grep -E "CMD_LOGIN|MATCH FOUND|GAMEPHASE"`.
-
----
+| Banner says router ports were NOT opened | Enable UPnP on your router, or forward the listed ports to the host manually. |
 
 ## For developers
 
 | Path | What |
 |---|---|
-| `server/` | The server (Python 3, `msgpack` + `cryptography`), `Dockerfile`, tests (`cd server && python3 -m pytest`) |
-| `server/README.md` | Server internals, running it without Docker |
-| `client/` | Player setup scripts (Windows, Linux/Proton) |
-| `notes/network-map.html` | The full reverse-engineered protocol: frame format, crypto, every command in the login, matchmaking and match flow, error codes |
-| `notes/re/` | Reverse-engineering helpers: schema extraction, error-code decoder, sample captures used by the tests |
+| `install.sh` | the one-command host installer |
+| `server/` | the server (Python 3, `msgpack` + `cryptography`), `Dockerfile`, tests (`cd server && python3 -m pytest`) |
+| `server/pesserver/web/` | the player pages and join scripts the server hands out |
+| `server/README.md` | server internals, running without Docker |
+| `docker-compose.yml` | the same as the installer, for `docker compose up -d` from a clone (`build: ./server`) |
+| `notes/network-map.html` | the full reverse-engineered protocol: frame format, crypto, every command in the login, matchmaking and match flow, error codes |
+| `notes/re/` | reverse-engineering helpers and sample captures used by the tests |
+
+Every push to `main` builds and publishes the image `ghcr.io/mohamedalirashad/pes2021-private-server`
+(amd64 and arm64) through GitHub Actions.
 
 This is a preservation and interoperability project and has no affiliation with Konami. You need
 your own legal copy of the game. The server stores only a player name per Steam ID.

@@ -11,29 +11,36 @@ Requires Python 3.10+.
 pip install msgpack cryptography
 cd server
 # certificate for the HTTPS network test: certs/server.crt (chain) + certs/server.key, next to the DB.
-# Easiest: reuse ./server-data/certs created by the Docker image (docker-entrypoint.sh).
-PESSERVER_PUBLIC_ADDR=192.168.1.50 python3 -m pesserver --db pes.db serve \
-    --host 0.0.0.0 --public-ip 192.168.1.50 --https-port 8443
+# Easiest: reuse the certs created by the Docker image (docker-entrypoint.sh).
+sudo python3 -m pesserver --db data/pes.db serve --host 0.0.0.0 --auto-net --join-port 80 --https-port 443
 ```
 
-The HTTPS endpoint listens on 8443. Players' games connect to port 443, so forward 443 to 8443,
-or run with `--https-port 443` as root.
+`--auto-net` detects the LAN and public addresses and opens the router ports with UPnP
+(`UPNP=0` disables UPnP). `--public-ip ADDR` pins one address for every client instead.
+Ports below 1024 need root; otherwise use e.g. `--https-port 8443` and forward 443 to it.
 
 | Port | Service | Module |
 |---|---|---|
+| 80/tcp | player pages: `/` instructions, `/join`, `/leave` (setup script picked by User-Agent) | `httpgate.py`, `web/` |
+| 443/tcp | HTTPS `GateInfo.php` (NAT test) | `httpgate.py` |
+| 8080/tcp | web API (form POST → msgpack), `/ca.crt`, `/banner`, also the player pages | `httpgate.py` |
 | 10000/tcp | game gate: login, menus, matchmaking (NclMio protocol) | `gate.py`, `ncl.py` |
-| 8080/tcp | web API (form POST → msgpack), `/ca.crt` | `httpgate.py` |
-| 8443/tcp | HTTPS `GateInfo.php` (NAT test) | `httpgate.py` |
 | 3478/udp | STUN binding (NAT test) | `stun.py` |
 | 7600/udp | game-relay placeholder (logs only) | `stun.py` |
+
+**Which address clients get:** with `--auto-net`, each client is told the address it can reach. A
+client on a private network (LAN, Tailscale/ZeroTier, loopback) gets the local address it connected
+to; a client from the internet gets the detected public IP (`netsetup.advertised_addr`).
 
 Environment variables:
 
 | Variable | Purpose |
 |---|---|
-| `PESSERVER_PUBLIC_ADDR` | the IP handed to clients in server/URL lists |
+| `PESSERVER_PUBLIC_ADDR` | pin the IP handed to clients in server/URL lists |
 | `PESSERVER_HTTP_PORT` | port used in URL lists (default 8080) |
 | `PESSERVER_RXLOG` | path of a JSONL log of every decoded message (optional) |
+| `UPNP` | `0` = don't open router ports |
+| `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
 
 ## Code layout
 
@@ -44,6 +51,8 @@ Environment variables:
 | `pesserver/pesmatch.py` | Quick Match queue and pairing, `CMD_WATCH_MATCHING` push, game relay info, peer notice relay |
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |
+| `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner |
+| `pesserver/web/` | player page, `join.ps1` / `join.sh` (served with the server address filled in), Proton CA installer |
 | `pesserver/schemas.json` | response schemas of ~400 commands, extracted from the client (`notes/re/extract_schemas.py`) |
 | `pesserver/service.py`, `gate.py` | session handling and dispatch |
 | `pesserver/accounts.py`, `matchmaking.py`, `devclient.py` | SQLite accounts, generic queue, JSON dev client (used by `tests/`) |

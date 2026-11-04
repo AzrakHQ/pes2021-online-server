@@ -20,12 +20,31 @@ async def run(a):
                                                 _os.path.join(cert, "server.key"), a.public_ip or "127.0.0.1",
                                                 a.stun_port, a.gate_port))
         logging.info("https tcp/%d", a.https_port)
+    if a.join_port and a.join_port != a.http_port:      # short URLs for players: http://server/join
+        try:
+            servers.append(await httpgate.serve(svc, a.host, a.join_port))
+        except OSError as e:
+            logging.warning("join page not on port %d (%s); use :%d instead", a.join_port, e, a.http_port)
     st = await stun.serve(a.stun_host or a.host, a.stun_port)
     await stun.serve_relay(a.stun_host or a.host, int(_os.environ.get("PESSERVER_RELAY_PORT", "7600")))
     logging.info("gate tcp/%d  http tcp/%d  stun udp/%d", a.gate_port, a.http_port, a.stun_port)
+    from . import netsetup
+    if a.auto_net:
+        await asyncio.to_thread(netsetup.setup, use_upnp=_os.environ.get("UPNP", "1") != "0")
+    else:
+        netsetup.STATE["lan"] = netsetup.lan_ip()
+    netsetup.STATE["ready"] = True
+    print(netsetup.banner(a.http_port), flush=True)
+    stop = asyncio.Event()
+    import signal
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        asyncio.get_running_loop().add_signal_handler(sig, stop.set)
     try:
-        await asyncio.Event().wait()
+        await stop.wait()
     finally:
+        logging.info("shutting down")
+        if a.auto_net:
+            await asyncio.to_thread(netsetup.teardown)
         st.close()
         for s in servers:
             s.close()
@@ -44,6 +63,9 @@ def main():
     s.add_argument("--stun-port", type=int, default=3478)
     s.add_argument("--https-port", type=int, default=8443)
     s.add_argument("--stun-host", help="bind address for STUN (default: --host)")
+    s.add_argument("--join-port", type=int, default=0, help="also serve the player pages on this port (80)")
+    s.add_argument("--auto-net", action="store_true",
+                   help="detect LAN/public addresses and open router ports with UPnP")
     u = sub.add_parser("adduser"); u.add_argument("name"); u.add_argument("password"); u.add_argument("--steam-id")
     a = p.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")

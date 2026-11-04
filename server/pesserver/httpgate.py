@@ -17,7 +17,11 @@ def make_handler(service, stun_host, stun_port, gate_port):
             if int(headers.get("content-length", 0)):
                 body = await reader.readexactly(min(int(headers["content-length"]), 1 << 16))
             log.info("HTTP %s %s hdr=%s body=%r", method, path, headers, body[:300])
-            if path.startswith("/status"):
+            route = path.split("?", 1)[0].rstrip("/").lower()
+            if method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
+                                             "/leave.ps1", "/install-ca-proton.py", "/banner"):
+                out, ctype = _web(service, route, headers, writer)
+            elif path.startswith("/status"):
                 out = json.dumps({"online": len(service.online), "queued": len(service.mm.queue),
                                   "rooms": len(service.mm.rooms)}).encode(); ctype = "application/json"
             elif path.rstrip("/") == "/ca.crt":
@@ -73,6 +77,37 @@ def make_handler(service, stun_host, stun_port, gate_port):
         finally:
             writer.close()
     return on_conn
+
+
+WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
+
+
+def _web(service, route, headers, writer):
+    """Player-facing pages: '/' (instructions), '/join' and '/leave' (setup script for the caller's
+    OS, picked from the User-Agent: PowerShell -> .ps1, curl/wget -> bash, browser -> the page)."""
+    from . import netsetup
+    host = headers.get("host", "").strip()
+    if not host:
+        from types import SimpleNamespace
+        conn = SimpleNamespace(peer_ip=(writer.get_extra_info("peername") or ("",))[0],
+                               local_ip=(writer.get_extra_info("sockname") or ("",))[0])
+        host = netsetup.advertised_addr(service, conn)
+    server = host.rsplit(":", 1)[0] if host.count(":") == 1 else host
+    if route == "/banner":
+        return (netsetup.banner() if netsetup.STATE["ready"] else "starting").encode(), "text/plain; charset=utf-8"
+    if route == "/install-ca-proton.py":
+        return open(os.path.join(WEB, "install-ca-proton.py"), "rb").read(), "text/x-python"
+    ua = headers.get("user-agent", "").lower()
+    if route.endswith(".ps1") or (route in ("/join", "/leave") and "powershell" in ua):
+        name, ctype = "join.ps1", "text/plain; charset=utf-8"
+    elif route.endswith(".sh") or (route in ("/join", "/leave") and ua.startswith(("curl/", "wget/"))):
+        name, ctype = "join.sh", "text/x-shellscript; charset=utf-8"
+    else:
+        name, ctype = "index.html", "text/html; charset=utf-8"
+    text = open(os.path.join(WEB, name), encoding="utf-8").read()
+    text = (text.replace("@@SERVER@@", server).replace("@@BASE@@", "http://" + host)
+                .replace("@@UNINSTALL@@", "1" if "/leave" in route else "0"))
+    return text.encode(), ctype
 
 
 async def serve_tls(service, host, port, certfile, keyfile, stun_host="127.0.0.1", stun_port=3478, gate_port=10000):

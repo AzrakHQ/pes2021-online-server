@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PES 2021 Server</title>
+<style>
+  :root { --bg:#f6f7f9; --fg:#16181d; --muted:#5d6470; --card:#fff; --line:#dde1e7; --accent:#1f6feb; --code:#eef1f5; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f1115; --fg:#e8eaee; --muted:#9aa3b0; --card:#171a20; --line:#2a2f38; --accent:#58a6ff; --code:#1f232b; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:32px 16px 48px; }
+  h1 { font-size:28px; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 24px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin:0 0 16px; }
+  h2 { font-size:17px; margin:0 0 8px; }
+  .cmd { display:flex; gap:8px; align-items:stretch; margin:8px 0 4px; }
+  code { flex:1; background:var(--code); border-radius:8px; padding:10px 12px; font:14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-x:auto; white-space:nowrap; }
+  button { border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:8px; padding:0 14px; cursor:pointer; font:inherit; font-size:14px; }
+  button:hover { border-color:var(--accent); color:var(--accent); }
+  p, li { color:var(--muted); }
+  ol { padding-left:20px; margin:8px 0 0; }
+  .stat { font-weight:600; color:var(--fg); }
+</style>
+</head>
+<body>
+<main>
+  <h1>PES 2021 Server</h1>
+  <p class="sub">Server <span class="stat">@@SERVER@@</span> · <span class="stat" id="online">…</span></p>
+
+  <div class="card">
+    <h2>1. Set up your PC (once)</h2>
+    <p>You need PES 2021 on Steam (version 1.01.00). The game is not modified.</p>
+    <p><b>Windows</b>: open PowerShell (Start menu → type <i>powershell</i>) and paste:</p>
+    <div class="cmd"><code id="w">irm @@BASE@@/join | iex</code><button data-c="w">Copy</button></div>
+    <p><b>Linux / Steam Deck</b>: start the game once from Steam, close it, then in a terminal paste:</p>
+    <div class="cmd"><code id="l">curl -fsSL @@BASE@@/join | bash</code><button data-c="l">Copy</button></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Play</h2>
+    <ol>
+      <li>Start PES 2021. The first time, pick your region, accept the terms and choose a name.</li>
+      <li>Main menu → <b>eFootball</b> → <b>Quick Match</b>. Choose a team → <b>Go to Matchmaking</b>.</li>
+      <li>When two players are searching, the server pairs them. Both press <b>Kick Off</b>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Undo</h2>
+    <div class="cmd"><code id="uw">irm @@BASE@@/leave | iex</code><button data-c="uw">Copy</button></div>
+    <div class="cmd"><code id="ul">curl -fsSL @@BASE@@/leave | bash</code><button data-c="ul">Copy</button></div>
+  </div>
+</main>
+<script>
+  document.querySelectorAll("button[data-c]").forEach(b => b.onclick = () => {
+    const t = document.getElementById(b.dataset.c).textContent;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(
+      () => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500); }, () => {});
+  });
+  fetch("/status").then(r => r.json()).then(s => {
+    document.getElementById("online").textContent = s.online + " online · " + s.queued + " searching";
+  }).catch(() => { document.getElementById("online").textContent = "online"; });
+</script>
+</body>
+</html>

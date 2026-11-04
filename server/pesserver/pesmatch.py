@@ -199,7 +199,8 @@ def _room_of(svc, pid):
 @cmd("CMD_GET_GAMERELAY")
 def get_gamerelay(svc, sess, req):
     import os
-    ip = os.environ.get("PESSERVER_PUBLIC_ADDR") or svc.public_ip or _lan_ip()
+    from .netsetup import advertised_addr
+    ip = advertised_addr(svc, sess)
     out = {"result": NOERR, "gamerelay_index": 0, "grid": 1, "ip_addr": ip,
            "port": int(os.environ.get("PESSERVER_RELAY_PORT", "7600")), "game_sycom": ""}
     log.info("GAMERELAY pid %s -> %s", _pid(sess), out)
@@ -223,15 +224,6 @@ def set_gamerelay_check_res(svc, sess, req):
     return {"result": NOERR}
 
 
-def _lan_ip():
-    import socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(("192.0.2.1", 9)); return s.getsockname()[0]
-    except OSError:
-        return "127.0.0.1"
-    finally:
-        s.close()
 
 
 # ---- peer signalling: CMD_SEND_*NOTICE {pid_list, data} -> push CMD_WATCH_*NOTICE {data} to each pid --

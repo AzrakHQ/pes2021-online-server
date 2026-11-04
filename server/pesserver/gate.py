@@ -22,6 +22,7 @@ async def serve(service, codec_factory, host="0.0.0.0", port=10000, idle=300):
                 await writer.drain()
 
         sess = Session(peer[0], send)
+        sess.local_ip = writer.get_extra_info("sockname")[0]   # the address this client reached us on
         sess.codec = codec
         log.info("connect %s", peer)
         try:

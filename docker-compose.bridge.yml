@@ -1,0 +1,21 @@
+# For Docker Desktop (Windows / macOS), where host networking doesn't reach the LAN.
+#   echo PUBLIC_IP=192.168.1.50 > .env       (the address players use: your LAN / VPN / public IP)
+#   docker compose -f docker-compose.bridge.yml up -d
+# Forward these ports on your router yourself for internet play (UPnP can't work from inside a VM).
+services:
+  pesserver:
+    image: ghcr.io/mohamedalirashad/pes2021-private-server:latest
+    build: ./server
+    container_name: pesserver
+    restart: unless-stopped
+    environment:
+      PUBLIC_IP: ${PUBLIC_IP:?set PUBLIC_IP in .env}
+    ports:
+      - "80:80/tcp"         # player pages (http://server/join)
+      - "443:443/tcp"       # HTTPS NAT-traversal gate info (GateInfo.php)
+      - "8080:8080/tcp"     # HTTP web-API
+      - "10000:10000/tcp"   # game gate (login, menus, matchmaking)
+      - "3478:3478/udp"     # STUN / NAT test
+      - "7600:7600/udp"     # game relay placeholder
+    volumes:
+      - ./server-data:/data

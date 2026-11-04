@@ -27,8 +27,9 @@ def cmd(name):
     return deco
 
 
-def _addr(svc):
-    return os.environ.get("PESSERVER_PUBLIC_ADDR") or svc.public_ip or "127.0.0.1"
+def _addr(svc, sess=None):
+    from .netsetup import advertised_addr
+    return advertised_addr(svc, sess)
 
 
 def _port(svc):
@@ -39,7 +40,7 @@ def _port(svc):
 @cmd("CMD_GET_SVRLIST")
 def get_svrlist(svc, sess, req):
     types = [t.strip() for t in os.environ.get("PESSERVER_SVRTYPES", "GATE,ACCOUNT,MENU,VDPCHAT").split(",") if t.strip()]
-    lst = [{"svrtype": t, "svraddr": _addr(svc), "svrport": _port(svc), "svrgid": i + 1,
+    lst = [{"svrtype": t, "svraddr": _addr(svc, sess), "svrport": _port(svc), "svrgid": i + 1,
             "max_player_num": 10000, "player_num": len(svc.online)} for i, t in enumerate(types)]
     return {"result": NOERR, "server_num": len(lst), "svrlist": blobs(lst)}
 
@@ -77,7 +78,7 @@ URL_TYPES = ("EULA_PRIVACY_POLICY_CALIFORNIA RECV_MYCLUB_PRESENT GET_TURN_SERVER
 
 @cmd("CMD_GET_URLLIST")
 def get_urllist(svc, sess, req):
-    base = f"http://{_addr(svc)}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}"
+    base = f"http://{_addr(svc, sess)}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}"
     # Short paths keep 53 entries inside one frame (body <= 0x410); the HTTP API routes on the POSTed
     # msgid, not the path, and document pages accept any path.
     ulist = [{"type": t, "url": f"{base}/u{i}"} for i, t in enumerate(
