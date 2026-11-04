@@ -1,0 +1,24 @@
+# Whitelist: only the server, the player setup scripts and the protocol notes are published.
+/*
+!/.gitignore
+!/README.md
+!/docker-compose.yml
+!/server/
+!/client/
+!/notes/
+/notes/*
+!/notes/network-map.html
+!/notes/re/
+/notes/re/*
+!/notes/re/captures/
+!/notes/re/errcode.py
+!/notes/re/extract_schemas.py
+
+# runtime data / secrets
+server-data/
+server/certs/
+*.db
+client/.ca.crt
+__pycache__/
+*.pyc
+.pytest_cache/

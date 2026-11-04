@@ -1,0 +1,17 @@
+# PES 2021 private server.   PUBLIC_IP = the address players' games connect to.
+#   PUBLIC_IP=192.168.1.50 docker compose up -d --build
+services:
+  pesserver:
+    build: ./server
+    container_name: pesserver
+    restart: unless-stopped
+    environment:
+      PUBLIC_IP: ${PUBLIC_IP:?set PUBLIC_IP (e.g. your LAN or public IP)}
+    ports:
+      - "10000:10000/tcp"   # game gate (login, menus, matchmaking)
+      - "8080:8080/tcp"     # HTTP web-API (auth, live-update list, game relay)
+      - "443:8443/tcp"      # HTTPS NAT-traversal gate info (GateInfo.php)
+      - "3478:3478/udp"     # STUN / NAT test
+      - "7600:7600/udp"     # game relay placeholder
+    volumes:
+      - ./server-data:/data

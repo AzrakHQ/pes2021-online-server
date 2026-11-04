@@ -1,0 +1,6325 @@
+{
+ "CMD_ACCEPT_CLAN_ENTRY": {
+  "class": "AcceptClanEntry",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e0c230",
+  "parser_end": "0x141e0c6e2"
+ },
+ "CMD_ACCEPT_CLAN_INVITE": {
+  "class": "AcceptClanInvite",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e0d0d0",
+  "parser_end": "0x141e0d582"
+ },
+ "CMD_ADD_FOUL": {
+  "class": "AddFoul",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d1ce60",
+  "parser_end": "0x141d1d312"
+ },
+ "CMD_ADD_MYCLUB_AUCTION_WATCH_LIST": {
+  "class": "AddMyclubAuctionWatchList",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cf1ff0",
+  "parser_end": "0x141cf24a2"
+ },
+ "CMD_ADD_MYCLUB_AUCTION_WISH_LIST": {
+  "class": "AddMyclubAuctionWishList",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c0b930",
+  "parser_end": "0x141c0bde2"
+ },
+ "CMD_ADD_SCORE": {
+  "class": "AddScore",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d1e5a0",
+  "parser_end": "0x141d1ea52"
+ },
+ "CMD_AUTH_STEAM": {
+  "class": "AuthSteam",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e49160",
+  "parser_end": "0x141e49641"
+ },
+ "CMD_BUY_MYCLUB_MARKET_COACH": {
+  "class": "BuyMyclubMarketCoach",
+  "fields": {
+   "attacking_area": "NUM",
+   "build_up": "NUM",
+   "coach": "OBJ",
+   "coach_id": "NUM",
+   "coach_unique_id": "NUM",
+   "contract_term": "NUM",
+   "defence_type": "NUM",
+   "defensive_main_concept": "OBJ",
+   "first_df": "NUM",
+   "formation_data": "STR",
+   "gp": "NUM",
+   "mobility": "NUM",
+   "msgid": "STR",
+   "offensive_main_concept": "OBJ",
+   "overall": "NUM",
+   "passsupport_dist": "NUM",
+   "pes_point": "NUM",
+   "press_rule": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "transition": "NUM"
+  },
+  "parser": "0x141d8ba10",
+  "parser_end": "0x141d8d74c"
+ },
+ "CMD_CANCEL_CLAN_ENTRY": {
+  "class": "CancelClanEntry",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e0fb70",
+  "parser_end": "0x141e10022"
+ },
+ "CMD_CANCEL_CLAN_INVITE": {
+  "class": "CancelClanInvite",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e10a10",
+  "parser_end": "0x141e10ec2"
+ },
+ "CMD_CANCEL_COOP_GROUP_MATCHING": {
+  "class": "CancelCoopGroupMatching",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dcda90",
+  "parser_end": "0x141dcdf42"
+ },
+ "CMD_CANCEL_COOP_MATCHING": {
+  "class": "CancelCoopMatching",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dce8d0",
+  "parser_end": "0x141dced82"
+ },
+ "CMD_CANCEL_MATCHDAY_ENTRY_PICKUP_MATCH": {
+  "class": "CancelMatchdayEntryPickupMatch",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cfb540",
+  "parser_end": "0x141cfb9f2"
+ },
+ "CMD_CANCEL_MATCHING": {
+  "class": "CancelMatching",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d1f3e0",
+  "parser_end": "0x141d1f892"
+ },
+ "CMD_CHANGE_GAMEPHASE": {
+  "class": "ChangeGamephase",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d20350",
+  "parser_end": "0x141d20802"
+ },
+ "CMD_CHECK_CHEAT": {
+  "class": "CheckCheat",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d21650",
+  "parser_end": "0x141d21b02"
+ },
+ "CMD_CHECK_LOCAL_GAMERELAY_PLAYER": {
+  "class": "CheckLocalGamerelayPlayer",
+  "fields": {
+   "build_gamerelay_num_for_11vs11": "NUM",
+   "build_gamerelay_num_for_1vs1": "NUM",
+   "build_gamerelay_num_for_3vs3": "NUM",
+   "gamerelay_register_url_data": "OBJ",
+   "is_local_gamerelay_player": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "type": "STR",
+   "url": "STR"
+  },
+  "parser": "0x141b9cdc0",
+  "parser_end": "0x141b9d889"
+ },
+ "CMD_CHECK_MYCLUB_STORE": {
+  "class": "CheckMyclubStore",
+  "fields": {
+   "is_enable_myclub_coin": "STR",
+   "is_enable_subscription": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c46300",
+  "parser_end": "0x141c469d1"
+ },
+ "CMD_CHECK_STRING": {
+  "class": "CheckString",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e48290",
+  "parser_end": "0x141e48742"
+ },
+ "CMD_CONFIRM_CLAN_REQUEST": {
+  "class": "ConfirmClanRequest",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e12610",
+  "parser_end": "0x141e12ac2"
+ },
+ "CMD_COPY_MYCLUB_SQUAD": {
+  "class": "CopyMyclubSquad",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "squad_id": "NUM"
+  },
+  "parser": "0x141bd9fa0",
+  "parser_end": "0x141bda549"
+ },
+ "CMD_CREATEJOIN_COOP_ROOM": {
+  "class": "CreatejoinCoopRoom",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "room_id": "NUM",
+   "rqid": "?"
+  },
+  "parser": "0x141e19400",
+  "parser_end": "0x141e199aa"
+ },
+ "CMD_CREATEJOIN_ROOM": {
+  "class": "CreatejoinRoom",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "room_id": "NUM",
+   "rqid": "?"
+  },
+  "parser": "0x141d232a0",
+  "parser_end": "0x141d2384a"
+ },
+ "CMD_CREATE_CLAN": {
+  "class": "CreateClan",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141de89b0",
+  "parser_end": "0x141de8e62"
+ },
+ "CMD_CREATE_MYCLUB_SQUAD": {
+  "class": "CreateMyclubSquad",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "squad_id": "NUM"
+  },
+  "parser": "0x141bc0500",
+  "parser_end": "0x141bc0aa9"
+ },
+ "CMD_CREATE_MYCLUB_STAFF": {
+  "class": "CreateMyclubStaff",
+  "fields": {
+   "ability": "NUM",
+   "base_exp": "NUM",
+   "base_player_info": "OBJ",
+   "club_team_id": "NUM",
+   "gameplayer_base_id": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_level": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "id": "NUM",
+   "msgid": "STR",
+   "nation_id": "NUM",
+   "overall": "NUM",
+   "play_style": "STR",
+   "position": "STR",
+   "registared_position": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "staff_info_list": "LIST",
+   "stronger_foot": "STR"
+  },
+  "parser": "0x141c96dd0",
+  "parser_end": "0x141c980e5"
+ },
+ "CMD_CREATE_MYCLUB_TEAM": {
+  "class": "CreateMyclubTeam",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d8eba0",
+  "parser_end": "0x141d8f052"
+ },
+ "CMD_CREATE_PLAYER": {
+  "class": "CreatePlayer",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d24280",
+  "parser_end": "0x141d24732"
+ },
+ "CMD_DELETE_MYCLUB_AUCTION_WATCH_LIST": {
+  "class": "DeleteMyclubAuctionWatchList",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cf5e30",
+  "parser_end": "0x141cf62e2"
+ },
+ "CMD_DELETE_MYCLUB_AUCTION_WISH_LIST": {
+  "class": "DeleteMyclubAuctionWishList",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c174e0",
+  "parser_end": "0x141c17992"
+ },
+ "CMD_DELETE_MYCLUB_SQUAD": {
+  "class": "DeleteMyclubSquad",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141be2760",
+  "parser_end": "0x141be2c12"
+ },
+ "CMD_DISCONNECT": {
+  "class": "Disconnect",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e41900",
+  "parser_end": "0x141e41db2"
+ },
+ "CMD_END_STEAM_STORE": {
+  "class": "EndSteamStore",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e3dbc0",
+  "parser_end": "0x141e3e0a1"
+ },
+ "CMD_END_STORE_TRANSACTION": {
+  "class": "EndStoreTransaction",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "subscription_active": "STR",
+   "subscription_expire_date": "NUM"
+  },
+  "parser": "0x141e35570",
+  "parser_end": "0x141e35bfe"
+ },
+ "CMD_ENTRY_CLAN": {
+  "class": "EntryClan",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dfda70",
+  "parser_end": "0x141dfdf22"
+ },
+ "CMD_ENTRY_GAME": {
+  "class": "EntryGame",
+  "fields": {
+   "entryflag": "STR",
+   "gameNum": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d25350",
+  "parser_end": "0x141d259d1"
+ },
+ "CMD_ENTRY_MYCLUB_WEEKLY_RANKING": {
+  "class": "EntryMyclubWeeklyRanking",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c61560",
+  "parser_end": "0x141c61a12"
+ },
+ "CMD_EXCHANGE_E_FOOTBALL_POINT": {
+  "class": "ExchangeEFootballPoint",
+  "fields": {
+   "e_football_point_num": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cfd540",
+  "parser_end": "0x141cfdb16"
+ },
+ "CMD_EXPEL_CLAN_MEMBER": {
+  "class": "ExpelClanMember",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e00d30",
+  "parser_end": "0x141e011e2"
+ },
+ "CMD_EXTEND_MYCLUB_COACH": {
+  "class": "ExtendMyclubCoach",
+  "fields": {
+   "contract_term": "NUM",
+   "gp": "NUM",
+   "msgid": "STR",
+   "pes_point": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141beeb80",
+  "parser_end": "0x141bef270"
+ },
+ "CMD_EXTEND_MYCLUB_GAMEPLAYER": {
+  "class": "ExtendMyclubGameplayer",
+  "fields": {
+   "contract_term": "NUM",
+   "contract_term_list": "LIST",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "gp": "NUM",
+   "msgid": "STR",
+   "pes_point": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bf8200",
+  "parser_end": "0x141bf8b5e"
+ },
+ "CMD_EXTEND_MYCLUB_ITEM_GAMEPLAYER": {
+  "class": "ExtendMyclubItemGameplayer",
+  "fields": {
+   "contract_term": "OBJ",
+   "extend_ticket": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c00ed0",
+  "parser_end": "0x141c016de"
+ },
+ "CMD_FINISH_SEASON": {
+  "class": "FinishSeason",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d26360",
+  "parser_end": "0x141d26812"
+ },
+ "CMD_FOLLOW_USER": {
+  "class": "FollowUser",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e02c60",
+  "parser_end": "0x141e03112"
+ },
+ "CMD_GET_AVATAR_HTTP": {
+  "class": "GetAvatarHttp",
+  "fields": {
+   "avatar_data": "STR",
+   "avatar_data_size": "NUM",
+   "avatar_md5": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bb1b90",
+  "parser_end": "0x141bb2340"
+ },
+ "CMD_GET_BLOCKLIST": {
+  "class": "GetBlocklist",
+  "fields": {
+   "bklist": "LIST",
+   "block_id": "NUM",
+   "count": "NUM",
+   "max_player_num": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "player_num": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d274c0",
+  "parser_end": "0x141d27ecb"
+ },
+ "CMD_GET_CHALLENGECODE": {
+  "class": "GetChallengecode",
+  "fields": {
+   "challenge_code": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d287e0",
+  "parser_end": "0x141d28dc0"
+ },
+ "CMD_GET_CLAN_INFO": {
+  "class": "GetClanInfo",
+  "fields": {
+   "account_id": "NUM",
+   "basic_settings": "OBJ",
+   "clan_info": "OBJ",
+   "clan_name": "STR",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "owner_info": "OBJ",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "user_id": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141dedec0",
+  "parser_end": "0x141df19e8"
+ },
+ "CMD_GET_CLAN_LIST": {
+  "class": "GetClanList",
+  "fields": {
+   "account_id": "NUM",
+   "basic_settings": "OBJ",
+   "clan_list": "LIST",
+   "clan_name": "STR",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "owner_info": "OBJ",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "user_id": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141df5280",
+  "parser_end": "0x141df8eb2"
+ },
+ "CMD_GET_CLAN_MEMBER_MODE": {
+  "class": "GetClanMemberMode",
+  "fields": {
+   "account_id": "NUM",
+   "clan_members": "LIST",
+   "coop_level": "NUM",
+   "current_online_mode": "STR",
+   "is_deleted": "STR",
+   "is_follow": "STR",
+   "is_join_online_mode": "STR",
+   "is_valid_cache": "STR",
+   "last_login": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "user_id": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e0a320",
+  "parser_end": "0x141e0b845"
+ },
+ "CMD_GET_CLAN_PENDING_LIST": {
+  "class": "GetClanPendingList",
+  "fields": {
+   "account_id": "NUM",
+   "appliciant_user_id": "OBJ",
+   "is_deleted": "STR",
+   "is_follow": "NUM",
+   "is_new": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pending_info_list": "LIST",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "status": "STR",
+   "type": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141dfb9e0",
+  "parser_end": "0x141dfd08f"
+ },
+ "CMD_GET_CLAN_RANKING": {
+  "class": "GetClanRanking",
+  "fields": {
+   "basic_settings": "STR",
+   "clan_name": "STR",
+   "clan_ranking": "STR",
+   "division_change_type": "STR",
+   "msgid": "STR",
+   "owner_info": "STR",
+   "rank": "NUM",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "user_id": "NUM"
+  },
+  "parser": "0x141de2b50",
+  "parser_end": "0x141de4819"
+ },
+ "CMD_GET_CLAN_RANKING_BYID": {
+  "class": "GetClanRankingByid",
+  "fields": {
+   "basic_settings": "STR",
+   "clan_name": "STR",
+   "clan_ranking": "STR",
+   "division_change_type": "STR",
+   "msgid": "STR",
+   "owner_info": "STR",
+   "rank": "NUM",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "user_id": "NUM"
+  },
+  "parser": "0x141de6240",
+  "parser_end": "0x141de7f09"
+ },
+ "CMD_GET_CLAN_REQUEST_LIST": {
+  "class": "GetClanRequestList",
+  "fields": {
+   "account_id": "NUM",
+   "appliciant_user_id": "OBJ",
+   "is_deleted": "STR",
+   "is_follow": "NUM",
+   "is_new": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "request_info_list": "LIST",
+   "result": "STR",
+   "rqid": "?",
+   "status": "STR",
+   "type": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141df9940",
+  "parser_end": "0x141dfafef"
+ },
+ "CMD_GET_CLAN_SETTINGS": {
+  "class": "GetClanSettings",
+  "fields": {
+   "account_id": "NUM",
+   "clan_basic_settings": "OBJ",
+   "clan_name": "STR",
+   "coop_level": "NUM",
+   "is_deleted": "STR",
+   "is_follow": "STR",
+   "is_valid_cache": "STR",
+   "last_login": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "owner_info": "OBJ",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "user_id": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141deb550",
+  "parser_end": "0x141decdef"
+ },
+ "CMD_GET_CLAN_SIMPLE_INFO_LIST": {
+  "class": "GetClanSimpleInfoList",
+  "fields": {
+   "account_id": "NUM",
+   "clan_name": "STR",
+   "clan_simple_info_list": "LIST",
+   "coop_level": "NUM",
+   "is_deleted": "STR",
+   "is_follow": "NUM",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "owner_info": "OBJ",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "user_id": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141df27c0",
+  "parser_end": "0x141df3ed6"
+ },
+ "CMD_GET_COMPEV_INFO": {
+  "class": "GetCompevInfo",
+  "fields": {
+   "compe_data": "OBJ",
+   "compe_end_time": "NUM",
+   "compe_id": "NUM",
+   "compe_info": "OBJ",
+   "compe_kind": "STR",
+   "compe_name": "STR",
+   "compe_start_time": "NUM",
+   "entry_national_id": "NUM",
+   "entry_team_id": "NUM",
+   "entry_type": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c849d0",
+  "parser_end": "0x141c88e28"
+ },
+ "CMD_GET_COMPEV_LIST": {
+  "class": "GetCompevList",
+  "fields": {
+   "compe_end_time": "NUM",
+   "compe_id": "NUM",
+   "compe_kind": "STR",
+   "compe_list": "LIST",
+   "compe_list_kind": "STR",
+   "compe_name": "STR",
+   "compe_num": "NUM",
+   "compe_start_time": "NUM",
+   "entry_national_id": "NUM",
+   "entry_player_num": "NUM",
+   "entry_team_id": "NUM",
+   "entry_type": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c8e250",
+  "parser_end": "0x141c8fea9"
+ },
+ "CMD_GET_COMPEV_MAINMENU_INFO": {
+  "class": "GetCompevMainmenuInfo",
+  "fields": {
+   "clear_count": "NUM",
+   "compe_result": "STR",
+   "cpu_level": "STR",
+   "msgid": "STR",
+   "progress_game_count": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "status": "STR",
+   "vscom_team_id": "NUM",
+   "win_point": "NUM"
+  },
+  "parser": "0x141cb8830",
+  "parser_end": "0x141cb91ff"
+ },
+ "CMD_GET_COMPEV_MYENTRY_COMPEID": {
+  "class": "GetCompevMyentryCompeid",
+  "fields": {
+   "compe_cpu_level": "STR",
+   "compe_id": "NUM",
+   "compe_mode": "STR",
+   "msgid": "STR",
+   "progress_game_count": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cbee40",
+  "parser_end": "0x141cbf62a"
+ },
+ "CMD_GET_COOP_LEVEL_RESULT": {
+  "class": "GetCoopLevelResult",
+  "fields": {
+   "account_id": "NUM",
+   "coop_level_user_list": "LIST",
+   "evalution": "NUM",
+   "is_clan_owner": "STR",
+   "is_deleted": "STR",
+   "is_follow": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "reference": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "status": "STR",
+   "user_id": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141ba8ec0",
+  "parser_end": "0x141baa604"
+ },
+ "CMD_GET_COOP_MAINMENU_INFO": {
+  "class": "GetCoopMainmenuInfo",
+  "fields": {
+   "division": "STR",
+   "division_change_type": "STR",
+   "is_coop_banned": "STR",
+   "is_exist_new_request": "STR",
+   "is_exist_owner_clan": "STR",
+   "is_season_end": "STR",
+   "msgid": "STR",
+   "pre_season_rank": "NUM",
+   "pre_season_rank_all_clan_num": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ddffb0",
+  "parser_end": "0x141de0d0b"
+ },
+ "CMD_GET_COOP_MATCH_DATA": {
+  "class": "GetCoopMatchData",
+  "fields": {
+   "match_data": "STR",
+   "match_data_size": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dd3f00",
+  "parser_end": "0x141dd45dc"
+ },
+ "CMD_GET_COOP_PROFILE": {
+  "class": "GetCoopProfile",
+  "fields": {
+   "account_id": "NUM",
+   "coop_level": "NUM",
+   "coop_level_point": "NUM",
+   "coop_profile_data": "OBJ",
+   "follower": "NUM",
+   "is_deleted": "STR",
+   "is_follow": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "user_info": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141c3f940",
+  "parser_end": "0x141c40f8b"
+ },
+ "CMD_GET_COOP_QUICKMATCHOPTION": {
+  "class": "GetCoopQuickmatchoption",
+  "fields": {
+   "cpu_level_max": "STR",
+   "cpu_level_min": "STR",
+   "force_alone": "STR",
+   "is_vscom": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dbed90",
+  "parser_end": "0x141dbf61d"
+ },
+ "CMD_GET_COOP_REJECT_LIST": {
+  "class": "GetCoopRejectList",
+  "fields": {
+   "account_id": "NUM",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "reject_list": "LIST",
+   "reject_list_num": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e08860",
+  "parser_end": "0x141e09924"
+ },
+ "CMD_GET_COOP_ROOMLIST": {
+  "class": "GetCoopRoomlist",
+  "fields": {
+   "account_id": "NUM",
+   "basic_settings": "OBJ",
+   "clan_name": "STR",
+   "clan_owner_info": "OBJ",
+   "is_deleted": "STR",
+   "is_follow": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "room_id": "NUM",
+   "room_list": "LIST",
+   "room_name": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e152c0",
+  "parser_end": "0x141e1753b"
+ },
+ "CMD_GET_COOP_ROOM_MEMBER": {
+  "class": "GetCoopRoomMember",
+  "fields": {
+   "account_id": "NUM",
+   "coop_level": "NUM",
+   "is_clan_member": "STR",
+   "is_deleted": "STR",
+   "is_follow": "STR",
+   "is_owner": "STR",
+   "is_valid_cache": "STR",
+   "list_data": "LIST",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "player_index": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "user_info": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e2d2e0",
+  "parser_end": "0x141e2f1d4"
+ },
+ "CMD_GET_COOP_ROOM_OPTION": {
+  "class": "GetCoopRoomOption",
+  "fields": {
+   "account_id": "NUM",
+   "basic_settings": "OBJ",
+   "clan_name": "STR",
+   "clan_owner_info": "OBJ",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "room_id": "NUM",
+   "room_name": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e1f880",
+  "parser_end": "0x141e21a4d"
+ },
+ "CMD_GET_DIVISION_INFO": {
+  "class": "GetDivisionInfo",
+  "fields": {
+   "account_id": "NUM",
+   "demotion_point": "NUM",
+   "division": "STR",
+   "division_info": "OBJ",
+   "division_point": "NUM",
+   "doublerank_promotion_point": "NUM",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "match_history_list": "LIST",
+   "match_record": "OBJ",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "other_match_num": "NUM",
+   "pname": "OBJ",
+   "promotion_point": "NUM",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "win_count": "NUM",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d29fc0",
+  "parser_end": "0x141d2bc1e"
+ },
+ "CMD_GET_DIVISION_POINT_INFO": {
+  "class": "GetDivisionPointInfo",
+  "fields": {
+   "division_list": "OBJ?",
+   "division_type": "STR",
+   "msgid": "STR",
+   "point": "NUM",
+   "rank": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "server_num": "NUM"
+  },
+  "parser": "0x141d2c8f0",
+  "parser_end": "0x141d2d226"
+ },
+ "CMD_GET_DIVISION_RANKING": {
+  "class": "GetDivisionRanking",
+  "fields": {
+   "date": "NUM",
+   "division": "STR",
+   "favoriteTeam": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "pid": "NUM",
+   "pname": "STR",
+   "psn_user_id": "NUM",
+   "rank_list": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "user": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d2ed10",
+  "parser_end": "0x141d30463"
+ },
+ "CMD_GET_DIVISION_RANKING_BYID": {
+  "class": "GetDivisionRankingByid",
+  "fields": {
+   "date": "NUM",
+   "division": "STR",
+   "favoriteTeam": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "pid": "NUM",
+   "pname": "STR",
+   "psn_user_id": "NUM",
+   "rank_list": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "user": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d318f0",
+  "parser_end": "0x141d33043"
+ },
+ "CMD_GET_DLC_FILELIST": {
+  "class": "GetDlcFilelist",
+  "fields": {
+   "dlc_version": "STR",
+   "dlcfile_list": "STR",
+   "dlcfile_list_count": "NUM",
+   "hash": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "required_program_version": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "size": "NUM",
+   "url": "STR",
+   "variation_file_list": "STR",
+   "variation_file_list_count": "NUM"
+  },
+  "parser": "0x141d34a90",
+  "parser_end": "0x141d36308"
+ },
+ "CMD_GET_DMM_NOTIFICATION": {
+  "class": "GetDmmNotification",
+  "fields": {
+   "body": "STR",
+   "date": "NUM",
+   "evoked_text": "STR",
+   "filename": "STR",
+   "header_text": "STR",
+   "id": "NUM",
+   "info_list": "LIST",
+   "is_watch": "STR",
+   "link": "NUM",
+   "link_url": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "storelinkinfo": "OBJ",
+   "thumbnail_info": "OBJ",
+   "title": "STR",
+   "type": "STR"
+  },
+  "parser": "0x141cf8f80",
+  "parser_end": "0x141cfab5a"
+ },
+ "CMD_GET_DMM_PLAYERINFO": {
+  "class": "GetDmmPlayerinfo",
+  "fields": {
+   "is_present_inbox": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d1b3c0",
+  "parser_end": "0x141d1b9c2"
+ },
+ "CMD_GET_EFP_MOST_RECENTLY_EXPIRED_POINTS": {
+  "class": "GetEfpMostRecentlyExpiredPoints",
+  "fields": {
+   "expired_point_list": "STR",
+   "expired_point_list_num": "NUM",
+   "is_show_dialog": "STR",
+   "msgid": "STR",
+   "point": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "time": "NUM"
+  },
+  "parser": "0x141bbb4d0",
+  "parser_end": "0x141bbbdd6"
+ },
+ "CMD_GET_ENTRY_GAME": {
+  "class": "GetEntryGame",
+  "fields": {
+   "entryNum": "NUM",
+   "entry_count": "NUM",
+   "entrygame": "OBJ?",
+   "gameNum": "NUM",
+   "msgid": "STR",
+   "pid": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bc3820",
+  "parser_end": "0x141bc4144"
+ },
+ "CMD_GET_EULA_AREA_LIST": {
+  "class": "GetEulaAreaList",
+  "fields": {
+   "area_code": "STR",
+   "area_list": "OBJ?",
+   "area_list_num": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "privacy_kind": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bab3c0",
+  "parser_end": "0x141babe95"
+ },
+ "CMD_GET_EULA_NATION_CODE": {
+  "class": "GetEulaNationCode",
+  "fields": {
+   "area_code": "STR",
+   "msgid": "STR",
+   "nation_code": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bcdc60",
+  "parser_end": "0x141bce331"
+ },
+ "CMD_GET_EULA_NATION_LIST": {
+  "class": "GetEulaNationList",
+  "fields": {
+   "has_area": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "nation_code": "STR",
+   "nation_list": "LIST",
+   "nation_list_num": "NUM",
+   "privacy_kind": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bd88e0",
+  "parser_end": "0x141bd9499"
+ },
+ "CMD_GET_EVENT_CATEGORY_LIST": {
+  "class": "GetEventCategoryList",
+  "fields": {
+   "banner_file_info": "OBJ",
+   "compe_db_id": "NUM",
+   "event_category": "STR",
+   "event_category_list": "LIST",
+   "filename": "STR",
+   "hash_str": "STR",
+   "is_auto_make_compe_name": "STR",
+   "is_use_emblem": "STR",
+   "matchday_emblem_info": "OBJ",
+   "matchday_group_type": "STR",
+   "msgid": "STR",
+   "not_cleared_event_num": "NUM",
+   "open_event_num": "NUM",
+   "recent_event_start_time": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_list_group_a": "NUM",
+   "team_list_group_b": "NUM"
+  },
+  "parser": "0x141ba19f0",
+  "parser_end": "0x141ba2dc8"
+ },
+ "CMD_GET_E_FOOTBALL_POINT": {
+  "class": "GetEFootballPoint",
+  "fields": {
+   "e_football_point_num": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d0a660",
+  "parser_end": "0x141d0ac36"
+ },
+ "CMD_GET_FOLLOW_LIST": {
+  "class": "GetFollowList",
+  "fields": {
+   "account_id": "NUM",
+   "follow_list": "LIST",
+   "is_clan_member": "STR",
+   "is_deleted": "STR",
+   "is_locked": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "user_id": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e03e60",
+  "parser_end": "0x141e051c3"
+ },
+ "CMD_GET_GAMERELAY": {
+  "class": "GetGamerelay",
+  "fields": {
+   "game_sycom": "STR",
+   "gamerelay_index": "NUM",
+   "grid": "NUM",
+   "ip_addr": "STR",
+   "msgid": "STR",
+   "port": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c51da0",
+  "parser_end": "0x141c52602"
+ },
+ "CMD_GET_GAMERELAY_QUALITYCHECKLIST": {
+  "class": "GetGamerelayQualitychecklist",
+  "fields": {
+   "gamerelay_index": "NUM",
+   "grid": "NUM",
+   "ip_addr": "STR",
+   "last_update": "NUM",
+   "msgid": "STR",
+   "port": "NUM",
+   "quality": "NUM",
+   "quality_check_data_list": "STR",
+   "quality_check_data_num": "NUM",
+   "quality_list": "STR",
+   "quality_list_num": "NUM",
+   "quality_threshold_1": "NUM",
+   "quality_threshold_2": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d37590",
+  "parser_end": "0x141d3846e"
+ },
+ "CMD_GET_GAMERESULTS": {
+  "class": "GetGameresults",
+  "fields": {
+   "account_id": "NUM",
+   "date": "NUM",
+   "ex_type": "STR",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "no_match": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pk_flag": "STR",
+   "player": "LIST",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rlist": "LIST",
+   "rlist_num": "NUM",
+   "rqid": "?",
+   "side": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141c77920",
+  "parser_end": "0x141c79850"
+ },
+ "CMD_GET_GAME_SCORE": {
+  "class": "GetGameScore",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "score": "LIST",
+   "score_1st": "NUM",
+   "score_2nd": "NUM",
+   "score_ex1st": "NUM",
+   "score_ex2nd": "NUM",
+   "score_pk": "NUM",
+   "team": "NUM"
+  },
+  "parser": "0x141c9d940",
+  "parser_end": "0x141c9e37e"
+ },
+ "CMD_GET_GAME_TEAM_LIST": {
+  "class": "GetGameTeamList",
+  "fields": {
+   "division_point": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "team_class": "STR",
+   "team_id": "NUM",
+   "team_list": "LIST",
+   "team_list_num": "NUM"
+  },
+  "parser": "0x141ca6c00",
+  "parser_end": "0x141ca74ee"
+ },
+ "CMD_GET_GLOBALINFOTITLELIST": {
+  "class": "GetGlobalinfotitlelist",
+  "fields": {
+   "announce_id": "NUM",
+   "announce_info_list": "LIST",
+   "announce_type": "STR",
+   "date": "NUM",
+   "event_id": "NUM",
+   "evoked_text": "STR",
+   "filename": "STR",
+   "hash_str": "STR",
+   "is_auto_make_compe_name": "STR",
+   "is_use_emblem": "STR",
+   "list_banner_file_info": "OBJ",
+   "matchday_emblem_info": "OBJ",
+   "msgid": "STR",
+   "popup_type": "STR",
+   "priority": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "title": "STR",
+   "weekly_info_type": "STR"
+  },
+  "parser": "0x141c746b0",
+  "parser_end": "0x141c75eee"
+ },
+ "CMD_GET_GP_ACHIEVEMENT": {
+  "class": "GetGpAchievement",
+  "fields": {
+   "all_achievement_bit_array": "NUM",
+   "all_gp": "NUM",
+   "msgid": "STR",
+   "pes_point": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c908b0",
+  "parser_end": "0x141c90ff1"
+ },
+ "CMD_GET_HEROSTATS": {
+  "class": "GetHerostats",
+  "fields": {
+   "division_match_num": "NUM",
+   "division_win_num": "NUM",
+   "is_current_match_lose": "STR",
+   "is_current_match_win": "STR",
+   "msgid": "STR",
+   "myclub_division_match_num": "NUM",
+   "myclub_division_sim_match_num": "NUM",
+   "myclub_division_sim_win_num": "NUM",
+   "myclub_division_win_num": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "total_goal_num": "NUM",
+   "total_lose_num": "NUM",
+   "total_lostgoal_num": "NUM",
+   "total_match_num": "NUM",
+   "total_win_num": "NUM"
+  },
+  "parser": "0x141d38f30",
+  "parser_end": "0x141d39ba8"
+ },
+ "CMD_GET_INFOBODY": {
+  "class": "GetInfobody",
+  "fields": {
+   "announce_basic_info": "OBJ",
+   "announce_id": "NUM",
+   "announce_info": "OBJ",
+   "announce_type": "STR",
+   "date": "NUM",
+   "event_id": "NUM",
+   "evoked_text": "OBJ",
+   "filename": "STR",
+   "is_use_emblem": "STR",
+   "matchday_emblem_info": "OBJ",
+   "msgid": "STR",
+   "popup_type": "STR",
+   "priority": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "title": "STR",
+   "weekly_info_type": "STR"
+  },
+  "parser": "0x141ba40a0",
+  "parser_end": "0x141ba5e75"
+ },
+ "CMD_GET_IPANDPORT_NTL": {
+  "class": "GetIpandportNtl",
+  "fields": {
+   "address_family": "NUM",
+   "host_addr": "OBJ",
+   "msgid": "STR",
+   "ntl_nat_type": "NUM",
+   "pid": "NUM",
+   "reflexive_addr": "OBJ",
+   "relayed_addr": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "sa_data": "STR"
+  },
+  "parser": "0x141ce73b0",
+  "parser_end": "0x141ce831e"
+ },
+ "CMD_GET_IS_JOIN_COOP_ROOM": {
+  "class": "GetIsJoinCoopRoom",
+  "fields": {
+   "is_join_coop_room": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c50c40",
+  "parser_end": "0x141c51242"
+ },
+ "CMD_GET_IS_KONAMIID_COOPERATION": {
+  "class": "GetIsKonamiidCooperation",
+  "fields": {
+   "is_cooperation": "STR",
+   "is_reagree": "STR",
+   "msgid": "STR",
+   "reagree_url": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ddb110",
+  "parser_end": "0x141ddb88d"
+ },
+ "CMD_GET_KONAMIID_FUNCTIONAL_BLOCKADE": {
+  "class": "GetKonamiidFunctionalBlockade",
+  "fields": {
+   "is_blocked": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dd9b50",
+  "parser_end": "0x141dda15f"
+ },
+ "CMD_GET_KONAMIID_LINK_URL": {
+  "class": "GetKonamiidLinkUrl",
+  "fields": {
+   "link_url": "STR",
+   "msgid": "STR",
+   "qr_expiration_date": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ddc690",
+  "parser_end": "0x141ddcd2b"
+ },
+ "CMD_GET_LOBBYINFO": {
+  "class": "GetLobbyinfo",
+  "fields": {
+   "has_info": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "sentence_info": "STR",
+   "sentence_intro": "STR",
+   "title": "STR"
+  },
+  "parser": "0x141d3a710",
+  "parser_end": "0x141d3af9d"
+ },
+ "CMD_GET_LOBBYLIST": {
+  "class": "GetLobbylist",
+  "fields": {
+   "gamerelay_index": "NUM",
+   "lobby_id": "NUM",
+   "lobby_list": "LIST",
+   "lobby_list_num": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "player_num": "NUM",
+   "player_num_max": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d3be20",
+  "parser_end": "0x141d3c92f"
+ },
+ "CMD_GET_MAINTENANCE_INFO": {
+  "class": "GetMaintenanceInfo",
+  "fields": {
+   "maintenance_time": "NUM",
+   "maintenance_warn": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d12fd0",
+  "parser_end": "0x141d1365e"
+ },
+ "CMD_GET_MANNER_WARN": {
+  "class": "GetMannerWarn",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "warn_kind": "STR"
+  },
+  "parser": "0x141d3d340",
+  "parser_end": "0x141d3d942"
+ },
+ "CMD_GET_MATCHDAY_ACHIEVEMENT_REWARD": {
+  "class": "GetMatchdayAchievementReward",
+  "fields": {
+   "achievement_reward_list": "LIST",
+   "add_matchday_point": "NUM",
+   "body": "STR",
+   "entity_id": "NUM",
+   "gameplay_quality": "NUM",
+   "grade": "NUM",
+   "is_repeat": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "present_id": "NUM",
+   "require_point": "NUM",
+   "result": "STR",
+   "reward_list": "LIST",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "squad_rating": "NUM",
+   "title": "STR",
+   "type": "NUM"
+  },
+  "parser": "0x141d151a0",
+  "parser_end": "0x141d16e22"
+ },
+ "CMD_GET_MATCHDAY_FINAL_RESULT_INFO": {
+  "class": "GetMatchdayFinalResultInfo",
+  "fields": {
+   "final_result_info": "OBJ",
+   "gameend_reason": "STR",
+   "is_exist_watch_match_data": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "score_group_a": "NUM",
+   "score_group_b": "NUM",
+   "score_pk_group_a": "NUM",
+   "score_pk_group_b": "NUM"
+  },
+  "parser": "0x141c3bc40",
+  "parser_end": "0x141c3c601"
+ },
+ "CMD_GET_MATCHDAY_INFO": {
+  "class": "GetMatchdayInfo",
+  "fields": {
+   "base_id": "NUM",
+   "compe_id": "NUM",
+   "compe_info": "OBJ",
+   "compe_name": "STR",
+   "group_desc": "STR",
+   "group_info_a": "OBJ",
+   "group_name": "STR",
+   "info_overview": "OBJ",
+   "is_disp_compe_name": "STR",
+   "is_entry_restricted": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "team_list": "NUM",
+   "team_list_num": "NUM"
+  },
+  "parser": "0x141cc3cd0",
+  "parser_end": "0x141ccb12d"
+ },
+ "CMD_GET_MATCHDAY_LIST": {
+  "class": "GetMatchdayList",
+  "fields": {
+   "base_id": "NUM",
+   "compe_id": "NUM",
+   "compe_list": "LIST",
+   "compe_name": "STR",
+   "group_desc": "STR",
+   "group_info_a": "OBJ",
+   "group_info_b": "OBJ",
+   "group_name": "STR",
+   "is_disp_compe_name": "STR",
+   "is_entry_restricted": "STR",
+   "msgid": "STR",
+   "pre_pickup_users_pid_list": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_list": "NUM",
+   "team_list_num": "NUM"
+  },
+  "parser": "0x141cb2320",
+  "parser_end": "0x141cb4c17"
+ },
+ "CMD_GET_MATCHDAY_MAINMENU_INFO": {
+  "class": "GetMatchdayMainmenuInfo",
+  "fields": {
+   "group_match_info": "OBJ",
+   "mainmenu_info": "OBJ",
+   "matchday_point": "NUM",
+   "matchday_progress": "STR",
+   "matchday_rank": "NUM",
+   "matchday_ranking_user_num": "NUM",
+   "matchday_ratio": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "pickup_match_score_group_a": "NUM",
+   "pickup_match_score_group_b": "NUM",
+   "pickup_user_info": "OBJ",
+   "pickup_users_group_a": "LIST",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "total_matchday_point_group_a": "NUM",
+   "total_matchday_point_group_b": "NUM",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141ceaaa0",
+  "parser_end": "0x141ceedfb"
+ },
+ "CMD_GET_MATCHDAY_RANKING": {
+  "class": "GetMatchdayRanking",
+  "fields": {
+   "account_id": "NUM",
+   "entry_name": "STR",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "matchday_point": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "rank": "NUM",
+   "rank_list": "LIST",
+   "recode_date": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141be3ac0",
+  "parser_end": "0x141be5038"
+ },
+ "CMD_GET_MATCHDAY_RANKING_BYID": {
+  "class": "GetMatchdayRankingByid",
+  "fields": {
+   "account_id": "NUM",
+   "entry_name": "STR",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "matchday_point": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "rank": "NUM",
+   "rank_list": "LIST",
+   "recode_date": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141be5b10",
+  "parser_end": "0x141be7088"
+ },
+ "CMD_GET_MATCHDAY_SP_ALL_COOP_MEMBER_LIST": {
+  "class": "GetMatchdaySpAllCoopMemberList",
+  "fields": {
+   "coop_memberlist": "LIST",
+   "coop_memberlist_num": "NUM",
+   "gameplayer_id": "NUM",
+   "msgid": "STR",
+   "nation_id": "NUM",
+   "parameters": "NUM",
+   "pid": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM"
+  },
+  "parser": "0x141dbbb70",
+  "parser_end": "0x141dbc720"
+ },
+ "CMD_GET_MATCHDAY_SP_CONFIRM_COOP_SQUAD": {
+  "class": "GetMatchdaySpConfirmCoopSquad",
+  "fields": {
+   "base_team_id": "NUM",
+   "elected_myplayer_id_list": "NUM",
+   "elected_myplayer_id_list_num": "NUM",
+   "elected_myplayerlist": "LIST",
+   "elected_myplayerlist_num": "NUM",
+   "gameplan_data": "STR",
+   "gameplan_data_size": "NUM",
+   "gameplayer_id": "NUM",
+   "msgid": "STR",
+   "my_team": "OBJ",
+   "nation_id": "NUM",
+   "parameters": "NUM",
+   "pid": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM"
+  },
+  "parser": "0x141dbd320",
+  "parser_end": "0x141dbe230"
+ },
+ "CMD_GET_MATCHDAY_SP_GAMEPLAN": {
+  "class": "GetMatchdaySpGameplan",
+  "fields": {
+   "gameplan_data": "STR",
+   "gameplan_data_size": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "sp_member_list": "NUM"
+  },
+  "parser": "0x141bc4bc0",
+  "parser_end": "0x141bc536e"
+ },
+ "CMD_GET_MATCHDAY_WATCH_MATCH_REWARD": {
+  "class": "GetMatchdayWatchMatchReward",
+  "fields": {
+   "body": "STR",
+   "contract_term": "NUM",
+   "entity_id": "NUM",
+   "grade": "NUM",
+   "is_exist_watch_match_reward": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "player_level": "NUM",
+   "present_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "title": "STR",
+   "type": "STR",
+   "watch_match_reward_list": "LIST"
+  },
+  "parser": "0x141bbe180",
+  "parser_end": "0x141bbf9e7"
+ },
+ "CMD_GET_MATCHID": {
+  "class": "GetMatchid",
+  "fields": {
+   "match_id": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "upload": "STR"
+  },
+  "parser": "0x141b9acd0",
+  "parser_end": "0x141b9b3a1"
+ },
+ "CMD_GET_MATCHREJECTLIST": {
+  "class": "GetMatchrejectlist",
+  "fields": {
+   "account_id": "NUM",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "reject_list": "LIST",
+   "reject_list_num": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141c4f160",
+  "parser_end": "0x141c50224"
+ },
+ "CMD_GET_MATCH_ANALYZE": {
+  "class": "GetMatchAnalyze",
+  "fields": {
+   "analyze_data_list": "LIST",
+   "analyze_data_size": "NUM",
+   "cross_count": "NUM",
+   "cross_success_count": "NUM",
+   "favorite_play_defence_first": "NUM",
+   "favorite_play_defence_second": "NUM",
+   "favorite_play_defence_third": "NUM",
+   "favorite_play_offence_first": "NUM",
+   "favorite_play_offence_second": "NUM",
+   "favorite_play_offence_third": "NUM",
+   "game_res": "STR",
+   "msgid": "STR",
+   "pass_count": "NUM",
+   "pass_cut_count": "NUM",
+   "pass_success_count": "NUM",
+   "posession": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c9f290",
+  "parser_end": "0x141ca0d43"
+ },
+ "CMD_GET_MATCH_ANALYZE_ENV": {
+  "class": "GetMatchAnalyzeEnv",
+  "fields": {
+   "deffence": "NUM",
+   "favorite_play": "NUM",
+   "favorite_play_rate": "NUM",
+   "match_up": "NUM",
+   "msgid": "STR",
+   "passtype": "NUM",
+   "posession": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ccdcd0",
+  "parser_end": "0x141cce75f"
+ },
+ "CMD_GET_MYCLUB_ACHIEVEMENTLIST": {
+  "class": "GetMyclubAchievementlist",
+  "fields": {
+   "achievement_category": "STR",
+   "achievement_list": "LIST",
+   "body": "STR",
+   "contract_term": "NUM",
+   "entity_id": "NUM",
+   "grade": "NUM",
+   "milestone_list": "LIST",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "player_level": "NUM",
+   "present": "OBJ",
+   "present_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "target_value": "NUM",
+   "title": "STR",
+   "type": "STR"
+  },
+  "parser": "0x141c0e820",
+  "parser_end": "0x141c106dd"
+ },
+ "CMD_GET_MYCLUB_AGENT_BOX_INFO": {
+  "class": "GetMyclubAgentBoxInfo",
+  "fields": {
+   "agent": "OBJ",
+   "agent_end_time": "NUM",
+   "agent_id": "NUM",
+   "agent_info": "OBJ",
+   "agent_token_end_time": "OBJ",
+   "bgm_id": "NUM",
+   "count": "NUM",
+   "get_player_num": "NUM",
+   "gp": "NUM",
+   "is_buy_gp_pes_point": "STR",
+   "is_draw_checked": "STR",
+   "level": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "pes_point": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "target_level": "NUM",
+   "token_list": "OBJ?",
+   "token_list_num": "NUM",
+   "type": "STR",
+   "uniform": "NUM"
+  },
+  "parser": "0x141c2e880",
+  "parser_end": "0x141c3099b"
+ },
+ "CMD_GET_MYCLUB_AGENT_DRAW_RATE": {
+  "class": "GetMyclubAgentDrawRate",
+  "fields": {
+   "main": "OBJ",
+   "msgid": "STR",
+   "rate_player_num": "NUM",
+   "rate_table": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "sub1": "OBJ",
+   "sub2": "OBJ"
+  },
+  "parser": "0x141ca9080",
+  "parser_end": "0x141ca9d9f"
+ },
+ "CMD_GET_MYCLUB_ALL_COOP_MEMBER_LIST": {
+  "class": "GetMyclubAllCoopMemberList",
+  "fields": {
+   "coop_memberlist": "LIST",
+   "coop_memberlist_num": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "matchday_select_team_id": "OBJ?",
+   "msgid": "STR",
+   "nation_id": "NUM",
+   "parameters": "NUM",
+   "pid": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM"
+  },
+  "parser": "0x141dd0fd0",
+  "parser_end": "0x141dd1ed5"
+ },
+ "CMD_GET_MYCLUB_AUCTION_PRICE_RANKING": {
+  "class": "GetMyclubAuctionPriceRanking",
+  "fields": {
+   "auction_price_ranking": "LIST",
+   "auction_price_ranking_num": "NUM",
+   "end_time": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "price": "NUM",
+   "product_id": "NUM",
+   "rank": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_id": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM"
+  },
+  "parser": "0x141c6ccc0",
+  "parser_end": "0x141c6da79"
+ },
+ "CMD_GET_MYCLUB_AUCTION_REPORT_LIST": {
+  "class": "GetMyclubAuctionReportList",
+  "fields": {
+   "auction_report_list": "LIST",
+   "auction_state": "STR",
+   "bid_num": "NUM",
+   "finalround_end_time": "NUM",
+   "grade": "NUM",
+   "is_bid": "STR",
+   "is_bid_user_max": "STR",
+   "is_highest_bider": "STR",
+   "is_register_watchlist": "STR",
+   "msgid": "STR",
+   "price_now": "NUM",
+   "product_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_id": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "time_limit": "NUM",
+   "total_auction_report_list_num": "NUM",
+   "update_time": "NUM"
+  },
+  "parser": "0x141c31b00",
+  "parser_end": "0x141c32ed1"
+ },
+ "CMD_GET_MYCLUB_AUCTION_SCOUT_DETAIL": {
+  "class": "GetMyclubAuctionScoutDetail",
+  "fields": {
+   "auction_end_time": "NUM",
+   "auction_scout_detail": "OBJ",
+   "auction_start_time": "NUM",
+   "auction_state": "STR",
+   "bid_num": "NUM",
+   "finalround_end_time": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "price_now": "NUM",
+   "price_start": "NUM",
+   "product_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_id": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM"
+  },
+  "parser": "0x141cdae30",
+  "parser_end": "0x141cdc20e"
+ },
+ "CMD_GET_MYCLUB_AUCTION_SCOUT_TENDER_USERINFOLIST": {
+  "class": "GetMyclubAuctionScoutTenderUserinfolist",
+  "fields": {
+   "account_id": "NUM",
+   "auction_tender_userlist": "LIST",
+   "auction_tender_userlist_num": "NUM",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141c59800",
+  "parser_end": "0x141c5a8c4"
+ },
+ "CMD_GET_MYCLUB_AUCTION_SUCCESSFUL_BID_INFO": {
+  "class": "GetMyclubAuctionSuccessfulBidInfo",
+  "fields": {
+   "auction_successful_bid_list": "NUM",
+   "auction_successful_bid_list_num": "NUM",
+   "average_bid_price": "NUM",
+   "best_bid_amount_day": "NUM",
+   "best_bid_amount_price": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c62750",
+  "parser_end": "0x141c62f7f"
+ },
+ "CMD_GET_MYCLUB_AUCTION_WATCH_LIST": {
+  "class": "GetMyclubAuctionWatchList",
+  "fields": {
+   "auction_info_list": "LIST",
+   "auction_state": "STR",
+   "bid_num": "NUM",
+   "finalround_end_time": "NUM",
+   "grade": "NUM",
+   "is_bid": "STR",
+   "is_bid_user_max": "STR",
+   "is_highest_bider": "STR",
+   "is_register_watchlist": "STR",
+   "msgid": "STR",
+   "price_now": "NUM",
+   "product_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_id": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "time_limit": "NUM",
+   "total_auction_info_list_num": "NUM",
+   "update_time": "NUM"
+  },
+  "parser": "0x141cddb60",
+  "parser_end": "0x141cdef31"
+ },
+ "CMD_GET_MYCLUB_AUCTION_WISH_LIST": {
+  "class": "GetMyclubAuctionWishList",
+  "fields": {
+   "grade": "NUM",
+   "is_exhibited": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "total_wish_info_list_num": "NUM",
+   "wish_info_list": "LIST",
+   "wishlist_id": "NUM"
+  },
+  "parser": "0x141c22fa0",
+  "parser_end": "0x141c23c14"
+ },
+ "CMD_GET_MYCLUB_CLOUDMATCH_BONUS": {
+  "class": "GetMyclubCloudmatchBonus",
+  "fields": {
+   "body": "STR",
+   "cloud_bonus": "OBJ",
+   "entity_id": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "present_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "NUM",
+   "title": "STR",
+   "type": "NUM"
+  },
+  "parser": "0x141c42b10",
+  "parser_end": "0x141c45861"
+ },
+ "CMD_GET_MYCLUB_CLOUD_SQUADID": {
+  "class": "GetMyclubCloudSquadid",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "squad_id": "NUM"
+  },
+  "parser": "0x141c16160",
+  "parser_end": "0x141c16709"
+ },
+ "CMD_GET_MYCLUB_COACHLIST": {
+  "class": "GetMyclubCoachlist",
+  "fields": {
+   "attacking_area": "NUM",
+   "build_up": "NUM",
+   "coach_id": "NUM",
+   "coach_list": "LIST",
+   "coach_unique_id": "NUM",
+   "contract_term": "NUM",
+   "defence_compact": "NUM",
+   "defence_line": "NUM",
+   "defence_num": "NUM",
+   "defence_type": "NUM",
+   "defensive_main_concept": "OBJ",
+   "first_df": "NUM",
+   "formation_data": "STR",
+   "mobility": "NUM",
+   "msgid": "STR",
+   "offence_num": "NUM",
+   "offensive_main_concept": "OBJ",
+   "overall": "NUM",
+   "passsupport_dist": "NUM",
+   "press_rule": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "transition": "NUM"
+  },
+  "parser": "0x141c55d50",
+  "parser_end": "0x141c57a08"
+ },
+ "CMD_GET_MYCLUB_COACH_CONTRACT_NORMA": {
+  "class": "GetMyclubCoachContractNorma",
+  "fields": {
+   "current_point_division": "NUM",
+   "current_point_sim": "NUM",
+   "current_point_vscom": "NUM",
+   "is_contract_end": "STR",
+   "msgid": "STR",
+   "norma_point_division": "NUM",
+   "norma_point_sim": "NUM",
+   "norma_point_vscom": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c5b360",
+  "parser_end": "0x141c5bc8f"
+ },
+ "CMD_GET_MYCLUB_COMMENTARY_INFO": {
+  "class": "GetMyclubCommentaryInfo",
+  "fields": {
+   "coach_extended": "STR",
+   "coach_match_num": "NUM",
+   "cont_win_max": "NUM",
+   "cont_win_num": "NUM",
+   "division": "STR",
+   "division_num": "NUM",
+   "division_stats": "LIST",
+   "draw_num": "NUM",
+   "gameplayer_extended_list": "OBJ?",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "is_coach_norma_clear": "STR",
+   "lose_num": "NUM",
+   "msgid": "STR",
+   "num": "NUM",
+   "promotion": "OBJ?",
+   "result": "STR",
+   "rqid": "?",
+   "team_power_level_prematch": "NUM",
+   "team_spirit_prematch": "NUM",
+   "total_match_num": "NUM",
+   "win_num": "NUM"
+  },
+  "parser": "0x141c4ced0",
+  "parser_end": "0x141c4e6ce"
+ },
+ "CMD_GET_MYCLUB_COM_MATCH_INFO": {
+  "class": "GetMyclubComMatchInfo",
+  "fields": {
+   "contWinMax_num": "NUM",
+   "contWin_num": "NUM",
+   "current_weekly_point": "NUM",
+   "division": "STR",
+   "draw_num": "NUM",
+   "goal": "NUM",
+   "lose_num": "NUM",
+   "lostGoal": "NUM",
+   "match_num": "NUM",
+   "match_stats": "OBJ",
+   "max_weekly_point": "NUM",
+   "msgid": "STR",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "win_num": "NUM"
+  },
+  "parser": "0x141d8faa0",
+  "parser_end": "0x141d90643"
+ },
+ "CMD_GET_MYCLUB_CONFIRM_COOP_SQUAD": {
+  "class": "GetMyclubConfirmCoopSquad",
+  "fields": {
+   "base_team_id": "NUM",
+   "coach_id_list": "NUM",
+   "coach_unique_id_list": "NUM",
+   "default_rarity": "STR",
+   "gameplan_data": "STR",
+   "gameplan_data_size": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "is_entry_compe": "STR",
+   "member_list": "LIST",
+   "member_num": "NUM",
+   "msgid": "STR",
+   "my_team": "OBJ",
+   "name": "STR",
+   "parameters": "NUM",
+   "player_level": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "squad_id": "NUM",
+   "team_data": "OBJ",
+   "team_name": "STR",
+   "team_name_short": "STR",
+   "uniform_number": "NUM"
+  },
+  "parser": "0x141dd7540",
+  "parser_end": "0x141dd91f1"
+ },
+ "CMD_GET_MYCLUB_DEFAULT_COACHLIST": {
+  "class": "GetMyclubDefaultCoachlist",
+  "fields": {
+   "attacking_area": "NUM",
+   "build_up": "NUM",
+   "coach_id": "NUM",
+   "default_coach_list": "LIST",
+   "defence_compact": "NUM",
+   "defence_line": "NUM",
+   "defence_type": "NUM",
+   "defensive_main_concept": "OBJ",
+   "first_df": "NUM",
+   "formation_data": "STR",
+   "gp": "NUM",
+   "is_locked": "NUM",
+   "mobility": "NUM",
+   "msgid": "STR",
+   "offence_num": "NUM",
+   "offensive_main_concept": "OBJ",
+   "overall": "NUM",
+   "passsupport_dist": "NUM",
+   "pes_point": "NUM",
+   "press_rule": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "transition": "NUM"
+  },
+  "parser": "0x141d915e0",
+  "parser_end": "0x141d92f4b"
+ },
+ "CMD_GET_MYCLUB_DEFAULT_RENTAL_GAMEPLAYERLIST": {
+  "class": "GetMyclubDefaultRentalGameplayerlist",
+  "fields": {
+   "assist": "NUM",
+   "attacking_area_center": "NUM",
+   "attacking_area_side": "NUM",
+   "build_up_long": "NUM",
+   "build_up_short": "NUM",
+   "concept": "OBJ",
+   "contract_term": "NUM",
+   "gameplayer": "OBJ",
+   "gameplayer_cost": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "games": "NUM",
+   "goal": "NUM",
+   "is_rental": "STR",
+   "is_subscription": "STR",
+   "mobility_fix": "NUM",
+   "msgid": "STR",
+   "rating": "NUM",
+   "rental_gameplayer_list": "LIST",
+   "result": "STR",
+   "rqid": "?",
+   "sell_gp": "NUM",
+   "tiredness": "NUM",
+   "transition_counter": "NUM",
+   "transition_possession": "NUM"
+  },
+  "parser": "0x141d9f5e0",
+  "parser_end": "0x141da1af4"
+ },
+ "CMD_GET_MYCLUB_EFP_EXCHANGE_STORELIST": {
+  "class": "GetMyclubEfpExchangeStorelist",
+  "fields": {
+   "body": "STR",
+   "contract_term": "NUM",
+   "entity_id": "NUM",
+   "item_type": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "player_level": "NUM",
+   "player_level_limit": "NUM",
+   "price": "NUM",
+   "product_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "store_list": "LIST",
+   "store_list_num": "NUM",
+   "team_id": "OBJ",
+   "title": "STR"
+  },
+  "parser": "0x141d193e0",
+  "parser_end": "0x141d1a9a4"
+ },
+ "CMD_GET_MYCLUB_FEATURE_PLAYER_LIST": {
+  "class": "GetMyclubFeaturePlayerList",
+  "fields": {
+   "gameplayer_list": "NUM",
+   "gameplayer_list_num": "NUM",
+   "hold_gameplayer_list": "NUM",
+   "hold_gameplayer_list_num": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c5f1d0",
+  "parser_end": "0x141c5f9d5"
+ },
+ "CMD_GET_MYCLUB_GAMEPLAYERLIST": {
+  "class": "GetMyclubGameplayerlist",
+  "fields": {
+   "assist": "NUM",
+   "attacking_area_side": "NUM",
+   "build_up_long": "NUM",
+   "build_up_short": "NUM",
+   "concept": "OBJ",
+   "contract_term": "NUM",
+   "gameplayer_cost": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_list": "LIST",
+   "gameplayer_unique_id": "NUM",
+   "games": "NUM",
+   "goal": "NUM",
+   "is_rental": "STR",
+   "is_subscription": "NUM",
+   "msgid": "STR",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "tiredness": "NUM",
+   "transition_counter": "NUM",
+   "transition_possession": "NUM"
+  },
+  "parser": "0x141c91af0",
+  "parser_end": "0x141c95713"
+ },
+ "CMD_GET_MYCLUB_GAMEPLAYER_EXPERIENCE": {
+  "class": "GetMyclubGameplayerExperience",
+  "fields": {
+   "add_skill_id": "NUM",
+   "enhanced_parameters": "NUM",
+   "exp_current_level": "NUM",
+   "exp_info_postmatch": "OBJ",
+   "exp_info_prematch": "OBJ",
+   "exp_list": "LIST",
+   "exp_list_num": "NUM",
+   "exp_match": "NUM",
+   "exp_to_next_level": "NUM",
+   "exp_total": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "level": "NUM",
+   "level_limit": "NUM",
+   "msgid": "STR",
+   "parameters": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c89b70",
+  "parser_end": "0x141c8afc5"
+ },
+ "CMD_GET_MYCLUB_GAME_BONUS": {
+  "class": "GetMyclubGameBonus",
+  "fields": {
+   "agent_id": "NUM",
+   "body": "NUM",
+   "count": "NUM",
+   "gain_gp": "NUM",
+   "gp": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "present_id": "NUM",
+   "rate": "OBJ",
+   "rate_player_num": "NUM",
+   "rate_table": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout": "OBJ",
+   "sell_gp": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "special_match_bonus_list": "LIST",
+   "target_level": "NUM",
+   "title": "STR"
+  },
+  "parser": "0x141c7a820",
+  "parser_end": "0x141c7df81"
+ },
+ "CMD_GET_MYCLUB_HISTORYLIST": {
+  "class": "GetMyclubHistorylist",
+  "fields": {
+   "count": "NUM",
+   "data_type": "STR",
+   "date": "NUM",
+   "entity_id": "NUM",
+   "history_data_in": "OBJ",
+   "history_data_kind": "STR",
+   "history_data_out": "OBJ",
+   "item_data": "OBJ",
+   "item_effect_arg": "NUM",
+   "item_type": "STR",
+   "item_variation": "STR",
+   "msgid": "STR",
+   "myclub_history_list": "LIST",
+   "name": "STR",
+   "pes_point_price": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d0bc30",
+  "parser_end": "0x141d0d69a"
+ },
+ "CMD_GET_MYCLUB_INCREASED_COINLIST": {
+  "class": "GetMyclubIncreasedCoinlist",
+  "fields": {
+   "expiration_date": "NUM",
+   "gain_date": "NUM",
+   "increased_coin_list_total": "NUM",
+   "increased_pes_point_list": "LIST",
+   "increased_pes_point_list_num": "NUM",
+   "index": "NUM",
+   "msgid": "STR",
+   "no_use_pes_point": "NUM",
+   "pes_point": "NUM",
+   "pes_point_buy": "NUM",
+   "pes_point_free": "NUM",
+   "pes_point_type": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "use_expiration_date": "STR"
+  },
+  "parser": "0x141bdb320",
+  "parser_end": "0x141bdc0bc"
+ },
+ "CMD_GET_MYCLUB_IS_FIRST_AGENT_MULTIPLE": {
+  "class": "GetMyclubIsFirstAgentMultiple",
+  "fields": {
+   "is_first": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141daee90",
+  "parser_end": "0x141daf492"
+ },
+ "CMD_GET_MYCLUB_IS_FIRST_MEMBERLIST": {
+  "class": "GetMyclubIsFirstMemberlist",
+  "fields": {
+   "is_first": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dafeb0",
+  "parser_end": "0x141db04b2"
+ },
+ "CMD_GET_MYCLUB_IS_MARKET_COACH_AVAILABLE": {
+  "class": "GetMyclubIsMarketCoachAvailable",
+  "fields": {
+   "is_get": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c8ba40",
+  "parser_end": "0x141c8c042"
+ },
+ "CMD_GET_MYCLUB_ITEMLIST": {
+  "class": "GetMyclubItemlist",
+  "fields": {
+   "count": "NUM",
+   "item_effect_arg": "NUM",
+   "item_list": "LIST",
+   "item_list_num": "NUM",
+   "item_type": "STR",
+   "item_variation": "STR",
+   "msgid": "STR",
+   "pes_point_price": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bed520",
+  "parser_end": "0x141bee057"
+ },
+ "CMD_GET_MYCLUB_LEGEND_GAMEPLAYERLIST": {
+  "class": "GetMyclubLegendGameplayerlist",
+  "fields": {
+   "assist": "NUM",
+   "attacking_area_side": "NUM",
+   "build_up_long": "NUM",
+   "build_up_short": "NUM",
+   "concept": "OBJ",
+   "contract_term": "NUM",
+   "gameplayer_cost": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_list": "LIST",
+   "gameplayer_unique_id": "NUM",
+   "games": "NUM",
+   "goal": "NUM",
+   "is_rental": "STR",
+   "is_subscription": "STR",
+   "msgid": "STR",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "sell_gp": "NUM",
+   "tiredness": "NUM",
+   "transition_counter": "NUM",
+   "transition_possession": "NUM"
+  },
+  "parser": "0x141cd00b0",
+  "parser_end": "0x141cd22f4"
+ },
+ "CMD_GET_MYCLUB_LOGIN_BONUS": {
+  "class": "GetMyclubLoginBonus",
+  "fields": {
+   "body": "STR",
+   "contract_term": "NUM",
+   "entity_id": "NUM",
+   "grade": "NUM",
+   "login_bonus_list": "LIST",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "player_level": "NUM",
+   "present_id": "NUM",
+   "present_type": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "team_id": "NUM",
+   "title": "STR",
+   "type": "STR"
+  },
+  "parser": "0x141bf4a40",
+  "parser_end": "0x141bf639b"
+ },
+ "CMD_GET_MYCLUB_MAINMENU_INFO": {
+  "class": "GetMyclubMainmenuInfo",
+  "fields": {
+   "com_countWin_num": "NUM",
+   "com_match_num": "NUM",
+   "cpu_level": "STR",
+   "is_coop_enable": "STR",
+   "is_free_enable": "STR",
+   "msgid": "STR",
+   "oppo_level": "NUM",
+   "present_num": "NUM",
+   "rank": "NUM",
+   "rank_coach": "NUM",
+   "rank_coach_total_num": "NUM",
+   "rank_total_num": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scount_num": "NUM",
+   "staff_num": "NUM",
+   "weekly_group_rank": "NUM",
+   "weekly_group_rank_total_num": "NUM"
+  },
+  "parser": "0x141bfd5f0",
+  "parser_end": "0x141bff4a5"
+ },
+ "CMD_GET_MYCLUB_MAIN_SQUAD": {
+  "class": "GetMyclubMainSquad",
+  "fields": {
+   "coach_id_list": "NUM",
+   "coach_unique_id_list": "NUM",
+   "default_rarity": "STR",
+   "gameplan_data": "STR",
+   "gameplan_data_size": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "is_entry_compe": "STR",
+   "member_list": "LIST",
+   "member_num": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "parameters": "NUM",
+   "player_level": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "squad": "OBJ",
+   "squad_id": "NUM",
+   "uniform_number": "NUM"
+  },
+  "parser": "0x141c06500",
+  "parser_end": "0x141c0aa0c"
+ },
+ "CMD_GET_MYCLUB_MARKET_AGENTLIST": {
+  "class": "GetMyclubMarketAgentlist",
+  "fields": {
+   "agent": "OBJ",
+   "agent_end_time": "NUM",
+   "agent_id": "NUM",
+   "agent_token_end_time": "NUM",
+   "banner_file_info": "OBJ",
+   "bgm_id": "NUM",
+   "count": "NUM",
+   "get_player_num": "NUM",
+   "gp": "NUM",
+   "is_buy_gp_pes_point": "STR",
+   "is_draw_checked": "STR",
+   "level": "NUM",
+   "market_agent_list": "LIST",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "pes_point": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "target_level": "NUM",
+   "token_list": "OBJ?",
+   "token_list_num": "NUM",
+   "type": "STR",
+   "uniform": "NUM"
+  },
+  "parser": "0x141c20550",
+  "parser_end": "0x141c22285"
+ },
+ "CMD_GET_MYCLUB_MARKET_COACHLIST": {
+  "class": "GetMyclubMarketCoachlist",
+  "fields": {
+   "attacking_area": "NUM",
+   "build_up": "NUM",
+   "coach_id": "NUM",
+   "defence_compact": "NUM",
+   "defence_line": "NUM",
+   "defence_type": "NUM",
+   "defensive_main_concept": "OBJ",
+   "first_df": "NUM",
+   "formation_data": "STR",
+   "gp": "NUM",
+   "is_locked": "NUM",
+   "market_coach_list": "LIST",
+   "mobility": "NUM",
+   "msgid": "STR",
+   "offence_num": "NUM",
+   "offensive_main_concept": "OBJ",
+   "overall": "NUM",
+   "passsupport_dist": "NUM",
+   "pes_point": "NUM",
+   "press_rule": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "transition": "NUM"
+  },
+  "parser": "0x141d93950",
+  "parser_end": "0x141d95374"
+ },
+ "CMD_GET_MYCLUB_PLAYER_NUMBER_FIXATION": {
+  "class": "GetMyclubPlayerNumberFixation",
+  "fields": {
+   "msgid": "STR",
+   "number": "NUM",
+   "player_id": "NUM",
+   "player_number_list": "LIST",
+   "player_number_list_num": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c5c710",
+  "parser_end": "0x141c5cef6"
+ },
+ "CMD_GET_MYCLUB_PRESENTLIST": {
+  "class": "GetMyclubPresentlist",
+  "fields": {
+   "body": "STR",
+   "contract_term": "NUM",
+   "entity_id": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "player_level": "NUM",
+   "present_id": "NUM",
+   "present_list": "LIST",
+   "present_type": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "team_id": "NUM",
+   "title": "STR",
+   "type": "STR"
+  },
+  "parser": "0x141c473e0",
+  "parser_end": "0x141c48bd6"
+ },
+ "CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST": {
+  "class": "GetMyclubProcurableGameplayerlist",
+  "fields": {
+   "gameplayer_id": "NUM",
+   "gameplayer_list": "LIST",
+   "gameplayer_list_num": "NUM",
+   "is_draw": "STR",
+   "level_limit": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM"
+  },
+  "parser": "0x141d96040",
+  "parser_end": "0x141d969e3"
+ },
+ "CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST_RARITY": {
+  "class": "GetMyclubProcurableGameplayerlistRarity",
+  "fields": {
+   "gameplayer_id": "NUM",
+   "gameplayer_list": "LIST",
+   "gameplayer_list_num": "NUM",
+   "is_draw": "STR",
+   "level_limit": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM"
+  },
+  "parser": "0x141db2aa0",
+  "parser_end": "0x141db3443"
+ },
+ "CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST_SCOUT": {
+  "class": "GetMyclubProcurableGameplayerlistScout",
+  "fields": {
+   "gameplayer_id": "NUM",
+   "gameplayer_list": "OBJ?",
+   "gameplayer_list_num": "NUM",
+   "is_draw": "STR",
+   "level_limit": "NUM",
+   "msgid": "STR",
+   "rate": "OBJ",
+   "rate_player_num": "NUM",
+   "rate_table": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM"
+  },
+  "parser": "0x141d97c80",
+  "parser_end": "0x141d9890b"
+ },
+ "CMD_GET_MYCLUB_PROCURABLE_SCOUTLIST_GAMEPLAYER": {
+  "class": "GetMyclubProcurableScoutlistGameplayer",
+  "fields": {
+   "agent_id": "NUM",
+   "count": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "rate": "OBJ",
+   "rate_player_num": "NUM",
+   "rate_table": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_list": "LIST",
+   "scout_list_num": "NUM",
+   "sell_gp": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "target_level": "NUM"
+  },
+  "parser": "0x141db0f20",
+  "parser_end": "0x141db1f7a"
+ },
+ "CMD_GET_MYCLUB_RANKING": {
+  "class": "GetMyclubRanking",
+  "fields": {
+   "date": "NUM",
+   "division": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "pid": "NUM",
+   "pname": "STR",
+   "rank_list": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "user": "STR",
+   "xuid_one": "NUM"
+  },
+  "parser": "0x141d9a260",
+  "parser_end": "0x141d9ba27"
+ },
+ "CMD_GET_MYCLUB_RANKING_BYID": {
+  "class": "GetMyclubRankingByid",
+  "fields": {
+   "date": "NUM",
+   "division": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "pid": "NUM",
+   "pname": "STR",
+   "rank_list": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "user": "STR",
+   "xuid_one": "NUM"
+  },
+  "parser": "0x141d9d180",
+  "parser_end": "0x141d9e947"
+ },
+ "CMD_GET_MYCLUB_REFINE_SEARCH_AUCTION_LIST": {
+  "class": "GetMyclubRefineSearchAuctionList",
+  "fields": {
+   "auction_info_list": "LIST",
+   "auction_state": "STR",
+   "bid_num": "NUM",
+   "finalround_end_time": "NUM",
+   "grade": "NUM",
+   "is_bid": "STR",
+   "is_bid_user_max": "STR",
+   "is_highest_bider": "STR",
+   "is_register_watchlist": "STR",
+   "msgid": "STR",
+   "price_now": "NUM",
+   "product_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_id": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "time_limit": "NUM",
+   "total_auction_info_list_num": "NUM",
+   "update_time": "NUM"
+  },
+  "parser": "0x141cd53f0",
+  "parser_end": "0x141cd67c1"
+ },
+ "CMD_GET_MYCLUB_RENTAL_GAMEPLAYERLIST": {
+  "class": "GetMyclubRentalGameplayerlist",
+  "fields": {
+   "assist": "NUM",
+   "attacking_area_center": "NUM",
+   "attacking_area_side": "NUM",
+   "build_up_long": "NUM",
+   "build_up_short": "NUM",
+   "concept": "OBJ",
+   "contract_term": "NUM",
+   "gameplayer": "OBJ",
+   "gameplayer_cost": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "games": "NUM",
+   "goal": "NUM",
+   "is_rental": "STR",
+   "is_subscription": "STR",
+   "mobility_fix": "NUM",
+   "msgid": "STR",
+   "rating": "NUM",
+   "rental_gameplayer_list": "LIST",
+   "result": "STR",
+   "rqid": "?",
+   "sell_gp": "NUM",
+   "tiredness": "NUM",
+   "transition_counter": "NUM",
+   "transition_possession": "NUM"
+  },
+  "parser": "0x141da24f0",
+  "parser_end": "0x141da4a04"
+ },
+ "CMD_GET_MYCLUB_SCOUTLIST": {
+  "class": "GetMyclubScoutlist",
+  "fields": {
+   "agent_id": "NUM",
+   "count": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "rate": "OBJ",
+   "rate_player_num": "NUM",
+   "rate_table": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_list": "LIST",
+   "scout_list_num": "NUM",
+   "sell_gp": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "target_level": "NUM"
+  },
+  "parser": "0x141c3df20",
+  "parser_end": "0x141c3ef7a"
+ },
+ "CMD_GET_MYCLUB_SERVER_ENV": {
+  "class": "GetMyclubServerEnv",
+  "fields": {
+   "agent_id": "NUM",
+   "count": "NUM",
+   "grade": "NUM",
+   "is_all_club_edition_set": "STR",
+   "license_out_coach_list": "NUM",
+   "license_out_player_list": "NUM",
+   "market_scout_list": "LIST",
+   "msgid": "STR",
+   "rate": "OBJ",
+   "rate_player_num": "NUM",
+   "rate_table": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "sell_gp": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "target_level": "NUM"
+  },
+  "parser": "0x141cb67c0",
+  "parser_end": "0x141cb7b05"
+ },
+ "CMD_GET_MYCLUB_SQUADLIST": {
+  "class": "GetMyclubSquadlist",
+  "fields": {
+   "club_edition_type": "STR",
+   "coach_id_list": "NUM",
+   "coach_unique_id_list": "NUM",
+   "default_rarity": "STR",
+   "gameplan_data": "STR",
+   "gameplan_data_size": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "is_club_edition": "STR",
+   "is_entry_compe": "STR",
+   "member_list": "LIST",
+   "member_num": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "parameters": "NUM",
+   "player_level": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "squad_id": "NUM",
+   "squad_list": "LIST",
+   "uniform_number": "NUM"
+  },
+  "parser": "0x141cac7d0",
+  "parser_end": "0x141caed57"
+ },
+ "CMD_GET_MYCLUB_SQUAD_BONUS_TARGET_PLAYERLIST": {
+  "class": "GetMyclubSquadBonusTargetPlayerlist",
+  "fields": {
+   "gameplayer_id": "NUM",
+   "gameplayer_id_list": "LIST",
+   "gameplayer_id_list_num": "NUM",
+   "is_draw": "STR",
+   "level_limit": "NUM",
+   "msgid": "STR",
+   "need_player_num": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM"
+  },
+  "parser": "0x141c02400",
+  "parser_end": "0x141c02e2b"
+ },
+ "CMD_GET_MYCLUB_SQUAD_GAMEPLAN": {
+  "class": "GetMyclubSquadGameplan",
+  "fields": {
+   "gameplan_data": "STR",
+   "gameplan_data_size": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ca7ef0",
+  "parser_end": "0x141ca85cc"
+ },
+ "CMD_GET_MYCLUB_STAFF_LIST": {
+  "class": "GetMyclubStaffList",
+  "fields": {
+   "ability": "NUM",
+   "base_exp": "NUM",
+   "base_player_info": "OBJ",
+   "club_team_id": "NUM",
+   "gameplayer_base_id": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_level": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "id": "NUM",
+   "msgid": "STR",
+   "nation_id": "NUM",
+   "overall": "NUM",
+   "play_style": "STR",
+   "position": "STR",
+   "registared_position": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "staff_list": "LIST",
+   "staff_list_num": "NUM",
+   "stronger_foot": "STR"
+  },
+  "parser": "0x141c9bb00",
+  "parser_end": "0x141c9ceb8"
+ },
+ "CMD_GET_MYCLUB_USER_INFO": {
+  "class": "GetMyclubUserInfo",
+  "fields": {
+   "base_team_id": "NUM",
+   "gp": "NUM",
+   "msgid": "STR",
+   "pes_point": "NUM",
+   "progress_status": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "team_name": "STR",
+   "team_name_commentary_id": "NUM",
+   "team_name_short": "STR",
+   "user_team_name": "STR",
+   "user_team_name_short": "NUM"
+  },
+  "parser": "0x141da5710",
+  "parser_end": "0x141da6a76"
+ },
+ "CMD_GET_MYCLUB_VSCOM_OPPONENT": {
+  "class": "GetMyclubVscomOpponent",
+  "fields": {
+   "base_team_id": "NUM",
+   "cpu_level": "STR",
+   "default_rarity": "STR",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "msgid": "STR",
+   "name": "LIST",
+   "parameters": "NUM",
+   "player_level": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "side": "STR",
+   "squad_id": "NUM",
+   "team_data": "OBJ",
+   "team_name": "STR",
+   "team_name_short": "STR",
+   "uniform_number": "NUM"
+  },
+  "parser": "0x141da7b80",
+  "parser_end": "0x141daa636"
+ },
+ "CMD_GET_MYCLUB_WEEKLYPOINT_RESULT": {
+  "class": "GetMyclubWeeklypointResult",
+  "fields": {
+   "gain_point_by_skill_rank": "NUM",
+   "gain_point_by_weekly_point": "NUM",
+   "hi_score": "NUM",
+   "hi_score_rank": "NUM",
+   "is_entry_weekly_myclub": "STR",
+   "is_hi_score": "STR",
+   "msgid": "STR",
+   "old_hi_score": "NUM",
+   "old_hi_score_rank": "NUM",
+   "old_weekly_point": "NUM",
+   "oppo_skill_rank": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "weekly_point": "NUM",
+   "weekly_point_info": "LIST",
+   "weekly_point_rate": "NUM"
+  },
+  "parser": "0x141caabf0",
+  "parser_end": "0x141caba8e"
+ },
+ "CMD_GET_MYCLUB_WEEKLY_RANKING": {
+  "class": "GetMyclubWeeklyRanking",
+  "fields": {
+   "account_id": "NUM",
+   "date": "NUM",
+   "is_deleted": "STR",
+   "max_weekly_point": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "STR",
+   "psn_user_id": "STR",
+   "rank": "NUM",
+   "rank_list": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "total_rank_num": "NUM",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141db5490",
+  "parser_end": "0x141db7422"
+ },
+ "CMD_GET_MYCLUB_WEEKLY_RANKING_BASIC_INFO": {
+  "class": "GetMyclubWeeklyRankingBasicInfo",
+  "fields": {
+   "basic_info": "OBJ",
+   "eura_url": "STR",
+   "is_beginner": "STR",
+   "is_join": "STR",
+   "is_rejected": "STR",
+   "is_season_end": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "present_id": "NUM",
+   "result": "STR",
+   "reward": "OBJ",
+   "rqid": "?"
+  },
+  "parser": "0x141c71ae0",
+  "parser_end": "0x141c73865"
+ },
+ "CMD_GET_MYCLUB_WEEKLY_RANKING_BYID": {
+  "class": "GetMyclubWeeklyRankingByid",
+  "fields": {
+   "account_id": "NUM",
+   "date": "NUM",
+   "is_deleted": "STR",
+   "max_weekly_point": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "STR",
+   "psn_user_id": "STR",
+   "rank": "NUM",
+   "rank_list": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "total_rank_num": "NUM",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141db90d0",
+  "parser_end": "0x141dbb062"
+ },
+ "CMD_GET_OFFMODE_PLAYER_PARAMETERLIST": {
+  "class": "GetOffmodePlayerParameterlist",
+  "fields": {
+   "away_param_playerlist": "LIST",
+   "gameplayer_id": "NUM",
+   "gameplayer_id_info": "OBJ",
+   "gameplayer_unique_id": "NUM",
+   "home_param_playerlist": "LIST",
+   "msgid": "STR",
+   "parameters": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141b9fc90",
+  "parser_end": "0x141ba0c8a"
+ },
+ "CMD_GET_OFTEN_USED_TEAM_LIST": {
+  "class": "GetOftenUsedTeamList",
+  "fields": {
+   "last_used_team_id": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "used_team_id_list": "NUM",
+   "used_team_id_list_num": "NUM"
+  },
+  "parser": "0x141d3e350",
+  "parser_end": "0x141d3ea8e"
+ },
+ "CMD_GET_ONLINE_AD_FILE": {
+  "class": "GetOnlineAdFile",
+  "fields": {
+   "ad_banner_file_name": "STR",
+   "ad_signage_file_name": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dde9c0",
+  "parser_end": "0x141ddf091"
+ },
+ "CMD_GET_PESLEAGUE_1VS1_MAINMENU_INFO": {
+  "class": "GetPesleague1vs1MainmenuInfo",
+  "fields": {
+   "compe_end_time": "NUM",
+   "draw_count": "NUM",
+   "lose_count": "NUM",
+   "match_num": "NUM",
+   "matching_first_date": "NUM",
+   "matching_interval": "NUM",
+   "matching_time": "NUM",
+   "msgid": "STR",
+   "point": "NUM",
+   "rank_type": "STR",
+   "regulation_match_num": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM",
+   "team_name": "STR",
+   "win_count": "NUM"
+  },
+  "parser": "0x141c36530",
+  "parser_end": "0x141c3719d"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_INFO": {
+  "class": "GetPesleagueCompeInfo",
+  "fields": {
+   "compe_data": "OBJ",
+   "compe_id": "NUM",
+   "compe_name": "STR",
+   "end_date": "NUM",
+   "is_myclub": "STR",
+   "match_type": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "start_date": "NUM"
+  },
+  "parser": "0x141bc8450",
+  "parser_end": "0x141bcd244"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_LIST": {
+  "class": "GetPesleagueCompeList",
+  "fields": {
+   "compe_id": "NUM",
+   "compe_list": "LIST",
+   "compe_name": "STR",
+   "end_date": "NUM",
+   "entry_limit_date": "NUM",
+   "entry_user_limit": "STR",
+   "entry_user_num": "NUM",
+   "is_myclub": "STR",
+   "match_end_date": "NUM",
+   "match_type": "STR",
+   "mode": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "start_date": "NUM"
+  },
+  "parser": "0x141bd6040",
+  "parser_end": "0x141bd7b29"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_OVERVIEW_INFO": {
+  "class": "GetPesleagueCompeOverviewInfo",
+  "fields": {
+   "msgid": "STR",
+   "overview_info": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bea160",
+  "parser_end": "0x141bea762"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_PARTICIPATION_RIGHT": {
+  "class": "GetPesleagueCompeParticipationRight",
+  "fields": {
+   "banner_file_info": "OBJ",
+   "clan_name": "STR",
+   "clan_owner_pid": "OBJ",
+   "compe_id": "NUM",
+   "compe_name": "STR",
+   "end_date": "NUM",
+   "filename": "STR",
+   "hash_str": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "need_match_num": "NUM",
+   "need_point": "NUM",
+   "participation_right": "OBJ",
+   "player_point": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "start_date": "NUM"
+  },
+  "parser": "0x141bfaf90",
+  "parser_end": "0x141bfc66f"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_RANKING": {
+  "class": "GetPesleagueCompeRanking",
+  "fields": {
+   "account_id": "NUM",
+   "clan_owner_name": "OBJ",
+   "draw_count": "NUM",
+   "entry_name": "STR",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "lose_count": "NUM",
+   "match_num": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "point": "NUM",
+   "psn_user_id": "OBJ",
+   "rank": "NUM",
+   "rank_list": "LIST",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM",
+   "win_count": "NUM",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141c1b2e0",
+  "parser_end": "0x141c1cd5a"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_RANKING_BYID": {
+  "class": "GetPesleagueCompeRankingByid",
+  "fields": {
+   "account_id": "NUM",
+   "clan_owner_name": "OBJ",
+   "draw_count": "NUM",
+   "entry_name": "STR",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "lose_count": "NUM",
+   "match_num": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "point": "NUM",
+   "psn_user_id": "OBJ",
+   "rank": "NUM",
+   "rank_list": "LIST",
+   "result": "STR",
+   "rqid": "?",
+   "team_id": "NUM",
+   "win_count": "NUM",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141c293c0",
+  "parser_end": "0x141c2ae3a"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_RESULT_LIST": {
+  "class": "GetPesleagueCompeResultList",
+  "fields": {
+   "account_id": "NUM",
+   "banner_file_info": "OBJ",
+   "clan_name": "STR",
+   "clan_owner_name": "OBJ",
+   "clan_owner_pid": "NUM",
+   "compe_id": "NUM",
+   "compe_name": "STR",
+   "end_date": "NUM",
+   "entry_user_num": "NUM",
+   "filename": "STR",
+   "hash_str": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "player_rank": "NUM",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "result_list": "LIST",
+   "rqid": "?",
+   "start_date": "NUM",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141c11b00",
+  "parser_end": "0x141c136e2"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_REWARD_INFO": {
+  "class": "GetPesleagueCompeRewardInfo",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "reward_info": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bf3970",
+  "parser_end": "0x141bf3f72"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_REWARD_LIST": {
+  "class": "GetPesleagueCompeRewardList",
+  "fields": {
+   "body": "STR",
+   "contract_term": "NUM",
+   "entity_id": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "player_level": "NUM",
+   "present_id": "NUM",
+   "present_type": "OBJ",
+   "result": "STR",
+   "reward_list": "LIST",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "team_id": "NUM",
+   "title": "STR",
+   "type": "STR"
+  },
+  "parser": "0x141c03890",
+  "parser_end": "0x141c050aa"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_TEAM_LIST": {
+  "class": "GetPesleagueCompeTeamList",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "team_list": "NUM",
+   "team_list_num": "NUM"
+  },
+  "parser": "0x141bdf3b0",
+  "parser_end": "0x141bdfa9f"
+ },
+ "CMD_GET_PESLEAGUE_MAINMENU_INFO": {
+  "class": "GetPesleagueMainmenuInfo",
+  "fields": {
+   "division": "STR",
+   "msgid": "STR",
+   "new_result": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bc1670",
+  "parser_end": "0x141bc1d41"
+ },
+ "CMD_GET_PLATFORM_SESSION": {
+  "class": "GetPlatformSession",
+  "fields": {
+   "data_size": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "session": "STR"
+  },
+  "parser": "0x141d14060",
+  "parser_end": "0x141d1473c"
+ },
+ "CMD_GET_PLAYERINFO": {
+  "class": "GetPlayerinfo",
+  "fields": {
+   "account_id": "NUM",
+   "disconnect_rate": "STR",
+   "favoriteTeam": "STR",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "manner": "OBJ",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e30ad0",
+  "parser_end": "0x141e34927"
+ },
+ "CMD_GET_PLAYER_DATA": {
+  "class": "GetPlayerData",
+  "fields": {
+   "account_id": "NUM",
+   "has_data": "STR",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d3f450",
+  "parser_end": "0x141d403d0"
+ },
+ "CMD_GET_PLAYER_PARAMETERLIST": {
+  "class": "GetPlayerParameterlist",
+  "fields": {
+   "gameplayer_id": "NUM",
+   "gameplayer_id_info": "OBJ",
+   "gameplayer_unique_id": "NUM",
+   "is_cost_over": "STR",
+   "msgid": "STR",
+   "param_playerlist": "LIST",
+   "parameters": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d8a120",
+  "parser_end": "0x141d8acfb"
+ },
+ "CMD_GET_POSITION_RATING": {
+  "class": "GetPositionRating",
+  "fields": {
+   "game_count": "NUM",
+   "msgid": "STR",
+   "pos_rating_list": "LIST",
+   "position": "STR",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "total_position_match_num": "NUM",
+   "total_position_rating": "NUM"
+  },
+  "parser": "0x141c18720",
+  "parser_end": "0x141c1909d"
+ },
+ "CMD_GET_PRIVATEINFOTITLELIST": {
+  "class": "GetPrivateinfotitlelist",
+  "fields": {
+   "announce_id": "NUM",
+   "announce_info_list": "LIST",
+   "announce_type": "STR",
+   "date": "NUM",
+   "event_id": "NUM",
+   "evoked_text": "STR",
+   "filename": "STR",
+   "hash_str": "STR",
+   "is_auto_make_compe_name": "STR",
+   "is_use_emblem": "STR",
+   "list_banner_file_info": "OBJ",
+   "matchday_emblem_info": "OBJ",
+   "msgid": "STR",
+   "popup_type": "STR",
+   "priority": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "title": "STR",
+   "weekly_info_type": "STR"
+  },
+  "parser": "0x141c24ca0",
+  "parser_end": "0x141c264de"
+ },
+ "CMD_GET_QUICKMATCHOPTION": {
+  "class": "GetQuickmatchoption",
+  "fields": {
+   "is_league": "STR",
+   "is_pass_level": "STR",
+   "is_team_power_lv": "STR",
+   "msgid": "STR",
+   "ping_level": "STR",
+   "rating_level": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "team_class": "STR"
+  },
+  "parser": "0x141d41010",
+  "parser_end": "0x141d41b23"
+ },
+ "CMD_GET_RANDOMSELECTION_LOTTERY_LIST": {
+  "class": "GetRandomselectionLotteryList",
+  "fields": {
+   "gameplayer_list": "NUM",
+   "gameplayer_list_num": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "trade_num": "NUM"
+  },
+  "parser": "0x141d7c740",
+  "parser_end": "0x141d7ce7e"
+ },
+ "CMD_GET_RANKING": {
+  "class": "GetRanking",
+  "fields": {
+   "date": "NUM",
+   "division": "STR",
+   "favoriteTeam": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "pid": "NUM",
+   "pname": "STR",
+   "psn_user_id": "NUM",
+   "rank_list": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "user": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d42f80",
+  "parser_end": "0x141d446d3"
+ },
+ "CMD_GET_RANKING_BYID": {
+  "class": "GetRankingByid",
+  "fields": {
+   "date": "NUM",
+   "division": "STR",
+   "favoriteTeam": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "pid": "NUM",
+   "pname": "STR",
+   "psn_user_id": "NUM",
+   "rank_list": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "user": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d45c30",
+  "parser_end": "0x141d47383"
+ },
+ "CMD_GET_ROOM_BESTPLAYER": {
+  "class": "GetRoomBestplayer",
+  "fields": {
+   "game_count": "NUM",
+   "msgid": "STR",
+   "pid": "NUM",
+   "position_best_player": "LIST",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c585a0",
+  "parser_end": "0x141c58dab"
+ },
+ "CMD_GET_SERVER_ENV": {
+  "class": "GetServerEnv",
+  "fields": {
+   "is_check_myclub_level": "NUM",
+   "is_revision_check": "STR",
+   "match_client_timeout_cmd_lack": "NUM",
+   "match_client_timeout_init_not_end": "NUM",
+   "match_client_timeout_load_timeout": "NUM",
+   "match_client_timeout_long_outofplay": "NUM",
+   "matchrejectpid_max": "NUM",
+   "max_division": "STR",
+   "msgid": "STR",
+   "proto_opt": "STR",
+   "quality_check_wait_sec": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "teamlobby_game_rating_border_hard": "NUM",
+   "teamlobby_game_rating_border_normal": "NUM",
+   "trigger_keep_alive": "NUM"
+  },
+  "parser": "0x141e46950",
+  "parser_end": "0x141e47858"
+ },
+ "CMD_GET_STEAM_STORE_STATE": {
+  "class": "GetSteamStoreState",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "state": "STR"
+  },
+  "parser": "0x141e3ec60",
+  "parser_end": "0x141e3f26f"
+ },
+ "CMD_GET_STORELINK": {
+  "class": "GetStorelink",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "storelinkinfo": "STR"
+  },
+  "parser": "0x141ddd760",
+  "parser_end": "0x141dddd6f"
+ },
+ "CMD_GET_STORE_PRODUCT_LIST": {
+  "class": "GetStoreProductList",
+  "fields": {
+   "base_point": "NUM",
+   "bonus_point": "NUM",
+   "expiration_date": "NUM",
+   "is_purchasable": "NUM",
+   "live_asset_id": "NUM",
+   "live_offer_id": "NUM",
+   "live_product_id": "STR",
+   "msgid": "STR",
+   "product_id": "NUM",
+   "product_list": "LIST",
+   "product_list_num": "NUM",
+   "psn_entitlement_id": "STR",
+   "psn_product_id": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "total_point": "NUM"
+  },
+  "parser": "0x141e36e10",
+  "parser_end": "0x141e37fd5"
+ },
+ "CMD_GET_STORE_TRANSACTION_STATE": {
+  "class": "GetStoreTransactionState",
+  "fields": {
+   "live_transaction_id": "STR",
+   "msgid": "STR",
+   "possession_num": "NUM",
+   "product_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "state": "STR",
+   "steam_order_id": "NUM",
+   "transaction_id": "NUM",
+   "use_num": "NUM",
+   "used_present_product_id_list": "NUM",
+   "used_present_product_id_list_num": "NUM"
+  },
+  "parser": "0x141e38b00",
+  "parser_end": "0x141e39655"
+ },
+ "CMD_GET_SVRLIST": {
+  "class": "GetSvrlist",
+  "fields": {
+   "max_player_num": "NUM",
+   "msgid": "STR",
+   "player_num": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "server_num": "NUM",
+   "svraddr": "STR",
+   "svrgid": "NUM",
+   "svrlist": "LIST",
+   "svrport": "NUM",
+   "svrtype": "STR"
+  },
+  "parser": "0x141d48430",
+  "parser_end": "0x141d49022"
+ },
+ "CMD_GET_SVRTIME": {
+  "class": "GetSvrtime",
+  "fields": {
+   "date": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d49930",
+  "parser_end": "0x141d49eda"
+ },
+ "CMD_GET_SVRVERSION": {
+  "class": "GetSvrversion",
+  "fields": {
+   "dlc_version": "STR",
+   "eula_myclub_version": "STR",
+   "eula_privacy_policy_version": "STR",
+   "eula_version": "STR",
+   "livedata_version": "STR",
+   "msgid": "STR",
+   "patch_version": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "version": "STR"
+  },
+  "parser": "0x141d4af80",
+  "parser_end": "0x141d4bd86"
+ },
+ "CMD_GET_TRIAL_URLLIST": {
+  "class": "GetTrialUrllist",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "type": "STR",
+   "ulist": "STR",
+   "url": "STR",
+   "url_num": "NUM"
+  },
+  "parser": "0x141d75670",
+  "parser_end": "0x141d760db"
+ },
+ "CMD_GET_TURN_SERVER_LIST": {
+  "class": "GetTurnServerList",
+  "fields": {
+   "address": "STR",
+   "id": "STR",
+   "msgid": "STR",
+   "origin": "STR",
+   "port": "NUM",
+   "pw": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "server_certificate": "NUM",
+   "tls_port": "NUM",
+   "turn_server_list": "STR",
+   "zone": "NUM"
+  },
+  "parser": "0x141e4e650",
+  "parser_end": "0x141e4f4ab"
+ },
+ "CMD_GET_URGENT_ANNOUNCEMENT": {
+  "class": "GetUrgentAnnouncement",
+  "fields": {
+   "announcement_data": "OBJ",
+   "announcement_id": "NUM",
+   "announcement_type": "STR",
+   "body": "STR",
+   "is_announcement": "STR",
+   "msgid": "STR",
+   "online_mode": "STR",
+   "read_check": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "title": "STR"
+  },
+  "parser": "0x141c6b0f0",
+  "parser_end": "0x141c6be66"
+ },
+ "CMD_GET_URLLIST": {
+  "class": "GetUrllist",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "type": "STR",
+   "ulist": "OBJ?",
+   "url": "STR",
+   "url_num": "NUM"
+  },
+  "parser": "0x141d4ce30",
+  "parser_end": "0x141d4d821"
+ },
+ "CMD_GET_WATCHING_MATCH_LIST": {
+  "class": "GetWatchingMatchList",
+  "fields": {
+   "account_id": "NUM",
+   "date": "NUM",
+   "ex_type": "STR",
+   "game_phase": "STR",
+   "game_result": "OBJ",
+   "match_id": "STR",
+   "match_list": "LIST",
+   "msgid": "STR",
+   "name": "STR",
+   "no_match": "STR",
+   "pid": "NUM",
+   "pk_flag": "STR",
+   "player": "LIST",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141bd11e0",
+  "parser_end": "0x141bd33b3"
+ },
+ "CMD_INVITE_CLAN": {
+  "class": "InviteClan",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dfeff0",
+  "parser_end": "0x141dff4a2"
+ },
+ "CMD_JOIN_BLOCK": {
+  "class": "JoinBlock",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d4e1b0",
+  "parser_end": "0x141d4e662"
+ },
+ "CMD_JOIN_COMPEV": {
+  "class": "JoinCompev",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c9a470",
+  "parser_end": "0x141c9a922"
+ },
+ "CMD_JOIN_COMPEV_MODE": {
+  "class": "JoinCompevMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ca17f0",
+  "parser_end": "0x141ca1ca2"
+ },
+ "CMD_JOIN_COOP_ROOM": {
+  "class": "JoinCoopRoom",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e1a5d0",
+  "parser_end": "0x141e1aa82"
+ },
+ "CMD_JOIN_LOBBY": {
+  "class": "JoinLobby",
+  "fields": {
+   "gamerelay_web_url": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d4f080",
+  "parser_end": "0x141d4f682"
+ },
+ "CMD_JOIN_MATCHDAY": {
+  "class": "JoinMatchday",
+  "fields": {
+   "evaluation_a": "NUM",
+   "evaluation_b": "NUM",
+   "msgid": "STR",
+   "rating_kind_player_bonus_value_list": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "sp_squad_rating": "NUM",
+   "squad_rating_info": "OBJ"
+  },
+  "parser": "0x141cd3130",
+  "parser_end": "0x141cd3940"
+ },
+ "CMD_JOIN_MATCHDAY_MODE": {
+  "class": "JoinMatchdayMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cd9f80",
+  "parser_end": "0x141cda432"
+ },
+ "CMD_JOIN_OFFLINE_MODE": {
+  "class": "JoinOfflineMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d50130",
+  "parser_end": "0x141d505e2"
+ },
+ "CMD_JOIN_ONLINE_MODE": {
+  "class": "JoinOnlineMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d51570",
+  "parser_end": "0x141d51a22"
+ },
+ "CMD_JOIN_PESLEAGUE_COMPE": {
+  "class": "JoinPesleagueCompe",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c3d060",
+  "parser_end": "0x141c3d512"
+ },
+ "CMD_JOIN_PESLEAGUE_COMPE_MODE": {
+  "class": "JoinPesleagueCompeMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c41a30",
+  "parser_end": "0x141c41ee2"
+ },
+ "CMD_JOIN_ROOM_NTL": {
+  "class": "JoinRoomNtl",
+  "fields": {
+   "account_id": "NUM",
+   "address_family": "NUM",
+   "host_addr": "OBJ",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "reflexive_addr": "OBJ",
+   "result": "STR",
+   "room_owner": "OBJ",
+   "rqid": "?",
+   "sa_data": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d52730",
+  "parser_end": "0x141d53fdd"
+ },
+ "CMD_LEAVE_BLOCK": {
+  "class": "LeaveBlock",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d54960",
+  "parser_end": "0x141d54e12"
+ },
+ "CMD_LEAVE_CLAN": {
+  "class": "LeaveClan",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dffe90",
+  "parser_end": "0x141e00342"
+ },
+ "CMD_LEAVE_COMPEV": {
+  "class": "LeaveCompev",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cf6d90",
+  "parser_end": "0x141cf7242"
+ },
+ "CMD_LEAVE_COMPEV_MODE": {
+  "class": "LeaveCompevMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d061f0",
+  "parser_end": "0x141d066a2"
+ },
+ "CMD_LEAVE_COOP_ROOM": {
+  "class": "LeaveCoopRoom",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e1b470",
+  "parser_end": "0x141e1b922"
+ },
+ "CMD_LEAVE_GAME": {
+  "class": "LeaveGame",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d12170",
+  "parser_end": "0x141d12622"
+ },
+ "CMD_LEAVE_LOBBY": {
+  "class": "LeaveLobby",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bbc6e0",
+  "parser_end": "0x141bbcb92"
+ },
+ "CMD_LEAVE_MATCHDAY": {
+  "class": "LeaveMatchday",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cdcb90",
+  "parser_end": "0x141cdd042"
+ },
+ "CMD_LEAVE_MATCHDAY_MODE": {
+  "class": "LeaveMatchdayMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ce08a0",
+  "parser_end": "0x141ce0d52"
+ },
+ "CMD_LEAVE_MYCLUB_AUCTION_SCOUT_DETAIL": {
+  "class": "LeaveMyclubAuctionScoutDetail",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d00db0",
+  "parser_end": "0x141d01262"
+ },
+ "CMD_LEAVE_OFFLINE_MODE": {
+  "class": "LeaveOfflineMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d558c0",
+  "parser_end": "0x141d55d72"
+ },
+ "CMD_LEAVE_ONLINE_MODE": {
+  "class": "LeaveOnlineMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d56820",
+  "parser_end": "0x141d56cd2"
+ },
+ "CMD_LEAVE_PESLEAGUE_COMPE": {
+  "class": "LeavePesleagueCompe",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c4b760",
+  "parser_end": "0x141c4bc12"
+ },
+ "CMD_LEAVE_PESLEAGUE_COMPE_MODE": {
+  "class": "LeavePesleagueCompeMode",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c54ea0",
+  "parser_end": "0x141c55352"
+ },
+ "CMD_LEAVE_ROOM": {
+  "class": "LeaveRoom",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141beb1a0",
+  "parser_end": "0x141beb652"
+ },
+ "CMD_LOCK_FOLLOW_USER": {
+  "class": "LockFollowUser",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e05cd0",
+  "parser_end": "0x141e06182"
+ },
+ "CMD_LOGIN": {
+  "class": "Login",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d58420",
+  "parser_end": "0x141d588d2"
+ },
+ "CMD_LOGIN_TRIAL": {
+  "class": "LoginTrial",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d794d0",
+  "parser_end": "0x141d799b1"
+ },
+ "CMD_RECONNECT": {
+  "class": "Reconnect",
+  "fields": {
+   "key": "STR",
+   "key_size": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e52940",
+  "parser_end": "0x141e52fac"
+ },
+ "CMD_RECV_MYCLUB_ACHIEVEMENT_BONUS": {
+  "class": "RecvMyclubAchievementBonus",
+  "fields": {
+   "achievement_bonus": "OBJ",
+   "achievement_category": "STR",
+   "body": "STR",
+   "entity_id": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "player_level": "NUM",
+   "present": "OBJ",
+   "present_id": "NUM",
+   "recv_achievement_list": "LIST",
+   "result": "STR",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "title": "STR",
+   "type": "STR"
+  },
+  "parser": "0x141c38180",
+  "parser_end": "0x141c39dae"
+ },
+ "CMD_RECV_MYCLUB_PRESENT": {
+  "class": "RecvMyclubPresent",
+  "fields": {
+   "body": "NUM",
+   "item": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "name_jp": "STR",
+   "present_id": "NUM",
+   "receive_result_list": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "title": "STR"
+  },
+  "parser": "0x141cd7f00",
+  "parser_end": "0x141cd95f1"
+ },
+ "CMD_REENTRY_COMPEV": {
+  "class": "ReentryCompev",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c768d0",
+  "parser_end": "0x141c76d82"
+ },
+ "CMD_REJECT_CLAN_REQUEST": {
+  "class": "RejectClanRequest",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e0ecd0",
+  "parser_end": "0x141e0f182"
+ },
+ "CMD_RENT_MYCLUB_GAMEPLAYER": {
+  "class": "RentMyclubGameplayer",
+  "fields": {
+   "assist": "NUM",
+   "concept": "OBJ",
+   "contract_term": "NUM",
+   "gameplayer": "OBJ",
+   "gameplayer_cost": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "games": "NUM",
+   "goal": "NUM",
+   "gp": "NUM",
+   "msgid": "STR",
+   "pes_point": "NUM",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "tiredness": "NUM",
+   "transition_counter": "NUM",
+   "transition_possession": "NUM"
+  },
+  "parser": "0x141dab160",
+  "parser_end": "0x141dad32d"
+ },
+ "CMD_REQWATCHL_BLOCK_MATCH_LIST": {
+  "class": "ReqwatchlBlockMatchList",
+  "fields": {
+   "account_id": "NUM",
+   "home": "OBJ",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "list_data": "LIST",
+   "list_key_name": "STR",
+   "list_num": "NUM",
+   "list_type": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "OBJ",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "room_name": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d5a8f0",
+  "parser_end": "0x141d5cd19"
+ },
+ "CMD_REQWATCHL_COOP_ROOM_MEMBER": {
+  "class": "ReqwatchlCoopRoomMember",
+  "fields": {
+   "account_id": "NUM",
+   "is_deleted": "STR",
+   "is_owner": "NUM",
+   "is_valid_cache": "STR",
+   "list_data": "LIST",
+   "list_key_name": "STR",
+   "list_num": "NUM",
+   "list_type": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "player_index": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "user_info": "OBJ",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e29680",
+  "parser_end": "0x141e2b6bb"
+ },
+ "CMD_REQWATCHL_ROOMLIST": {
+  "class": "ReqwatchlRoomlist",
+  "fields": {
+   "ball_type": "NUM",
+   "cpuLevel": "STR",
+   "game_phase": "STR",
+   "gameenv": "OBJ",
+   "gametime": "NUM",
+   "injury": "STR",
+   "list_data": "LIST",
+   "list_key_name": "STR",
+   "list_num": "NUM",
+   "list_type": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "result": "STR",
+   "room_id": "NUM",
+   "rqid": "?",
+   "status": "STR"
+  },
+  "parser": "0x141d03090",
+  "parser_end": "0x141d0586c"
+ },
+ "CMD_REQWATCHL_ROOMPLAYERLIST_NTL": {
+  "class": "ReqwatchlRoomplayerlistNtl",
+  "fields": {
+   "address_family": "NUM",
+   "host_addr": "OBJ",
+   "list_data": "LIST",
+   "list_key_name": "STR",
+   "list_num": "NUM",
+   "list_type": "STR",
+   "msgid": "STR",
+   "reflexive_addr": "OBJ",
+   "relayed_addr": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "sa_data": "STR"
+  },
+  "parser": "0x141bb80f0",
+  "parser_end": "0x141bba71f"
+ },
+ "CMD_REQWATCH_ERROR_COOP_ROOM_TO_MATCHING": {
+  "class": "ReqwatchErrorCoopRoomToMatching",
+  "fields": {
+   "error_kind": "STR",
+   "is_error": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e2c1b0",
+  "parser_end": "0x141e2c881"
+ },
+ "CMD_REQWATCH_MYCLUB_AUCTION_REFUNDED_GP": {
+  "class": "ReqwatchMyclubAuctionRefundedGp",
+  "fields": {
+   "gp": "NUM",
+   "msgid": "STR",
+   "product_id": "NUM",
+   "refunded_gp_list": "LIST",
+   "result": "STR",
+   "rqid": "?",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM",
+   "total_gp": "NUM"
+  },
+  "parser": "0x141bb4220",
+  "parser_end": "0x141bb4dd2"
+ },
+ "CMD_REQWATCH_ROOM_XUIDONE_LIST": {
+  "class": "ReqwatchRoomXuidoneList",
+  "fields": {
+   "list_size": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one_list": "STR"
+  },
+  "parser": "0x141be1650",
+  "parser_end": "0x141be1d7c"
+ },
+ "CMD_REQ_GAMEADDPOINT": {
+  "class": "ReqGameaddpoint",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d59260",
+  "parser_end": "0x141d59712"
+ },
+ "CMD_RESET_MYCLUB_AGENT_BOX": {
+  "class": "ResetMyclubAgentBox",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ce1740",
+  "parser_end": "0x141ce1bf2"
+ },
+ "CMD_RESET_MYCLUB_TEAM": {
+  "class": "ResetMyclubTeam",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cef780",
+  "parser_end": "0x141cefc32"
+ },
+ "CMD_RETURN_COOP_ROOM": {
+  "class": "ReturnCoopRoom",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e22430",
+  "parser_end": "0x141e228e2"
+ },
+ "CMD_ROLLBACK_STORE_TRANSACTION": {
+  "class": "RollbackStoreTransaction",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e3fc50",
+  "parser_end": "0x141e40102"
+ },
+ "CMD_SELL_MYCLUB_COACH": {
+  "class": "SellMyclubCoach",
+  "fields": {
+   "gain_gp": "NUM",
+   "gp": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cf3d30",
+  "parser_end": "0x141cf43cc"
+ },
+ "CMD_SELL_MYCLUB_GAMEPLAYER": {
+  "class": "SellMyclubGameplayer",
+  "fields": {
+   "gain_gp": "NUM",
+   "gp": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cfc5c0",
+  "parser_end": "0x141cfcc5c"
+ },
+ "CMD_SELL_MYCLUB_SCOUT": {
+  "class": "SellMyclubScout",
+  "fields": {
+   "gain_gp": "NUM",
+   "gp": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bf9d20",
+  "parser_end": "0x141bfa3bc"
+ },
+ "CMD_SEND_ABNORMALEND": {
+  "class": "SendAbnormalend",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d5d880",
+  "parser_end": "0x141d5dd32"
+ },
+ "CMD_SEND_ALIVE": {
+  "class": "SendAlive",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d5e7e0",
+  "parser_end": "0x141d5ec92"
+ },
+ "CMD_SEND_ALIVEPLAYER": {
+  "class": "SendAliveplayer",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d5f7a0",
+  "parser_end": "0x141d5fc52"
+ },
+ "CMD_SEND_AUTHORIZATION_CODE": {
+  "class": "SendAuthorizationCode",
+  "fields": {
+   "account_id": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d60b00",
+  "parser_end": "0x141d6111d"
+ },
+ "CMD_SEND_COOP_ALIVE": {
+  "class": "SendCoopAlive",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dc11d0",
+  "parser_end": "0x141dc1682"
+ },
+ "CMD_SEND_DOWNLOAD_STATS_DATA": {
+  "class": "SendDownloadStatsData",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e4a940",
+  "parser_end": "0x141e4adf2"
+ },
+ "CMD_SEND_GAME_RESULT": {
+  "class": "SendGameResult",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c65ad0",
+  "parser_end": "0x141c65f82"
+ },
+ "CMD_SEND_GAME_SEQUENCE_DATA": {
+  "class": "SendGameSequenceData",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e51610",
+  "parser_end": "0x141e51ac2"
+ },
+ "CMD_SEND_HEARTBEAT": {
+  "class": "SendHeartbeat",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e40a10",
+  "parser_end": "0x141e40ec2"
+ },
+ "CMD_SEND_IPANDPORT_NTL": {
+  "class": "SendIpandportNtl",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d623f0",
+  "parser_end": "0x141d628a2"
+ },
+ "CMD_SEND_LOG": {
+  "class": "SendLog",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x1423da680",
+  "parser_end": "0x1423dab32"
+ },
+ "CMD_SEND_MATCHING_RESULT": {
+  "class": "SendMatchingResult",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c7fe40",
+  "parser_end": "0x141c802f2"
+ },
+ "CMD_SEND_MATCH_ANALYZE": {
+  "class": "SendMatchAnalyze",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c28390",
+  "parser_end": "0x141c28842"
+ },
+ "CMD_SEND_MATCH_TEAM_INFO": {
+  "class": "SendMatchTeamInfo",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d63cc0",
+  "parser_end": "0x141d64172"
+ },
+ "CMD_SEND_MYCLUB_MATCH_RATING": {
+  "class": "SendMyclubMatchRating",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bc6540",
+  "parser_end": "0x141bc69f2"
+ },
+ "CMD_SEND_MYCLUB_PROGRESS_STATUS": {
+  "class": "SendMyclubProgressStatus",
+  "fields": {
+   "msgid": "STR",
+   "next_status": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dade70",
+  "parser_end": "0x141dae472"
+ },
+ "CMD_SEND_MYCLUB_READ_ACHIEVEMENTLIST": {
+  "class": "SendMyclubReadAchievementlist",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c2c7e0",
+  "parser_end": "0x141c2cc92"
+ },
+ "CMD_SEND_NOTICE": {
+  "class": "SendNotice",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d64d40",
+  "parser_end": "0x141d651f2"
+ },
+ "CMD_SEND_PSID": {
+  "class": "SendPsid",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d65d10",
+  "parser_end": "0x141d661c2"
+ },
+ "CMD_SEND_STATS_DATA": {
+  "class": "SendStatsData",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d672c0",
+  "parser_end": "0x141d67772"
+ },
+ "CMD_SEND_STORE_TRANSACTION_ERROR_INFO": {
+  "class": "SendStoreTransactionErrorInfo",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e3bab0",
+  "parser_end": "0x141e3bf62"
+ },
+ "CMD_SEND_SYNC_NOTICE": {
+  "class": "SendSyncNotice",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e449a0",
+  "parser_end": "0x141e44e52"
+ },
+ "CMD_SEND_SYSTEM_NOTICE": {
+  "class": "SendSystemNotice",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e42980",
+  "parser_end": "0x141e42e32"
+ },
+ "CMD_SEND_TAMPER_DATA": {
+  "class": "SendTamperData",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d683c0",
+  "parser_end": "0x141d68872"
+ },
+ "CMD_SEND_TEXTCHAT": {
+  "class": "SendTextchat",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d098f0",
+  "parser_end": "0x141d09da2"
+ },
+ "CMD_SEND_TRIAL_AUTHORIZATION_CODE_CLIENT": {
+  "class": "SendTrialAuthorizationCodeClient",
+  "fields": {
+   "account_id": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d76e30",
+  "parser_end": "0x141d7744d"
+ },
+ "CMD_SEND_TRIAL_ID": {
+  "class": "SendTrialId",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d781b0",
+  "parser_end": "0x141d78691"
+ },
+ "CMD_SEND_TURN_ADDRESS_DATA": {
+  "class": "SendTurnAddressData",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e4ffc0",
+  "parser_end": "0x141e50472"
+ },
+ "CMD_SEND_WATCHING_RESULT": {
+  "class": "SendWatchingResult",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d17db0",
+  "parser_end": "0x141d18262"
+ },
+ "CMD_SET_AVATAR": {
+  "class": "SetAvatar",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bb68b0",
+  "parser_end": "0x141bb6d62"
+ },
+ "CMD_SET_CLAN_SETTINGS": {
+  "class": "SetClanSettings",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dea700",
+  "parser_end": "0x141deabb2"
+ },
+ "CMD_SET_COOP_MATCH_DATA": {
+  "class": "SetCoopMatchData",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dd5220",
+  "parser_end": "0x141dd56d2"
+ },
+ "CMD_SET_COOP_MATCH_READY": {
+  "class": "SetCoopMatchReady",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e1c430",
+  "parser_end": "0x141e1c8e2"
+ },
+ "CMD_SET_COOP_PLAYER_GRADE": {
+  "class": "SetCoopPlayerGrade",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dd6580",
+  "parser_end": "0x141dd6a32"
+ },
+ "CMD_SET_COOP_QUICKMATCHOPTION": {
+  "class": "SetCoopQuickmatchoption",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dc0330",
+  "parser_end": "0x141dc07e2"
+ },
+ "CMD_SET_COOP_REJECT": {
+  "class": "SetCoopReject",
+  "fields": {
+   "account_id": "NUM",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "reject_list": "LIST",
+   "reject_list_num": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e06da0",
+  "parser_end": "0x141e07e64"
+ },
+ "CMD_SET_COOP_ROOM_GUEST": {
+  "class": "SetCoopRoomGuest",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c5e280",
+  "parser_end": "0x141c5e732"
+ },
+ "CMD_SET_COOP_ROOM_OPTION": {
+  "class": "SetCoopRoomOption",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e1e700",
+  "parser_end": "0x141e1ebb2"
+ },
+ "CMD_SET_COOP_ROOM_TO_MATCHING": {
+  "class": "SetCoopRoomToMatching",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e233e0",
+  "parser_end": "0x141e23892"
+ },
+ "CMD_SET_CURRENTPLAYER": {
+  "class": "SetCurrentplayer",
+  "fields": {
+   "chat_probi": "STR",
+   "is_select_code_changed": "STR",
+   "key": "STR",
+   "key_size": "NUM",
+   "msgid": "STR",
+   "nation_code_server": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "subscription_active": "STR",
+   "subscription_expire_date": "NUM"
+  },
+  "parser": "0x141d6ad20",
+  "parser_end": "0x141d6bb46"
+ },
+ "CMD_SET_DMM_NOTIFICATION_ACTION": {
+  "class": "SetDmmNotificationAction",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ba6990",
+  "parser_end": "0x141ba6e42"
+ },
+ "CMD_SET_GAMEENV": {
+  "class": "SetGameenv",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cb0040",
+  "parser_end": "0x141cb04f2"
+ },
+ "CMD_SET_GAMEMEMBER": {
+  "class": "SetGamemember",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d6c450",
+  "parser_end": "0x141d6c902"
+ },
+ "CMD_SET_GAMEMEMBERENV": {
+  "class": "SetGamememberenv",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d6d6b0",
+  "parser_end": "0x141d6db62"
+ },
+ "CMD_SET_GAMEPLAYER_PLAYTIME": {
+  "class": "SetGameplayerPlaytime",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d6eeb0",
+  "parser_end": "0x141d6f362"
+ },
+ "CMD_SET_GAMERELAY_CHECK_RES": {
+  "class": "SetGamerelayCheckRes",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cfff70",
+  "parser_end": "0x141d00422"
+ },
+ "CMD_SET_GAMERELAY_MATCH_QUALITY": {
+  "class": "SetGamerelayMatchQuality",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d0e080",
+  "parser_end": "0x141d0e532"
+ },
+ "CMD_SET_GAMERELAY_QUALITY": {
+  "class": "SetGamerelayQuality",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d6ffb0",
+  "parser_end": "0x141d70462"
+ },
+ "CMD_SET_GAMETEAM": {
+  "class": "SetGameteam",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d70e50",
+  "parser_end": "0x141d71302"
+ },
+ "CMD_SET_GP_ACHIEVEMENT": {
+  "class": "SetGpAchievement",
+  "fields": {
+   "all_achievement_bit_array": "NUM",
+   "all_gp": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bb2e40",
+  "parser_end": "0x141bb3532"
+ },
+ "CMD_SET_GUEST": {
+  "class": "SetGuest",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c99370",
+  "parser_end": "0x141c99822"
+ },
+ "CMD_SET_LANGUAGE": {
+  "class": "SetLanguage",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d71d40",
+  "parser_end": "0x141d721f2"
+ },
+ "CMD_SET_LOCAL_GAMERELAY_LIST": {
+  "class": "SetLocalGamerelayList",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141b9e500",
+  "parser_end": "0x141b9e9e1"
+ },
+ "CMD_SET_MATCHDAY_SP_COOP_MEMBER_LIST": {
+  "class": "SetMatchdaySpCoopMemberList",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c1eb70",
+  "parser_end": "0x141c1f022"
+ },
+ "CMD_SET_MATCHDAY_SP_GAMEPLAN": {
+  "class": "SetMatchdaySpGameplan",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bcefd0",
+  "parser_end": "0x141bcf482"
+ },
+ "CMD_SET_MATCHDAY_START_WATCH_MATCH": {
+  "class": "SetMatchdayStartWatchMatch",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bb57c0",
+  "parser_end": "0x141bb5c72"
+ },
+ "CMD_SET_MATCHREJECTPID": {
+  "class": "SetMatchrejectpid",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d74290",
+  "parser_end": "0x141d74742"
+ },
+ "CMD_SET_MYCLUB_ACHIEVEMENT": {
+  "class": "SetMyclubAchievement",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c19c30",
+  "parser_end": "0x141c1a0e2"
+ },
+ "CMD_SET_MYCLUB_ADD_UNIFORM_ID": {
+  "class": "SetMyclubAddUniformId",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cb5600",
+  "parser_end": "0x141cb5ab2"
+ },
+ "CMD_SET_MYCLUB_CLOUD_SQUAD": {
+  "class": "SetMyclubCloudSquad",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141be0740",
+  "parser_end": "0x141be0bf2"
+ },
+ "CMD_SET_MYCLUB_CLUB_EDITION_INFO": {
+  "class": "SetMyclubClubEditionInfo",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cf1150",
+  "parser_end": "0x141cf1602"
+ },
+ "CMD_SET_MYCLUB_COOP_MEMBER_LIST": {
+  "class": "SetMyclubCoopMemberList",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cbcde0",
+  "parser_end": "0x141cbd292"
+ },
+ "CMD_SET_MYCLUB_HOMETOWN": {
+  "class": "SetMyclubHometown",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bd4130",
+  "parser_end": "0x141bd45e2"
+ },
+ "CMD_SET_MYCLUB_ICONIC_MOMENT_VIEW": {
+  "class": "SetMyclubIconicMomentView",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cf4e70",
+  "parser_end": "0x141cf5322"
+ },
+ "CMD_SET_MYCLUB_MAIN_SQUAD": {
+  "class": "SetMyclubMainSquad",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bec4a0",
+  "parser_end": "0x141bec952"
+ },
+ "CMD_SET_MYCLUB_PLAYER_NUMBER_FIXATION": {
+  "class": "SetMyclubPlayerNumberFixation",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c60600",
+  "parser_end": "0x141c60ab2"
+ },
+ "CMD_SET_MYCLUB_PROTECTED_DISABLE": {
+  "class": "SetMyclubProtectedDisable",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ccf1f0",
+  "parser_end": "0x141ccf6a2"
+ },
+ "CMD_SET_MYCLUB_PROTECTED_ENABLE": {
+  "class": "SetMyclubProtectedEnable",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ccbbc0",
+  "parser_end": "0x141ccc072"
+ },
+ "CMD_SET_MYCLUB_SQUAD_COACH": {
+  "class": "SetMyclubSquadCoach",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bf6ff0",
+  "parser_end": "0x141bf74a2"
+ },
+ "CMD_SET_MYCLUB_SQUAD_GAMEPLAN": {
+  "class": "SetMyclubSquadGameplan",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c00020",
+  "parser_end": "0x141c004d2"
+ },
+ "CMD_SET_MYCLUB_SQUAD_GAMEPLAYER": {
+  "class": "SetMyclubSquadGameplayer",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c0d230",
+  "parser_end": "0x141c0d6e2"
+ },
+ "CMD_SET_MYCLUB_SQUAD_NAME": {
+  "class": "SetMyclubSquadName",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c1d860",
+  "parser_end": "0x141c1dd12"
+ },
+ "CMD_SET_MYCLUB_TEAM_BASE": {
+  "class": "SetMyclubTeamBase",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c2d680",
+  "parser_end": "0x141c2db32"
+ },
+ "CMD_SET_MYCLUB_TEAM_NAME": {
+  "class": "SetMyclubTeamName",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c3ac60",
+  "parser_end": "0x141c3b112"
+ },
+ "CMD_SET_MYCLUB_VSCOM_GAMERESULT": {
+  "class": "SetMyclubVscomGameresult",
+  "fields": {
+   "account_id": "NUM",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "oldrating": "NUM",
+   "online_id": "STR",
+   "pes_pname": "OBJ",
+   "pid": "NUM",
+   "player_data": "OBJ",
+   "psn_user_id": "OBJ",
+   "rating": "NUM",
+   "rating_boost_type": "NUM",
+   "rating_type": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141baf480",
+  "parser_end": "0x141bb0cae"
+ },
+ "CMD_SET_MYCLUB_WISHLIST_AT_TOP": {
+  "class": "SetMyclubWishlistAtTop",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c80ce0",
+  "parser_end": "0x141c81192"
+ },
+ "CMD_SET_PLATFORM_SESSION": {
+  "class": "SetPlatformSession",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cbddb0",
+  "parser_end": "0x141cbe262"
+ },
+ "CMD_SET_PLAYDATA_MATCH": {
+  "class": "SetPlaydataMatch",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c152f0",
+  "parser_end": "0x141c157d1"
+ },
+ "CMD_SET_PLAYERPROFILE": {
+  "class": "SetPlayerprofile",
+  "fields": {
+   "error_favorite_player": "STR",
+   "error_favorite_team": "STR",
+   "error_intro": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cc1870",
+  "parser_end": "0x141cc201d"
+ },
+ "CMD_SET_POSITION_RATING": {
+  "class": "SetPositionRating",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cdfa60",
+  "parser_end": "0x141cdff12"
+ },
+ "CMD_SET_QUICKMATCHOPTION": {
+  "class": "SetQuickmatchoption",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d732d0",
+  "parser_end": "0x141d73782"
+ },
+ "CMD_SET_ROOM_OPTION": {
+  "class": "SetRoomOption",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cfe9d0",
+  "parser_end": "0x141cfee82"
+ },
+ "CMD_SET_WEEKLY_INFORMATION_ACTION": {
+  "class": "SetWeeklyInformationAction",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ba7960",
+  "parser_end": "0x141ba7e12"
+ },
+ "CMD_START_COOP_GROUP_MATCHING": {
+  "class": "StartCoopGroupMatching",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dc2540",
+  "parser_end": "0x141dc29f2"
+ },
+ "CMD_START_COOP_MATCHING": {
+  "class": "StartCoopMatching",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dc41b0",
+  "parser_end": "0x141dc4662"
+ },
+ "CMD_START_COOP_VSCOM_OPPONENT": {
+  "class": "StartCoopVscomOpponent",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141dd30a0",
+  "parser_end": "0x141dd3552"
+ },
+ "CMD_START_MATCHDAY_ENTRY_PICKUP_MATCH": {
+  "class": "StartMatchdayEntryPickupMatch",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141cf2e90",
+  "parser_end": "0x141cf3342"
+ },
+ "CMD_START_MATCHDAY_PICKUP_MATCHING": {
+  "class": "StartMatchdayPickupMatching",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c2b820",
+  "parser_end": "0x141c2bcd2"
+ },
+ "CMD_START_MATCHING": {
+  "class": "StartMatching",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d7b820",
+  "parser_end": "0x141d7bcd2"
+ },
+ "CMD_START_SEND_GAME_SEQUENCE_DATA": {
+  "class": "StartSendGameSequenceData",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141b9bd30",
+  "parser_end": "0x141b9c1e2"
+ },
+ "CMD_START_STEAM_STORE": {
+  "class": "StartSteamStore",
+  "fields": {
+   "msgid": "STR",
+   "orderid": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e3caf0",
+  "parser_end": "0x141e3d10d"
+ },
+ "CMD_START_STORE_TRANSACTION": {
+  "class": "StartStoreTransaction",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "transaction_id": "NUM"
+  },
+  "parser": "0x141e3a430",
+  "parser_end": "0x141e3aa21"
+ },
+ "CMD_SYNC_COMPEV_PROGRESS": {
+  "class": "SyncCompevProgress",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c82e80",
+  "parser_end": "0x141c83332"
+ },
+ "CMD_TENDER_MYCLUB_AUCTION_SCOUT": {
+  "class": "TenderMyclubAuctionScout",
+  "fields": {
+   "auction_end_time": "NUM",
+   "auction_scout_detail": "OBJ",
+   "auction_start_time": "NUM",
+   "auction_state": "STR",
+   "bid_num": "NUM",
+   "finalround_end_time": "NUM",
+   "gp": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "price_now": "NUM",
+   "price_start": "NUM",
+   "product_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_id": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM"
+  },
+  "parser": "0x141d10370",
+  "parser_end": "0x141d117ec"
+ },
+ "CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION": {
+  "class": "TenderMyclubAuctionScoutFinalroundReservation",
+  "fields": {
+   "auction_end_time": "NUM",
+   "auction_scout_detail": "OBJ",
+   "auction_start_time": "NUM",
+   "auction_state": "STR",
+   "bid_num": "NUM",
+   "finalround_end_time": "NUM",
+   "gp": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "price_now": "NUM",
+   "price_start": "NUM",
+   "product_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_id": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM"
+  },
+  "parser": "0x141c49960",
+  "parser_end": "0x141c4addc"
+ },
+ "CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION_CANCEL": {
+  "class": "TenderMyclubAuctionScoutFinalroundReservationCancel",
+  "fields": {
+   "auction_end_time": "NUM",
+   "auction_scout_detail": "OBJ",
+   "auction_start_time": "NUM",
+   "auction_state": "STR",
+   "bid_num": "NUM",
+   "finalround_end_time": "NUM",
+   "gain_gp": "NUM",
+   "gp": "NUM",
+   "grade": "NUM",
+   "msgid": "STR",
+   "price_now": "NUM",
+   "price_start": "NUM",
+   "product_id": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "scout_id": "NUM",
+   "skill": "OBJ",
+   "skill_category": "STR",
+   "skill_id": "NUM"
+  },
+  "parser": "0x141c53010",
+  "parser_end": "0x141c54519"
+ },
+ "CMD_TRADE_MYCLUB_GAMEPLAYER": {
+  "class": "TradeMyclubGameplayer",
+  "fields": {
+   "assist": "NUM",
+   "attacking_area_side": "NUM",
+   "build_up_long": "NUM",
+   "build_up_short": "NUM",
+   "concept": "OBJ",
+   "contract_term": "NUM",
+   "gameplayer": "OBJ",
+   "gameplayer_cost": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "games": "NUM",
+   "goal": "NUM",
+   "msgid": "STR",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "tiredness": "NUM",
+   "transition_counter": "NUM",
+   "transition_possession": "NUM"
+  },
+  "parser": "0x141cb9d10",
+  "parser_end": "0x141cbbdef"
+ },
+ "CMD_UPDATE_MYCLUB_COACH_CONTRACT": {
+  "class": "UpdateMyclubCoachContract",
+  "fields": {
+   "contract_term": "NUM",
+   "msgid": "STR",
+   "next_norma": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c8caa0",
+  "parser_end": "0x141c8d18f"
+ },
+ "CMD_USE_MYCLUB_ADAPTABILITY_RATE_ITEM": {
+  "class": "UseMyclubAdaptabilityRateItem",
+  "fields": {
+   "attacking_area": "NUM",
+   "build_up": "NUM",
+   "coach": "OBJ",
+   "coach_id": "NUM",
+   "coach_unique_id": "NUM",
+   "contract_term": "NUM",
+   "defence_compact": "NUM",
+   "defence_line": "NUM",
+   "defence_num": "NUM",
+   "defence_type": "NUM",
+   "defensive_main_concept": "OBJ",
+   "first_df": "NUM",
+   "formation_data": "STR",
+   "management": "NUM",
+   "mobility": "NUM",
+   "msgid": "STR",
+   "offence_num": "NUM",
+   "offensive_main_concept": "OBJ",
+   "overall": "NUM",
+   "passsupport_dist": "NUM",
+   "press_rule": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "transition": "NUM"
+  },
+  "parser": "0x141bdcd60",
+  "parser_end": "0x141bde942"
+ },
+ "CMD_USE_MYCLUB_ADD_POSITION_APTITUDE_ITEM": {
+  "class": "UseMyclubAddPositionAptitudeItem",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "result_parameters": "NUM",
+   "rqid": "?"
+  },
+  "parser": "0x141cccb50",
+  "parser_end": "0x141ccd149"
+ },
+ "CMD_USE_MYCLUB_ADD_SKILL_ITEM": {
+  "class": "UseMyclubAddSkillItem",
+  "fields": {
+   "add_skill_id": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "result_parameters": "NUM",
+   "rqid": "?"
+  },
+  "parser": "0x141cc0080",
+  "parser_end": "0x141cc076f"
+ },
+ "CMD_USE_MYCLUB_AGENT": {
+  "class": "UseMyclubAgent",
+  "fields": {
+   "assist": "NUM",
+   "attacking_area_side": "NUM",
+   "build_up_long": "NUM",
+   "build_up_short": "NUM",
+   "concept": "OBJ",
+   "contract_term": "NUM",
+   "gameplayer_cost": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_list": "LIST",
+   "gameplayer_unique_id": "NUM",
+   "games": "NUM",
+   "goal": "NUM",
+   "is_rental": "STR",
+   "is_subscription": "STR",
+   "msgid": "STR",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "sell_gp": "NUM",
+   "tiredness": "NUM",
+   "transition_counter": "NUM",
+   "transition_possession": "NUM"
+  },
+  "parser": "0x141c66d60",
+  "parser_end": "0x141c69f77"
+ },
+ "CMD_USE_MYCLUB_ITEM_RECOVERY": {
+  "class": "UseMyclubItemRecovery",
+  "fields": {
+   "msgid": "STR",
+   "pes_point": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141c81e80",
+  "parser_end": "0x141c8242a"
+ },
+ "CMD_USE_MYCLUB_MANAGEMENT_ITEM": {
+  "class": "UseMyclubManagementItem",
+  "fields": {
+   "attacking_area": "NUM",
+   "build_up": "NUM",
+   "coach": "OBJ",
+   "coach_id": "NUM",
+   "coach_unique_id": "NUM",
+   "contract_term": "NUM",
+   "defence_compact": "NUM",
+   "defence_line": "NUM",
+   "defence_num": "NUM",
+   "defence_type": "NUM",
+   "defensive_main_concept": "OBJ",
+   "first_df": "NUM",
+   "formation_data": "STR",
+   "management": "NUM",
+   "mobility": "NUM",
+   "msgid": "STR",
+   "offence_num": "NUM",
+   "offensive_main_concept": "OBJ",
+   "overall": "NUM",
+   "passsupport_dist": "NUM",
+   "press_rule": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "transition": "NUM"
+  },
+  "parser": "0x141be7b00",
+  "parser_end": "0x141be96e2"
+ },
+ "CMD_USE_MYCLUB_SCOUT": {
+  "class": "UseMyclubScout",
+  "fields": {
+   "assist": "NUM",
+   "attacking_area_side": "NUM",
+   "build_up_long": "NUM",
+   "build_up_short": "NUM",
+   "concept": "OBJ",
+   "contract_term": "NUM",
+   "gameplayer": "OBJ",
+   "gameplayer_cost": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "games": "NUM",
+   "goal": "NUM",
+   "msgid": "STR",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "tiredness": "NUM",
+   "transition_counter": "NUM",
+   "transition_possession": "NUM"
+  },
+  "parser": "0x141c6ec30",
+  "parser_end": "0x141c70d0f"
+ },
+ "CMD_USE_MYCLUB_STAFF": {
+  "class": "UseMyclubStaff",
+  "fields": {
+   "add_skill_id": "NUM",
+   "contract_gp": "NUM",
+   "contract_pes_point": "NUM",
+   "enhanced_parameters": "NUM",
+   "exp_added": "NUM",
+   "exp_current_level": "NUM",
+   "exp_info_post": "OBJ",
+   "exp_info_pre": "OBJ",
+   "exp_to_next_level": "NUM",
+   "exp_total": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "level": "NUM",
+   "level_limit": "NUM",
+   "m_ball_touch": "NUM",
+   "m_dribble": "NUM",
+   "m_offense_decision": "NUM",
+   "m_short_pass": "NUM",
+   "m_trap": "NUM",
+   "msgid": "STR",
+   "parameters": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "sell_gp": "NUM",
+   "traning_result": "LIST"
+  },
+  "parser": "0x141ca40d0",
+  "parser_end": "0x141ca5f11"
+ },
+ "CMD_USE_MYCLUB_TACTICAL_TRAINING": {
+  "class": "UseMyclubTacticalTraining",
+  "fields": {
+   "assist": "NUM",
+   "attacking_area_side": "NUM",
+   "build_up_long": "NUM",
+   "build_up_short": "NUM",
+   "concept": "OBJ",
+   "contract_term": "NUM",
+   "gameplayer_cost": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_list": "LIST",
+   "gameplayer_unique_id": "NUM",
+   "games": "NUM",
+   "goal": "NUM",
+   "is_rental": "STR",
+   "is_subscription": "STR",
+   "msgid": "STR",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "sell_gp": "NUM",
+   "tiredness": "NUM",
+   "transition_counter": "NUM",
+   "transition_possession": "NUM"
+  },
+  "parser": "0x141bf0cf0",
+  "parser_end": "0x141bf2ef2"
+ },
+ "CMD_WATCH_BREAKUP_COOP_ROOM": {
+  "class": "WatchBreakupCoopRoom",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e26f50",
+  "parser_end": "0x141e27402"
+ },
+ "CMD_WATCH_CHECK_ALIVE_PLAYER": {
+  "class": "WatchCheckAlivePlayer",
+  "fields": {
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141ce2580",
+  "parser_end": "0x141ce2a32"
+ },
+ "CMD_WATCH_COOP_GROUP_MATCHING": {
+  "class": "WatchCoopGroupMatching",
+  "fields": {
+   "account_id": "NUM",
+   "address_family": "NUM",
+   "host_addr": "OBJ",
+   "is_deleted": "STR",
+   "is_owner": "STR",
+   "is_valid_cache": "STR",
+   "matching_order": "NUM",
+   "member": "OBJ",
+   "member_list": "LIST",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "sa_data": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141dc5730",
+  "parser_end": "0x141dc8c8b"
+ },
+ "CMD_WATCH_COOP_MATCHING": {
+  "class": "WatchCoopMatching",
+  "fields": {
+   "account_id": "NUM",
+   "group_list": "LIST",
+   "host_addr": "OBJ",
+   "is_deleted": "STR",
+   "is_owner": "STR",
+   "is_valid_cache": "STR",
+   "matching_order": "NUM",
+   "member": "OBJ",
+   "member_list": "LIST",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141dc9a70",
+  "parser_end": "0x141dcd0fe"
+ },
+ "CMD_WATCH_COOP_MATCHING_CONDITION": {
+  "class": "WatchCoopMatchingCondition",
+  "fields": {
+   "coop_play_level_max": "NUM",
+   "coop_play_level_min": "NUM",
+   "manner_max": "STR",
+   "manner_min": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "team_power_level_max": "STR",
+   "team_power_level_min": "STR"
+  },
+  "parser": "0x141dcf900",
+  "parser_end": "0x141dd028d"
+ },
+ "CMD_WATCH_COOP_ROOM_OPTION": {
+  "class": "WatchCoopRoomOption",
+  "fields": {
+   "account_id": "NUM",
+   "basic_settings": "OBJ",
+   "clan_name": "STR",
+   "clan_owner_info": "OBJ",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "room_id": "NUM",
+   "room_name": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141e24480",
+  "parser_end": "0x141e2664d"
+ },
+ "CMD_WATCH_COOP_ROOM_TO_MATCHING_MEMBER": {
+  "class": "WatchCoopRoomToMatchingMember",
+  "fields": {
+   "msgid": "STR",
+   "player_index_list": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e27d80",
+  "parser_end": "0x141e28379"
+ },
+ "CMD_WATCH_COOP_VSCOM_OPPONENT": {
+  "class": "WatchCoopVscomOpponent",
+  "fields": {
+   "base_team_id": "NUM",
+   "coach_id_list": "NUM",
+   "coach_unique_id_list": "NUM",
+   "default_rarity": "STR",
+   "gameplan_data": "STR",
+   "gameplan_data_size": "NUM",
+   "gameplayer_id": "NUM",
+   "gameplayer_unique_id": "NUM",
+   "is_entry_compe": "STR",
+   "member_list": "LIST",
+   "member_num": "NUM",
+   "msgid": "STR",
+   "my_team": "OBJ",
+   "name": "STR",
+   "parameters": "NUM",
+   "player_level": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "squad_id": "NUM",
+   "team_data": "OBJ",
+   "team_name": "STR",
+   "team_name_short": "STR",
+   "uniform_number": "NUM"
+  },
+  "parser": "0x141ce3780",
+  "parser_end": "0x141ce69cd"
+ },
+ "CMD_WATCH_DECIDE_GAMEENV": {
+  "class": "WatchDecideGameenv",
+  "fields": {
+   "ball_type": "NUM",
+   "cpuLevel": "STR",
+   "exGame": "STR",
+   "exSubstitution": "STR",
+   "game_env": "OBJ",
+   "gametime": "NUM",
+   "injury": "STR",
+   "limitTime": "STR",
+   "msgid": "STR",
+   "pkOnOff": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "substitution": "NUM"
+  },
+  "parser": "0x141d7d790",
+  "parser_end": "0x141d7e57e"
+ },
+ "CMD_WATCH_ENTRY_GAME": {
+  "class": "WatchEntryGame",
+  "fields": {
+   "entryNum": "NUM",
+   "entry_count": "NUM",
+   "entrygame": "OBJ?",
+   "gameNum": "NUM",
+   "msgid": "STR",
+   "pid": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d0eeb0",
+  "parser_end": "0x141d0f7d4"
+ },
+ "CMD_WATCH_GAMEADDPOINT": {
+  "class": "WatchGameaddpoint",
+  "fields": {
+   "account_id": "NUM",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "oldrating": "NUM",
+   "online_id": "STR",
+   "pes_pname": "OBJ",
+   "pid": "NUM",
+   "player_count": "NUM",
+   "player_list": "LIST",
+   "psn_user_id": "OBJ",
+   "rating": "NUM",
+   "rating_boost_rate": "NUM",
+   "rating_boost_type": "STR",
+   "rating_compe": "NUM",
+   "rating_type": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d7f540",
+  "parser_end": "0x141d80fa8"
+ },
+ "CMD_WATCH_GAMERELAY_CHECK_RES": {
+  "class": "WatchGamerelayCheckRes",
+  "fields": {
+   "error_code": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141bc26e0",
+  "parser_end": "0x141bc2ce2"
+ },
+ "CMD_WATCH_MATCHDAY_PICKUP_MATCHING": {
+  "class": "WatchMatchdayPickupMatching",
+  "fields": {
+   "account_id": "NUM",
+   "address_family": "NUM",
+   "group_list": "LIST",
+   "host_addr": "OBJ",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "member_list": "LIST",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "reflexive_addr": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "sa_data": "STR",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141c33e60",
+  "parser_end": "0x141c35a0b"
+ },
+ "CMD_WATCH_MATCHDAY_PICKUP_USER": {
+  "class": "WatchMatchdayPickupUser",
+  "fields": {
+   "account_id": "NUM",
+   "is_deleted": "STR",
+   "is_valid_cache": "STR",
+   "msgid": "STR",
+   "name": "STR",
+   "online_id": "STR",
+   "pickup_user_group_a_num": "NUM",
+   "pickup_user_info": "OBJ",
+   "pickup_users_group_a": "LIST",
+   "pickup_users_group_b": "LIST",
+   "pid": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "xuid_one": "STR"
+  },
+  "parser": "0x141d06fc0",
+  "parser_end": "0x141d08b38"
+ },
+ "CMD_WATCH_MATCHING": {
+  "class": "WatchMatching",
+  "fields": {
+   "account_id": "NUM",
+   "address_family": "NUM",
+   "base_team_id": "NUM",
+   "division": "NUM",
+   "host_addr": "OBJ",
+   "is_deleted": "STR",
+   "is_first_rookie_match": "STR",
+   "is_owner": "STR",
+   "is_same_group_match": "STR",
+   "is_special_match": "STR",
+   "is_valid_cache": "STR",
+   "matching_order": "NUM",
+   "matching_state": "STR",
+   "member": "LIST",
+   "msgid": "STR",
+   "name": "STR",
+   "ntl_nat_type": "NUM",
+   "online_id": "STR",
+   "pid": "NUM",
+   "ping": "NUM",
+   "player_num": "NUM",
+   "pname": "OBJ",
+   "psn_user_id": "OBJ",
+   "rating": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "sa_data": "STR",
+   "side": "STR",
+   "special_match_rate": "NUM",
+   "team_name": "STR",
+   "team_power_lv": "NUM",
+   "xuid_one": "STR"
+  },
+  "note": "matching_state etc. added by hand (subagent RE of 0x141d82ac0 / OnReceive 0x141100d00)",
+  "parser": "0x141d82ac0",
+  "parser_end": "0x141d85e88"
+ },
+ "CMD_WATCH_MATCHING_CONDITION": {
+  "class": "WatchMatchingCondition",
+  "fields": {
+   "manner_max": "STR",
+   "manner_min": "STR",
+   "msgid": "STR",
+   "rating_max": "NUM",
+   "rating_min": "NUM",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d868b0",
+  "parser_end": "0x141d870be"
+ },
+ "CMD_WATCH_MYCLUB_AUCTION_SCOUT_DETAIL": {
+  "class": "WatchMyclubAuctionScoutDetail",
+  "fields": {
+   "auction_agent_id": "NUM",
+   "auction_state": "STR",
+   "bid_num": "NUM",
+   "is_bid_user_max": "STR",
+   "is_finished": "STR",
+   "msgid": "STR",
+   "my_price": "NUM",
+   "price_now": "NUM",
+   "reservation_price": "NUM",
+   "result": "STR",
+   "rqid": "?",
+   "second_price": "NUM",
+   "successful_bid_pid": "NUM",
+   "third_price": "NUM",
+   "update_auction_scout_detail": "OBJ"
+  },
+  "parser": "0x141ce8d10",
+  "parser_end": "0x141ce99ff"
+ },
+ "CMD_WATCH_NOTICE": {
+  "class": "WatchNotice",
+  "fields": {
+   "data": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141d87a50",
+  "parser_end": "0x141d88052"
+ },
+ "CMD_WATCH_PUNCHING_DATA": {
+  "class": "WatchPunchingData",
+  "fields": {
+   "address_family": "NUM",
+   "host_addr": "OBJ",
+   "msgid": "STR",
+   "ntl_nat_type": "NUM",
+   "reflexive_addr": "OBJ",
+   "result": "STR",
+   "rqid": "?",
+   "sa_data": "STR"
+  },
+  "parser": "0x141e4b740",
+  "parser_end": "0x141e4c319"
+ },
+ "CMD_WATCH_ROOMSTATE": {
+  "class": "WatchRoomstate",
+  "fields": {
+   "event": "STR",
+   "msgid": "STR",
+   "owner_pid": "NUM",
+   "password": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "state": "STR"
+  },
+  "parser": "0x141d88ae0",
+  "parser_end": "0x141d8930d"
+ },
+ "CMD_WATCH_SYNC_NOTICE": {
+  "class": "WatchSyncNotice",
+  "fields": {
+   "data": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e457f0",
+  "parser_end": "0x141e45df2"
+ },
+ "CMD_WATCH_SYSTEM_NOTICE": {
+  "class": "WatchSystemNotice",
+  "fields": {
+   "data": "STR",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e437d0",
+  "parser_end": "0x141e43dd2"
+ },
+ "CMD_WATCH_TEXTCHAT": {
+  "class": "WatchTextchat",
+  "fields": {
+   "channel": "STR",
+   "from_pid": "NUM",
+   "msgid": "STR",
+   "name": "STR",
+   "result": "STR",
+   "rqid": "?",
+   "statement": "STR"
+  },
+  "parser": "0x141c14170",
+  "parser_end": "0x141c1499d"
+ },
+ "CMD_WATCH_TURN_ADDRESS_DATA": {
+  "class": "WatchTurnAddressData",
+  "fields": {
+   "address": "STR",
+   "address_data_size": "NUM",
+   "msgid": "STR",
+   "result": "STR",
+   "rqid": "?"
+  },
+  "parser": "0x141e4cc40",
+  "parser_end": "0x141e4d2ac"
+ }
+}
