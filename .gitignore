@@ -5,6 +5,7 @@
 !/docker-compose.yml
 !/docker-compose.bridge.yml
 !/install.sh
+!/docs/
 !/.github/
 !/server/
 !/notes/
