@@ -62,5 +62,7 @@ For friends outside your house, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7
 
 ---
 
-Developers: see [`server/README.md`](server/README.md) and [`notes/network-map.html`](notes/network-map.html).
+**How it works:** the full reverse-engineered network protocol is written up at
+[mohamedalirashad.github.io/pes2021-private-server/notes/network-map.html](https://mohamedalirashad.github.io/pes2021-private-server/notes/network-map.html).
+Developers: see also [`server/README.md`](server/README.md).
 Fan preservation project, not affiliated with Konami.
