@@ -27,8 +27,15 @@ DOCKER="docker"
 docker info >/dev/null 2>&1 || DOCKER="$SUDO docker"
 
 bold "Starting the PES 2021 server..."
-$DOCKER pull -q "$IMAGE" >/dev/null 2>&1 || $DOCKER image inspect "$IMAGE" >/dev/null 2>&1 || {
-  echo "Could not download $IMAGE"; exit 1; }
+REPO="https://github.com/MohamedAliRashad/pes2021-private-server.git#main:server"
+if ! $DOCKER pull -q "$IMAGE" >/dev/null 2>&1; then
+  if [ -n "${PES_IMAGE:-}" ] && $DOCKER image inspect "$IMAGE" >/dev/null 2>&1; then
+    :   # a local image given explicitly
+  else
+    echo "Building the server from source (one time, about a minute)..."
+    $DOCKER build -q -t "$IMAGE" "$REPO" >/dev/null || { echo "Could not build the server image."; exit 1; }
+  fi
+fi
 $DOCKER rm -f pesserver >/dev/null 2>&1 || true
 $DOCKER run -d --name pesserver --network host --restart unless-stopped \
   -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -v pesserver-data:/data "$IMAGE" >/dev/null
