@@ -29,13 +29,16 @@ def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False)
                 out = (f"<!doctype html><meta charset=utf-8><title>PES 2021 Admin</title><body style='font:16px system-ui;margin:60px auto;max-width:560px'>"
                        f"<h1>The admin page is on the server computer</h1><p>Open <b>http://localhost:{admin_port}/admin</b> "
                        f"on the computer that runs the server.</p></body>").encode()
-            elif admin_listener and not (route == "/admin" or route.startswith("/admin/api/")):
+            elif admin_listener and not (route == "/admin" or route.startswith("/admin/api/")
+                                         or route in ("/mod/dinput8.dll", "/status")):
                 status, out, ctype = "404 Not Found", b"admin port: open /admin", "text/plain"
             elif route == "/admin" or route.startswith("/admin/api/"):
                 peer = (writer.get_extra_info("peername") or ("",))[0]
                 status, out, ctype = await _admin(service, method, route, headers, body, peer)
                 extra = (b"X-Frame-Options: DENY\r\nContent-Security-Policy: " + admin_csp().encode() + b"\r\n"
-                         b"Referrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
+                         b"Referrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n"
+                         b"Cross-Origin-Resource-Policy: same-origin\r\n"
+                         b"Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()\r\n")
             elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
                                              "/leave.ps1", "/install-ca-proton.py", "/banner"):
                 out, ctype = _web(service, route, headers, writer)
@@ -45,7 +48,8 @@ def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False)
                 from . import pesmatch
                 from . import identity
                 k = identity.public_hex()
-                out = json.dumps({"id": server_id(), "key": k[:8] + " " + k[8:16], "online": len(service.online),
+                out = json.dumps({"id": server_id(), "key": k[:8] + " " + k[8:16],
+                                  "mod_sha256": mod_sha256(mod_url(service, headers, writer)), "online": len(service.online),
                                   "queued": len(pesmatch._state(service)["queue"]),
                                   "rooms": len(service.mm.rooms)}).encode(); ctype = "application/json"
             elif path.rstrip("/") == "/ca.crt":
@@ -240,10 +244,10 @@ async def _admin(service, method, route, headers, body, peer=""):
     """Admin page (/admin) and its JSON API, protected by the admin password."""
     import hmac, time as _time
     from . import events, netsetup
+    if route == "/admin/api/info":            # public: lets the sign-in page warn before a password is typed
+        return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8"), "host_ok": bool(host_ok(headers))}).encode(), "application/json"
     if route.startswith("/admin/api/") and not host_ok(headers):
         return "403 Forbidden", b'{"error":"open the admin page by its address"}', "application/json"
-    if route == "/admin/api/info":            # public: lets the sign-in page warn before a password is typed
-        return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8")}).encode(), "application/json"
     if not admin_allowed(peer):
         if route == "/admin":
             return "403 Forbidden", ADMIN_BLOCKED, "text/html; charset=utf-8"
@@ -256,7 +260,8 @@ async def _admin(service, method, route, headers, body, peer=""):
             del _FAILED[ip]                   # forget addresses with no recent failures
         recent = [t for t in _FAILED.get(peer, []) if now - t < 60]
         _FAILED[peer] = recent
-        if len(recent) >= 5:
+        everyone = sum(len([t for t in ts if now - t < 60]) for ts in _FAILED.values())
+        if len(recent) >= 5 or everyone >= 30:   # per address, and overall (many addresses guessing)
             return "429 Too Many Requests", b'{"error":"too many wrong passwords; wait a minute"}', "application/json"
         try:
             req = json.loads(body or b"{}")
@@ -290,7 +295,8 @@ async def _admin(service, method, route, headers, body, peer=""):
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
                           "remote_admin": admin_allowed("8.8.8.8"), "link_home_only": not reachable,
                           "sessions": len([1 for v in _sessions(service).s.values() if v > now]),
-                          "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex())}
+                          "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex()),
+                          "mod_sha256": mod_sha256(mod_url(service, headers, None))}
         return "200 OK", json.dumps(snap).encode(), "application/json"
     if route == "/admin/api/games":
         from . import gamesetup
@@ -357,7 +363,7 @@ def _origin(service, headers, writer):
     """How this player reached us: (host[:port], host, scheme, game addresses best first)."""
     from . import netsetup
     host = headers.get("host", "").strip()
-    if not host:
+    if not host and writer is not None:
         from types import SimpleNamespace
         conn = SimpleNamespace(peer_ip=(writer.get_extra_info("peername") or ("",))[0],
                                local_ip=(writer.get_extra_info("sockname") or ("",))[0])
@@ -391,10 +397,33 @@ def _mod(service, route, headers, writer, path=""):
             return "400 Bad Request", b"bad nonce", "text/plain", b""
     if not os.path.isfile(MOD_DLL):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
-    # a real DNS name (e.g. dynamic DNS) outlives IP changes; local-only names would break friends' files
+    return "200 OK", mod_bytes(mod_url(service, headers, writer)), "application/octet-stream", \
+        b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
+
+
+def mod_url(service, headers, writer):
+    """The web address written into a friend's mod: a real DNS name (e.g. dynamic DNS) outlives IP
+    changes; IPs and local-only names (which would break friends' files) give none."""
+    from . import netsetup
+    host, server, scheme, _ = _origin(service, headers, writer)
     local = server in ("localhost",) or "." not in server or server.endswith((".local", ".lan", ".home", ".internal"))
-    url = f"{scheme}://{host}" if not netsetup._ip(server) and not local else ""
-    return "200 OK", mod_bytes(url), "application/octet-stream", b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
+    return f"{scheme}://{host}" if not netsetup._ip(server) and not local else ""
+
+
+_SHA = {}
+
+
+def mod_sha256(url=""):
+    """SHA-256 of the exact file /mod/dinput8.dll hands out (same server, same addresses), or None."""
+    import hashlib
+    from . import netsetup
+    if not os.path.isfile(MOD_DLL):
+        return None
+    k = (url, tuple(netsetup.game_addrs()), os.path.getmtime(MOD_DLL))
+    if k not in _SHA:
+        _SHA.clear()
+        _SHA[k] = hashlib.sha256(mod_bytes(url)).hexdigest()
+    return _SHA[k]
 
 
 def mod_bytes(url=""):

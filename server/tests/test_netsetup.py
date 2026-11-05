@@ -1,5 +1,5 @@
 """Zero-config networking, the player pages and the Proton CA installer."""
-import asyncio, importlib.util, os, subprocess, sys
+import asyncio, importlib.util, json, os, subprocess, sys
 from types import SimpleNamespace
 import pytest
 from pesserver import httpgate, netsetup
@@ -291,6 +291,9 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
             assert "400" in head
             head, body = await get(port, "/mod/dinput8.dll")
             assert 'filename="dinput8.dll"' in head and len(body) == dll.stat().st_size
+            import hashlib
+            head, st = await get(port, "/status")
+            assert json.loads(st)["mod_sha256"] == hashlib.sha256(body).hexdigest()      # the exact served file
             area = body[body.find(marker) + len(marker):][:identity.EMBED_SIZE - len(marker)].rstrip(b"\0").decode()
             assert f"key={identity.public_hex()}" in area and "url=https://pes.example.org" in area
             assert "addrs=192.168.1.50,203.0.113.7" in area and body.endswith(b"..tail")
@@ -331,6 +334,9 @@ def test_admin_port_keeps_the_admin_page_off_the_game_ports(tmp_path, monkeypatc
             assert (await _http(ap, "GET", "/admin"))[0] == 200
             assert (await _http(ap, "POST", "/admin/api/login", b'{"password": "pw"}'))[0] == 200
             assert (await _http(ap, "GET", "/join"))[0] == 404
+            assert (await _http(ap, "GET", "/status"))[0] == 200                       # the page's own needs
+            code, _ = await _http(ap, "GET", "/mod/dinput8.dll")
+            assert code in (200, 404) and code == (200 if os.path.isfile(httpgate.MOD_DLL) else 404)
         finally:
             game.close(); admin.close()
     asyncio.run(go())
@@ -350,7 +356,7 @@ def test_admin_rebinding_and_csp(tmp_path):
         port = srv.sockets[0].getsockname()[1]
         try:
             code, out = await _http(port, "GET", "/admin/api/info")
-            assert code == 200 and json.loads(out) == {"remote": False}
+            assert code == 200 and json.loads(out) == {"remote": False, "host_ok": True}
         finally:
             srv.close()
     import json

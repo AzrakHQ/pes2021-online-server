@@ -131,6 +131,9 @@ section.alt .card { background: var(--bg); }
 .copy { position: absolute; right: 8px; bottom: 8px; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.1); color: #e6f5ee; border-radius: 8px; padding: 5px 10px; font: 600 13px var(--sans); cursor: pointer; }
 .copy:hover { background: rgba(255,255,255,.2); }
 .how { padding-left: 20px; margin: 0; } .how li { margin-bottom: 6px; }
+.linuxes { padding-left: 18px; margin: 0 0 12px; } .linuxes li { margin-bottom: 4px; }
+.wingroup { margin-top: 14px; }
+.wingroup ol { margin: 6px 0 0; padding-left: 20px; font-size: 14px; } .wingroup li { margin-bottom: 4px; }
 .pick { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 8px; }
 .pick li { border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: 10px; padding: 8px 12px; background: var(--bg2); }
 section.alt .pick li { background: var(--bg); }
@@ -267,7 +270,7 @@ details.q .cmd { max-width: 48em; margin-bottom: 16px; }
 .next { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: center; }
 @media (max-width: 800px) { .next { grid-template-columns: 1fr; } }
 .totop { position: fixed; right: 16px; bottom: 16px; z-index: 30; background: var(--brand); color: var(--on-brand); border-radius: 99px; padding: 10px 16px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
-@media (max-width: 600px) { .totop { right: auto; left: 16px; } }
+@media (max-width: 600px) { .totop { right: auto; left: 12px; bottom: 12px; padding: 8px 12px; font-size: 14px; } footer { padding-bottom: 72px; } }
 .totop:hover { color: var(--on-brand); filter: brightness(1.08); }
 dialog.lightbox { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
 dialog.lightbox::backdrop { background: rgba(0,0,0,.75); }
@@ -406,8 +409,13 @@ footer a { color: var(--muted); }
             <li><b>All on Windows, want it easy:</b> a small <a href="#faq-cloud">cloud server</a>, about $5 a month, about 10 minutes (untested).</li>
             <li><b>All on Windows, want it free:</b> <a href="#faq-winhost">Docker Desktop</a> on one PC, about 20 minutes (untested).</li>
           </ul>
-          <p class="small muted">Any 64-bit Linux should work: tested on a desktop Linux PC; a Raspberry Pi (64-bit Raspberry Pi OS) or a cloud server still need testers. Ubuntu, Debian and Fedora need nothing else (if the terminal says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first); on Arch, install <code>docker</code> with pacman first and the installer starts it. Steam Deck, SteamOS and Bazzite hosting isn't supported: their system is read-only. Open a terminal, paste the command and press Enter.</p>
-          <p class="small muted">It asks for your password (sudo), installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
+          <ul class="small muted linuxes">
+            <li><b>Ubuntu, Debian, Fedora:</b> just paste the command. (If it says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first.)</li>
+            <li><b>Arch:</b> run <code>sudo pacman -S docker</code> first; the installer starts it.</li>
+            <li><b>Steam Deck, SteamOS, Bazzite:</b> can't host (read-only system); join as a friend instead.</li>
+            <li>Tested on a desktop Linux PC. A Raspberry Pi (64-bit Raspberry Pi OS) or a cloud server should work but still need testers.</li>
+          </ul>
+          <p class="small muted">Open a terminal, paste the command and press Enter. It asks for your password (sudo); nothing shows while you type it, that's normal. It installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
         </div>
         <div>
           <div class="cmd"><span class="label">Linux terminal</span><pre id="c-host">curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
@@ -427,7 +435,16 @@ footer a { color: var(--muted); }
               <li>Keeps players, results and a message log in a Docker volume. <a href="#faq-host">Stop or remove it</a> any time.</li>
             </ul>
           </details>
-          <p class="note"><b>No Linux PC?</b> A small cloud server should work too (not yet tested): <a href="#faq-cloud">step by step</a>. Or host from <a href="#faq-winhost">Windows or a Mac</a> with Docker Desktop (should work, untested).</p>
+          <div class="card wingroup">
+            <b>All on Windows? The 10-minute cloud path</b> <span class="muted small">(should work, not yet tested)</span>
+            <ol>
+              <li>At any cloud provider (for example Hetzner, DigitalOcean or Oracle's free tier), create the cheapest <b>Ubuntu 24.04</b> server.</li>
+              <li>In its firewall settings, allow <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b>.</li>
+              <li>Open its web console, paste <a href="#faq-cloud">this version of the install line</a> and press Enter.</li>
+              <li>Open the admin page address it prints (it may show a "from anywhere" line: use that) and download the mod for your friends.</li>
+            </ol>
+            <p class="small muted" style="margin:6px 0 0">Free instead? Use <a href="#faq-winhost">Docker Desktop</a> on one Windows PC (also untested).</p>
+          </div>
         </div>
       </div>
 
@@ -456,7 +473,7 @@ footer a { color: var(--muted); }
             <ul>
               <li>The file carries your server's <b>identity</b> and addresses, so your friends never type anything.</li>
               <li>It keeps working after your server restarts: it remembers your server's last address and checks it's really you before connecting.</li>
-              <li>If your internet address changes (rare on most home connections), send the file again.</li>
+              <li>Some home connections get a new internet address when the router restarts. If friends suddenly can't connect, send the file again (the admin page always shows the current address).</li>
             </ul>
           </details>
         </div>
@@ -541,7 +558,7 @@ footer a { color: var(--muted); }
           <tr><td>"Unable to connect to the server" when going online</td><td>The host's server must be running. If the log says <i>not found</i>, the server is off or unreachable: the host checks it's up and its router ports are open. If the host's internet address changed, they send a fresh file from the admin page.</td></tr>
           <tr><td>The browser or Windows says the file may be harmful, or blocks it</td><td>Chrome and Edge warn about every <code>.dll</code> download. Choose <b>Keep</b> (Chrome: ⋮ → Keep; Edge: … → Keep → Keep anyway). Copies sent on Discord, WhatsApp or Telegram are the same file.</td></tr>
           <tr><td>No <code>pes2021-online.log</code> appears in the game folder</td><td>Look in <code>%TEMP%</code> too: the mod writes there if the game folder is read-only. If there's no log anywhere, the mod didn't load. Windows hides file endings, so the file should show as <code>dinput8</code> with type <i>Application extension</i>, not <code>dinput8.dll.txt</code>. Check that <code>dinput8.dll</code> is next to <code>PES2021.exe</code> (not in a subfolder, not renamed to <code>dinput8 (1).dll</code>). On Steam Deck / Linux, check the launch option.</td></tr>
-          <tr><td>The file disappeared, or antivirus warns about it</td><td>Some antivirus tools flag game mods. Restore it and allow it, if it came from your host's admin page. The source code is public.</td></tr>
+          <tr><td>The file disappeared, or antivirus warns about it</td><td>The mod isn't code-signed (a certificate costs money this free project doesn't have), and it hooks the game's network functions, which some antivirus tools treat as suspicious. Restore it and allow it if it came from your host, and check its SHA-256 against the one on the host's page. The source and the build recipe (<code>server/mod</code>, built inside the Docker image) are public.</td></tr>
           <tr><td>The network test fails, or eFootball modes stay locked</td><td>The host should check that ports 443 and 3478 are open (the banner and admin page say if they aren't).</td></tr>
           <tr><td>Matchmaking searches forever</td><td>Two players must be in eFootball → Quick Match and searching at the same time.</td></tr>
           <tr><td>"Failed to connect with opponent"</td><td>The two PCs can't reach each other directly. Try Tailscale (an untested workaround): see <a href="#faq-far">playing across the internet</a>.</td></tr>
@@ -583,7 +600,7 @@ footer a { color: var(--muted); }
     </details>
     <details class="q" id="faq-trust">
       <summary>Should I trust a mod file my friend sends?</summary>
-      <p>Only from friends you trust, like any program. The safest copy is one you download yourself from your host's own link (their server's address) at home, rather than a copy forwarded by someone else. To check a copy, compare the key: the first line of <code>pes2021-online.log</code> starts with the same characters as "This server's key" on your host's download page and admin page. That link isn't encrypted, so on public Wi-Fi prefer the copy your host sends you directly. The file their server hands out is the official build with their server's details written in. It can only make your game talk to their server, and it can't be redirected elsewhere: a server that doesn't hold their secret key is refused.</p>
+      <p>Only from friends you trust, like any program. The safest copy is one you download yourself from your host's own link (their server's address) at home, rather than a copy forwarded by someone else. To check a copy, compare its SHA-256 with the one on your host's download page or admin page: on Windows run <code>Get-FileHash .\dinput8.dll</code> in the game folder (Linux: <code>sha256sum dinput8.dll</code>). If they match, nobody changed the file. The server key, shown after <code>key</code> in the first line of <code>pes2021-online.log</code>, only tells you which server the file connects to. That link isn't encrypted, so on public Wi-Fi prefer the copy your host sends you directly. The file their server hands out is the official build with their server's details written in. It can only make your game talk to their server, and it can't be redirected elsewhere: a server that doesn't hold their secret key is refused.</p>
       <p>The server stores your player name, Steam ID and match results, sees your IP address, and keeps a log of the game's messages on the host's disk. Like any peer-to-peer game, your opponent's PC connects straight to yours during a match, so it sees your IP address too.</p>
     </details>
     <details class="q" id="faq-undo">
@@ -873,7 +890,7 @@ answer with a 16-byte key
         <p>The mod does the same two jobs from inside the game instead. PES 2021, like most PC games, loads a file named <code>dinput8.dll</code> from its own folder when it starts. Ours passes the game's controller requests straight on to Windows, and while the game runs it answers the game's "where is Konami?" with your friend's server, and accepts that server for the network test. Close the game and it's gone; delete the file and nothing is left.</p>
         <p>One more problem: home servers restart and their addresses change. So each server has a permanent <b>identity</b>, a secret key it never shares, and every copy of the mod carries the matching public half. Before connecting anywhere, the mod sends a random challenge and only accepts an address that answers with the right signature:</p>
         <div class="flow" role="img" aria-label="The mod sends a random challenge to an address; your friend's server signs it with its secret key; the mod checks the signature and connects. A different server can't sign it, so it is refused."><span>mod: "prove it: 7f3a…"</span><b class="a" aria-hidden="true">→</b><span>server signs it with its secret key</span><b class="a" aria-hidden="true">→</b><span class="k">signature matches: connect</span></div>
-        <p class="fun"><b>What it buys:</b> the file keeps working after restarts, a stranger at your friend's old address can't take over (it can't sign the challenge), and a forged "the server moved" note is ignored. With the real game we tested the restart with the server's web address unreachable and a wrong saved address, and the forged note; the stranger case relies on the same signature check.</p>
+        <p class="fun"><b>What it buys:</b> the file keeps working after restarts, a stranger at your friend's old address can't take over (it can't sign the challenge), and a forged "the server moved" note is ignored (notes only come into play when the server has a web name; the address book that would make this automatic is still to come). With the real game we tested the restart with the server's web address unreachable and a wrong saved address, and the forged note; the stranger case relies on the same signature check.</p>
       </div>
     </article>
 
@@ -890,9 +907,9 @@ answer with a 16-byte key
   </div>
 </section>
 
+<a class="totop" id="totop" href="#top" aria-label="Back to top" hidden>↑ Top</a>
 </main>
 
-<a class="totop" id="totop" href="#top" aria-label="Back to top" hidden>↑ Top</a>
 <dialog class="lightbox" id="lightbox" aria-label="Admin page screenshot, full size"><button type="button" class="lb-close" id="lb-close">Close</button><img id="lb-img" src="admin-light.webp" alt=""></dialog>
 
 <footer>
@@ -932,6 +949,7 @@ answer with a 16-byte key
   ["host", "share", "join", "server", "help", "faq", "inside", "status"].forEach(id => { const t = document.getElementById(id); if (t) io.observe(t); });
   const toTop = document.getElementById("totop");
   addEventListener("scroll", () => { toTop.hidden = scrollY < innerHeight * 1.5; }, {passive: true});
+  toTop.addEventListener("click", () => setTimeout(() => document.querySelector(".skip").focus({preventScroll: true}), 400));
   const lb = document.getElementById("lightbox");
   document.querySelectorAll(".shot a").forEach(a => a.addEventListener("click", e => {
     if (!lb.showModal) return;
