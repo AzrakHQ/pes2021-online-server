@@ -25,7 +25,7 @@ friend on Discord, WhatsApp or Telegram (email usually blocks this kind of file)
 It already knows your server, and keeps working after your server restarts.
 
 **Playing on the same PC?** The installer finds PES 2021 on your computer (Steam libraries and
-`~/Games`): close the game, then on the admin page under **This PC** click **Install mod**. On Linux it
+`~/Games`): close the game, then on the admin page under **The server computer** click **Install mod**. On Linux it
 also sets the Wine option for you, so no launch option is needed.
 
 ## 3. Friends: drop it in and play
@@ -72,6 +72,8 @@ that folder:
 docker compose -f docker-compose.bridge.yml up -d
 docker compose -f docker-compose.bridge.yml logs
 ```
+The admin page is at `http://localhost:8090/admin` on that PC (the logs show the password); it isn't
+reachable from other computers.
 With a public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this PC (players in
 your own home may then need "NAT loopback" on the router). Not yet tested.
 </details>

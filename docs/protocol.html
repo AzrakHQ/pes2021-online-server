@@ -106,7 +106,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <header class="site"><div class="in">
   <a class="logo" href="./" aria-label="PES 2021 Online, main page"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0c4a37"/><polygon points="16,9 22.7,13.9 20.1,21.8 11.9,21.8 9.3,13.9" fill="#fff"/></svg><span>PES 2021 Online</span></a>
   <nav aria-label="Main" style="margin-left:auto"><ul><li><a href="./#host">Host</a></li><li><a href="./#join">Join</a></li><li><a href="./#help">Help</a></li><li><a href="./#faq">FAQ</a></li><li><a href="./#inside">How it works</a></li><li><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a></li></ul></nav>
-  <button class="theme" id="theme" type="button" aria-label="Switch between light and dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <button class="theme" id="theme" type="button" aria-label="Dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
 </div></header>
 <main id="main" tabindex="-1">
 <h1>Technical write-up: how PES 2021 talks to its servers</h1>
@@ -156,13 +156,13 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <text x="520" y="48" font-weight="700">Gate  tcp/10000</text>
   <text x="520" y="70" class="muted" font-size="13">pes21-x64-gate.cs.konami.net · NclMio msgpack commands</text>
   <rect class="box" x="500" y="110" width="420" height="60" rx="10"/>
-  <text x="520" y="136" font-weight="700">HTTP  tcp/8080 · HTTPS tcp/443</text>
-  <text x="520" y="156" class="muted" font-size="13">web API (Steam auth, live update, relay) · GateInfo.php</text>
+  <text x="520" y="136" font-weight="700">HTTP  tcp/80 + 8080 · HTTPS tcp/443</text>
+  <text x="520" y="156" class="muted" font-size="13">friends' page + mod download · web API · GateInfo.php</text>
   <rect class="box" x="500" y="190" width="420" height="60" rx="10"/>
   <text x="520" y="216" font-weight="700">STUN / NTL  udp/3478</text>
   <text x="520" y="236" class="muted" font-size="13">ntl.service.konami.net · NAT type / public mapping</text>
   <rect class="box" x="500" y="260" width="420" height="55" rx="10" stroke-dasharray="5 4"/>
-  <text x="520" y="284" font-weight="700">Peer ↔ peer match traffic</text>
+  <text x="520" y="284" font-weight="700">Peer ↔ peer match traffic (relay udp/7600 reserved)</text>
   <text x="520" y="302" class="muted" font-size="13">direct UDP between the two games · never touches the server</text>
   <path class="ar" d="M445 150 C475 150 470 55 500 55"/>
   <path class="ar" d="M445 160 H500"/>
@@ -392,7 +392,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <tr><td class="mono">server/pesserver/stun.py · httpgate.py</td><td>RFC 5389 binding · HTTP 8080 web-API + HTTPS 443 GateInfo.php (8443 when run outside Docker) + <code>/ca.crt</code></td></tr>
 <tr><td class="mono">server/pesserver/identity.py</td><td>server identity (Ed25519 key), signed <code>/mod/note</code> and <code>/mod/hello</code>, writes settings into the mod DLL</td></tr>
 <tr><td class="mono">server/pesserver/netsetup.py</td><td>LAN / public IP detection, UPnP port mapping, CGNAT detection, per-client advertised address, startup banner</td></tr>
-<tr><td class="mono">server/pesserver/events.py · gamesetup.py</td><td>admin page data (online, live phases, results, league, activity) · "This PC" mod install into mounted game folders</td></tr>
+<tr><td class="mono">server/pesserver/events.py · gamesetup.py</td><td>admin page data (online, live phases, results, league, activity) · "The server computer" mod install into mounted game folders</td></tr>
 <tr><td class="mono">server/mod/</td><td>the mod: <code>dinput8.dll</code> proxy, MinHook hooks, Monocypher signature check; built in the Dockerfile's first stage</td></tr>
 <tr><td class="mono">install.sh · server/Dockerfile · docker-compose*.yml</td><td>one-command install (Docker, image, game detection) and one-container deployment; <code>docker-entrypoint.sh</code> also keeps the legacy CA for old join scripts</td></tr>
 </table></div>

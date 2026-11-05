@@ -1,5 +1,5 @@
 # The PES 2021 Online mod (a Windows DLL players put next to PES2021.exe), cross-compiled here and
-# served by the server at /mod.zip with the server's address filled in.
+# served by the server at /mod/dinput8.dll with the server's identity and addresses written in.
 FROM --platform=$BUILDPLATFORM debian:bookworm-slim AS mod
 RUN apt-get update && apt-get install -y --no-install-recommends gcc-mingw-w64-x86-64 \
  && rm -rf /var/lib/apt/lists/*
