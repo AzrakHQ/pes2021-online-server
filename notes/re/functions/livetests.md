@@ -131,13 +131,17 @@ instrumented at runtime from a scratch launcher (no repo code changed). Tags: [l
     nested `psn_user_id` blob, `lang, is_owner, side, is_quality_bad, has_guest, host_addr, reflexive_addr,
     relayed_addr, ntl_nat_type`): works the same (ENTRY_GAME, room screen, WATCH_ENTRY_GAME accepted).
   - **Rule: answer the owner's REQWATCHL_ROOMPLAYERLIST_NTL request with the list, and do not push the list
-    again right away.** Pushes are for later changes (a second player joins, ENTRY_GAME, leave). Why the extra
+    again before the owner's ENTRY_GAME.** Pushes are for later changes (a second player joins, ENTRY_GAME, leave). Why the extra
     copy ends the process is not known yet.
 - **Second player's room list (still open):** copy 2 (pid 2) opened the Match Room List while copy 1's room
   existed. Our REQWATCHL_ROOMLIST reply was `RELOAD, list_num 1` with the same room entry copy 1 had accepted
   (`room_id 1, status WAITING, gamer [blob{pid 1, is_room_owner YES, side HOME, …}], owner_pname` blob with the
   nested `psn_user_id` blob, `max_players 2, room_user_count 1, vs_com PL_VS_PL, owner_lang en, …`). The screen
-  still showed **"Number of rooms 0"**. Something in the entry hides it or fails to parse; code reading is under
-  way.
+  still showed **"Number of rooms 0"**. Code reading (roomlist.md) found why: the list hides rooms whose
+  `gameenv.limitTime` is NOSET, and our test handler had kept the default NOSET because it looked for the
+  settings as top-level SET_GAMEENV keys instead of unpacking the `game_env` blob (which said "MIDDLE").
+  Fix not yet tested live.
+- A player-list UPDATE pushed **after** the owner's ENTRY_GAME (21:17:08) did no harm, so the rule is narrower:
+  no player-list push between the reply and the owner's ENTRY_GAME.
 - **Do not send `owner_pname.psn_user_id` as an empty msgpack list:** a room-list RELOAD in that form, pushed to
   both copies, ended **both** game processes within 0.25 s (same unchecked nested unpack as in roomcrash.md).

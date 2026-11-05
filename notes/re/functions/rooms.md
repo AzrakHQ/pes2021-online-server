@@ -2,7 +2,7 @@
 
 ## Corrections from later findings (2026-11-05)
 - **Menu path: Kick Off → Friendly Match Lobby** (8th item, below Cup in a scrolling list; Team Play Lobby is 9th). An earlier correction here wrongly called it hidden (lobby.md).
-- Live (livetests.md): REQWATCHL_ROOMLIST is a real request; the order is CREATEJOIN_ROOM then SET_GAMEENV; in REQWATCHL_ROOMPLAYERLIST_NTL `pname.psn_user_id` is a nested blob `{account_id, online_id, is_valid_cache}` (an object exits the game; an empty list is read as garbage). After CREATEJOIN_ROOM the server must push the owner's room into the room list before the player list (roomcrash.md), and must answer the player-list request **only with the reply**: an extra copy pushed right after it ends the game. With that, the owner gets to ENTRY_GAME and the room screen. Still open: a second player's room list shows 0 rooms for our entry (livetests.md).
+- Live (livetests.md): REQWATCHL_ROOMLIST is a real request; the order is CREATEJOIN_ROOM then SET_GAMEENV; in REQWATCHL_ROOMPLAYERLIST_NTL `pname.psn_user_id` is a nested blob `{account_id, online_id, is_valid_cache}` (an object exits the game; an empty list is read as garbage). After CREATEJOIN_ROOM the server must push the owner's room into the room list before the player list (roomcrash.md), and must answer the player-list request **only with the reply**: an extra copy pushed right after it ends the game. With that, the owner gets to ENTRY_GAME and the room screen. A second player's room list showed 0 rooms for our entry (livetests.md); code reading (roomlist.md) found the cause: the list hides every room whose `gameenv.limitTime` is NOSET (or unknown), and also rooms with `is_invite_limit` YES or an empty `gamer` list. Our test server never stored the real `game_env` blob from SET_GAMEENV, so it sent NOSET. Fix (not yet tested live): store the blob, echo it as `gameenv`, push a room-list UPDATE after SET_GAMEENV.
 - Mode names (sweep.md): `lobby_type` FREE/MULTI/MYCLUB/PESLEAGUE; JOIN_ONLINE_MODE `online_mode` QUICK/RANKMATCH/FREE/MULTI/MYCLUB/PESLEAGUE/MATCHDAY/COOP/EDIT_DATA_LIVE_UPDATE.
 
 
@@ -225,7 +225,7 @@ S = msgpack str, N = int, B = nested msgpack blob, [B] = array of blobs. Reply f
   Handler 0x1410ffac0 copies it into the match settings object (0x141007db0). [static]
 - Server: store env on the sender's room (or pending until CREATEJOIN); push DECIDE to all members right before
   StateChanged→SETENV; mirror into room-list `gameenv`. Safe default env:
-  `{cpuLevel:"NORMAL", gametime:10, injury:"NO", ball_type:0, exGame:"YES", pkOnOff:"YES", substitution:3, exSubstitution:"YES", limitTime:"NOSET"}` [guess values].
+  `{cpuLevel:"NORMAL", gametime:10, injury:"NO", ball_type:0, exGame:"YES", pkOnOff:"YES", substitution:3, exSubstitution:"YES", limitTime:"MIDDLE"}` [guess values]. **Never limitTime "NOSET"**: the room list hides such rooms (roomlist.md). Live, the game sends the 9 settings packed in the `game_env` blob, not as top-level keys.
 
 ### CMD_SET_ROOM_OPTION — owner edits room
 - Request (0x141cfe040): `pid` N, `name` S, `password` S, `is_anyplayers` S, `auto_start_num` N, `game_rating_limit` S. Reply bare.

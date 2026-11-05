@@ -19,6 +19,7 @@ summary is [docs/functions.html](../../../docs/functions.html); these files keep
 | [sweep.md](sweep.md) | leftover unknowns settled: rating-screen modes, division/sort/mode enums, revision check, version gates |
 | [lobby.md](lobby.md) | where the room lobbies are in the menu (Kick Off list), how the menu table is built, other entry points |
 | [roomcrash.md](roomcrash.md) | room creation requirements: own room in the room list first, player-list field types, no duplicate player-list push (solved live) |
+| [roomlist.md](roomlist.md) | room-list entry: field types, where each is stored, every filter; why a room shows as "0 rooms" (limitTime NOSET) |
 | [livetests.md](livetests.md) | live tests 2026-11-05: TURN (dual-route SOFTWARE + DTLS leg), Live Update end to end, reconnect, AFK, Friendly Match Lobby (room creation works; second player's room list open) |
 | [survey.md](survey.md) | catalogue counts, error codes, myClub / clans / PES League / Matchday / events |
 
