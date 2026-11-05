@@ -128,7 +128,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </div>
 
 <nav class="toc" id="contents" aria-label="Sections">
-  <a href="#status">Status</a><a href="#topology">Topology</a><a href="#stack">Layer stack</a><a href="#exchange">Gate exchange</a><a href="#login">Login</a><a href="#rules">Encoding rules</a><a href="#frames">Wire format</a><a href="#crypto">Crypto</a><a href="#cmds">Commands</a><a href="#nat">NAT test</a><a href="#mm2">Matchmaking protocol</a><a href="#mmlive">Matchmaking live</a><a href="#match">Match live</a><a href="#errors">Error codes</a><a href="#deploy">Deployment</a><a href="#dlcp">Not the gate: dlcp</a><a href="#server">Our server</a><a href="#tooling">How it was tested</a><a href="#method">How we found it</a><a href="#rva">Key addresses</a><a href="#open">Open questions</a><a href="#log">Changelog</a>
+  <a href="#status">Status</a><a href="#topology">Topology</a><a href="#stack">Layer stack</a><a href="#exchange">Gate exchange</a><a href="#login">Login</a><a href="#rules">Encoding rules</a><a href="#frames">Wire format</a><a href="#crypto">Crypto</a><a href="#cmds">Commands</a><a href="#nat">NAT test</a><a href="#mm2">Matchmaking protocol</a><a href="#mmlive">Matchmaking live</a><a href="#messages">Messages on screen</a><a href="#match">Match live</a><a href="#errors">Error codes</a><a href="#deploy">Deployment</a><a href="#dlcp">Not the gate: dlcp</a><a href="#server">Our server</a><a href="#tooling">How it was tested</a><a href="#method">How we found it</a><a href="#rva">Key addresses</a><a href="#open">Open questions</a><a href="#log">Changelog</a>
 </nav>
 
 <h2 id="status">Status</h2>
@@ -140,6 +140,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <div class="stat"><b>Gate → Account → Menu login</b><span class="t-ok">✔ full chain, player created &amp; persisted</span></div>
   <div class="stat"><b>Session key</b><span class="t-ok">✔ base64 key in SET_CURRENTPLAYER, learned live</span></div>
   <div class="stat"><b>NAT test (eFootball modes)</b><span class="t-ok">✔ STUN + GateInfo.php over HTTPS (the mod accepts the server's certificate for the 4 NTL names)</span></div>
+  <div class="stat"><b>Server messages</b><span class="t-ok">✔ news pop-up, box before Quick Match, restart warning, kick note</span></div>
   <div class="stat"><b>Matchmaking + P2P</b><span class="t-ok">✔ paired, peers connected, both in the online Match Menu</span></div>
   <div class="stat"><b>Online match</b><span class="t-ok">✔ kick-off, both halves, half-time, fouls/cards, clocks in sync</span></div>
   <div class="stat"><b>Deployment</b><span class="t-ok">✔ one Docker container; server identity key created on first start</span></div>
@@ -347,6 +348,19 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </div>
 
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
+<h2 id="messages">Messages on players' screens — live</h2>
+<div class="panel">
+<p>Four ways for the server to put its own words in the game, each tested on 2026-11-05 and offered on the admin page (card "Message to players", and Kick). Flags take <code>"YES"</code>/<code>"NO"</code>; <code>"TRUE"</code> is silently ignored. Code: <code>server/pesserver/announce.py</code>.</p>
+<div class="tw" tabindex="0" role="region" aria-label="Server messages (table, scrolls sideways)"><table><thead><tr><th scope="col">What the player sees</th><th scope="col">When the game asks</th><th scope="col">Reply that works</th></tr></thead>
+<tr><td><b>Online Information</b> list (title + date) at sign-in, and a <b>pop-up</b> with title + body when reaching the main menu</td><td><code>CMD_GET_GLOBALINFOTITLELIST</code> during sign-in and at the main menu; then <code>CMD_GET_INFOBODY {announce_id}</code> for each listed item</td><td>list: <code>announce_info_list</code> = blobs <code>{announce_id, announce_type "NO_BANNER_INFO", title, date, popup_type "EVERYTIME", priority, …}</code> + <code>annnounce_info_list_num</code> (three n's). Body: <code>announce_info</code> = blob <code>{announce_basic_info: blob{same item}, body, link_url "", banner_file_info: blob{filename, hash_str}, …}</code>. Newlines in <code>body</code> show as line breaks. Without a body the pop-up opens empty.</td></tr>
+<tr><td>A box with title, body and OK <b>before Quick Match</b></td><td><code>CMD_GET_URGENT_ANNOUNCEMENT {online_mode QUICK, announcement_type PRE_MAIN}</code> every time an online mode is entered</td><td><code>{is_announcement "YES", announcement_data: blob{announcement_id, online_mode, announcement_type (echoed), read_check "NO", title, body}}</code>. The game shows it every time, so the server sends each message once per player.</td></tr>
+<tr><td>The game's own text: "We will be undertaking maintenance work on our servers starting at <b>HH:MM</b> today… Are you sure that you want to start a match now?" (Yes / No; No goes back)</td><td><code>CMD_GET_MAINTENANCE_INFO</code> on "Go to Matchmaking"</td><td><code>{maintenance_warn "YES", maintenance_time &lt;unix seconds&gt;}</code>; the time is shown in each player's local time. <code>"TRUE"</code> or a free-text warning shows nothing.</td></tr>
+<tr><td>Kick: a note "You were disconnected" with the host's reason</td><td>the next <code>CMD_GET_URGENT_ANNOUNCEMENT</code> after they reconnect</td><td>as above, queued for that player only. An error code doesn't help: answering the kicked game's next heartbeat with <code>ERR_ALREADYLOGGEDIN</code> or <code>ERR_SERVERNOTREADY</code> still shows only "Connection to server lost. CODE:VNBP_0001" (OnlineSystemClient.cpp line 833; a closed socket gives VNBP_0002, line 864).</td></tr>
+</table></div>
+<p class="small">Testing reply shapes without rebuilding: put <code>overrides.json</code> in the server's data folder, mapping a command name to the reply to send instead (<code>{"__blob__": {…}}</code> becomes one msgpack blob, <code>{"__blobs__": […]}</code> a list of blobs). It's read on every request; delete it when done.</p>
+</div>
+
+<p class="totop"><a href="#contents">↑ Back to contents</a></p>
 <h2 id="match">Match — live</h2>
 <div class="panel"><ol>
   <li>After MATCHMENU both clients Kick Off → <code>CMD_CHANGE_GAMEPHASE</code> GAMELOAD → ENTRY → <b>1ST</b>. Gameplay itself is peer-to-peer UDP between the clients; the server only sees phase reports and events. <span class="tag t-ok">LIVE</span></li>
@@ -364,6 +378,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <div class="tw" tabindex="0" role="region" aria-label="Error codes (table, scrolls sideways)"><table><thead><tr><th scope="col">Code</th><th scope="col">File</th><th scope="col">Meaning in practice</th></tr></thead>
 <tr><td class="mono">EYRH763</td><td>OnlineModeTaskQuickMatching.cpp</td><td>no valid match push within 300 s (missing matching_state)</td></tr>
 <tr><td class="mono">MMGC_0002</td><td>MultiplayCmdTeamDataSync.cpp</td><td>team-data sync failed (member side missing)</td></tr>
+<tr><td class="mono">VNBP_0001 / 0002</td><td>OnlineSystemClient.cpp</td><td>connection to the gate lost: an error reply to a heartbeat (line 833) or a closed socket (line 864); the text never changes</td></tr>
 <tr><td class="mono">QVHE1459</td><td>GameModeMatchListenerMatch.cpp</td><td>match load timeout (server env timeouts were 0)</td></tr>
 </table></div>
 </div>
@@ -399,6 +414,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <tr><td class="mono">server/pesserver/stun.py · httpgate.py</td><td>RFC 5389 binding · HTTP 8080 web-API + HTTPS 443 GateInfo.php (8443 when run outside Docker) + <code>/ca.crt</code></td></tr>
 <tr><td class="mono">server/pesserver/identity.py</td><td>server identity (Ed25519 key), signed <code>/mod/note</code> and <code>/mod/hello</code>, writes settings into the mod DLL</td></tr>
 <tr><td class="mono">server/pesserver/netsetup.py</td><td>LAN / public IP detection, UPnP port mapping, CGNAT detection, per-client advertised address, startup banner</td></tr>
+<tr><td class="mono">server/pesserver/announce.py</td><td>news list and pop-up, box before Quick Match, restart warning, kick notes (state in <code>announce.json</code>)</td></tr>
 <tr><td class="mono">server/pesserver/events.py · gamesetup.py</td><td>admin page data (online, live phases, results, league, activity) · "The server computer" mod install into mounted game folders</td></tr>
 <tr><td class="mono">server/mod/</td><td>the mod: <code>dinput8.dll</code> proxy, MinHook hooks, Monocypher signature check; built in the Dockerfile's first stage</td></tr>
 <tr><td class="mono">install.sh · server/Dockerfile · docker-compose*.yml</td><td>one-command install (Docker, image, game detection) and one-container deployment; <code>docker-entrypoint.sh</code> also keeps the legacy CA for old join scripts</td></tr>
@@ -445,6 +461,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 <h2 id="log">Changelog</h2>
 <ul class="log">
+  <li><b>2026-11-05</b> — <b>The server can talk to players</b>: news in the Online Information list and as a main-menu pop-up, a one-time box before Quick Match, the game's own "maintenance starting at HH:MM" warning before matchmaking, and a note with the reason after a Kick. All tested in the game and offered on the admin page. <a href="#messages">Details</a></li>
   <li><b>2026-11-05</b> — <b>Every online function mapped</b> on a new page, <a href="functions.html">How the online functions work</a>: the TURN relay fallback, the match-session state machine, peer notices, the rating verdict push, divisions, Free-lobby rooms, co-op, spectating, CHECK_CHEAT checksums, in-game announcements, the fragment and AES frame formats, 186 error sites and a catalogue of all 433 commands. The schema extractor now finds 1,907 more reply fields.</li>
   <li><b>2026-11-05</b> — Cloud servers install with a fixed public address (<code>PUBLIC_IP</code> from ipify) and remote admin; re-running the installer keeps those settings. Mod: an address typed in the Shift box is fetched over plain HTTP, IP or name. Friends' page sends a hash-pinned CSP.</li>
   <li><b>2026-11-05</b> — <b>The mod replaces the join commands</b>: one <code>dinput8.dll</code> per server, no admin rights or system changes; signed server identity; admin page download and one-click install on the host's own PC; the Cloudflare tunnel was removed again (the mod never needed a web link); admin page limited to the home network.</li>
