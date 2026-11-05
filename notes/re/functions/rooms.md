@@ -2,7 +2,7 @@
 
 ## Corrections from later findings (2026-11-05)
 - **Menu path: Kick Off → Friendly Match Lobby** (8th item, below Cup in a scrolling list; Team Play Lobby is 9th). An earlier correction here wrongly called it hidden (lobby.md).
-- Live (livetests.md): REQWATCHL_ROOMLIST is a real request; the order is CREATEJOIN_ROOM then SET_GAMEENV; in REQWATCHL_ROOMPLAYERLIST_NTL `pname.psn_user_id` must be a **list**. The game still exits about 2 s after the player list (under investigation).
+- Live (livetests.md): REQWATCHL_ROOMLIST is a real request; the order is CREATEJOIN_ROOM then SET_GAMEENV; in REQWATCHL_ROOMPLAYERLIST_NTL `pname.psn_user_id` must be a **list**. After CREATEJOIN_ROOM the server must push the owner's room into the room list before the player list, and `pname.psn_user_id` is a nested blob (roomcrash.md). With both fixes the game still exits ~0.2 s after the player list (open).
 - Mode names (sweep.md): `lobby_type` FREE/MULTI/MYCLUB/PESLEAGUE; JOIN_ONLINE_MODE `online_mode` QUICK/RANKMATCH/FREE/MULTI/MYCLUB/PESLEAGUE/MATCHDAY/COOP/EDIT_DATA_LIVE_UPDATE.
 
 

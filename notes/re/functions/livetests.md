@@ -112,4 +112,10 @@ instrumented at runtime from a scratch launcher (no repo code changed). Tags: [l
   - with it as an empty list (as the parser types it): the list is accepted, but the game still exits about 2 s
     later, before CMD_ENTRY_GAME;
   - sending the list once instead of twice changes nothing.
-  - Cause under investigation.
+  - Code reading (roomcrash.md): after creating a room the game looks for **its own pid in the room list** (filled
+    only from REQWATCHL_ROOMLIST, not from the player list), so the server must push the owner's room into the room
+    list before or with the player list. In this parser `pname.psn_user_id` is a nested blob `{account_id,
+    online_id, is_valid_cache}`; an empty list is read as garbage memory.
+  - **Re-test with both fixes (20:12): the game still exits**, now about 0.2 s after the player list (0.27 s with an
+    empty-map blob, about 1.85 s with the list form). Cause still open; the next step is a full Wine log with the
+    process exit code.
