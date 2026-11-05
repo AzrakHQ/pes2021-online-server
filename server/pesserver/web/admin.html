@@ -25,7 +25,7 @@
   code { background:var(--code); border-radius:6px; padding:1px 6px; font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overflow-wrap:anywhere; }
 
   header.top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; row-gap:8px; margin-bottom:16px; }
-  @media (min-width: 601px) { header.top { position:sticky; top:0; z-index:15; background:var(--bg); padding:8px 0; margin-top:-8px; } html { scroll-padding-top:64px; } }
+  @media (min-width: 601px) { header.top { position:sticky; top:0; z-index:15; background:var(--bg); padding:8px 0; margin-top:-8px; } }
   header.top h1 { font-size:22px; margin:0; white-space:nowrap; }
   .grow { flex:1; }
   .pill { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; padding:3px 10px; border-radius:99px;
@@ -174,7 +174,8 @@
   .score { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; text-align:center; }
   .score.vs { font-size:15px; color:var(--muted); font-weight:600; }
   .phase { grid-column:1/-1; text-align:center; font-size:13px; }
-  @media (max-width: 420px) { #live .match { gap:8px; padding:10px; } #live .score { font-size:20px; } .match .side { display:block; -webkit-line-clamp:unset; } }
+  @media (max-width: 420px) { #live .match { gap:4px 10px; padding:10px; grid-template-columns:minmax(0,1fr) auto; } #live .score { font-size:20px; grid-column:2; grid-row:1 / span 2; }
+    #live .match .side { display:block; -webkit-line-clamp:unset; grid-column:1; text-align:left !important; } #live .match .side.away { grid-row:2; } #live .phase { grid-column:1 / -1; text-align:left; } }
 
   .results { list-style:none; margin:0; padding:0; }
   .results li { display:grid; grid-template-columns:7.5em minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:baseline; padding:7px 0; border-bottom:1px solid var(--line); font-size:14px; }
@@ -272,7 +273,7 @@
       <span class="sr" id="copy-live" aria-live="polite"></span>
       <details class="keycheck"><summary>Check a friend got your exact file</summary>
         Ask your friend to run <code>Get-FileHash .\dinput8.dll</code> in the game folder (Linux: <code>sha256sum dinput8.dll</code>). The result should be:
-        <span class="linkrow"><code id="ssha" style="letter-spacing:.04em">…</code><button type="button" class="small" id="copy-sha" data-copied="Hash copied">Copy</button></span>
+        <span class="linkrow"><code id="ssha" style="letter-spacing:.04em;white-space:normal;overflow-wrap:anywhere;text-overflow:clip">…</code><button type="button" class="small" id="copy-sha" data-copied="Hash copied">Copy</button></span>
         Capital or small letters and spaces don't matter.
         That proves the file is exactly the one your server hands out. In the mod's log file (<code>pes2021-online.log</code>), the line <code id="skey">key …</code> shows which server it connects to.</details>
     </div>
@@ -432,6 +433,7 @@ function setDown(on) {
   const pill = $("status");
   if (!on) {
     failures = 0; lastOkAt = Date.now();
+    if (downSince && /isn't answering/.test($("kick-msg").textContent)) $("kick-msg").textContent = "";
     if (downSince) { backUntil = Date.now() + 4000; $("status-live").textContent = "The server is answering again."; }
     if (downSince || pill.className !== "pill") { downSince = 0; pill.className = "pill"; $("down").hidden = true; document.body.classList.remove("stale");
       $("dl").removeAttribute("aria-disabled"); $("dl").removeAttribute("tabindex");
@@ -512,7 +514,9 @@ function render(d) {
   const busy = pc.contains(document.activeElement) || pc.matches(":hover") || Object.keys(rowMsg).length > 0;
   if (!busy && (first ? pc.nextElementSibling !== $("stats") : pc.previousElementSibling !== $("board"))) {
     const moving = !first && !pc.hidden && pc.nextElementSibling === $("stats");
+    const fa = document.activeElement, t0 = fa && fa !== document.body ? fa.getBoundingClientRect().top : null;
     pc.parentNode.insertBefore(pc, anchor);
+    if (t0 !== null && document.contains(fa)) scrollBy(0, fa.getBoundingClientRect().top - t0);
     if (moving) $("pc-live").textContent = "The server computer card moved below the match info.";
   }
   $("pcpill").hidden = !pn || pc.hidden || pc.nextElementSibling === $("stats");
@@ -525,7 +529,7 @@ function render(d) {
   const today = d.results.filter(r => new Date(r.ended * 1000).toDateString() === new Date().toDateString()).length;
   put("stats", quiet
     ? joinedOnly
-      ? `<div class="quiet"><b>${d.players.length > 4 ? d.players.slice(0, 4).map(p => esc(p.name)).join(", ") + ` and ${d.players.length - 4} more` : andList(d.players.map(p => nm(p.name)))} ${d.players.length === 1 ? `has joined.</b> A match starts when ${nm(d.players[0].name)} and one more friend choose Quick Match at the same time.` : `have joined.</b> A match starts when two of them choose Quick Match at the same time.`}<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
+      ? `<div class="quiet"><b>${d.players.length > 4 ? d.players.slice(0, 4).map(p => esc(p.name)).join(", ") + ` and ${d.players.length - 4} more` : andList(d.players.map(p => nm(p.name)))} ${d.players.length === 1 ? `has joined.</b> A match starts when ${nm(d.players[0].name)} and one more friend choose Quick Match at the same time.` : `have joined.</b> A match starts when ${d.players.length === 2 ? "both of them choose" : "two of them choose"} Quick Match at the same time.`}<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
       : `<div class="quiet"><b>Waiting for your first friend.</b> Send them the mod; they appear here within seconds of starting PES 2021.<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
     : `<div class="tiles">
         <a class="tile" href="#h-online"><b>${d.online.length}</b><span>${d.online.length === 1 ? "player" : "players"} online</span></a>
@@ -680,7 +684,11 @@ function libraryOf(path) {
   const p = String(path).split("/").filter(Boolean), i = p.indexOf("steamapps");
   return "/" + (i > 0 ? p.slice(0, i) : p.slice(0, -2)).join("/");
 }
-const justMarked = new Set();
+const justMarked = new Set(), rowOrder = new Map(), shownPaths = new Set();
+try {
+  new ResizeObserver(() => { document.documentElement.style.scrollPaddingTop = (matchMedia("(min-width: 601px)").matches ? document.querySelector("header.top").offsetHeight + 12 : 0) + "px"; })
+    .observe(document.querySelector("header.top"));
+} catch (e) {}
 function skipped(g) { try { return localStorage.getItem("pes-pc-skip:" + g.path) === "1"; } catch (e) { return false; } }
 function pcNeeds() {
   return lastGames.filter(g => !skipped(g) && !(g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g))))).length;
@@ -723,13 +731,22 @@ async function loadGames(force, focusMsg, focusKey) {
   });
   const keep = g => rowMsg[g.id] || justMarked.has(g.path);
   const needsAct = g => !okNow(g) && !skipped(g);
-  todo.sort((a, b) => (needsAct(b) ? 1 : 0) - (needsAct(a) ? 1 : 0));
-  const shownTodo = todo.length > 3 ? todo.filter((g, i) => i < 2 || keep(g)) : todo, moreTodo = todo.filter(g => !shownTodo.includes(g));
+  [...gs].sort((a, b) => (needsAct(b) ? 1 : 0) - (needsAct(a) ? 1 : 0)).forEach(g => { if (!rowOrder.has(g.path)) rowOrder.set(g.path, rowOrder.size); });
+  const byOrder = (a, b) => rowOrder.get(a.path) - rowOrder.get(b.path);
+  todo.sort(byOrder);
+  let shownTodo = todo;
+  if (todo.length > 3) {
+    shownTodo = todo.filter(g => shownPaths.has(g.path) || keep(g));
+    for (const g of todo) { if (shownTodo.length >= 2) break; if (!shownTodo.includes(g)) shownTodo.push(g); }
+    shownTodo.sort(byOrder);
+  }
+  shownTodo.forEach(g => shownPaths.add(g.path));
+  const moreTodo = todo.filter(g => !shownTodo.includes(g));
   const more = moreTodo.length ? `<details class="pcready" data-key="pc-more" style="margin-top:8px"><summary>Show ${moreTodo.length} more ${moreTodo.length === 1 ? "copy that needs" : "copies that need"} setup</summary><div class="games">${moreTodo.map(gameRow).join("")}</div></details>` : "";
   const rows = need && done.length >= 1
     ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}<details class="pcready" data-key="pc-ready" style="margin-top:8px"><summary>${I.ok} ${done.length} other ${done.length === 1 ? "copy is" : "copies are"} ${done.some(skipped) ? "ready or skipped" : "ready"}</summary><div class="games">${done.map(gameRow).join("")}</div></details>`
     : moreTodo.length ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}` : `<div class="games">${gs.map(gameRow).join("")}</div>`;
-  const html = need === 0 && !Object.keys(rowMsg).length
+  const html = need === 0 && !Object.keys(rowMsg).length && !gs.some(g => justMarked.has(g.path))
     ? `<details class="pcready" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this PC is ready to play (${gs.length} ${gs.length === 1 ? "copy" : "copies"})` : `PES 2021 on this PC: ${okCnt} ready, ${gs.length - okCnt} skipped`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
         : `${okCnt ? "PES 2021 on this computer:" : "Want to play on this computer too?"} ${gs.length > 1 ? `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup` : "Set up its copy of PES 2021 here"}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
@@ -929,7 +946,7 @@ fetch("/admin/api/info").then(r => r.json()).then(i => {
     $("lf").before($("err")); $("err").classList.add("blocked"); $("lf").hidden = true; $("forgot").hidden = true; $("lsub").hidden = true; ($("err").querySelector("a") || $("err")).focus();
     $("signin").disabled = true;
   }
-  if (i.password_replaced) $("forgot").innerHTML = "This server was started with the website's example password (or one under 10 characters), so it made its own. See it on the server with <code>sudo docker logs pesserver</code>.";
+  if (i.password_replaced) $("forgot").innerHTML = "This server was started with the website's example password (or one under 10 characters), so it made its own. See it on the server with <code>" + (i.docker_desktop ? "" : "sudo ") + "docker logs pesserver</code>.";
   if (i.remote) { $("login-remote").hidden = false; $("remember-row").hidden = true; $("remember").checked = false; }
 }).catch(() => {});
 $("logout").onclick = async () => {
