@@ -270,6 +270,7 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
     dll = tmp_path / "dinput8.dll"
     dll.write_bytes(b"MZ..head.." + marker + b"\0" * (identity.EMBED_SIZE - len(marker)) + b"..tail")
     monkeypatch.setattr(httpgate, "MOD_DLL", str(dll))
+    srv_svc = None
     async def get(port, path, host="pes.example.org"):
         r, w = await asyncio.open_connection("127.0.0.1", port)
         w.write(f"GET {path} HTTP/1.1\r\nHost: {host}\r\nX-Forwarded-Proto: https\r\n\r\n".encode())
@@ -278,7 +279,10 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
         return head.decode(), body
 
     async def go():
-        srv = await httpgate.serve(Service(Accounts(str(tmp_path / "a.db"))), "127.0.0.1", 0)
+        nonlocal srv_svc
+        srv_svc = Service(Accounts(str(tmp_path / "a.db")))
+        httpgate._DOWNLOADS.clear()
+        srv = await httpgate.serve(srv_svc, "127.0.0.1", 0)
         port = srv.sockets[0].getsockname()[1]
         try:
             head, body = await get(port, "/mod/note")
@@ -291,6 +295,11 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
             assert "400" in head
             head, body = await get(port, "/mod/dinput8.dll")
             assert 'filename="dinput8.dll"' in head and len(body) == dll.stat().st_size
+            from pesserver import events
+            svc_feed = [f for f in events._st(srv_svc)["feed"] if f["kind"] == "web"]
+            assert len(svc_feed) == 1 and "downloaded the mod" in svc_feed[0]["text"]
+            await get(port, "/mod/dinput8.dll")                                  # same address: no second line
+            assert len([f for f in events._st(srv_svc)["feed"] if f["kind"] == "web"]) == 1
             r, w = await asyncio.open_connection("127.0.0.1", port)
             w.write(b"HEAD /mod/dinput8.dll HTTP/1.1\r\nHost: pes.example.org\r\n\r\n"); await w.drain()
             raw = await r.read(); w.close()

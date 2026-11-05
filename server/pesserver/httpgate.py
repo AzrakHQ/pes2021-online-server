@@ -44,6 +44,8 @@ def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False)
                 out, ctype = _web(service, route, headers, writer)
             elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
+                if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200"):
+                    note_download(service, (writer.get_extra_info("peername") or ("",))[0])
             elif path.startswith("/status"):
                 from . import pesmatch
                 from . import identity
@@ -248,7 +250,7 @@ async def _admin(service, method, route, headers, body, peer=""):
     if route == "/admin/api/info":            # public: lets the sign-in page warn before a password is typed
         return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8"), "host_ok": bool(host_ok(headers)),
                                      "docker_desktop": bool(os.environ.get("ADMIN_PORT")),
-                                     "lan": netsetup.STATE.get("lan") or ""}).encode(), "application/json"
+                                     "lan": (netsetup.STATE.get("lan") or "") if admin_allowed(peer) else ""}).encode(), "application/json"
     if route.startswith("/admin/api/") and not host_ok(headers):
         return "403 Forbidden", b'{"error":"open the admin page by its address"}', "application/json"
     if not admin_allowed(peer):
@@ -409,6 +411,38 @@ def _mod(service, route, headers, writer, path=""):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
     return "200 OK", mod_bytes(mod_url(service, headers, writer)), "application/octet-stream", \
         b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
+
+
+_DOWNLOADS = {}
+
+
+def note_download(service, peer):
+    """An activity line when someone downloads the mod (once per address per 10 minutes), so the host
+    sees that a friend got the file. Says where from, not who: downloads need no sign-in."""
+    import ipaddress, time as _time
+    from . import events
+    now = _time.time()
+    if now - _DOWNLOADS.get(peer, 0) < 600:
+        return
+    if len(_DOWNLOADS) > 500:
+        _DOWNLOADS.clear()
+    _DOWNLOADS[peer] = now
+    try:
+        ip = ipaddress.ip_address(peer.split("%")[0])
+        ip = (ip.ipv4_mapped or ip) if ip.version == 6 else ip
+    except ValueError:
+        ip = None
+    if ip is None:
+        where = ""
+    elif ip.is_loopback:
+        where = " on this computer"
+    elif ip in ipaddress.ip_network("100.64.0.0/10") or ip in ipaddress.ip_network("fd7a:115c:a1e0::/48"):
+        where = f" over Tailscale ({ip})"
+    elif ip.is_private or ip.is_link_local:
+        where = f" on your home network ({ip})"
+    else:
+        where = f" from the internet ({ip})"
+    events.feed(service, f"Someone{where} downloaded the mod", "web")
 
 
 def mod_url(service, headers, writer):
