@@ -6,7 +6,6 @@
 # Downloads the newest version of the server program (only when there is a new one), then runs it in this
 # window. Ctrl+C stops it. Next time, run the same line: you always get the newest version.
 # Options go after "sh -s --", e.g. ... | sh -s -- --data ~/pes-server-data
-# Always-on server (VPS, home server, Pi) instead? Use install.sh: the same program as a service.
 set -eu
 REL="https://github.com/MohamedAliRashad/pes2021-private-server/releases/latest/download"
 

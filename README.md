@@ -26,9 +26,6 @@ It downloads the server (one program, 15–30 MB, no admin rights) and prints yo
 **password**. Keep the window open while you play: **Ctrl+C** or closing it stops the server. Paste the same line
 next time: it always starts the newest version.
 
-**Always-on server** (Linux VPS, home server, Raspberry Pi; runs as a service and starts by itself after a reboot):
-`curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh`
-
 ## 2. Host: send your friends the mod
 
 Open the admin page and click **Download the mod for friends**. You get one file, `dinput8.dll`. Send it to each
@@ -66,9 +63,7 @@ delete the file.
 Quick Match), the game asks for a region and a player name, and your server saves that player, tied to
 their Steam account. They appear on the admin page.
 
-Updating: paste your start line again (the admin page also tells you when a newer version is out). Always-on
-server: run its install line again to update · `sudo cat /var/lib/pes2021-server/banner.txt` (admin page and
-password) · `sudo systemctl stop pes2021-server` · `sudo systemctl start pes2021-server`.
+Updating: paste your start line again (the admin page also tells you when a newer version is out).
 
 <details><summary><b>Set up earlier with a join line?</b></summary>
 

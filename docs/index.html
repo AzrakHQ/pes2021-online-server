@@ -135,23 +135,12 @@ section.alt .card { background: var(--bg); }
 .copy:hover { background: rgba(255,255,255,.2); }
 .how { padding-left: 20px; margin: 0; } .how li { margin-bottom: 6px; }
 .linuxes { padding-left: 18px; margin: 14px 0 12px; } .linuxes li { margin-bottom: 4px; }
-.pick details summary { cursor: pointer; list-style: revert; }
-.pick details summary::after { content: none !important; }
-.pick .inline-steps li { border: 0; background: none; padding: 0; border-radius: 0; }
-pre .nw { white-space: nowrap; }
-.inline-steps { margin: 8px 0 2px; padding-left: 20px; font-size: 14px; }
-@media (max-width: 480px) { .cmd pre { padding: 12px 12px 46px; } .pick > li { padding: 8px 10px; } .pick .inline-steps { padding-left: 16px; } } .inline-steps li { margin-bottom: 4px; }
-p.inline-steps { padding-left: 0; }
+@media (max-width: 480px) { .cmd pre { padding: 12px 12px 46px; } }
 .step p.small.muted { font-size: 16px; color: var(--fg); }
 .mini-shot { margin: 0 0 12px; } .mini-shot img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line); }
 .mini-shot a { display: block; } .mini-shot a.dark { display: none; } .mini-shot figcaption { margin-top: 6px; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mini-shot a.light { display: none; } :root:not([data-theme="light"]) .mini-shot a.dark { display: block; } }
 :root[data-theme="dark"] .mini-shot a.light { display: none; } :root[data-theme="dark"] .mini-shot a.dark { display: block; }
-.wingroup ol { margin: 6px 0 0; padding-left: 20px; font-size: 14px; } .wingroup li { margin-bottom: 4px; }
-.pick { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 8px; }
-.pick li { border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: 10px; padding: 8px 12px; background: var(--bg2); }
-section.alt .pick li { background: var(--bg); }
-.pick > li { min-width: 0; } .pick .cmd pre { overflow-wrap: anywhere; }
 .banner-mock { background: var(--code-bg); color: #cfe9dc; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; font: 13px/1.7 var(--mono); white-space: normal; overflow-wrap: anywhere; }
 .banner-mock > div:not(.bm-title) { padding-left: 132px; text-indent: -132px; }
 .banner-mock .bm-title { color: #fff; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.15); padding-bottom: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; gap: 20px; }
@@ -341,7 +330,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       </div>
       <p class="roles"><a href="#host">I'm hosting →</a><a href="#join">A friend sent me a file →</a><a href="protocol.html">The technical write-up →</a></p>
       <a class="pill-status" href="#status"><i aria-hidden="true"></i>Early access: proven on Linux · testers wanted for Windows, Steam Deck and two separate PCs</a>
-      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one PC to host</b>: Windows, Linux or Steam Deck, no extra software (or a small cloud server).</p>
+      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one PC to host</b>: Windows, Linux or Steam Deck, no extra software.</p>
     </div>
     <svg class="hero-art" viewBox="0 0 520 400" role="img" aria-labelledby="art-t">
       <title id="art-t">Two players connect to your server for login and matchmaking; the match itself runs directly between the two players.</title>
@@ -393,7 +382,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Starting the game from the Steam client: our tests launched the game directly under Proton</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Steam Deck: same as Linux, not yet tried on a Deck</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Two separate PCs, in the same home or far apart: not tested yet</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Hosting from Windows, a Mac, a Steam Deck, a cloud server or a Raspberry Pi</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Hosting from Windows, a Mac or a Steam Deck</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Goals: every test match so far ended 0–0, so scoring hasn't been seen yet</span></li>
         </ul>
       </div>
@@ -451,31 +440,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
         <div>
           <div class="step-num" aria-hidden="true">1</div>
           <h3>The host starts the server</h3>
-          <p class="small" style="margin:0 0 8px"><b>Who should host?</b></p>
-          <ul class="pick small">
-            <li><b>Someone's PC</b> (Windows, Linux or Steam Deck) that stays on while you play: one line, about a minute, nothing to install. It's right here.</li>
-            <li><details><summary><b>No PC that stays on, or friends far away:</b> a small cloud server, about $5 a month, about 10 minutes (untested)</summary>
-              <ol class="inline-steps">
-                <li>Create the cheapest <b>Ubuntu 24.04</b> server at any cloud provider. While creating it, find the box for a start-up script (<b>User data</b>, <b>Cloud config</b> or <b>Initialization script</b>), paste this:
-                  <div class="cmd" style="margin-top:8px"><pre id="c-cloud-ud">#!/<wbr>bin/<wbr>sh
-# open the server's own firewall too (Oracle's images block ports; harmless elsewhere)
-iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT 2>/<wbr>dev/<wbr>null
-iptables -I INPUT -p udp -m multiport --dports 3478,7600 -j ACCEPT 2>/<wbr>dev/<wbr>null
-netfilter-persistent save 2>/<wbr>dev/<wbr>null || true
-curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 ADMIN_PASSWORD='<span class="nw">choose-a-long-password</span>' sh</pre><button class="copy" data-copy="c-cloud-ud" type="button">Copy</button></div>
-                  <p class="small genpw-note">Your admin password: <b class="genpw">the one at the end of the script (change it to your own, at least 10 characters)</b>. Write it down (this browser remembers it too): you sign in with it, and the admin page shows your friends' IP addresses. It also stays in your provider's server settings, so anyone with your cloud account can see it.</p>
-                  <noscript><p class="small">JavaScript is off, so no password was made for you: replace <code>choose-a-long-password</code> with your own (at least 10 characters). The server refuses the example and anything shorter.</p></noscript>
-                  Where the box is (menu names may differ a little): <b>DigitalOcean</b> → Create Droplet → Advanced options → Add initialization scripts · <b>Hetzner</b> → Add Server → Cloud config · <b>AWS Lightsail</b> → Create instance → Add launch script · <b>Oracle Always Free</b> → Create instance → Show advanced options → Management → Initialization script (ARM images are untested).</li>
-                <li>If the provider has a firewall for the server (a "security group" or "firewall rules"), allow <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b>. The script already opens the server's own firewall (needed on Oracle).</li>
-                <li>About 5 minutes after it starts, open <b>http://&lt;the server's IP&gt;/admin</b>, sign in with that password, and download the mod for your friends. Password not accepted? The server replaces an example or too-short password with its own: in the provider's web console run <code>sudo cat /var/lib/pes2021-server/banner.txt</code> to see it. Your provider's dashboard lists the server's IP next to it. Nothing after 10 minutes? Open the provider's web console and run <code>sudo tail -30 /var/log/cloud-init-output.log</code> to see what the installer printed. The admin page isn't encrypted, so don't sign in from public Wi-Fi.</li>
-              </ol>
-              <details class="inline-steps"><summary>No start-up script box?</summary><p>Open its web console (or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.</p>
-                  <div class="cmd" style="margin-top:8px"><pre id="c-cloud-q">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud-q" type="button">Copy</button></div>
-                  <p>When it finishes (about 5 minutes) it prints your admin page and a password: write the password down, it's the one you sign in with. The admin page isn't encrypted, so don't sign in from public Wi-Fi. <a href="#faq-cloud">More about cloud hosting</a>.</p></details></details></li>
-            <li><details><summary><b>An always-on Linux box</b> (home server, Raspberry Pi): runs in the background and starts by itself after a reboot</summary>
-              <p class="inline-steps">Paste this in its terminal. It installs the server as a service and shows the admin page and password; run it again to update.</p>
-              <div class="cmd inline-steps"><pre id="c-always">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | sh</pre><button class="copy" data-copy="c-always" type="button">Copy</button></div></details></li>
-          </ul>
+          <p class="small">One person hosts on their PC (Windows, Linux or Steam Deck) and keeps it on while you play: one line, about a minute, nothing to install.</p>
           <p class="small muted"><b>Windows:</b> open the Start menu, type <b>PowerShell</b>, press Enter, paste the Windows line and press Enter. <b>Linux:</b> open a terminal (on Ubuntu <b>Ctrl+Alt+T</b>) and paste the Linux line. <b>Steam Deck:</b> switch to Desktop Mode, open <b>Konsole</b> and paste the Linux line.</p>
           <p class="small muted">It downloads the server (15–30 MB, no administrator rights needed) and shows <b>your admin page</b> and <b>its password</b>. Keep that window open while you play; <b>Ctrl+C</b> or closing it stops the server. Next time, paste the same line: it always starts the newest version.</p>
         </div>
@@ -491,7 +456,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
             <li><b>Windows:</b> the first time, Windows asks whether to let the server through its firewall: click <b>Allow</b>. New, needs testers.</li>
             <li><b>Linux:</b> on Linux the admin page is at <code>http://&lt;address&gt;:8080/admin</code> (the window shows it). If it says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first. <b>Fedora</b> also needs its firewall opened: <code>sudo firewall-cmd --permanent --add-port={8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code></li>
             <li><b>Steam Deck, Mac (Apple silicon):</b> new, needs testers.</li>
-            <li>Tested on a desktop Linux PC. Players who use the mod need nothing else; the older "join line" setup without the mod needs the server started with administrator rights on Linux (or the always-on install).</li>
+            <li>Tested on a desktop Linux PC. Players who use the mod need nothing else; the older "join line" setup without the mod needs port 443, which on Linux only a server started with administrator rights gets.</li>
           </ul>
           <details class="changes">
             <summary>What the line does</summary>
@@ -608,12 +573,10 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       <table class="help"><caption class="sr">Help for hosts</caption>
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
-          <tr><td>The window says "The server can't start: port … is already in use"</td><td>Another server is already running on this computer: close its window, or stop the always-on one with <code>sudo systemctl stop pes2021-server</code>. Then paste the line again.</td></tr>
+          <tr><td>The window says "The server can't start: port … is already in use"</td><td>Another server is already running on this computer: close its window, then paste the line again.</td></tr>
           <tr><td>Windows says "Windows protected your PC"</td><td>That happens if you downloaded the .exe with a browser (the program isn't signed). Click <b>More info → Run anyway</b>, or use the PowerShell line instead.</td></tr>
-          <tr><td>The installer says "The server did not start"</td><td>Run <code>sudo journalctl -u pes2021-server -n 50</code> to see why. Usually another program already uses port 80, 443, 8080 or 10000: check with <code>sudo ss -ltnp | grep -E ':(80|443|8080|10000) '</code>, stop that program, then run the install line again.</td></tr>
-          <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server installed with the plain line this is normal: open the 6 ports in the provider's firewall, or run the cloud line from step 1 instead.</td></tr>
-          <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
-          <tr><td>On an Oracle Cloud server, nobody can connect although the ports are open in its web firewall</td><td>Oracle's Ubuntu images also block ports inside the server. Run <code>sudo iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT</code> and <code>sudo iptables -I INPUT -p udp -m multiport --dports 3478,7600 -j ACCEPT</code>, then <code>sudo netfilter-persistent save</code> so it survives a reboot.</td></tr>
+          <tr><td>The host's screen says "Router ports are closed"</td><td>Turn on UPnP in your router's settings and start the server again, or forward the ports it lists.</td></tr>
+          <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale (see <a href="#faq-far">playing with friends far away</a>).</td></tr>
           <tr><td>It works on the host's PC, but nobody else can connect</td><td>The host computer's own firewall is blocking the ports. On Ubuntu with ufw: <code>sudo ufw allow 80,443,8080,10000/tcp</code> and <code>sudo ufw allow 3478,7600/udp</code>. On Fedora: <code>sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code>. On a cloud server, also open them in the provider's firewall settings.</td></tr>
         </tbody>
       </table>
@@ -686,7 +649,6 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       </ul>
       <div class="cmd"><span class="label">Windows PowerShell: replace 100.x.y.z with the host's Tailscale address</span><pre id="c-ts-win">$env:PUBLIC_IP="100.<wbr>x.<wbr>y.<wbr>z"; irm https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>ps1 | iex</pre><button class="copy" data-copy="c-ts-win" type="button">Copy</button></div>
       <div class="cmd"><span class="label">Linux, Steam Deck, Mac</span><pre id="c-ts">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>sh | PUBLIC_IP=100.<wbr>x.<wbr>y.<wbr>z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
-      <p class="small">Always-on server? Run its install line with <code>PUBLIC_IP=100.x.y.z</code> before <code>sh</code> instead.</p>
       <p>A built-in relay that removes this step is on the to-do list.</p>
     </details>
     <h3 class="faqh" id="faq-hosts">For hosts</h3>
@@ -694,9 +656,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       <summary>How do I see the password again, stop or update the server?</summary>
       <ul>
         <li><b>Started with the one line (your PC):</b> the address and password are in the server's window. <b>Ctrl+C</b> or closing the window stops it (and closes the router ports it opened). Paste the same line to start it again: it updates itself first, and players, results and friends' mod files are kept. The admin page also tells you when a newer version is out.</li>
-        <li><b>Always-on server (install.sh):</b> show the admin page and password again with <code>sudo cat /var/lib/pes2021-server/banner.txt</code> · Restart: <code>sudo systemctl restart pes2021-server</code> · Stop: <code>sudo systemctl stop pes2021-server</code></li>
-        <li>Update the always-on server: run its install line again (it shows the version you had and the one you have now). It keeps the settings you gave the first time (<code>PUBLIC_IP</code>, <code>ADMIN_REMOTE</code>, <code>ADMIN_PASSWORD</code>, <code>UPNP</code>); to clear one, give it empty, for example <code>… | ADMIN_REMOTE= sh</code>. Players, results and your server's identity are kept, so friends' files keep working.</li>
-        <li>Remove everything: first click <b>Uninstall</b> on the admin page's server-computer card (if you used it). Then delete the server's folder: <code>%LOCALAPPDATA%\PES2021 Server</code> on Windows, <code>~/.local/share/pes2021-server</code> on Linux. Always-on server: <code>sudo systemctl disable --now pes2021-server &amp;&amp; sudo rm -rf /opt/pes2021-server /var/lib/pes2021-server /var/lib/private/pes2021-server /etc/pes2021-server.env /etc/systemd/system/pes2021-server.service</code>. This deletes players, results and the server's identity, so old mod files stop working.</li>
+        <li>Remove everything: first click <b>Uninstall</b> on the admin page's server-computer card (if you used it). Then delete the server's folder: <code>%LOCALAPPDATA%\PES2021 Server</code> on Windows, <code>~/.local/share/pes2021-server</code> on Linux. This deletes players, results and the server's identity, so old mod files stop working.</li>
       </ul>
       <p><b>Who can join?</b> Anyone who has your mod file or your server's address. While your router ports are open, that address is public, so share it only with friends. There's no ban yet: <b>Kick</b> disconnects someone, but they can reconnect; stopping the server closes the ports.</p>
     </details>
@@ -706,29 +666,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
     </details>
     <details class="q" id="faq-thispc">
       <summary>How does the admin page install the mod on the server computer?</summary>
-      <p>When you run the install line, it looks for PES 2021 in your Steam libraries and in <code>~/Games</code>, and lets the server (a root container) read and write only those game folders and their Proton prefix (the game's own Windows drive); it changes only <code>user.reg</code> there, with a backup. <b>Install mod</b> puts your server's <code>dinput8.dll</code> next to <code>PES2021.exe</code> and, on Linux, sets Wine to load it for PES 2021 only, so you don't need the launch option (start PES 2021 once <b>before you run the install line</b>, or run the install line again afterwards, so its Wine prefix exists; otherwise use the launch option). Close the game first. It never replaces another mod's <code>dinput8.dll</code>, keeps a backup of Wine's settings, and <b>Uninstall</b> removes the mod and that Wine setting (the backup <code>user.reg.pes2021-backup</code> and the mod's small <code>.ini</code>/<code>.log</code> files stay).</p>
-    </details>
-    <details class="q" id="faq-cloud">
-      <summary>How do I run it on a cloud server?</summary>
-      <p>A cloud server is a good choice if nobody has a Linux PC, your home router can't open ports, or your provider uses CGNAT. Its address never changes and it's on all the time. This should work but hasn't been tested yet; please <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues/new?template=test-report.md">report how it goes</a>.</p>
-      <ol>
-        <li>Create a small <b>Ubuntu 24.04</b> server (64-bit) with any cloud provider: the cheapest size is plenty (1 CPU, 1 GB of memory), usually about $4–6 a month, and some providers have free tiers. While creating it, paste this into its start-up script box:
-          <div class="cmd" style="margin-top:8px"><pre id="c-cloud-ud2">#!/<wbr>bin/<wbr>sh
-# open the server's own firewall too (Oracle's images block ports; harmless elsewhere)
-iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT 2>/<wbr>dev/<wbr>null
-iptables -I INPUT -p udp -m multiport --dports 3478,7600 -j ACCEPT 2>/<wbr>dev/<wbr>null
-netfilter-persistent save 2>/<wbr>dev/<wbr>null || true
-curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 ADMIN_PASSWORD='<span class="nw">choose-a-long-password</span>' sh</pre><button class="copy" data-copy="c-cloud-ud2" type="button">Copy</button></div>
-          <p class="small genpw-note">Your admin password: <b class="genpw">the one at the end of the script (change it to your own, at least 10 characters)</b>. Write it down; it also stays in your provider's server settings.</p>
-          <noscript><p class="small">JavaScript is off: replace <code>choose-a-long-password</code> with your own (at least 10 characters). The server refuses the example and anything shorter.</p></noscript>
-          <p class="small">Where the box is (menu names may differ a little): <b>DigitalOcean</b> → Create Droplet → Advanced options → Add initialization scripts · <b>Hetzner</b> → Add Server → Cloud config · <b>AWS Lightsail</b> → Create instance → Add launch script · <b>Oracle Always Free</b> → Create instance → Show advanced options → Management → Initialization script (ARM images are untested). The script looks up the server's public address (with the free ipify service) and gives it to players, because a cloud server has no home router to ask.</p>
-          <details class="inline-steps"><summary>No start-up script box?</summary><p>Open the server's terminal (the provider's web console, or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line, which lets you open the admin page from your home over the internet. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.</p>
-          <div class="cmd" style="margin-top:8px"><pre id="c-cloud">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud" type="button">Copy</button></div>
-          <p>When it finishes it prints the admin page and a password: write the password down.</p></details></li>
-        <li>If the provider has a firewall for the server (often called "security group" or "firewall rules"), allow incoming <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b> from anywhere. The script already opens the server's own firewall.</li>
-        <li>About 5 minutes after it starts, open <b>http://&lt;your server's public IP&gt;/admin</b> (the provider's dashboard lists the IP), sign in and download the mod for your friends. The admin page isn't encrypted, so don't sign in from public Wi-Fi. Nothing after 10 minutes? In the web console run <code>sudo tail -30 /var/log/cloud-init-output.log</code>.</li>
-      </ol>
-      <p>The match itself still runs directly between the two players' PCs, so a cloud server doesn't fix "Failed to connect with opponent". It does keep login and matchmaking reachable for everyone.</p>
+      <p>The server looks for PES 2021 in your Steam libraries and in <code>~/Games</code> (on Windows, where Steam says it is), and on Linux for the game's Proton prefix (its own Windows drive), where it changes only <code>user.reg</code>, with a backup. <b>Install mod</b> puts your server's <code>dinput8.dll</code> next to <code>PES2021.exe</code> and, on Linux, sets Wine to load it for PES 2021 only, so you don't need the launch option (start PES 2021 once before the server, so its Wine prefix exists; otherwise use the launch option). Close the game first. It never replaces another mod's <code>dinput8.dll</code>, keeps a backup of Wine's settings, and <b>Uninstall</b> removes the mod and that Wine setting (the backup <code>user.reg.pes2021-backup</code> and the mod's small <code>.ini</code>/<code>.log</code> files stay).</p>
     </details>
     <details class="q" id="faq-winhost">
       <summary>Can I host from Windows or a Mac?</summary>
@@ -1030,15 +968,6 @@ answer with a 16-byte key
   }));
   document.getElementById("lb-close").addEventListener("click", () => lb.close());
   lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
-  try {
-    const abc = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789", r = crypto.getRandomValues(new Uint32Array(12));
-    let pw = ""; try { pw = sessionStorage.getItem("pes-cloud-pw") || localStorage.getItem("pes-cloud-pw") || ""; } catch (e) {}
-    if (!/^[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$/.test(pw)) pw = [0, 4, 8].map(o => Array.from(r.slice(o, o + 4), x => abc[x % abc.length]).join("")).join("-");
-    try { localStorage.setItem("pes-cloud-pw", pw); } catch (e) {}
-    document.querySelectorAll("#c-cloud-ud, #c-cloud-ud2").forEach(pre => { pre.innerHTML = pre.innerHTML.replace("choose-a-long-password", pw); });
-    document.querySelectorAll(".genpw").forEach(b => { b.textContent = pw + " (made in your browser just now)"; });
-  } catch (e) {}
-  if (/Windows|Macintosh/.test(navigator.userAgent)) { const d = document.querySelector(".pick details"); if (d) d.open = true; }   // Windows/Mac visitors: show the cloud path
   if (innerWidth <= 600) document.querySelectorAll("details.helpgrp").forEach(d => d.open = false);   // phones: start folded
   const detailsOf = t => t && (t.tagName === "DETAILS" ? t : t.closest("details"));
   const openTarget = () => { const d = detailsOf(document.getElementById(location.hash.slice(1))); if (d) d.open = true; };

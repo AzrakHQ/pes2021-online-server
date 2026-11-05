@@ -363,7 +363,7 @@ def test_admin_rebinding_and_csp(tmp_path):
         port = srv.sockets[0].getsockname()[1]
         try:
             code, out = await _http(port, "GET", "/admin/api/info")
-            assert code == 200 and {k: v for k, v in json.loads(out).items() if k not in ("lan", "admin_url", "password_replaced")} == {"remote": False, "host_ok": True, "service": False}
+            assert code == 200 and {k: v for k, v in json.loads(out).items() if k not in ("lan", "admin_url", "password_replaced")} == {"remote": False, "host_ok": True}
         finally:
             srv.close()
     import json

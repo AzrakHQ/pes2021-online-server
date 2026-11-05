@@ -22,7 +22,7 @@ address for every client). Without root on Linux, ports 80 and 443 are skipped: 
 
 **The program:** `packaging/build.sh <name>` (PyInstaller) builds one file in `dist/`;
 `packaging/smoke.py dist/<name>` checks it. `.github/workflows/program.yml` does both for every
-platform and publishes the release that `run.sh`, `run.ps1` and `install.sh` download.
+platform and publishes the release that `run.sh` and `run.ps1` download.
 
 | Port | Service | Module |
 |---|---|---|

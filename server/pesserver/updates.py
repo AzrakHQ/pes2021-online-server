@@ -1,5 +1,5 @@
 """Tells the host when a newer server is out. Every 6 hours it asks GitHub whether the server code
-(server/ or install.sh) changed since the commit this image was built from; docs-only commits don't
+(server/) changed since the commit this program was built from; docs-only commits don't
 count. The admin page and the console show the result. UPDATE_CHECK=0 turns it off."""
 import json, logging, os, threading, time, urllib.request
 
@@ -9,7 +9,7 @@ STATE = {"available": False, "latest": "", "checked": 0.0}
 
 
 def _matters(name):
-    return name.startswith("server/") or name == "install.sh"
+    return name.startswith("server/")
 
 
 def parse_compare(d):

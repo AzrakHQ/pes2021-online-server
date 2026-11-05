@@ -3,7 +3,6 @@
 !/.gitignore
 !/README.md
 !/LICENSE
-!/install.sh
 !/run.sh
 !/run.ps1
 !/docs/

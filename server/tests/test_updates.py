@@ -1,4 +1,4 @@
-"""The "newer version is out" check: only server/ and install.sh changes count."""
+"""The "newer version is out" check: only server/ changes count."""
 from pesserver import updates
 
 
@@ -9,7 +9,7 @@ def compare(files, status="ahead", ahead=1):
 
 def test_server_change_is_an_update():
     assert updates.parse_compare(compare(["server/pesserver/gate.py", "docs/index.html"])) == "2026-11-06 (abcdef1)"
-    assert updates.parse_compare(compare(["install.sh"])) == "2026-11-06 (abcdef1)"
+    assert updates.parse_compare(compare(["run.sh", "README.md"])) == ""     # launchers are fetched fresh anyway
 
 
 def test_docs_only_or_same_commit_is_not():

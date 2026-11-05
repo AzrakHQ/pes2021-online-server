@@ -255,7 +255,7 @@
       <label class="remember" id="remember-row"><input type="checkbox" id="remember"> <span>Keep me signed in on this device for 30 days</span></label>
       <button type="submit" class="primary" id="signin">Sign in</button>
     </form>
-    <p class="small muted" style="margin:14px 0 0" id="forgot">Forgot it? It's shown in the server's window on the server computer (always-on server: <code>sudo cat /var/lib/pes2021-server/banner.txt</code>).</p>
+    <p class="small muted" style="margin:14px 0 0" id="forgot">Forgot it? It's shown in the server's window on the server computer.</p>
   </div>
 </main>
 
@@ -271,7 +271,7 @@
 
   <div id="down" class="banner down" role="alert" hidden></div>
   <div id="update" class="banner remote" hidden></div>
-  <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours. <span id="remote-off">To turn it off, run this on the server: <span class="linkrow"><code>curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh</code><button type="button" class="small" data-copytext="curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh" data-copied="Command copied">Copy</button></span></span><span id="remote-public" hidden>It is on because this computer's own address is public, so it can't be switched off here; prefer Tailscale and sign in only from trusted networks.</span></details></div>
+  <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours. <span id="remote-off">To turn it off, start the server again without <code>ADMIN_REMOTE=1</code>.</span><span id="remote-public" hidden>It is on because this computer's own address is public, so it can't be switched off here; prefer Tailscale and sign in only from trusted networks.</span></details></div>
 
   <section class="card invite" aria-labelledby="inv-h">
     <div>
@@ -362,32 +362,24 @@ const store = {
   clear() { try { ["pes-admin", "pes-admin-token", "pes-admin-until"].forEach(k => { localStorage.removeItem(k); sessionStorage.removeItem(k); }); } catch (e) {} },
 };
 let token = store.get(), timer = null, gamesTimer = null, failures = 0, inflight = false, downSince = 0, lastOkAt = 0;
-let showAllResults = false, feedAll = false, last = null, lastGames = [], service = false, platform = "", dataDir = "";
+let showAllResults = false, feedAll = false, last = null, lastGames = [], platform = "", dataDir = "";
 let untilText = "";
 const meta = () => text("until", untilText ? ($("uptime").textContent ? " · signed in until " : "Signed in until ") + untilText : "");
 let compactState = null, backUntil = 0, gamesRetry = false;
 const I = {ok: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>',
   warn: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l6.5 11.5h-13zM8 6.5v3M8 11.8v.2"/></svg>',
   down: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg>'};
-const INSTALL = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh";
 const RUN_SH = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh";
 const RUN_PS = "irm https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.ps1 | iex";
 const runCmd = () => platform === "win32" ? RUN_PS : RUN_SH;     // how the program starts (and updates)
 const copyRow = (t, what) => `<div class="linkrow"><code>${esc(t)}</code><button type="button" class="small" data-copytext="${esc(t)}" data-copied="${what} copied">Copy</button></div>`;
 function cmdsHtml() {
-  return service
-    ? `<li>Always-on server. Show the admin address and password again: <code>sudo cat /var/lib/pes2021-server/banner.txt</code></li>
-        <li>Stop: <code>sudo systemctl stop pes2021-server</code> · Start: <code>sudo systemctl start pes2021-server</code></li>
-        <li id="install-cmd">The install command (run it again to update; players, results and friends' mod files keep working):${copyRow(INSTALL, "Install command")}</li>
-        <li>Detailed log: <code>/var/lib/pes2021-server/server.log</code></li>`
-    : `<li>The server runs in a window on the server computer: its address and password are shown there. Stop it with <b>Ctrl+C</b> or by closing the window.</li>
+  return `<li>The server runs in a window on the server computer: its address and password are shown there. Stop it with <b>Ctrl+C</b> or by closing the window.</li>
         <li id="install-cmd">Start it again, always with the newest version (players, results and friends' mod files keep working)${platform === "win32" ? ", in PowerShell" : ", in a terminal"}:${copyRow(runCmd(), "Start command")}</li>
-        ${dataDir ? `<li>Players, results and the detailed log (server.log) are in <code>${esc(dataDir)}</code></li>` : ""}
-        <li>Want it always on, starting by itself after a reboot? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-host">Use an always-on server</a>.</li>`;
+        ${dataDir ? `<li>Players, results and the detailed log (server.log) are in <code>${esc(dataDir)}</code></li>` : ""}`;
 }
 const isTs = a => /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(a || "") || String(a || "").toLowerCase().startsWith("fd7a:115c:a1e0:");
-const restartHint = () => service ? `restart it: <code>sudo systemctl restart pes2021-server</code>.`
-  : `start the server again (was its window closed?): <code>${esc(runCmd())}</code>.`;
+const restartHint = () => `start the server again (was its window closed?): <code>${esc(runCmd())}</code>.`;
 const nm = n => esc(n).replace(/(_|\.(?!\d))/g, "$1<wbr>");   // long handles break at _ and .
 const shown = {}, rowMsg = {}, dlHTML = document.getElementById("dl").innerHTML;
 
@@ -531,13 +523,12 @@ function render(d) {
   renderMsg(d.announce);
   text("uptime", (s && s.version ? "Version " + s.version + " · " : "") + "Running for " + dur(d.uptime)); meta();
   text("jp", s.main); $("jp").title = s.main; $("jp").classList.toggle("long", s.main.length > 40); $("jp").classList.remove("waiting"); $("copy").disabled = false;
-  service = !!s.service; platform = s.platform || ""; dataDir = s.data_dir || "";
-  const upd = $("update"), updKey = s.update ? s.update + (service ? "s" : "w") : "";
+  platform = s.platform || ""; dataDir = s.data_dir || "";
+  const upd = $("update"), updKey = s.update || "";
   if (upd.dataset.k !== updKey) {           // only redraw on change, so a Copy click isn't lost
     upd.dataset.k = updKey; upd.hidden = !s.update;
     if (s.update) upd.innerHTML = `<b>A newer server version is out</b> (${esc(s.update)}; this one is ${esc(s.version)}). ` +
-      (service ? "On the server, run the install command again:" + copyRow(INSTALL, "Install command")
-       : "Close the server's window, then start it again with:" + copyRow(runCmd(), "Start command")) +
+      "Close the server's window, then start it again with:" + copyRow(runCmd(), "Start command") +
       `<span class="small">Players, results and friends' mod files keep working.</span>`;
   }
   if (s.key) text("skey", "key " + s.key.replace(" ", ""));
@@ -663,10 +654,10 @@ function netHtml(s) {
   const out = [`<div>Home network address <b>${esc(s.lan)}</b></div>`];
   if (s.wan) out.push(`<div>${s.cgnat ? "Shared internet address (CGNAT)" : "Internet address"} <b>${esc(s.wan)}</b></div>`);
   if (s.cgnat && !(s.pinned && isTs(s.pinned))) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free) to fix it.</a></div>`);
-  else if (s.pinned) out.push(`<div>Friends' mod uses your ${isTs(s.pinned) ? "Tailscale" : "fixed"} address <b>${esc(s.pinned)}</b>.${isTs(s.pinned) ? " Friends must join your Tailscale network." : ""}${where(s.pinned) === "Internet" ? ` Make sure TCP 80, 443, 8080, 10000 and UDP 3478, 7600 reach this computer (forwarded by your router, or allowed in your cloud provider's firewall).` : ""}</div>`);
+  else if (s.pinned) out.push(`<div>Friends' mod uses your ${isTs(s.pinned) ? "Tailscale" : "fixed"} address <b>${esc(s.pinned)}</b>.${isTs(s.pinned) ? " Friends must join your Tailscale network." : ""}${where(s.pinned) === "Internet" ? ` Make sure ${esc(s.ports || "TCP 8080, 10000 + UDP 3478, 7600")} reach this computer (forwarded by your router).` : ""}</div>`);
   else if (s.ports_open.length) out.push(`<div class="ok">${I.ok} Router ports open (UPnP)</div><div class="small muted">While they're open, your server's address is public: anyone who has it can download the mod and join. Share it only with friends.</div><div class="small muted">Friends in your home: if the link doesn't open for them, use <code>${esc(s.lan_url || "http://" + s.lan)}</code>.</div>`);
-  else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't connect yet.</b> Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then ${service ? `run <a href="#install-cmd">the install command</a> again` : "start the server again"}. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.</div>
-    <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to ${esc(s.lan)}.</details>`);
+  else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't connect yet.</b> Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then <a href="#install-cmd">start the server again</a>. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.</div>
+    <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward ${esc(s.ports || "TCP 8080, 10000 + UDP 3478, 7600")} to ${esc(s.lan)}.</details>`);
   if (s.pinned && s.wan && !isTs(s.pinned) && /^[\d.]+$/.test(s.pinned) && s.pinned !== s.wan) out.push(`<div class="small muted">Your fixed address (${esc(s.pinned)}) is different from this network's internet address (${esc(s.wan)}). If friends can't connect, check PUBLIC_IP.</div>`);
   if (!s.wan && !s.pinned && !s.ports_open.length && !s.cgnat) out.push(`<div class="muted">Friends on your Wi-Fi can connect. Want friends elsewhere? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale</a>.</div>`);
   return out.join("");
@@ -853,9 +844,9 @@ async function gameAction(btn) {
     }
     const text = e.name === "TimeoutError" ? "The server didn't finish in time. Check that PES 2021 is closed, then try again."
       : e.message === "failed" ? "That didn't work. Close the game and try again." : e.message;
-    const needsInstall = /install command/.test(text);
+    const needsInstall = /Start the server again/.test(text);
     $("pc-live").textContent = text;
-    msg = {html: `<span class="err">${esc(text)}</span>${needsInstall ? ` <a href="#install-cmd">Show the install command</a>` : ""}`,
+    msg = {html: `<span class="err">${esc(text)}</span>${needsInstall ? ` <a href="#install-cmd">Show the start command</a>` : ""}`,
            state: g ? stateOf(g) : "", until: Date.now() + 120000, error: true, act};
   }
   rowMsg[id] = msg;
@@ -1009,14 +1000,13 @@ $("showpw").onclick = () => { const on = $("pw").type === "password"; $("pw").ty
   $("showpw").innerHTML = (on ? "Hide" : "Show") + '<span class="sr"> password</span>'; };
 $("pw").addEventListener("input", () => { $("pw").removeAttribute("aria-invalid"); $("pw").removeAttribute("aria-describedby"); if (!$("err").dataset.keep) $("err").textContent = ""; });
 fetch("/admin/api/info").then(r => r.json()).then(i => {
-  if (i.service) { service = true; $("forgot").innerHTML = "Forgot it? On the server run <code>sudo cat /var/lib/pes2021-server/banner.txt</code>."; }
   if (i.host_ok === false) {
     const where = i.admin_url && i.lan ? `<a href="${esc(i.admin_url)}">${esc(i.admin_url)}</a>` : "the server's address (for example http://192.168.x.x/admin)";
     $("err").innerHTML = `For safety, the admin page only opens by the server's address, not a web name. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
     $("lf").before($("err")); $("err").classList.add("blocked"); $("lf").hidden = true; $("forgot").hidden = true; $("lsub").hidden = true; ($("err").querySelector("a") || $("err")).focus();
     $("signin").disabled = true;
   }
-  if (i.password_replaced) $("forgot").innerHTML = "This server was started with the website's example password (or one under 10 characters), so it made its own. " + (i.service ? "See it on the server with <code>sudo cat /var/lib/pes2021-server/banner.txt</code>." : "It's shown in the server's window.");
+  if (i.password_replaced) $("forgot").innerHTML = "This server was started with the website's example password (or one under 10 characters), so it made its own. " + "It's shown in the server's window.";
   if (i.remote) { $("login-remote").hidden = false; $("remember-row").hidden = true; $("remember").checked = false; }
 }).catch(() => {});
 $("logout").onclick = async () => {

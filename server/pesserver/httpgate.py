@@ -219,7 +219,7 @@ ADMIN_BLOCKED = b"""<!doctype html><meta charset=utf-8><meta name=viewport conte
 <title>PES 2021 Admin</title><body style="font:16px/1.6 system-ui,sans-serif;max-width:560px;margin:60px auto;padding:0 16px">
 <h1>Admin page: home network only</h1><p>For safety, the admin page only opens from the server's own network
 (and Tailscale). Open it from a device on the same Wi-Fi as the server, using the address the server printed.</p>
-<p>Hosting on a cloud server? Run the install line with <code>ADMIN_REMOTE=1</code> before <code>sh</code>.</p></body>"""
+</body>"""
 
 
 def page_csp(html):
@@ -258,7 +258,6 @@ async def _admin(service, method, route, headers, body, peer=""):
         return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8"), "host_ok": bool(host_ok(headers)),
                                      "lan": (netsetup.STATE.get("lan") or "") if admin_allowed(peer) else "",
                                      "admin_url": netsetup.web_url(netsetup.STATE.get("lan") or "") + "/admin" if admin_allowed(peer) else "",
-                                     "service": os.environ.get("PES_SERVICE") == "1",
                                      "password_replaced": bool(netsetup.PASSWORD_IGNORED)}).encode(), "application/json"
     if route.startswith("/admin/api/") and not host_ok(headers):
         return "403 Forbidden", b'{"error":"open the admin page by its address"}', "application/json"
@@ -314,7 +313,7 @@ async def _admin(service, method, route, headers, body, peer=""):
         main = netsetup.web_url(addrs[-1] if reachable else addrs[0])   # a link that works for someone
         from . import VERSION, updates
         snap["server"] = {"main": main, "version": VERSION, "update": updates.STATE["latest"],
-                          "service": os.environ.get("PES_SERVICE") == "1", "platform": sys.platform,
+                          "platform": sys.platform, "ports": netsetup.port_list(),
                           "data_dir": getattr(service, "data_dir", ""), "lan_url": netsetup.web_url(st["lan"] or ""), "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
@@ -367,10 +366,10 @@ async def _admin(service, method, route, headers, body, peer=""):
             path = next((g["path"] for g in result if g["id"] == gid), "")
             events.feed(service, f"The mod was {verb} PES 2021 on the server computer ({copy_name(path)})", "info")
         except LookupError:
-            return "404 Not Found", b'{"error":"That game folder is gone. Run the install command again to look for PES 2021."}', "application/json"
+            return "404 Not Found", b'{"error":"That game folder is gone. Start the server again to look for PES 2021."}', "application/json"
         except PermissionError as e:
             msg = str(e) if "dinput8.dll" in str(e) and "Errno" not in str(e) else \
-                "The server isn't allowed to write to this folder. Run the install command again so it can fix the permissions."
+                "The server isn't allowed to write to this folder. Check that your user owns the game folder."
             return "409 Conflict", json.dumps({"error": msg}).encode(), "application/json"
         except OSError:
             log.exception("installing the mod")

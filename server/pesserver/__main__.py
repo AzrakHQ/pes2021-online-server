@@ -1,8 +1,7 @@
 """pesserver command line.
 
   pesserver host              the downloadable program (also what it does with no arguments): runs in this
-                              window, data in the user's folder, finds PES 2021 on this computer. install.sh runs
-                              the same as an always-on systemd service.
+                              window, data in the user's folder, finds PES 2021 on this computer
   pesserver serve ...         development (tools/pes.py restart)
   pesserver adduser NAME PW   add an account by hand
 """
@@ -52,8 +51,7 @@ async def run(a):
         if a.cmd != "host":
             raise
         sys.exit(f"\n   The server can't start: port {a.gate_port} or {a.http_port} is already in use.\n"
-                 "   Is another PES 2021 server running on this computer? Close its window, or stop the\n"
-                 "   always-on one with: sudo systemctl stop pes2021-server\n")
+                 "   Is another PES 2021 server running on this computer? Close its window first.\n")
     if not tls:
         netsetup.skip_port(443)
     if tls and a.https_port:        # 443: players set up with the /join line, and mods from before 2026-11
@@ -65,8 +63,7 @@ async def run(a):
             log.info("https tcp/%d", a.https_port)
         else:
             netsetup.skip_port(a.https_port)
-            netsetup.NOTES.append("Port 443 is not available, so only players with the mod can join (the join line needs it)."
-                                  + (" Run the server with sudo to allow it." if sys.platform.startswith("linux") else ""))
+            netsetup.NOTES.append("Port 443 is not available, so only players with the mod can join (the old join line needs it).")
     if a.join_port and a.join_port != a.http_port:      # short URLs for players: http://server/join
         s = await _optional("join page", a.join_port, httpgate.serve(svc, a.host, a.join_port))
         if s:
@@ -85,19 +82,9 @@ async def run(a):
     from . import identity
     identity.init(data_dir)
     logging.info("server identity %s", identity.public_hex())
-    # read by install.sh to show the always-on service's address and password (local only)
-    banner_file = os.path.join(data_dir, "banner.txt") if a.cmd == "host" else None
-    if banner_file and os.path.exists(banner_file):
-        os.unlink(banner_file)                        # a stale copy must never be shown
-
     def show_banner():
-        if not netsetup.STATE["ready"]:
-            return
-        print(netsetup.banner(svc.admin_password, color=sys.stdout.isatty()), flush=True)
-        if banner_file:
-            with open(banner_file, "w", encoding="utf-8") as f:
-                f.write(netsetup.banner(svc.admin_password, color=False))
-            os.chmod(banner_file, 0o600)
+        if netsetup.STATE["ready"]:
+            print(netsetup.banner(svc.admin_password, color=sys.stdout.isatty()), flush=True)
 
     if a.auto_net:
         await asyncio.to_thread(netsetup.setup, use_upnp=os.environ.get("UPNP", "1") != "0")
@@ -108,8 +95,7 @@ async def run(a):
     identity.start_publisher()
     from . import events, updates
     updates.start(lambda v: events.feed(svc, f"A newer server version is out ({v}): "
-                                             + ("run the install command again to update" if os.environ.get("PES_SERVICE") == "1"
-                                                else "close this window and start the server again to update"), "warn"))
+                                             "close this window and start the server again to update", "warn"))
     if os.environ.get("PES_CONSOLE") == "1":
         print("   Keep this window open while you play. Press Ctrl+C to stop the server.\n", flush=True)
     stop = asyncio.Event()
@@ -137,7 +123,7 @@ async def run(a):
 
 
 def _host_setup(a):
-    """The downloadable program (and the always-on service): settings for this computer."""
+    """The downloadable program: settings for this computer."""
     os.makedirs(a.data, exist_ok=True)
     a.db = os.path.join(a.data, "pesserver.db")
     a.host, a.codec, a.no_register, a.stun_host = "0.0.0.0", "ncl", False, None

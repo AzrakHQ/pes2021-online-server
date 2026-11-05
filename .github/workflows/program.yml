@@ -1,5 +1,5 @@
 # Tests the server, builds it as one program for Linux, Windows and macOS and publishes it as the
-# repository's latest release, which run.sh / run.ps1 / install.sh download:
+# repository's latest release, which run.sh / run.ps1 download:
 #   https://github.com/<owner>/pes2021-private-server/releases/latest/download/pes2021-server-<platform>
 name: program
 on:

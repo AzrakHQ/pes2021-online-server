@@ -305,7 +305,7 @@ def admin_password(data_dir):
 
 
 def banner(password=None, color=True):
-    """The startup screen (the server's window, or journalctl for the always-on service)."""
+    """The startup screen, shown in the server's window."""
     c = (lambda code, t: f"\033[{code}m{t}\033[0m") if color else (lambda code, t: t)
     B, D, G, C, Y = (lambda t: c("1", t)), (lambda t: c("2", t)), (lambda t: c("1;32", t)), \
                     (lambda t: c("1;36", t)), (lambda t: c("1;33", t))
@@ -332,10 +332,9 @@ def banner(password=None, color=True):
         out.append(Y("   !  New server certificate: players set up with the old join line run it once more (mod users: nothing to do)."))
     if STATE["cgnat"]:
         out.append(Y("   !  Your internet provider shares one public IP (CGNAT): friends outside your house\n"
-                     "      can't connect. Use Tailscale (see the README) or a cloud server."))
+                     "      can't connect. Use Tailscale (see the README)."))
     elif wan and not STATE["mapped"] and not pinned:
         out.append(Y("   !  Router ports are closed") + D(f" ({STATE['upnp_error'] or 'UPnP off'}).\n"
-                 f"      At home: enable UPnP on your router, or forward {port_list()} to {lan}.\n"
-                 "      On a cloud server this is normal: open those ports in the provider's firewall instead."))
+                 f"      Enable UPnP on your router, or forward {port_list()} to {lan}."))
     out += [line, ""]
     return "\n".join(out)

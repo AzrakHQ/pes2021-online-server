@@ -43,7 +43,7 @@
   <!-- the one command -->
   <rect x="72" y="222" width="560" height="46" rx="10" fill="#03150f" fill-opacity="0.75" stroke="#3ccf8e" stroke-opacity="0.45"/>
   <text x="92" y="252" class="mono" font-size="18" fill="#3ccf8e">$</text>
-  <text x="114" y="252" class="mono" font-size="18" fill="#e8f6ef">curl -fsSL …/install.sh | sh</text>
+  <text x="114" y="252" class="mono" font-size="18" fill="#e8f6ef">curl -fsSL …/run.sh | sh</text>
   <text x="440" y="251" class="sans" font-size="16" fill="#8fe3bd">← the host, once</text>
 
   <!-- links -->
@@ -98,7 +98,7 @@
       <rect y="48" width="70" height="18" rx="5" fill="#ffffff"/><circle cx="58" cy="57" r="4" fill="#3ccf8e"/>
     </g>
     <text x="150" y="122" class="sans" font-size="24" font-weight="800" fill="#ffffff" text-anchor="middle">Your server</text>
-    <text x="150" y="148" class="sans" font-size="15" fill="#cfe9dc" text-anchor="middle">Linux PC or cloud server · one command</text>
+    <text x="150" y="148" class="sans" font-size="15" fill="#cfe9dc" text-anchor="middle">Windows, Linux or Steam Deck · one line</text>
     <text x="150" y="176" class="sans" font-size="15" fill="#8fe3bd" text-anchor="middle">admin page · results · league table</text>
   </g>
 </svg>
