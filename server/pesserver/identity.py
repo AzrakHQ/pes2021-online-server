@@ -61,10 +61,13 @@ def note(url, addrs, t=None):
                                                          "".join(a + "\n" for a in addrs)))
 
 
-def hello(nonce):
+def hello(nonce, version=1):
+    """Proof that this address is this server. Version 2 (asked for with v=2) also tells the mod that
+    this server reads the player-id line at the start of each gate connection (gate.py); older mods
+    ask for nothing and get version 1, which they check byte for byte."""
     if not re.fullmatch(r"[0-9a-fA-F]{8,64}", nonce or ""):
         raise ValueError("bad nonce")
-    return _signed("PES2021ONLINE-HELLO 1\n%s\n%s\n" % (public_hex(), nonce.lower()))
+    return _signed("PES2021ONLINE-HELLO %d\n%s\n%s\n" % (2 if version >= 2 else 1, public_hex(), nonce.lower()))
 
 
 def current_note():

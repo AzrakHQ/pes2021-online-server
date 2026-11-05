@@ -18,6 +18,12 @@
  *   - The game's network test fetches a page over HTTPS from ntl*.service.konami.net; for those four
  *     names only, the mod tells WinHTTP to accept the server's own certificate.
  *   - Holding Shift while the game starts opens a small box to switch to another server by address.
+ *   - Player id: copies of the game that don't really run through Steam all report the same Steam id,
+ *     so the server can't tell their players apart by it. The mod names its install instead: a random
+ *     secret kept in pes2021-online.ini, mixed with this PC's Windows machine id (so a game folder
+ *     copied to another PC is a new player). It sends the hash as one line, "PESID1 <32 hex>\n", at
+ *     the start of each connection to the game server's port 10000, and only to servers whose
+ *     /mod/hello answer says they read it (version 2).
  * The game's own files and code are not modified. dinput8 itself is forwarded to the system DLL.
  *
  * MIT license (this file). MinHook (BSD 2-clause) hooks; Monocypher (CC0/BSD 2-clause) checks signatures.
@@ -38,9 +44,10 @@
 #include <wchar.h>
 #include <wctype.h>
 #include "minhook/include/MinHook.h"
+#include "monocypher/monocypher.h"
 #include "monocypher/monocypher-ed25519.h"
 
-#define MOD_VERSION "0.2.0"
+#define MOD_VERSION "0.3.0"
 
 /* Reserved settings area: the server overwrites everything after the 32-byte marker with
  * "key=...\nname=...\nurl=...\naddrs=a,b\nbook=...\n" (see server/pesserver/identity.py pack_mod). */
@@ -61,6 +68,7 @@ typedef struct {
     char addrs[MAXADDR][64];      /* game addresses, best first */
     int naddrs;
     char book[512];               /* address book base URL */
+    int hello_v;                  /* the server's /mod/hello version: 2 = reads the player-id line */
 } server_t;
 
 static server_t g_srv;
@@ -73,6 +81,8 @@ static HANDLE g_ready;            /* set when the first background lookup has fi
 static DWORD g_last_try;
 static CRITICAL_SECTION g_lock;
 static FILE *g_log;
+static volatile LONG g_id_on;     /* the server in use reads the player-id line */
+static char g_id_line[48];        /* "PESID1 <32 hex>\n" ("" = no id) */
 
 /* ------------------------------------------------------------------------------------------ log */
 static void logf_(const char *fmt, ...)
@@ -232,6 +242,53 @@ static void load_settings(void)
     snprintf(g_cache, sizeof g_cache, "cache-%.16s", g_srv.keyhex);
 }
 
+/* ---------------------------------------------------------------------------------- player id */
+/* id = BLAKE2b-128("PES2021ONLINE-ID 1\n" secret "\n" machine id "\n"). The secret is random and kept in
+ * the ini, so the id survives moving the folder; the machine id makes a folder copied to another PC (ini
+ * included) a different player. If the ini can't be written, the folder path stands in for the secret. */
+static void machine_id(char *out, DWORD cap)
+{
+    wchar_t w[128]; DWORD sz = sizeof w; HKEY k;
+    out[0] = 0;
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Cryptography", 0, KEY_READ | KEY_WOW64_64KEY, &k))
+        return;
+    if (!RegQueryValueExW(k, L"MachineGuid", NULL, NULL, (BYTE *)w, &sz) && sz >= sizeof(wchar_t)) {
+        w[sz / sizeof(wchar_t) < 128 ? sz / sizeof(wchar_t) : 127] = 0;
+        WideCharToMultiByte(CP_UTF8, 0, w, -1, out, (int)cap, NULL, NULL);
+    }
+    RegCloseKey(k);
+}
+
+static void make_player_id(void)
+{
+    char secret[MAX_PATH * 3] = "", back[80] = "", mid[128], msg[MAX_PATH * 3 + 200];
+    const char *from = "saved";
+    ini_get("player", "secret", secret, 80);
+    if (strlen(secret) != 64) {
+        unsigned char r[32];
+        secret[0] = 0;
+        if (BCryptGenRandom(NULL, r, sizeof r, BCRYPT_USE_SYSTEM_PREFERRED_RNG) == 0) {
+            for (int i = 0; i < 32; i++) sprintf(secret + 2 * i, "%02x", r[i]);
+            ini_set("player", "secret", secret);
+            ini_get("player", "secret", back, sizeof back);
+            from = "new";
+        }
+        if (!secret[0] || strcmp(back, secret)) {  /* not saved: this folder's path is stable instead */
+            WideCharToMultiByte(CP_UTF8, 0, g_ini, -1, secret, sizeof secret, NULL, NULL);
+            from = "folder";
+        }
+    }
+    machine_id(mid, sizeof mid);
+    snprintf(msg, sizeof msg, "PES2021ONLINE-ID 1\n%s\n%s\n", secret, mid);
+    unsigned char h[16];
+    crypto_blake2b(h, sizeof h, (const uint8_t *)msg, strlen(msg));
+    crypto_wipe(msg, sizeof msg); crypto_wipe(secret, sizeof secret);
+    strcpy(g_id_line, "PESID1 ");
+    for (int i = 0; i < 16; i++) sprintf(g_id_line + 7 + 2 * i, "%02x", h[i]);
+    strcat(g_id_line, "\n");
+    logf_("player id %.8s... (%s secret%s)", g_id_line + 7, from, mid[0] ? "" : ", no machine id");
+}
+
 /* --------------------------------------------------------------------------------------- HTTP */
 static BOOL http_get(const char *url8, char *out, DWORD cap, DWORD timeout_ms)
 {
@@ -297,12 +354,13 @@ static BOOL hello(const char *ip, server_t *s)
     unsigned char rnd[16]; char nonce[33], url[160], body[1024];
     if (BCryptGenRandom(NULL, rnd, sizeof rnd, BCRYPT_USE_SYSTEM_PREFERRED_RNG) != 0) return FALSE;
     for (int i = 0; i < 16; i++) sprintf(nonce + 2 * i, "%02x", rnd[i]);
-    snprintf(url, sizeof url, "http://%s:8080/mod/hello?n=%s", ip, nonce);
+    snprintf(url, sizeof url, "http://%s:8080/mod/hello?n=%s&v=2", ip, nonce);
     if (!http_get(url, body, sizeof body, 2500)) return FALSE;
     char *nl = strchr(body, '\n');
     if (!nl) return FALSE;
     char claimed[65] = "";
-    if (sscanf(nl + 1, "PES2021ONLINE-HELLO 1\n%64[0-9a-f]\n", claimed) != 1) return FALSE;
+    int v = 0;                                /* older servers ignore v=2 and answer version 1 */
+    if (sscanf(nl + 1, "PES2021ONLINE-HELLO %d\n%64[0-9a-f]\n", &v, claimed) != 2 || (v != 1 && v != 2)) return FALSE;
     server_t learned; memset(&learned, 0, sizeof learned);
     if (!s->keyhex[0]) {                      /* first contact with a typed address: trust on first use */
         if (!parse_key(claimed, &learned)) return FALSE;
@@ -310,9 +368,10 @@ static BOOL hello(const char *ip, server_t *s)
     const unsigned char *key = s->keyhex[0] ? s->key : learned.key;
     char *b = signed_body(body, key);
     char expect[200];
-    snprintf(expect, sizeof expect, "PES2021ONLINE-HELLO 1\n%s\n%s\n", s->keyhex[0] ? s->keyhex : claimed, nonce);
+    snprintf(expect, sizeof expect, "PES2021ONLINE-HELLO %d\n%s\n%s\n", v, s->keyhex[0] ? s->keyhex : claimed, nonce);
     if (!b || strcmp(b, expect)) { logf_("address %s is not this server (bad proof)", ip); return FALSE; }
     if (!s->keyhex[0]) { memcpy(s->key, learned.key, 32); strcpy(s->keyhex, claimed); }
+    s->hello_v = v;
     return TRUE;
 }
 
@@ -339,7 +398,8 @@ static BOOL try_addr(const char *ip)
     if (!ip[0] || !hello(ip, &g_srv)) return FALSE;
     snprintf(g_ip, sizeof g_ip, "%s", ip);
     ini_set(g_cache, "last_ip", ip);
-    logf_("server \"%s\" is at %s (verified)", g_srv.name, ip);
+    InterlockedExchange(&g_id_on, g_srv.hello_v >= 2 && g_id_line[0]);
+    logf_("server \"%s\" is at %s (verified%s)", g_srv.name, ip, g_id_on ? ", sends player id" : ", older server: no player id");
     return TRUE;
 }
 
@@ -465,6 +525,7 @@ static void dlg_try(void)
             ini_set(g_cache, "last_ip", g_ip);
             ini_set("server", "key", g_srv.keyhex);
             ini_set("server", "url", base);
+            InterlockedExchange(&g_id_on, g_srv.hello_v >= 2 && g_id_line[0]);
             ok = TRUE;
         }
     }
@@ -603,6 +664,13 @@ static WinHttpCloseHandle_t o_WinHttpCloseHandle;
 static CreateWindowExW_t o_CreateWindowExW;
 static CreateWindowExA_t o_CreateWindowExA;
 
+typedef int (WSAAPI *send_t)(SOCKET, const char *, int, int);
+typedef int (WSAAPI *WSASend_t)(SOCKET, LPWSABUF, DWORD, LPDWORD, DWORD, LPWSAOVERLAPPED, LPWSAOVERLAPPED_COMPLETION_ROUTINE);
+typedef int (WSAAPI *closesocket_t)(SOCKET);
+static send_t o_send;
+static WSASend_t o_WSASend;
+static closesocket_t o_closesocket;
+
 static INT WSAAPI hk_getaddrinfo(PCSTR node, PCSTR svc, const ADDRINFOA *hints, PADDRINFOA *res)
 {
     const char *ip;
@@ -683,6 +751,71 @@ static BOOL WINAPI hk_WinHttpCloseHandle(HINTERNET h)
     return o_WinHttpCloseHandle(h);
 }
 
+/* Player id line: before the first bytes the game sends on a TCP connection to port 10000 (the game
+ * server), send g_id_line once. Sockets already handled are remembered until closesocket. */
+#define GATE_PORT 10000
+#define MAXS 64
+static SOCKET g_sent[MAXS];
+static int g_nsent;
+static CRITICAL_SECTION g_slock;      /* own lock: g_lock can be held for seconds during a lookup */
+
+static int sent_find(SOCKET s) { for (int i = 0; i < g_nsent; i++) if (g_sent[i] == s) return i; return -1; }
+static void sent_drop(int i) { g_sent[i] = g_sent[--g_nsent]; }
+
+static int is_gate_socket(SOCKET s)
+{
+    struct sockaddr_storage a; int al = sizeof a, type = 0, tl = sizeof type;
+    if (getpeername(s, (struct sockaddr *)&a, &al)) return 0;
+    if (a.ss_family == AF_INET) { if (ntohs(((struct sockaddr_in *)&a)->sin_port) != GATE_PORT) return 0; }
+    else if (a.ss_family == AF_INET6) { if (ntohs(((struct sockaddr_in6 *)&a)->sin6_port) != GATE_PORT) return 0; }
+    else return 0;
+    return !getsockopt(s, SOL_SOCKET, SO_TYPE, (char *)&type, &tl) && type == SOCK_STREAM;
+}
+
+static void before_send(SOCKET s)
+{
+    if (!g_id_on) return;
+    EnterCriticalSection(&g_slock);
+    if (sent_find(s) < 0 && is_gate_socket(s)) {
+        /* Remember the socket first: Wine's send() calls WSASend() (or the other way round), and the
+           hook on that one must not send the line a second time. */
+        if (g_nsent == MAXS) sent_drop(0);          /* table full: forget the oldest */
+        g_sent[g_nsent++] = s;
+        int n = (int)strlen(g_id_line), off = 0, tries = 0;
+        while (off < n && tries++ < 200) {          /* a fresh socket takes 40 bytes at once */
+            int k = o_send(s, g_id_line + off, n - off, 0);
+            if (k > 0) { off += k; continue; }
+            if (WSAGetLastError() != WSAEWOULDBLOCK) break;
+            Sleep(5);
+        }
+        if (off == n) logf_("player id sent on a new game-server connection");
+        else if (off) logf_("ERROR: player id only partly sent (%d of %d bytes)", off, n);  /* the server drops it */
+        else { int i = sent_find(s); if (i >= 0) sent_drop(i); }
+        /* off == 0: not connected yet; the game's own send fails the same way and we try again next time */
+    }
+    LeaveCriticalSection(&g_slock);
+}
+
+static int WSAAPI hk_send(SOCKET s, const char *buf, int len, int flags)
+{
+    before_send(s);
+    return o_send(s, buf, len, flags);
+}
+static int WSAAPI hk_WSASend(SOCKET s, LPWSABUF b, DWORD n, LPDWORD sent, DWORD flags, LPWSAOVERLAPPED ov,
+                             LPWSAOVERLAPPED_COMPLETION_ROUTINE cr)
+{
+    before_send(s);
+    return o_WSASend(s, b, n, sent, flags, ov, cr);
+}
+static int WSAAPI hk_closesocket(SOCKET s)
+{
+    EnterCriticalSection(&g_slock);
+    int i = sent_find(s);
+    if (i >= 0) sent_drop(i);
+    LeaveCriticalSection(&g_slock);
+    return o_closesocket(s);
+}
+
 static void maybe_start(HWND parent, DWORD style)
 {
     if (!parent && !(style & WS_CHILD) && !InterlockedCompareExchange(&g_started, 1, 0)) startup();
@@ -715,6 +848,11 @@ static void install_hooks(void)
     hook(L"ws2_32.dll", "GetAddrInfoW", hk_GetAddrInfoW, (void **)&o_GetAddrInfoW);
     hook(L"ws2_32.dll", "GetAddrInfoExW", hk_GetAddrInfoExW, (void **)&o_GetAddrInfoExW);
     hook(L"ws2_32.dll", "gethostbyname", hk_gethostbyname, (void **)&o_gethostbyname);
+    if (g_id_line[0]) {
+        hook(L"ws2_32.dll", "send", hk_send, (void **)&o_send);
+        hook(L"ws2_32.dll", "WSASend", hk_WSASend, (void **)&o_WSASend);
+        hook(L"ws2_32.dll", "closesocket", hk_closesocket, (void **)&o_closesocket);
+    }
     hook(L"winhttp.dll", "WinHttpConnect", hk_WinHttpConnect, (void **)&o_WinHttpConnect);
     hook(L"winhttp.dll", "WinHttpOpenRequest", hk_WinHttpOpenRequest, (void **)&o_WinHttpOpenRequest);
     hook(L"winhttp.dll", "WinHttpSendRequest", hk_WinHttpSendRequest, (void **)&o_WinHttpSendRequest);
@@ -732,6 +870,7 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved)
     if (reason != DLL_PROCESS_ATTACH) return TRUE;
     DisableThreadLibraryCalls(h);
     InitializeCriticalSection(&g_lock);
+    InitializeCriticalSection(&g_slock);
     g_ready = CreateEventW(NULL, TRUE, FALSE, NULL);
     wchar_t dir[MAX_PATH], logp[MAX_PATH];
     GetModuleFileNameW(h, dir, MAX_PATH);
@@ -745,6 +884,7 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved)
         g_log = _wfopen(logp, L"w");
     }
     load_settings();
+    make_player_id();
     g_force_prompt = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
     logf_("PES 2021 Online mod " MOD_VERSION "; server \"%s\" key %.16s...%s", g_srv.name,
           g_srv.keyhex[0] ? g_srv.keyhex : "(none)", g_force_prompt ? " (Shift held)" : "");

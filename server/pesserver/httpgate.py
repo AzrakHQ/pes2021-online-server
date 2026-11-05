@@ -530,9 +530,10 @@ def _mod(service, route, headers, writer, path=""):
     if route == "/mod/note":
         return "200 OK", identity.current_note().encode(), "text/plain; charset=utf-8", b""
     if route == "/mod/hello":
-        nonce = parse_qs(urlsplit(path).query).get("n", [""])[0]
+        q = parse_qs(urlsplit(path).query)
+        nonce, v = q.get("n", [""])[0], q.get("v", ["1"])[0]
         try:
-            return "200 OK", identity.hello(nonce).encode(), "text/plain; charset=utf-8", b""
+            return "200 OK", identity.hello(nonce, 2 if v == "2" else 1).encode(), "text/plain; charset=utf-8", b""
         except ValueError:
             return "400 Bad Request", b"bad nonce", "text/plain", b""
     if not os.path.isfile(MOD_DLL):

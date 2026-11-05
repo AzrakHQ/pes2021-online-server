@@ -63,7 +63,8 @@ delete the file.
 
 **New players** need nothing from you: the first time someone with your mod goes online (eFootball →
 Quick Match), the game asks for a region and a player name, and your server saves that player, tied to
-their Steam account. They appear on the admin page.
+their copy of the mod (each game folder gets its own player, also when the game reports the same Steam ID).
+They appear on the admin page, where you can also delete a player.
 
 Updating: paste your start line again (the admin page also tells you when a newer version is out).
 

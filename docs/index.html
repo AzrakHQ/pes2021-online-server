@@ -623,7 +623,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
         <li><b>The key in your log</b> (the first 16 characters after <code>key</code> in the first line of <code>pes2021-online.log</code>; the friends' page shows them split by a space, the admin page as one block) only tells you which server the file connects to.</li>
         <li><b>What's inside:</b> the official build with their server's details written into a fixed 2 KB settings area: its key, name, addresses, its web address if it has one, and an address-book field that's empty for now. The rest is the official build of the public source in <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">server/mod</a>, compiled by GitHub from that public source. It can only make your game talk to their server and can't be redirected elsewhere (unless you switch servers yourself with Shift, see below): a server that doesn't hold their secret key is refused.</li>
       </ul>
-      <p>The server stores your player name, Steam ID and match results, sees your IP address, and keeps a log of the game's messages on the host's disk. Like any peer-to-peer game, your opponent's PC connects straight to yours during a match, so it sees your IP address too.</p>
+      <p>The server stores your player name, Steam ID, a random ID the mod makes for your game folder, and match results, sees your IP address, and keeps a log of the game's messages on the host's disk. Like any peer-to-peer game, your opponent's PC connects straight to yours during a match, so it sees your IP address too.</p>
     </details>
     <details class="q" id="faq-build">
       <summary>Can I check the mod is really built from the public code?</summary>
@@ -705,7 +705,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
         <p>When you start the game, it connects to a server address it remembers from Konami and checks in at three "desks" in turn, like at an airport:</p>
         <ol class="desks">
           <li><b>1 · Gate</b><span>"Here are our servers, 53 web addresses you'll need, and today's date."</span></li>
-          <li><b>2 · Account</b><span>"Who are you?" Reads your Steam ID and creates your player the first time.</span></li>
+          <li><b>2 · Account</b><span>"Who are you?" Recognizes your game folder (by the mod's own ID) and creates your player the first time.</span></li>
           <li><b>3 · Menu</b><span>The online lobby, on a fresh connection. Your game says "still here" every 30 seconds.</span></li>
         </ol>
         <p>Konami's servers no longer answer, so the game can't get past the first desk. Our server just has to be a convincing desk clerk. The game finds it by asking for Konami's server <b>by name</b>, and the mod answers that question before anyone else does:</p>

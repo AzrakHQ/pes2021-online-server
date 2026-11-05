@@ -185,17 +185,30 @@ def get_challengecode(svc, sess, req):
     return {"result": NOERR, "challenge_code": code}
 
 
+def account_key(sess, username):
+    """Which account a login belongs to. With the mod's install id (gate.py) it is that id: copies of
+    the game that don't really run through Steam all send the same Steam id (CPY.ini), so the game's
+    username can't tell players apart. Without it (older mods, join-line players): the game's username."""
+    mod_id = getattr(sess, "mod_id", None)
+    return "m:" + mod_id if mod_id else username
+
+
 @cmd("CMD_LOGIN")
 def login(svc, sess, req):
-    username = str(req.get("username", ""))
-    if not username:
+    game_user = str(req.get("username", ""))
+    if not game_user:
         return {"result": "ERR_LOGIN_FAILED"}
+    username = account_key(sess, game_user)
     p = _ensure_account(svc, username)
+    if username != game_user:                           # keep the game's own id for reference
+        with svc.accounts.lock, svc.accounts.db as db:
+            db.execute("UPDATE pes_players SET steamid=? WHERE username=?", (game_user, username))
     if sess is not None:
         sess.pes_username = username
         sess.pes_pid = p["pid"]
         svc.online[p["pid"]] = sess
-    log.info("LOGIN username=%s pid=%s platform=%s sku=%s", username, p["pid"], req.get("platform"), req.get("sku"))
+    log.info("LOGIN username=%s%s pid=%s platform=%s sku=%s", game_user,
+             f" install={username[2:10]}…" if username != game_user else "", p["pid"], req.get("platform"), req.get("sku"))
     return {"result": NOERR}
 
 
