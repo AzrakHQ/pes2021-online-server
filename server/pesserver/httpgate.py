@@ -360,14 +360,23 @@ async def _admin(service, method, route, headers, body, peer=""):
         return "200 OK", json.dumps(result).encode(), "application/json"
     if route == "/admin/api/kick" and method == "POST":
         try:
-            pid = int(json.loads(body or b"{}").get("pid"))
-        except (ValueError, TypeError):
+            req = json.loads(body or b"{}")
+            pid = int(req.get("pid"))
+        except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"pid"}', "application/json"
+        result = str(req.get("result") or "")
+        if result and not __import__("re").fullmatch(r"ERR_[A-Z_]{2,40}", result):
+            return "400 Bad Request", b'{"error":"result"}', "application/json"
         sess = service.online.get(pid)
         if sess is None or not hasattr(sess, "close"):
             return "404 Not Found", b'{"error":"not online"}', "application/json"
         events.feed(service, f"{events.name_of(service, pid)} was kicked by the admin", "warn")
-        sess.close()
+        if result:
+            # the game shows this code on its next request (heartbeats come about every 17 s)
+            sess.kick_result = result
+            asyncio.get_running_loop().call_later(25, sess.close)
+        else:
+            sess.close()
         return "200 OK", b'{"ok":true}', "application/json"
     return "404 Not Found", b'{"error":"unknown"}', "application/json"
 
