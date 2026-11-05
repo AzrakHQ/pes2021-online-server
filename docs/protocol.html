@@ -3,28 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PES 2021 Network Map</title>
+<title>PES 2021 Online: technical write-up</title>
+<script>try { var t = localStorage.getItem("pes-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230c4a37'/%3E%3Cpolygon points='16,9 22.7,13.9 20.1,21.8 11.9,21.8 9.3,13.9' fill='%23fff'/%3E%3C/svg%3E">
 <style>
 :root{
-  --bg:#f7f6f2; --panel:#ffffff; --ink:#1d1f23; --muted:#5c6370; --line:#d9d6cc;
-  --accent:#1f6feb; --ok:#1a7f37; --static:#6f42c1; --inf:#9a6700; --unk:#cf222e;
-  --code:#f0eee8; --soft:#eef3fb; --warnbg:#fff8e6;
+  --bg:#f6f8f7; --panel:#ffffff; --ink:#10201a; --muted:#4a5c54; --line:#d8e2dd;
+  --accent:#08734a; --ok:#1a7f37; --static:#6f42c1; --inf:#8f5a00; --unk:#cf222e;
+  --code:#eef3f0; --soft:#e3f4ec; --warnbg:#fff8e6;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#121417; --panel:#1a1d21; --ink:#e6e6e3; --muted:#9aa3ad; --line:#2e333a;
-    --accent:#58a6ff; --ok:#3fb950; --static:#a371f7; --inf:#d29922; --unk:#f85149;
-    --code:#22262b; --soft:#1c2533; --warnbg:#2a2414;
+  --bg:#0b110e; --panel:#121a16; --ink:#e8efeb; --muted:#a9b8b0; --line:#26332d;
+  --accent:#3ccf8e; --ok:#3fb950; --static:#b392f0; --inf:#e3b341; --unk:#ff7b72;
+  --code:#1a231e; --soft:#13281f; --warnbg:#201d10;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#121417; --panel:#1a1d21; --ink:#e6e6e3; --muted:#9aa3ad; --line:#2e333a;
-  --accent:#58a6ff; --ok:#3fb950; --static:#a371f7; --inf:#d29922; --unk:#f85149;
-  --code:#22262b; --soft:#1c2533; --warnbg:#2a2414;
+  --bg:#0b110e; --panel:#121a16; --ink:#e8efeb; --muted:#a9b8b0; --line:#26332d;
+  --accent:#3ccf8e; --ok:#3fb950; --static:#b392f0; --inf:#e3b341; --unk:#ff7b72;
+  --code:#1a231e; --soft:#13281f; --warnbg:#201d10;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent);text-underline-offset:3px}
+:focus-visible{outline:3px solid #3ccf8e;outline-offset:2px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.panel{overflow-x:auto} .panel svg{min-width:620px}
+.site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.site .in{max-width:1080px;margin:0 auto;padding:0 16px;height:60px;display:flex;align-items:center;gap:16px}
+.site .logo{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--ink);text-decoration:none;white-space:nowrap}
+.site .logo svg{width:28px;height:28px;flex:none;min-width:0}
+.site ul{display:flex;gap:16px;list-style:none;margin:0 0 0 auto;padding:0}
+.site ul a{color:var(--muted);text-decoration:none;font-weight:600;font-size:15px}
+.site ul a:hover{color:var(--ink)}
+.site .theme{float:none;width:36px;height:36px;border-radius:99px;display:grid;place-items:center;padding:0}
+.site .theme svg{width:18px;height:18px;min-width:0}
+@media (max-width:640px){.site .logo span{display:none}.site ul{gap:12px}.site ul a{font-size:14px}}
+.plain{background:var(--soft);border-radius:10px;padding:14px 16px;margin:14px 0 6px}
 main{max-width:1080px;margin:0 auto;padding:28px 16px 80px}
 h1{font-size:28px;margin:0 0 4px}
 h2{font-size:20px;margin:40px 0 10px;padding-top:8px;border-top:1px solid var(--line)}
@@ -41,7 +58,7 @@ pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow-x:auto;f
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
 th{color:var(--muted);font-weight:600;font-size:13px}
-.tw{overflow-x:auto}
+.tw{overflow-x:auto;position:relative}
 .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.02em;padding:1px 7px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
 .t-ok{color:var(--ok)} .t-static{color:var(--static)} .t-inf{color:var(--inf)} .t-unk{color:var(--unk)}
 .legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0 0}
@@ -55,19 +72,23 @@ svg .ar{stroke:var(--accent);stroke-width:1.8;fill:none}
 .bytes{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
 .bytes div{border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--panel);font-size:12px;text-align:center;min-width:64px}
 .bytes div small{display:block;color:var(--muted)}
-nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin:14px 0 0}
-nav a{color:var(--accent);text-decoration:none}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;margin:14px 0 0}
+nav.toc a{color:var(--accent);text-decoration:none}
 .log li{margin:4px 0}
 .theme{float:right;font-size:12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer}
 code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </style>
 </head>
 <body>
-<div style="max-width:980px;margin:0 auto;padding:14px 20px 0;font:15px system-ui,sans-serif"><a href="./" style="text-decoration:none">← PES 2021 Online: back to the main page</a></div>
+<header class="site"><div class="in">
+  <a class="logo" href="./" aria-label="PES 2021 Online, main page"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0c4a37"/><polygon points="16,9 22.7,13.9 20.1,21.8 11.9,21.8 9.3,13.9" fill="#fff"/></svg><span>PES 2021 Online</span></a>
+  <ul><li><a href="./#play">Play</a></li><li><a href="./#inside">How it works</a></li><li><a href="./#help">Help</a></li><li><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a></li></ul>
+  <button class="theme" id="theme" type="button" aria-label="Switch between light and dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+</div></header>
 <main>
-<button class="theme" id="theme" type="button">Theme</button>
-<h1>PES 2021 — client ↔ server network map</h1>
-<p class="sub">Living reference for reviving eFootball PES 2021 (1.01.00, Steam/Proton) online play against a local server. Updated with each finding. Last update: <b>2026-11-05</b>.</p>
+<h1>Technical write-up: how PES 2021 talks to its servers</h1>
+<p class="sub">The full reverse-engineered network protocol of eFootball PES 2021 (1.01.00, Steam), as implemented by this project's server. Last update: <b>2026-11-05</b>.</p>
+<div class="plain"><b>In plain words:</b> the game connects to a "gate" server on TCP port 10000 and exchanges small messages written in MessagePack, each compressed, encrypted with Blowfish and sealed with a checksum. A few extra requests go over HTTP and HTTPS, and a STUN check measures your network. Matches themselves run directly between the two players. The <a href="./#inside">main page tells the story</a>; this page has the details for developers: byte layouts, keys, every command and the code addresses they were found at.</div>
 
 <div class="legend">
   <span class="tag t-ok">LIVE</span><span class="sub" style="margin:0">verified against the real client</span>
@@ -76,7 +97,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <span class="tag t-unk">UNKNOWN</span><span class="sub" style="margin:0">open</span>
 </div>
 
-<nav>
+<nav class="toc" aria-label="Sections">
   <a href="#status">Status</a><a href="#topology">Topology</a><a href="#stack">Layer stack</a>
   <a href="#exchange">Gate exchange</a><a href="#login">Login</a><a href="#rules">Encoding rules</a><a href="#nat">NAT test</a><a href="#tooling">Tooling</a><a href="#frames">Wire format</a><a href="#crypto">Crypto</a>
   <a href="#cmds">Commands</a><a href="#mmlive">Matchmaking</a><a href="#match">Match</a><a href="#errors">Error codes</a><a href="#deploy">Deployment</a><a href="#dlcp">Not the gate: dlcp</a>
@@ -86,7 +107,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 
 <h2 id="status">Status</h2>
 <div class="grid">
-  <div class="stat"><b>Redirect</b><span class="t-ok">✔ *.konami.net → your server (hosts file, set by /join)</span></div>
+  <div class="stat"><b>Redirect</b><span class="t-ok">✔ 6 Konami hostnames → your server (hosts file, set by the join line)</span></div>
   <div class="stat"><b>Frame</b><span class="t-ok">✔ XOR + MD5 (NclMio)</span></div>
   <div class="stat"><b>Body crypto</b><span class="t-ok">✔ Blowfish-ECB, static 56-byte key</span></div>
   <div class="stat"><b>Payload</b><span class="t-ok">✔ MessagePack commands</span></div>
@@ -109,7 +130,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <rect class="box" x="270" y="125" width="150" height="80" rx="10"/>
   <text x="345" y="155" text-anchor="middle" font-weight="700">hosts file</text>
   <text x="345" y="175" text-anchor="middle" class="muted" font-size="12">written by the join line</text>
-  <text x="345" y="192" text-anchor="middle" class="muted" font-size="12">*.konami.net → your server</text>
+  <text x="345" y="192" text-anchor="middle" class="muted" font-size="12">6 Konami names → server</text>
   <path class="ar" d="M220 165 H270"/>
   <rect class="hl" x="500" y="20" width="420" height="70" rx="10"/>
   <text x="520" y="48" font-weight="700">Gate  tcp/10000</text>
@@ -191,7 +212,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </div>
 
 <h2 id="rules">Encoding rules the client enforces</h2>
-<div class="tw"><table>
+<div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Rule</th><th>Evidence</th></tr>
 <tr><td>Every list of objects is an <b>array of msgpack-encoded blobs</b>; the client runs its unpacker on each element</td><td>svrlist loop 0x141d48a41 crashed on inline maps <span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>A single nested object (e.g. <code>pname</code>, <code>psn_user_id</code>) is also a msgpack blob</td><td>GET_PLAYER_DATA crash at 0x141d3fe49 on an empty string <span class="tag t-ok">LIVE</span></td></tr>
@@ -220,7 +241,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
                        ad "patch_version" a7 "1.01.00" ab "dlc_version" a4 "1.00" | 00 00 00</pre>
 
 <h3>Frame kinds <span class="tag t-static">STATIC</span></h3>
-<div class="tw"><table>
+<div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Kind</th><th>Decoder behaviour (0x1418566c0)</th><th>Seen</th></tr>
 <tr><td class="mono">0x0060, 0x0010</td><td>easy tier: data_len, original_size, zlib flag, data</td><td><span class="tag t-ok">LIVE</span> 0x0060</td></tr>
 <tr><td class="mono">0x0070, 0x0020</td><td>same, with an extra leading u32 (likely session / user id)</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
@@ -229,8 +250,8 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </table></div>
 
 <h2 id="crypto">Crypto</h2>
-<div class="tw"><table>
-<tr><th>Item</th><th>Value</th><th>Where</th><th></th></tr>
+<div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<tr><th>Item</th><th>Value</th><th>Where</th><th><span class="sr">Status</span></th></tr>
 <tr><td>Frame XOR key</td><td class="mono">5b 9f 2e 64</td><td>.data 0x143515acc</td><td><span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>Integrity</td><td>MD5(header ∥ body)</td><td>frame bytes 8–23</td><td><span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>Easy key (Blowfish-ECB)</td><td class="mono">d8890af0 66c96b40 d701aefc 436ff9fe c9899816 7a74483d 3914730c 5c01c03c e28e86e5 89c4a185 f8540651 d2eca36b 5c1a40ee c5e9daae</td><td>.data 0x1434d61c0 (56 B), installed by 0x14116eeb0 when no key is set. First 16 bytes = MGSV's static key.</td><td><span class="tag t-ok">LIVE</span></td></tr>
@@ -240,8 +261,8 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 
 <h2 id="cmds">Commands</h2>
 <p>Field names are read from the client's own parsers: each command's request and response keys sit together in <code>.rdata</code>.</p>
-<div class="tw"><table>
-<tr><th>Command</th><th>Request</th><th>Response</th><th></th></tr>
+<div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<tr><th>Command</th><th>Request</th><th>Response</th><th><span class="sr">Status</span></th></tr>
 <tr><td>CMD_GET_SVRLIST</td><td>svrtype, client, timeout, lang, patch_version, dlc_version</td><td>result, server_num, svrlist[ svrtype, svraddr, svrport, svrgid, max_player_num, player_num ]</td><td><span class="tag t-ok">LIVE</span> req</td></tr>
 <tr><td>CMD_GET_SVRTIME</td><td>svrtype, client</td><td>result, date</td><td><span class="tag t-static">STATIC</span></td></tr>
 <tr><td>CMD_GET_SVRVERSION</td><td>svrtype, client, patch_version, dlc_version, livedata_version</td><td>result, version, patch_version, dlc_version, eula_version, eula_myclub_version, livedata_version, eula_privacy_* versions</td><td><span class="tag t-static">STATIC</span></td></tr>
@@ -250,7 +271,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <tr><td>Matchmaking: CMD_START_MATCHING, CMD_WATCH_MATCHING …</td><td colspan="2">see <a href="#mm2">Matchmaking protocol</a> and <a href="#mmlive">Matchmaking — live</a></td><td><span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>CMD_GET_LOBBYLIST, CMD_JOIN_LOBBY, CMD_CREATEJOIN_ROOM, CMD_JOIN_ROOM_NTL</td><td colspan="2">field names known from the parsers; not used by Quick Match, not implemented yet</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
 </table></div>
-<p class="sub">Result codes: <code>NOERR</code>, <code>ERR_NOTFOUND</code>, <code>ERR_LOGIN_FAILED</code>, <code>ERR_DIFFERENT_PATCHVERSION</code>, <code>ERR_SERVERNOTREADY</code>, … Server types: <code>GATE</code>, <code>ACCOUNT</code>, <code>GAME</code>.</p>
+<p class="sub">Result codes: <code>NOERR</code>, <code>ERR_NOTFOUND</code>, <code>ERR_LOGIN_FAILED</code>, <code>ERR_DIFFERENT_PATCHVERSION</code>, <code>ERR_SERVERNOTREADY</code>, … Server types: <code>GATE</code>, <code>ACCOUNT</code>, <code>MENU</code>, <code>VDPCHAT</code>.</p>
 
 <h2 id="nat">NAT test ("Testing network environment")</h2>
 <div class="panel">
@@ -264,7 +285,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </div>
 
 <h2 id="mm2">Matchmaking protocol (from the client's parsers)</h2>
-<div class="tw"><table>
+<div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Command</th><th>Role</th><th>Reply fields</th></tr>
 <tr><td>CMD_SEND_IPANDPORT_NTL</td><td>client reports its addresses</td><td>result</td></tr>
 <tr><td>CMD_GET_IPANDPORT_NTL</td><td>fetch a player's addresses</td><td>pid, ntl_nat_type, host_addr, reflexive_addr, relayed_addr</td></tr>
@@ -304,7 +325,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <h2 id="errors">Error codes</h2>
 <div class="panel">
 <p>On-screen codes such as <code>EYRH763</code> or <code>MMGC_0002_0_…</code> encode the <b>source file</b> and <b>line</b>: the four letters are a hash of the .cpp basename (characters bucketed by index mod 4, each bucket summed mod 26 + 'A'), followed by the line number. <code>notes/re/errcode.py</code> matches the letters against every source-file name in the binary's strings.</p>
-<div class="tw"><table>
+<div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Code</th><th>File</th><th>Meaning in practice</th></tr>
 <tr><td class="mono">EYRH763</td><td>OnlineModeTaskQuickMatching.cpp</td><td>no valid match push within 300 s (missing matching_state)</td></tr>
 <tr><td class="mono">MMGC_0002</td><td>MultiplayCmdTeamDataSync.cpp</td><td>team-data sync failed (member side missing)</td></tr>
@@ -314,10 +335,10 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 
 <h2 id="deploy">Deployment</h2>
 <div class="panel"><ol>
-  <li>Host (Linux): <code>curl -fsSL …/install.sh | sh</code> installs Docker if needed and runs the published image (<code>ghcr.io/mohamedalirashad/pes2021-private-server</code>) with host networking. No configuration: <code>netsetup.py</code> finds the LAN IP, asks the router for its external IP and opens TCP 80/443/8080/10000 + UDP 3478/7600 over UPnP IGD (renewed every 30 min, removed on stop), checks the public IP against a what-is-my-IP service to detect CGNAT, and prints the player commands. Docker Desktop hosts use <code>docker-compose.bridge.yml</code> with a fixed <code>PUBLIC_IP</code>. <span class="tag t-ok">LIVE</span></li>
+  <li>Host (Linux): <code>curl -fsSL …/install.sh | sh</code> installs Docker if needed and runs the server image (published as <code>ghcr.io/mohamedalirashad/pes2021-private-server</code>; built from the repo when it can't be pulled) with host networking. No configuration: <code>netsetup.py</code> finds the LAN IP, asks the router for its external IP and opens TCP 80/443/8080/10000 + UDP 3478/7600 over UPnP IGD (renewed every 30 min, removed on stop), checks the public IP against a what-is-my-IP service to detect CGNAT, and prints the player commands. Docker Desktop hosts use <code>docker-compose.bridge.yml</code> with a fixed <code>PUBLIC_IP</code>. <span class="tag t-ok">LIVE</span></li>
   <li><b>Per-client address</b>: SVRLIST / URLLIST / GAMERELAY carry the server address. Without a pinned <code>PUBLIC_IP</code>, a client from a non-global address (LAN, Tailscale 100.64/10, loopback) gets the local address its TCP connection reached (<code>sockname</code>); an internet client gets the public IP. One server serves LAN and internet players at once. <span class="tag t-ok">LIVE</span></li>
   <li><b>Player setup is served by the server</b>: <code>irm http://SERVER/join | iex</code> (PowerShell User-Agent → <code>join.ps1</code>, self-elevates) or <code>curl -fsSL http://SERVER/join | bash</code> (→ <code>join.sh</code>); a browser gets an instructions page. The scripts come with the address from the request's <code>Host</code> header filled in. On Linux the CA goes straight into the prefix's <code>system.reg</code> (<code>[Software\\Microsoft\\SystemCertificates\\Root\\Certificates\\&lt;SHA1&gt;]</code>, <code>"Blob"=hex:</code> 20,00,00,00 01,00,00,00 len DER), so no Wine/Proton is needed; earlier server CAs are removed. Verified: GateInfo over HTTPS passes with a CA written this way. <span class="tag t-ok">LIVE</span></li>
-  <li>First start generates a private CA plus a certificate for <code>*.konami.net</code>, <code>*.service.konami.net</code>, <code>*.cs.konami.net</code> and the IP, in <code>server-data/certs/</code>; the CA is downloadable at <code>http://&lt;ip&gt;:8080/ca.crt</code>.</li>
+  <li>First start generates a private CA (name-constrained to <code>konami.net</code>) plus a certificate for <code>ntl.service.konami.net</code>, <code>*.service.konami.net</code>, <code>*.cs.konami.net</code> and <code>*.konami.net</code> (no IP addresses), in <code>server-data/certs/</code>; the CA is downloadable at <code>http://&lt;ip&gt;:8080/ca.crt</code>.</li>
   <li><b>Docker bridge vs. the NAT test</b>: the client's STUN socket is bound to the network interface (Wine maps <code>IP_UNICAST_IF</code> to <code>SO_BINDTODEVICE</code>). A game on the <i>same Linux PC</i> as a bridged container therefore never reaches it: the DNAT'd packet must go out via docker0, but the socket is pinned to the NIC. Verified with a device-bound test socket (no reply on the bridge, reply with host networking). Remote players are unaffected. <span class="tag t-ok">LIVE</span></li>
   <li>What the join scripts do: hosts-file entries for <code>pes21-x64-gate.cs.konami.net</code>, <code>pes21-x64-stun.cs.konami.net</code>, <code>ntl / ntleu / ntlus / ntljp.service.konami.net</code>, and trust the server CA (Windows: <code>Import-Certificate</code> into <code>Cert:\LocalMachine\Root</code>; Linux: the game's Proton prefix only). The CA carries a critical <code>nameConstraints</code> extension (permitted <code>DNS:konami.net</code>, all IPs excluded), so it cannot vouch for any other site. No change to the game files.</li>
 </ol></div>
@@ -326,7 +347,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 
 <h2 id="dlcp">Not the gate: kps::dlcp</h2>
 <p>Real, statically mapped, but not used on the gate connection. Most likely the peer-to-peer match link. Quick Match doesn't need it: matches work without the server touching this link.</p>
-<div class="tw"><table>
+<div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Item</th><th>Value</th></tr>
 <tr><td>Link cipher</td><td>RC4 ("Arcfour"), KSA 0x14204c700, PRGA 0x14204cad0</td></tr>
 <tr><td>Static RC4 key</td><td class="mono">a977d392 db0e55b9 9d1641c2 d4f82739</td></tr>
@@ -335,13 +356,13 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </table></div>
 
 <h2 id="server">Our server</h2>
-<div class="tw"><table>
+<div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>File</th><th>Role</th></tr>
 <tr><td class="mono">server/pesserver/ncl.py</td><td>NclCodec: frame, Blowfish easy tier, envelope, zlib, msgpack</td></tr>
 <tr><td class="mono">server/pesserver/pescmds.py</td><td>CMD_* handlers for gate / account / menu (server list, URL list, EULA, login, player data, team list, server env, session key); unknown commands get a bare NOERR and are logged</td></tr>
 <tr><td class="mono">server/pesserver/pesmatch.py</td><td>quick-match queue and pairing, WATCH_MATCHING long-poll/push with sides, game relay info, relay-check result, peer notice relay, match id</td></tr>
 <tr><td class="mono">server/pesserver/gate.py · service.py</td><td>TCP gate loop (handler crashes are caught and answered) · dispatch and session bookkeeping</td></tr>
-<tr><td class="mono">server/pesserver/stun.py · httpgate.py</td><td>RFC 5389 binding · HTTP 8080 web-API + HTTPS 8443 GateInfo.php + <code>/ca.crt</code></td></tr>
+<tr><td class="mono">server/pesserver/stun.py · httpgate.py</td><td>RFC 5389 binding · HTTP 8080 web-API + HTTPS 443 GateInfo.php (8443 when run outside Docker) + <code>/ca.crt</code></td></tr>
 <tr><td class="mono">server/Dockerfile · docker-compose.yml</td><td>one-container deployment; <code>docker-entrypoint.sh</code> generates the CA and certificate</td></tr>
 </table></div>
 <p>Run: <code>docker compose up</code>, or <code>python3 -m pesserver serve</code> (ncl is the default codec). Every request is logged decoded (<code>RX … CMD_…</code>).</p>
@@ -359,7 +380,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </ol>
 
 <h2 id="rva">Key addresses (image base 0x140000000)</h2>
-<div class="tw"><table>
+<div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Address</th><th>What</th></tr>
 <tr><td class="mono">0x1418548c0</td><td>NclMio parse (XOR, header, md5)</td></tr>
 <tr><td class="mono">0x141855cc0</td><td>NclEnhancedMio parse</td></tr>
@@ -375,7 +396,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <h2 id="open">Open questions</h2>
 <ul>
   <li>Game relay (TURN-style fallback for players who cannot reach each other directly): the server returns relay info, but UDP 7600 is only a logging placeholder. <span class="tag t-unk">OPEN</span></li>
-  <li>Post-match results/statistics (CMD_SEND_GAME_RESULT, SEND_STATS_DATA) arrive and are acknowledged but not stored; ratings, divisions and rankings are not implemented. <span class="tag t-unk">OPEN</span></li>
+  <li>Final scores from CMD_SEND_GAME_RESULT are stored (<code>pes_matches</code>) and shown on the admin page; detailed statistics (SEND_STATS_DATA) are acknowledged but not stored. Ratings, divisions and rankings are not implemented, and live goal events (CMD_ADD_GOAL) have not been seen yet because every test match ended 0–0. <span class="tag t-unk">OPEN</span></li>
   <li>myClub, events, rooms/lobbies UI. <span class="tag t-unk">OPEN</span></li>
 </ul>
 
@@ -401,12 +422,12 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <script>
 (function(){
   var b=document.getElementById('theme'), r=document.documentElement;
-  try{var s=localStorage.getItem('pesmap-theme'); if(s) r.setAttribute('data-theme',s);}catch(e){}
+  try{var s=localStorage.getItem('pes-theme'); if(s) r.setAttribute('data-theme',s);}catch(e){}
   b.addEventListener('click',function(){
     var cur=r.getAttribute('data-theme');
     var dark=cur?cur==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;
     var next=dark?'light':'dark'; r.setAttribute('data-theme',next);
-    try{localStorage.setItem('pesmap-theme',next);}catch(e){}
+    try{localStorage.setItem('pes-theme',next);}catch(e){}
   });
 })();
 </script>

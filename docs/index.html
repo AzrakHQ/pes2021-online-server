@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PES 2021 Online: play eFootball PES 2021 online again</title>
+<script>try { var t = localStorage.getItem("pes-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
 <meta name="description" content="Konami switched off the PES 2021 servers. Run your own with one command, friends join with one line, and play online Quick Match again. The game is never modified.">
 <meta property="og:title" content="PES 2021 is back online">
 <meta property="og:description" content="Host your own PES 2021 server with one command. Friends join with one line. Then just play.">
@@ -13,9 +14,9 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230c4a37'/%3E%3Cpolygon points='16,9 22.7,13.9 20.1,21.8 11.9,21.8 9.3,13.9' fill='%23fff'/%3E%3C/svg%3E">
 <style>
 :root {
-  --bg: #f6f8f7; --bg2: #ffffff; --fg: #10201a; --muted: #4f6159; --line: #dbe4df;
-  --brand: #0a7d4f; --brand-strong: #075c3a; --brand-soft: #e3f4ec; --accent: #3ccf8e;
-  --code-bg: #0b1f18; --code-fg: #e6f5ee; --warn: #9a4b00; --pitch1: #0c4a37; --pitch2: #05251b;
+  --bg: #f6f8f7; --bg2: #ffffff; --fg: #10201a; --muted: #4a5c54; --line: #d8e2dd;
+  --brand: #08734a; --brand-strong: #065c3b; --brand-soft: #e3f4ec; --accent: #3ccf8e; --on-brand: #ffffff;
+  --code-bg: #0b1f18; --code-fg: #e6f5ee; --warn: #8f4500; --pitch1: #0c4a37; --pitch2: #05251b;
   --shadow: 0 1px 2px rgba(16,32,26,.06), 0 8px 24px rgba(16,32,26,.06);
   --radius: 14px; --max: 1080px;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -23,60 +24,65 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0b110e; --bg2: #121a16; --fg: #e8efeb; --muted: #a3b3ab; --line: #23302a;
-    --brand: #3ccf8e; --brand-strong: #6fe0ae; --brand-soft: #12271e; --code-bg: #060d0a; --warn: #f5a524;
+    --bg: #0b110e; --bg2: #121a16; --fg: #e8efeb; --muted: #a9b8b0; --line: #26332d;
+    --brand: #3ccf8e; --brand-strong: #7fe5b8; --brand-soft: #13281f; --on-brand: #04241a; --code-bg: #060d0a; --warn: #f5a524;
     --shadow: none;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0b110e; --bg2: #121a16; --fg: #e8efeb; --muted: #a3b3ab; --line: #23302a;
-  --brand: #3ccf8e; --brand-strong: #6fe0ae; --brand-soft: #12271e; --code-bg: #060d0a; --warn: #f5a524;
+  --bg: #0b110e; --bg2: #121a16; --fg: #e8efeb; --muted: #a9b8b0; --line: #26332d;
+  --brand: #3ccf8e; --brand-strong: #7fe5b8; --brand-soft: #13281f; --on-brand: #04241a; --code-bg: #060d0a; --warn: #f5a524;
   --shadow: none;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 var(--sans); -webkit-font-smoothing: antialiased; }
 a { color: var(--brand); text-underline-offset: 3px; }
 a:hover { color: var(--brand-strong); }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
-.skip { position: absolute; left: -999px; top: 8px; background: var(--bg2); padding: 8px 14px; border-radius: 8px; z-index: 99; }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--bg2); color: var(--fg); padding: 8px 14px; border-radius: 8px; z-index: 99; }
 .skip:focus { left: 8px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
 code, pre { font-family: var(--mono); }
-:not(pre) > code { background: var(--brand-soft); color: var(--fg); padding: 1px 6px; border-radius: 6px; font-size: .88em; }
+:not(pre) > code { background: var(--brand-soft); color: var(--fg); padding: 1px 6px; border-radius: 6px; font-size: .88em; overflow-wrap: anywhere; }
 
 /* nav */
-.nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-.nav .wrap { display: flex; align-items: center; gap: 22px; height: 60px; }
-.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--fg); text-decoration: none; letter-spacing: -.01em; }
-.logo svg { width: 28px; height: 28px; }
-.nav ul { display: flex; gap: 20px; list-style: none; margin: 0 0 0 auto; padding: 0; }
-.nav ul a { color: var(--muted); text-decoration: none; font-size: 15px; font-weight: 500; }
+.nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.nav .wrap { display: flex; align-items: center; gap: 18px; height: 60px; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--fg); text-decoration: none; letter-spacing: -.01em; white-space: nowrap; }
+.logo svg { width: 28px; height: 28px; flex: none; }
+.nav ul { display: flex; align-items: center; gap: 18px; list-style: none; margin: 0 0 0 auto; padding: 0; }
+.nav ul a { color: var(--muted); text-decoration: none; font-size: 15px; font-weight: 600; }
 .nav ul a:hover { color: var(--fg); }
-.theme { border: 1px solid var(--line); background: var(--bg2); color: var(--fg); border-radius: 99px; width: 36px; height: 36px; cursor: pointer; display: grid; place-items: center; }
+.nav .gh svg { width: 22px; height: 22px; display: block; }
+.theme { border: 1px solid var(--line); background: var(--bg2); color: var(--fg); border-radius: 99px; width: 36px; height: 36px; cursor: pointer; display: grid; place-items: center; flex: none; }
 .theme svg { width: 18px; height: 18px; }
-@media (max-width: 820px) { .nav ul .opt { display: none; } }
-@media (max-width: 520px) { .nav ul { gap: 14px; } .nav ul a { font-size: 14px; } .logo span { display: none; } }
+@media (max-width: 640px) { .logo span { display: none; } .nav ul { gap: 14px; } .nav ul a { font-size: 14px; } .nav .wrap { gap: 12px; } }
 
 /* hero */
 .hero { background: radial-gradient(1200px 500px at 80% -10%, rgba(60,207,142,.25), transparent 60%), linear-gradient(160deg, var(--pitch1), var(--pitch2)); color: #fff; position: relative; overflow: hidden; }
 .hero::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 120px, transparent 120px 240px); pointer-events: none; }
-.hero .wrap { position: relative; padding: 76px 20px 64px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
+.hero .wrap { position: relative; padding: 72px 20px 60px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
 .eyebrow { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8fe3bd; margin-bottom: 14px; }
 .hero h1 { font-size: clamp(38px, 6vw, 62px); line-height: 1.04; margin: 0 0 18px; letter-spacing: -.025em; }
-.hero p.lead { font-size: 20px; color: #d3ece0; margin: 0 0 28px; max-width: 34em; }
+.hero p.lead { font-size: 20px; color: #d3ece0; margin: 0 0 26px; max-width: 34em; }
 .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; border: 2px solid transparent; }
 .btn.primary { background: var(--accent); color: #04241a; }
 .btn.primary:hover { background: #63dea6; color: #04241a; }
-.btn.ghost { border-color: rgba(255,255,255,.35); color: #fff; }
+.btn.ghost { border-color: rgba(255,255,255,.4); color: #fff; }
 .btn.ghost:hover { border-color: #fff; color: #fff; }
-.facts { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 30px; padding: 0; list-style: none; color: #cfe9dc; font-size: 15px; }
+.btn.plain { border-color: var(--line); color: var(--fg); }
+.btn.plain:hover { border-color: var(--brand); color: var(--brand); }
+.needs { margin: 18px 0 0; font-size: 15px; color: #bfe0d1; }
+.needs b { color: #fff; }
+.facts { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 22px 0 0; padding: 0; list-style: none; color: #d3ece0; font-size: 15px; }
 .facts li { display: flex; align-items: center; gap: 8px; }
 .facts svg { width: 18px; height: 18px; flex: none; }
 .hero-art { width: 100%; height: auto; }
-@media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; padding-top: 52px; } .hero-art { max-width: 520px; margin: 0 auto; } }
+@media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; padding-top: 48px; gap: 28px; } .hero-art { max-width: 460px; margin: 0 auto; } }
 
 /* sections */
 section { padding: 76px 0; }
@@ -84,96 +90,138 @@ section.alt { background: var(--bg2); border-top: 1px solid var(--line); border-
 .kicker { color: var(--brand); font-weight: 700; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 8px; }
 h2 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; letter-spacing: -.02em; margin: 0 0 14px; }
 h3 { font-size: 21px; line-height: 1.3; margin: 0 0 8px; letter-spacing: -.01em; }
-.intro { color: var(--muted); font-size: 19px; max-width: 42em; margin: 0 0 40px; }
+.intro { color: var(--muted); font-size: 19px; max-width: 42em; margin: 0 0 36px; }
 .card { background: var(--bg2); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
 section.alt .card { background: var(--bg); }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-@media (max-width: 900px) { .grid3, .grid2 { grid-template-columns: 1fr; } }
+.grid3 > *, .step > div { min-width: 0; }
+@media (max-width: 900px) { .grid3 { grid-template-columns: 1fr; } }
 .muted { color: var(--muted); }
-
-/* status */
-.status { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-@media (max-width: 760px) { .status { grid-template-columns: 1fr; } }
-.check { list-style: none; padding: 0; margin: 10px 0 0; }
-.check li { display: flex; gap: 10px; padding: 6px 0; }
-.check svg { flex: none; width: 20px; height: 20px; margin-top: 4px; }
-.yes svg { color: var(--brand); } .no svg { color: var(--muted); }
-
-/* steps */
-.step-num { width: 34px; height: 34px; border-radius: 50%; background: var(--brand); color: var(--bg2); display: grid; place-items: center; font-weight: 800; margin-bottom: 14px; }
-.cmd { position: relative; margin: 14px 0 8px; }
-.cmd pre { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 14px 84px 14px 16px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
-.cmd .label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
-.copy { position: absolute; right: 8px; bottom: 8px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #e6f5ee; border-radius: 8px; padding: 5px 10px; font: 600 13px var(--sans); cursor: pointer; }
-.copy:hover { background: rgba(255,255,255,.18); }
 .small { font-size: 15px; }
 .note { font-size: 15px; color: var(--muted); border-left: 3px solid var(--line); padding-left: 12px; margin: 14px 0 0; }
+
+/* status */
+.check { list-style: none; padding: 0; margin: 10px 0 0; }
+.check li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 5px 0; }
+.check svg { width: 20px; height: 20px; margin-top: 4px; }
+.yes svg { color: var(--brand); } .test svg { color: var(--warn); } .no svg { color: var(--muted); }
+.yes h3 { color: var(--brand); } .test h3 { color: var(--warn); }
+
+/* steps */
+.steps { display: grid; gap: 18px; }
+.step { display: grid; grid-template-columns: 1fr 1.25fr; gap: 32px; align-items: start; }
+@media (max-width: 900px) { .step { grid-template-columns: 1fr; gap: 10px; } }
+.step-num { width: 34px; height: 34px; border-radius: 50%; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-weight: 800; margin-bottom: 14px; }
+.cmd { position: relative; margin: 0 0 12px; }
+.cmd pre { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 14px 84px 14px 16px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cmd .label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+.copy { position: absolute; right: 8px; bottom: 8px; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.1); color: #e6f5ee; border-radius: 8px; padding: 5px 10px; font: 600 13px var(--sans); cursor: pointer; }
+.copy:hover { background: rgba(255,255,255,.2); }
+.how { padding-left: 20px; margin: 0; } .how li { margin-bottom: 6px; }
+.banner-mock { background: var(--code-bg); color: #cfe9dc; border-radius: 10px; padding: 12px 16px; font: 13px/1.7 var(--mono); overflow-x: auto; white-space: nowrap; }
+.banner-mock .bm-title { color: #fff; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.15); padding-bottom: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; gap: 20px; }
+.banner-mock .bm-title span { color: #3ccf8e; }
+.banner-mock .bm-k { display: inline-block; width: 128px; color: #fff; font-weight: 700; }
+details.changes { border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; margin-top: 14px; background: var(--bg2); }
+details.changes summary { font-size: 15px; padding: 10px 0; }
+details.changes ul { font-size: 14px; padding-left: 18px; color: var(--muted); }
 
 /* features */
 .feature-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--brand-soft); color: var(--brand); display: grid; place-items: center; margin-bottom: 14px; }
 .feature-icon svg { width: 24px; height: 24px; }
-.mock { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--bg); font-size: 14px; margin-top: 14px; }
-.mock .row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
-.mock .score { font-weight: 800; font-size: 22px; }
-.mock .pill { display: inline-block; border: 1px solid #d92d20; color: #d92d20; border-radius: 99px; padding: 0 8px; font-size: 12px; font-weight: 700; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mock .pill { border-color: #ff6b5f; color: #ff6b5f; } }
+.shot { margin: 28px 0 0; }
+.shot img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+.shot figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+.shot .dark { display: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shot .light { display: none; } :root:not([data-theme="light"]) .shot .dark { display: block; } }
+:root[data-theme="dark"] .shot .light { display: none; } :root[data-theme="dark"] .shot .dark { display: block; }
 
 /* story */
-.chapter { display: grid; grid-template-columns: 64px 1fr; gap: 22px; padding: 34px 0; border-top: 1px solid var(--line); }
+.chapter { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 22px; padding: 34px 0; border-top: 1px solid var(--line); }
 .chapter:first-of-type { border-top: 0; }
 .chapter .n { font-size: 44px; font-weight: 800; color: var(--brand); line-height: 1; letter-spacing: -.03em; }
-.chapter p { margin: 0 0 12px; max-width: 46em; }
+.chapter p, .chapter ul { margin: 0 0 12px; max-width: 46em; }
 @media (max-width: 640px) { .chapter { grid-template-columns: 1fr; gap: 6px; } .chapter .n { font-size: 32px; } }
-.fig { margin: 22px 0 6px; }
-.fig svg { width: 100%; height: auto; display: block; }
-.fig figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+.desks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin: 18px 0; list-style: none; padding: 0; max-width: 52em; }
+.desks li { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; position: relative; }
+.desks b { display: block; color: var(--brand); font-size: 18px; margin-bottom: 4px; }
+.desks span { font-size: 15px; color: var(--fg); }
+@media (min-width: 701px) { .desks li:not(:last-child)::after { content: "→"; position: absolute; right: -11px; top: 50%; transform: translate(50%, -50%); color: var(--brand); font-weight: 800; } }
+@media (max-width: 700px) { .desks { grid-template-columns: 1fr; gap: 12px; } }
+.parcel { margin: 18px 0 6px; max-width: 46em; }
+.layer { border-radius: 12px; padding: 12px 14px; }
+.layer > .t { font-weight: 800; font-size: 15px; }
+.layer > .d { font-size: 14px; color: var(--muted); margin-bottom: 10px; }
+.l4 { border: 2px dashed var(--brand); }
+.l3 { border: 2px solid var(--brand); background: var(--brand-soft); }
+.l2 { border: 1px solid var(--line); background: var(--bg2); }
+.l1 { background: var(--code-bg); color: #8fe3bd; font: 14px/1.5 var(--mono); padding: 10px 12px; border-radius: 8px; overflow-wrap: anywhere; }
+.l3 > .t, .l4 > .t { color: var(--brand); }
+.bytes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0 6px; max-width: 46em; }
+@media (max-width: 700px) { .bytes { grid-template-columns: 1fr; } }
+.bytes figure { margin: 0; min-width: 0; }
+.bytes figcaption { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.codebox { background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 12px 14px; font: 13px/1.6 var(--mono); overflow-wrap: anywhere; margin: 0; white-space: pre-wrap; }
+.codebox .k { color: #8fe3bd; } .codebox .s { color: #ffd78a; }
 .fun { background: var(--brand-soft); border-radius: 12px; padding: 14px 16px; font-size: 16px; margin: 16px 0 0; max-width: 46em; }
 .fun b { color: var(--brand-strong); }
-.codebox { background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 14px 16px; font: 14px/1.55 var(--mono); overflow-x: auto; max-width: 46em; }
-.codebox .k { color: #8fe3bd; } .codebox .s { color: #ffd78a; } .codebox .c { color: #7f978b; }
-.phases { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 4px; padding: 0; list-style: none; }
-.phases li { font: 600 13px var(--mono); padding: 5px 10px; border-radius: 8px; background: var(--bg2); border: 1px solid var(--line); }
-section.alt .phases li { background: var(--bg); }
-.phases li.hl { background: var(--brand); color: var(--bg2); border-color: var(--brand); }
-.errs { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 12px; max-width: 46em; }
+.phases { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 6px; padding: 0; list-style: none; }
+.phases li { font: 600 13px var(--mono); padding: 5px 10px; border-radius: 8px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); }
+.phases li.hl, section.alt .phases li.hl { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+.tablewrap { overflow-x: auto; max-width: 46em; }
+.errs { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 8px; }
 .errs th, .errs td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .errs th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-.errs td:first-child { font-family: var(--mono); font-weight: 700; white-space: nowrap; }
-.tablewrap { overflow-x: auto; max-width: 100%; }
 .errs td { overflow-wrap: anywhere; }
-details.changes { border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; margin-top: 14px; background: var(--bg); }
-details.changes summary { font-size: 15px; padding: 10px 0; }
-details.changes ul { font-size: 14px; padding-left: 18px; color: var(--muted); }
-footer .wrap > span:first-child { max-width: 40em; }
+.errs td:first-child { font-family: var(--mono); font-weight: 700; white-space: nowrap; overflow-wrap: normal; }
+.timeline { list-style: none; padding: 0; margin: 20px 0 0; position: relative; max-width: 46em; }
+.timeline::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
+.timeline li { position: relative; padding: 0 0 16px 34px; }
+.timeline li::before { content: ""; position: absolute; left: 3px; top: 7px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg2); border: 3px solid var(--brand); }
+.timeline li.big::before { background: var(--brand); }
+.timeline b { display: block; }
+.timeline span { color: var(--muted); font-size: 15px; }
 
-/* faq */
-details { border-bottom: 1px solid var(--line); padding: 4px 0; }
-summary { cursor: pointer; font-weight: 700; font-size: 18px; padding: 14px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+/* help + faq */
+.help { width: 100%; border-collapse: collapse; font-size: 16px; }
+.help th, .help td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.help tr:last-child td { border-bottom: 0; }
+.help th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.help td:first-child { font-weight: 700; width: 38%; }
+@media (max-width: 640px) { .help, .help tbody, .help tr, .help td { display: block; width: auto !important; } .help thead { display: none; } .help tr { border-bottom: 1px solid var(--line); padding: 8px 0; } .help td { border: 0; padding: 4px 0; } }
+details.q { border-bottom: 1px solid var(--line); padding: 4px 0; }
+details.q summary { cursor: pointer; font-weight: 700; font-size: 18px; padding: 14px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
 summary::-webkit-details-marker { display: none; }
-summary::after { content: "+"; color: var(--brand); font-size: 24px; line-height: 1; }
-details[open] summary::after { content: "–"; }
-details p, details ul { margin: 0 0 16px; color: var(--muted); max-width: 48em; }
+details.q summary::after, details.changes summary::after { content: "+"; color: var(--brand); font-size: 22px; line-height: 1; }
+details.changes summary { list-style: none; display: flex; justify-content: space-between; cursor: pointer; font-weight: 700; }
+details[open] > summary::after { content: "–"; }
+details.q p, details.q ul { margin: 0 0 16px; color: var(--muted); max-width: 48em; }
+details.q .cmd { max-width: 48em; margin-bottom: 16px; }
 
+.next { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: center; }
+@media (max-width: 800px) { .next { grid-template-columns: 1fr; } }
 footer { padding: 40px 0 56px; color: var(--muted); font-size: 15px; border-top: 1px solid var(--line); }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: space-between; }
+footer .legal { max-width: 42em; margin: 0; }
 footer a { color: var(--muted); }
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<div class="sr" aria-live="polite" id="live"></div>
 
 <nav class="nav" aria-label="Main">
   <div class="wrap">
-    <a class="logo" href="#top" aria-label="PES 2021 Online, home">
+    <a class="logo" href="#top" aria-label="PES 2021 Online, back to top">
       <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0c4a37"/><polygon points="16,9 22.7,13.9 20.1,21.8 11.9,21.8 9.3,13.9" fill="#fff"/></svg>
       <span>PES 2021 Online</span>
     </a>
     <ul>
       <li><a href="#play">Play</a></li>
       <li><a href="#inside">How it works</a></li>
-      <li class="opt"><a href="#faq">FAQ</a></li>
-      <li><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a></li>
+      <li><a href="#help">Help</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a class="gh" href="https://github.com/MohamedAliRashad/pes2021-private-server" aria-label="Source code on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></li>
     </ul>
     <button class="theme" id="theme" type="button" aria-label="Switch between light and dark theme">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -184,13 +232,14 @@ footer a { color: var(--muted); }
 <header class="hero" id="top">
   <div class="wrap">
     <div>
-      <span class="eyebrow">Free · Open source · No game mods</span>
+      <span class="eyebrow">Free · Open source (MIT) · No game mods</span>
       <h1>PES 2021 is back online.</h1>
       <p class="lead">Konami switched off the online servers for eFootball PES 2021. This project brings online Quick Match back: one friend runs a small server, everyone else joins with one line, and you play real online matches again.</p>
       <div class="ctas">
         <a class="btn primary" href="#play">Start playing</a>
         <a class="btn ghost" href="#inside">How we did it</a>
       </div>
+      <p class="needs">You need: <b>PES 2021 on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or cheap server</b> to host.</p>
       <ul class="facts">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>1 command to host</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>1 line to join</li>
@@ -200,23 +249,23 @@ footer a { color: var(--muted); }
     <svg class="hero-art" viewBox="0 0 520 400" role="img" aria-labelledby="art-t">
       <title id="art-t">Two players connect to your server for login and matchmaking; the match itself runs directly between the two players.</title>
       <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10z" fill="#3ccf8e"/></marker></defs>
-      <rect x="160" y="20" width="200" height="130" rx="18" fill="rgba(60,207,142,.18)" stroke="#3ccf8e" stroke-width="2"/>
-      <g transform="translate(225,40)" fill="#fff"><rect width="70" height="16" rx="5"/><rect y="21" width="70" height="16" rx="5"/><rect y="42" width="70" height="16" rx="5"/></g>
-      <g fill="#3ccf8e"><circle cx="283" cy="48" r="3.5"/><circle cx="283" cy="69" r="3.5"/><circle cx="283" cy="90" r="3.5"/></g>
-      <text x="260" y="124" text-anchor="middle" fill="#fff" font-weight="800" font-size="19" font-family="system-ui, sans-serif">Your server</text>
-      <text x="260" y="142" text-anchor="middle" fill="#bfe6d4" font-size="12" font-family="system-ui, sans-serif">login · matchmaking · admin page</text>
+      <rect x="130" y="20" width="260" height="134" rx="18" fill="rgba(60,207,142,.18)" stroke="#3ccf8e" stroke-width="2"/>
+      <g transform="translate(225,38)" fill="#fff"><rect width="70" height="16" rx="5"/><rect y="21" width="70" height="16" rx="5"/><rect y="42" width="70" height="16" rx="5"/></g>
+      <g fill="#3ccf8e"><circle cx="283" cy="46" r="3.5"/><circle cx="283" cy="67" r="3.5"/><circle cx="283" cy="88" r="3.5"/></g>
+      <text x="260" y="122" text-anchor="middle" fill="#fff" font-weight="800" font-size="20" font-family="system-ui, sans-serif">Your server</text>
+      <text x="260" y="142" text-anchor="middle" fill="#cfeadd" font-size="14" font-family="system-ui, sans-serif">login · matchmaking · admin</text>
       <g font-family="system-ui, sans-serif">
         <rect x="10" y="225" width="170" height="110" rx="16" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.3)"/>
         <rect x="55" y="245" width="80" height="44" rx="22" fill="#fff"/><rect x="70" y="264" width="18" height="6" rx="2" fill="#0c4a37"/><rect x="76" y="258" width="6" height="18" rx="2" fill="#0c4a37"/><circle cx="113" cy="262" r="5" fill="#0c4a37"/><circle cx="121" cy="272" r="5" fill="#3ccf8e"/>
-        <text x="95" y="317" text-anchor="middle" fill="#fff" font-weight="700" font-size="17">You</text>
+        <text x="95" y="317" text-anchor="middle" fill="#fff" font-weight="700" font-size="18">You</text>
         <rect x="340" y="225" width="170" height="110" rx="16" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.3)"/>
         <rect x="385" y="245" width="80" height="44" rx="22" fill="#fff"/><rect x="400" y="264" width="18" height="6" rx="2" fill="#0c4a37"/><rect x="406" y="258" width="6" height="18" rx="2" fill="#0c4a37"/><circle cx="443" cy="262" r="5" fill="#0c4a37"/><circle cx="451" cy="272" r="5" fill="#3ccf8e"/>
-        <text x="425" y="317" text-anchor="middle" fill="#fff" font-weight="700" font-size="17">Your friend</text>
+        <text x="425" y="317" text-anchor="middle" fill="#fff" font-weight="700" font-size="18">Your friend</text>
       </g>
-      <line x1="120" y1="222" x2="200" y2="156" stroke="#3ccf8e" stroke-width="3" marker-end="url(#ar)"/>
-      <line x1="400" y1="222" x2="320" y2="156" stroke="#3ccf8e" stroke-width="3" marker-end="url(#ar)"/>
+      <line x1="120" y1="222" x2="190" y2="160" stroke="#3ccf8e" stroke-width="3" marker-end="url(#ar)"/>
+      <line x1="400" y1="222" x2="330" y2="160" stroke="#3ccf8e" stroke-width="3" marker-end="url(#ar)"/>
       <path d="M180,300 Q260,350 340,300" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="8 7"/>
-      <text x="260" y="378" text-anchor="middle" fill="#fff" font-size="14" font-weight="600" font-family="system-ui, sans-serif">the match: player to player</text>
+      <text x="260" y="380" text-anchor="middle" fill="#fff" font-size="16" font-weight="600" font-family="system-ui, sans-serif">the match: player to player</text>
     </svg>
   </div>
 </header>
@@ -227,28 +276,36 @@ footer a { color: var(--muted); }
   <div class="wrap">
     <p class="kicker">Where things stand</p>
     <h2>What you can play today</h2>
-    <p class="intro">It's early but real: complete 90-minute online matches have been played start to finish through this server.</p>
-    <div class="status">
+    <p class="intro">Early, but real: complete 90-minute online matches have been played from kick-off to full time through this server. Here's exactly what's proven and what isn't yet.</p>
+    <div class="grid3">
       <div class="card yes">
-        <h3>Works now</h3>
+        <h3>Works</h3>
         <ul class="check">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Online login with your own player name</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>eFootball → <b>Quick Match</b> matchmaking</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Full online matches: kick-off to full time, fouls, cards, half-time</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Results, then straight into the next match</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Windows, Linux and Steam Deck players</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Online login with your own player name</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>eFootball → Quick Match matchmaking</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Full matches: both halves, fouls, cards, half-time</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Results saved, then straight into the next match</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Linux players (Steam + Proton)</span></li>
+        </ul>
+      </div>
+      <div class="card test">
+        <h3>Ready, needs testers</h3>
+        <ul class="check">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Windows players: the join script is written but not yet run on a real Windows PC</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Steam Deck: same as Linux, not yet tried on a Deck</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Friends in different homes: so far tested only on one home network</span></li>
         </ul>
       </div>
       <div class="card no">
         <h3>Not yet</h3>
         <ul class="check">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>myClub, events and official rankings</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>Rooms, lobbies and 2v2 co-op</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>A relay for players whose routers block direct connections (use Tailscale for now)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><span>myClub, events and official rankings</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><span>Rooms, lobbies and 2v2 co-op</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><span>A relay for players whose routers block direct connections</span></li>
         </ul>
-        <p class="note">Tested so far with two players on the same network. Playing across the internet should work for most home connections; tell us how it goes.</p>
       </div>
     </div>
+    <p class="note">Tried it on Windows, a Steam Deck or across two homes? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Tell us how it went</a>; it's the most useful thing you can do for the project right now.</p>
   </div>
 </section>
 
@@ -257,40 +314,65 @@ footer a { color: var(--muted); }
     <p class="kicker">Get playing</p>
     <h2>Three steps, about five minutes</h2>
     <p class="intro">Every player needs their own copy of PES 2021 on Steam (version 1.01.00, the final update). One person hosts; nobody touches the game files.</p>
-    <div class="grid3">
-      <div class="card" id="host">
-        <div class="step-num" aria-hidden="true">1</div>
-        <h3>Host starts the server</h3>
-        <p class="small muted">On any Linux computer that stays on while you play: a gaming PC, a laptop, a Raspberry Pi or a cheap cloud server. Paste this into a terminal:</p>
-        <div class="cmd"><pre id="c-host">curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
-        <p class="small muted">It asks for your password (sudo), installs Docker if it's missing, and after a minute or two prints <b>your server's web address</b>, <b>the line for your friends</b> and <b>your admin password</b>.</p>
-        <p class="note">Hosting from Windows or Mac works with Docker Desktop: <a href="https://github.com/MohamedAliRashad/pes2021-private-server#readme">see the README</a>.</p>
+    <div class="steps">
+      <div class="card step" id="host">
+        <div>
+          <div class="step-num" aria-hidden="true">1</div>
+          <h3>The host starts the server</h3>
+          <p class="small muted">Use any Linux computer that stays on while you play: your gaming PC, a laptop, a Raspberry Pi or a cheap cloud server. Open a terminal, paste the command and press Enter.</p>
+          <p class="small muted">It asks for your password (sudo), installs Docker if it's missing, and when it's ready shows <b>your server's web address</b>, <b>the line for your friends</b> and <b>your admin password</b>.</p>
+          <p class="small muted"><b>Playing on the same PC?</b> If PES 2021 is installed there, the installer offers to set it up for you too.</p>
+        </div>
+        <div>
+          <div class="cmd"><span class="label">Linux terminal</span><pre id="c-host">curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
+          <div class="banner-mock" role="img" aria-label="Example of what the host sees when the server is ready: the server's web address, the line to send friends, and the admin page with its password">
+            <div class="bm-title">⚽ PES 2021 SERVER <span>● ONLINE</span></div>
+            <div><span class="bm-k">Your server</span>https://brave-tiger-moon-river.trycloudflare.com</div>
+            <div><span class="bm-k">Send to friends</span>irm https://brave-tiger-moon-river…/join | iex</div>
+            <div><span class="bm-k">Admin page</span>…/admin · password k7Rm-2Qx9-PaLw</div>
+          </div>
+          <p class="note"><b>Windows or Mac host?</b> It works with Docker Desktop, but takes a few more steps (your IP address in a settings file, and opening router ports yourself): <a href="https://github.com/MohamedAliRashad/pes2021-private-server#hosting-from-windows-or-mac">Windows / Mac hosting guide</a>.</p>
+        </div>
       </div>
-      <div class="card" id="join">
-        <div class="step-num" aria-hidden="true">2</div>
-        <h3>Friends join, once</h3>
-        <p class="small muted">Each player pastes the line the host sends them. It looks like this:</p>
-        <div class="cmd"><span class="label">Windows · PowerShell</span><pre id="c-win">irm https://your-server-address/join | iex</pre><button class="copy" data-copy="c-win" type="button">Copy</button></div>
-        <div class="cmd"><span class="label">Linux · Steam Deck</span><pre id="c-lin">curl -fsSL https://your-server-address/join | bash</pre><button class="copy" data-copy="c-lin" type="button">Copy</button></div>
-        <p class="small muted">Windows asks for permission once; click <b>Yes</b>. On Linux, start the game once from Steam first. Steam Deck: set a password first by typing <code>passwd</code> in Konsole.</p>
-        <details class="changes">
-          <summary>What this changes on your PC</summary>
-          <ul>
-            <li>Adds 6 lines to your <b>hosts file</b> so Konami's old server names point to your friend's server.</li>
-            <li>Trusts your friend's server <b>certificate</b>. It is locked to Konami's names (<code>konami.net</code>), so it can't be used for any other website. On Linux it's trusted only inside the game.</li>
-            <li>Nothing else, and never the game files. Run the line with <code>leave</code> instead of <code>join</code> to undo it. Read the scripts: <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/server/pesserver/web/join.ps1">Windows</a> · <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/server/pesserver/web/join.sh">Linux</a>.</li>
-          </ul>
-        </details>
+      <div class="card step" id="join">
+        <div>
+          <div class="step-num" aria-hidden="true">2</div>
+          <h3>Friends join, once</h3>
+          <p class="small muted">Each player runs the line the host sends them, once.</p>
+          <ol class="small how">
+            <li><b>Windows:</b> press Start, type <b>PowerShell</b>, open it, paste the line, press Enter and click <b>Yes</b>. If Windows Firewall later asks about PES 2021, click <b>Allow</b>.</li>
+            <li><b>Linux:</b> start the game once from Steam, <b>close it</b>, then paste the line in a terminal.</li>
+            <li><b>Steam Deck:</b> switch to Desktop Mode, open <b>Konsole</b>, type <code>passwd</code> to set a password if you never have, then paste the line.</li>
+          </ol>
+          <details class="changes">
+            <summary>What this changes on your PC</summary>
+            <ul>
+              <li>Adds 6 lines to your <b>hosts file</b> so Konami's old server names point to your friend's server.</li>
+              <li>Trusts your friend's server <b>certificate</b>. On Windows it goes into the machine's Trusted Root store; on Linux only inside the game. It's locked to Konami's names (<code>konami.net</code>), so it can't be used for any other website.</li>
+              <li>Nothing else, and never the game files. Run the line with <code>leave</code> instead of <code>join</code> to undo both. Read the scripts: <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/server/pesserver/web/join.ps1">Windows</a> · <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/server/pesserver/web/join.sh">Linux</a>.</li>
+            </ul>
+          </details>
+        </div>
+        <div>
+          <div class="cmd"><span class="label">Windows · PowerShell</span><pre id="c-win">irm https://your-server-address/join | iex</pre><button class="copy" data-copy="c-win" type="button">Copy</button></div>
+          <div class="cmd"><span class="label">Linux · Steam Deck terminal</span><pre id="c-lin">curl -fsSL https://your-server-address/join | bash</pre><button class="copy" data-copy="c-lin" type="button">Copy</button></div>
+          <p class="note">Use the exact line your host sends you: <code>your-server-address</code> is only a placeholder. Opening the server's address in a browser shows the same lines with copy buttons.</p>
+        </div>
       </div>
-      <div class="card" id="howplay">
-        <div class="step-num" aria-hidden="true">3</div>
-        <h3>Play</h3>
-        <ol class="small" style="padding-left:20px;margin:0">
-          <li>Start PES 2021. The first time, pick your region, accept the terms and choose a name.</li>
-          <li>Go to <b>eFootball → Quick Match</b>, pick a team and press <b>Go to Matchmaking</b>.</li>
-          <li>When two players are searching, the server pairs them. Press <b>Kick Off</b>. Have fun.</li>
-        </ol>
-        <p class="note">Can't connect to a friend far away? See <a href="#faq-far">playing across the internet</a> or <a href="https://github.com/MohamedAliRashad/pes2021-private-server#problems">more fixes</a>.</p>
+      <div class="card step" id="howplay">
+        <div>
+          <div class="step-num" aria-hidden="true">3</div>
+          <h3>Play</h3>
+          <p class="small muted">No more setup. From now on you just start the game.</p>
+        </div>
+        <div>
+          <ol class="small how">
+            <li>Start PES 2021. The first time, pick your region, accept the terms and choose a player name.</li>
+            <li>Go to <b>eFootball → Quick Match</b>, pick a team and press <b>Go to Matchmaking</b>.</li>
+            <li>When two players are searching, the server pairs them. Press <b>Proceed</b>, then both press <b>Kick Off</b>.</li>
+          </ol>
+          <p class="note">Stuck? See <a href="#help">something went wrong</a>.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -300,28 +382,29 @@ footer a { color: var(--muted); }
   <div class="wrap">
     <p class="kicker">For the host</p>
     <h2>Your server does the boring parts</h2>
-    <p class="intro">No accounts to create and no router settings to dig through, in most homes.</p>
+    <p class="intro">No accounts to create, and in most homes no router settings to dig through.</p>
     <div class="grid3">
       <div class="card">
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></div>
         <h3>A free web address</h3>
-        <p class="small muted">Each server gets its own link like <code>brave-tiger-moon.trycloudflare.com</code>. Friends at home and far away use the same link; their computer works out the best way to reach you.</p>
+        <p class="small muted">Each server gets a link like <code>brave-tiger-moon-river.trycloudflare.com</code>, through Cloudflare's free tunnel service. Friends at home and far away use the same link; their PC works out the best way to reach you.</p>
       </div>
       <div class="card">
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
         <h3>Opens its own ports</h3>
-        <p class="small muted">The server asks your router to let friends in (UPnP) and tells you in plain words if it couldn't, or if your internet provider blocks it.</p>
+        <p class="small muted">Most home routers have a feature called <b>UPnP</b> that lets programs open the ports they need. The server uses it, and tells you in plain words if it couldn't or if your internet provider blocks it.</p>
       </div>
       <div class="card">
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h3M8 17h6"/></svg></div>
         <h3>An admin page</h3>
-        <p class="small muted">Password-protected: who's online, live matches, results and a league table.</p>
-        <div class="mock" aria-label="Example of the admin page showing a live match">
-          <div class="row"><b>Alex</b><span class="score">2 – 1</span><b style="text-align:right">Sam</b></div>
-          <div style="text-align:center;margin-top:6px"><span class="pill">● 2nd half</span></div>
-        </div>
+        <p class="small muted">Password-protected: who's online, matches in progress and their stage, final scores, a league table, and a kick button.</p>
       </div>
     </div>
+    <figure class="shot">
+      <img class="light" src="admin-light.png" width="1770" height="1290" loading="lazy" alt="The admin page: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands.">
+      <img class="dark" src="admin-dark.png" width="1770" height="1290" loading="lazy" alt="The admin page in dark mode: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands.">
+      <figcaption>The real admin page, filled with demo players.</figcaption>
+    </figure>
   </div>
 </section>
 
@@ -329,38 +412,19 @@ footer a { color: var(--muted); }
   <div class="wrap">
     <p class="kicker">Under the hood</p>
     <h2>How PES 2021's online mode actually works</h2>
-    <p class="intro">Nobody handed us a manual. We worked this out by watching what the game sends, reading how it reads replies, and answering it until it believed it was talking to Konami again. Here's what we found, in plain words.</p>
+    <p class="intro">Nobody handed us a manual. We worked this out by watching what the game sends, reading how its code reads the replies, and answering it until it believed it was talking to Konami again. Here's what we found, in plain words.</p>
 
     <article class="chapter">
       <div class="n" aria-hidden="true">01</div>
       <div>
-        <h3>Your game visits three "desks" before you see the menu</h3>
-        <p>When you open eFootball, the game connects to a server address it remembers from Konami. Over that one connection it talks to three desks, one after another, like checking in at an airport:</p>
-        <figure class="fig">
-          <svg viewBox="0 0 900 170" role="img" aria-labelledby="desk-t">
-            <title id="desk-t">Gate gives out the list of servers and web addresses; Account checks who you are and creates your player; Menu is the online lobby, kept alive with a heartbeat every 30 seconds.</title>
-            <g font-family="system-ui, sans-serif">
-              <rect x="10" y="20" width="260" height="130" rx="16" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
-              <text x="34" y="58" font-size="20" font-weight="800" fill="var(--brand)">1 · Gate</text>
-              <text x="34" y="88" font-size="15" fill="var(--fg)">"Here are our servers,</text>
-              <text x="34" y="110" font-size="15" fill="var(--fg)">53 web addresses,</text>
-              <text x="34" y="132" font-size="15" fill="var(--fg)">and today's date."</text>
-              <rect x="320" y="20" width="260" height="130" rx="16" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
-              <text x="344" y="58" font-size="20" font-weight="800" fill="var(--brand)">2 · Account</text>
-              <text x="344" y="88" font-size="15" fill="var(--fg)">"Who are you?" Checks</text>
-              <text x="344" y="110" font-size="15" fill="var(--fg)">your Steam ID, creates</text>
-              <text x="344" y="132" font-size="15" fill="var(--fg)">your player the first time.</text>
-              <rect x="630" y="20" width="260" height="130" rx="16" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
-              <text x="654" y="58" font-size="20" font-weight="800" fill="var(--brand)">3 · Menu</text>
-              <text x="654" y="88" font-size="15" fill="var(--fg)">The online lobby. Your</text>
-              <text x="654" y="110" font-size="15" fill="var(--fg)">game says "still here"</text>
-              <text x="654" y="132" font-size="15" fill="var(--fg)">every 30 seconds.</text>
-              <path d="M276,85 h38" stroke="var(--brand)" stroke-width="3"/><path d="M306,78 l9,7 -9,7" fill="none" stroke="var(--brand)" stroke-width="3"/>
-              <path d="M586,85 h38" stroke="var(--brand)" stroke-width="3"/><path d="M616,78 l9,7 -9,7" fill="none" stroke="var(--brand)" stroke-width="3"/>
-            </g>
-          </svg>
-        </figure>
-        <p>Konami's servers no longer answer, so the game can't get past the first desk. All our server has to do is be a convincing desk clerk. The join line simply tells your PC that Konami's addresses now live at your friend's server.</p>
+        <h3>Your game checks in at three desks before you see the menu</h3>
+        <p>When you open eFootball, the game connects to a server address it remembers from Konami and checks in at three "desks" in turn, like at an airport:</p>
+        <ol class="desks">
+          <li><b>1 · Gate</b><span>"Here are our servers, 53 web addresses you'll need, and today's date."</span></li>
+          <li><b>2 · Account</b><span>"Who are you?" Checks your Steam ID and creates your player the first time.</span></li>
+          <li><b>3 · Menu</b><span>The online lobby, on a fresh connection. Your game says "still here" every 30 seconds.</span></li>
+        </ol>
+        <p>Konami's servers no longer answer, so the game can't get past the first desk. Our server just has to be a convincing desk clerk, and the join line tells your PC that Konami's addresses now live at your friend's server.</p>
       </div>
     </article>
 
@@ -369,27 +433,32 @@ footer a { color: var(--muted); }
       <div>
         <h3>Every message is a sealed parcel</h3>
         <p>The game never sends plain text. Each message is wrapped in four layers, and the server has to unwrap and re-wrap them exactly the same way:</p>
-        <figure class="fig">
-          <svg viewBox="0 0 900 250" role="img" aria-labelledby="parcel-t">
-            <title id="parcel-t">Four nested layers: outside, a scramble and a fingerprint; inside that, a lock; inside that, optional squashing; at the centre, the letter itself.</title>
-            <g font-family="system-ui, sans-serif">
-              <rect x="10" y="10" width="880" height="230" rx="18" fill="none" stroke="var(--brand)" stroke-width="2" stroke-dasharray="6 6"/>
-              <text x="30" y="40" font-size="15" font-weight="800" fill="var(--brand)">4 · Scrambled and fingerprinted</text>
-              <text x="30" y="62" font-size="13" fill="var(--muted)">every byte mixed with a 4-byte pattern, plus a checksum so damage is noticed</text>
-              <rect x="40" y="78" width="820" height="148" rx="14" fill="var(--brand-soft)" stroke="var(--brand)" stroke-width="2"/>
-              <text x="60" y="106" font-size="15" font-weight="800" fill="var(--brand)">3 · Locked</text>
-              <text x="160" y="106" font-size="13" fill="var(--muted)">with a key built into the game, then a fresh key the server hands out at login</text>
-              <rect x="70" y="120" width="760" height="92" rx="12" fill="var(--bg2)" stroke="var(--line)" stroke-width="2"/>
-              <text x="90" y="146" font-size="15" font-weight="800" fill="var(--fg)">2 · Squashed</text>
-              <text x="206" y="146" font-size="13" fill="var(--muted)">compressed, when the message is big</text>
-              <rect x="100" y="158" width="700" height="42" rx="10" fill="var(--code-bg)"/>
-              <text x="118" y="185" font-size="14" fill="#8fe3bd" font-family="ui-monospace, Menlo, Consolas, monospace">1 · The letter:  { msgid: "CMD_GET_SVRLIST", lang: "ANY", patch_version: "1.01.00" }</text>
-            </g>
-          </svg>
-          <figcaption>The real first message every copy of PES 2021 sends, unwrapped: "please send me the server list."</figcaption>
-        </figure>
-        <p>The letter itself is written in <b>MessagePack</b>, a compact cousin of JSON. The lock is <b>Blowfish</b>, a cipher from the 1990s, with a 56-byte key stored inside the game.</p>
-        <p class="fun"><b>Fun find:</b> the first 16 bytes of that built-in key are identical to a key used in <i>Metal Gear Solid V</i>, another Konami game built on the same engine (Fox Engine). Konami reused its own homework.</p>
+        <div class="parcel" role="img" aria-label="Four nested layers: scrambled and fingerprinted, then locked, then squashed, then the letter itself.">
+          <div class="layer l4"><div class="t">4 · Scrambled and fingerprinted</div><div class="d">every byte mixed with a repeating 4-byte pattern, plus a checksum so damage is noticed</div>
+            <div class="layer l3"><div class="t">3 · Locked</div><div class="d">with a key built into the game, then a fresh key the server hands out at login</div>
+              <div class="layer l2"><div class="t">2 · Squashed</div><div class="d">compressed, when the message is big</div>
+                <div class="l1">1 · The letter: { msgid: "CMD_GET_SVRLIST", patch_version: "1.01.00" }</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p>Here is the very first message a real copy of the game sent us, before and after unwrapping:</p>
+        <div class="bytes">
+          <figure><figcaption>What travels (first 40 of 152 bytes)</figcaption>
+<pre class="codebox">5b ff 2e e4 5b 9f 2e 65 7f 6d
+62 e5 27 8e 58 d0 78 15 1a 9d
+0c d0 fc 43 01 03 6a 29 fe 7d
+a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
+          <figure><figcaption>What it says</figcaption>
+<pre class="codebox"><span class="k">msgid</span>         <span class="s">"CMD_GET_SVRLIST"</span>
+<span class="k">svrtype</span>       <span class="s">"GATE"</span>
+<span class="k">client</span>        <span class="s">"NETCLIENT"</span>
+<span class="k">lang</span>          <span class="s">"ANY"</span>
+<span class="k">patch_version</span> <span class="s">"1.01.00"</span>
+<span class="k">dlc_version</span>   <span class="s">"1.00"</span></pre></figure>
+        </div>
+        <p>In other words: "please send me the server list." The letter is written in <b>MessagePack</b>, a compact cousin of JSON. The lock is <b>Blowfish</b>, a cipher from the 1990s, with a 56-byte key stored inside the game.</p>
+        <p class="fun"><b>Fun find:</b> the first 16 bytes of that built-in key are identical to a key from <i>Metal Gear Solid V</i>, another Konami game built on the same Fox Engine. Konami reused its own homework.</p>
       </div>
     </article>
 
@@ -399,11 +468,11 @@ footer a { color: var(--muted); }
         <h3>The game is an extremely strict reader</h3>
         <p>Being almost right isn't enough. The game reads replies field by field and either crashes or quietly misbehaves when anything is off:</p>
         <ul>
-          <li><b>Wrong format, instant error.</b> Replying in JSON instead of MessagePack gives error <code>C_GKCC_0008_200</code> on login.</li>
+          <li><b>Wrong format, instant error.</b> Replying in JSON instead of MessagePack gives error <code>C_GKCC_0008_200</code> at login.</li>
           <li><b>A number where it expects text</b> made the Terms of Use screen pop up again and again, forever.</li>
           <li><b>A setting of zero</b> in the server's timeout values made every match abort while loading.</li>
         </ul>
-        <p>The breakthrough was realising the game describes its own expectations. Its code contains the exact list of fields for almost every reply, so we extracted <b>398 reply formats</b> straight from the game instead of guessing. For the hundreds of messages the server doesn't need to understand, it simply answers "OK" and the game falls back to its built-in defaults.</p>
+        <p>The breakthrough was realising the game describes its own expectations: its code lists the exact fields of almost every reply. We extracted <b>398 reply formats</b> straight from the game instead of guessing. For the hundreds of messages the server doesn't need to understand, it simply answers "OK", and the game falls back to its built-in defaults.</p>
       </div>
     </article>
 
@@ -411,17 +480,17 @@ footer a { color: var(--muted); }
       <div class="n" aria-hidden="true">04</div>
       <div>
         <h3>The connection test is a real security check</h3>
-        <p>Before eFootball modes unlock, the game tests your network: it asks a server "what's my address from the outside?" (a <b>STUN</b> check), then fetches a small status page over <b>HTTPS</b>.</p>
-        <p>That HTTPS request checks certificates exactly like a web browser does. A fake server without a trusted certificate fails the test and the online modes stay locked. That's why the join line installs your server's certificate. On Linux and Steam Deck it's trusted only inside the game, and the <code>leave</code> line removes it again.</p>
+        <p>Before eFootball modes unlock, the game tests your network. It asks a server "what's my address from the outside?" (a <b>STUN</b> check), then fetches a small status page over <b>HTTPS</b>.</p>
+        <p>That HTTPS request checks certificates exactly like a web browser does. A stand-in server without a trusted certificate fails the test, and the online modes stay locked. That's why the join line installs your server's certificate, locked to Konami's names so it can't vouch for anything else.</p>
       </div>
     </article>
 
     <article class="chapter">
       <div class="n" aria-hidden="true">05</div>
       <div>
-        <h3>Matchmaking is one exact sentence</h3>
+        <h3>Matchmaking hinges on one exact sentence</h3>
         <p>When you press <b>Go to Matchmaking</b>, the game says "I'm looking" once, then goes completely silent and waits. It never asks again. The server has to tap it on the shoulder with a message that says, precisely, <i>matching finished</i>, who is <b>home</b>, who is <b>away</b>, and where to find each other.</p>
-        <p>Get one word wrong and the game ignores it, waits five minutes, and shows an error. For a while our two test players searched forever while sitting right next to each other.</p>
+        <p>Get one word wrong and the game ignores it, waits five minutes, and shows an error. For a while our two test players searched forever while sitting next to each other.</p>
       </div>
     </article>
 
@@ -429,12 +498,12 @@ footer a { color: var(--muted); }
       <div class="n" aria-hidden="true">06</div>
       <div>
         <h3>The match itself never goes through the server</h3>
-        <p>Once paired, the two games connect <b>directly to each other</b> and exchange the match between themselves. The server only passes a few short notes between them ("I'm ready", "I've left") and otherwise stays out of the way. That's why the server is tiny: about 50 MB of memory.</p>
+        <p>Once paired, the two games connect <b>directly to each other</b> and play the match between themselves. The server only passes a few short notes between them ("I'm ready", "I've left") and otherwise stays out of the way. That's why it's tiny: about 50 MB of memory.</p>
         <p>It still hears how the match is going, because both games report every stage:</p>
-        <ul class="phases" aria-label="Match stages reported by the game">
+        <ul class="phases" aria-label="Match stages reported by the game, in order">
           <li>DATASYNC</li><li>TEAMSELECT</li><li>MATCHMENU</li><li>GAMELOAD</li><li>ENTRY</li><li class="hl">1ST</li><li>BREAK1</li><li class="hl">2ND</li><li>END</li>
         </ul>
-        <p class="small muted">Both games report the same fouls and cards, and their clocks stay in sync. At full time each sends the score and match stats. That's what the admin page's live scores and league table are built from.</p>
+        <p class="small muted">Both games report the same fouls and cards, and their clocks stay in sync. At full time each sends the final score and match stats. The admin page's match stages, results and league table are built from these reports.</p>
       </div>
     </article>
 
@@ -443,14 +512,16 @@ footer a { color: var(--muted); }
       <div>
         <h3>Error codes are hidden breadcrumbs</h3>
         <p>Codes like <code>EYRH763</code> look random. They aren't: the four letters are a scrambled form of the <b>name of the source file</b> where the error happened, and the number is the <b>line</b> in that file. We wrote a small decoder that matches the letters against every file name left inside the game:</p>
-        <div class="tablewrap"><table class="errs">
-          <thead><tr><th>Code</th><th>Where it comes from</th><th>What it meant for us</th></tr></thead>
-          <tbody>
-            <tr><td>EYRH763</td><td>OnlineModeTaskQuickMatching.cpp</td><td>"Match found" message missing a word: gave up after 5 minutes</td></tr>
-            <tr><td>MMGC_0002</td><td>MultiplayCmdTeamDataSync.cpp</td><td>Nobody was assigned the home side</td></tr>
-            <tr><td>QVHE1459</td><td>GameModeMatchListenerMatch.cpp</td><td>Match loading timed out (those zero timeouts)</td></tr>
-          </tbody>
-        </table></div>
+        <div class="tablewrap" tabindex="0" role="region" aria-label="Decoded error codes">
+          <table class="errs">
+            <thead><tr><th scope="col">Code</th><th scope="col">Where it comes from</th><th scope="col">What it meant for us</th></tr></thead>
+            <tbody>
+              <tr><td>EYRH763</td><td>OnlineModeTaskQuickMatching.cpp</td><td>"Match found" message missing a word: gave up after 5 minutes</td></tr>
+              <tr><td>MMGC_0002</td><td>MultiplayCmdTeamDataSync.cpp</td><td>Nobody was assigned the home side</td></tr>
+              <tr><td>QVHE1459</td><td>GameModeMatchListenerMatch.cpp</td><td>Match loading timed out (those zero timeouts)</td></tr>
+            </tbody>
+          </table>
+        </div>
         <p style="margin-top:14px">Each code pointed straight at the part of the game that was unhappy, which turned days of guessing into minutes.</p>
       </div>
     </article>
@@ -459,57 +530,116 @@ footer a { color: var(--muted); }
       <div class="n" aria-hidden="true">08</div>
       <div>
         <h3>Our biggest wrong turn</h3>
-        <p>Early on, the game's code contained a complete "secret handshake" system with its own encryption, and we were sure the first message was that handshake. We spent a long time trying to answer it.</p>
-        <p>It wasn't. The first message was simply "send me the server list", wrapped in the parcel from chapter 2. The handshake code is real, but it belongs to a different connection, most likely the player-to-player link. The lesson: decode what the game actually sends before trusting what its code <i>could</i> do.</p>
+        <p>The game's code contains a complete "secret handshake" system with its own encryption, and we were sure the first message was that handshake. We spent a long time trying to answer it.</p>
+        <p>It wasn't. The first message was simply "send me the server list", wrapped in the parcel from chapter 2. A crash trace finally pointed at the real decoder. The handshake code is real, but it belongs to a different connection, most likely the player-to-player link. The lesson: decode what the game actually sends before trusting what its code <i>could</i> do.</p>
       </div>
     </article>
 
-    <p style="margin-top:30px"><a class="btn primary" href="protocol.html">Read the full technical write-up →</a></p>
-    <p class="small muted">Every command, the exact byte layout, the encryption keys and code addresses, for developers who want to build on this.</p>
+    <article class="chapter">
+      <div class="n" aria-hidden="true">09</div>
+      <div>
+        <h3>From silence to a full match in two days</h3>
+        <p>The core work happened on 4–5 November 2026, against the unmodified game:</p>
+        <ol class="timeline">
+          <li><b>The game reaches us</b><span>Its requests arrive at our server instead of Konami's dead addresses.</span></li>
+          <li><b>The first message decodes</b><span>A crash trace leads to the decoder; the "handshake" turns out to be "send me the server list".</span></li>
+          <li><b>Full login</b><span>All three desks pass; a player is created and saved.</span></li>
+          <li><b>The connection test passes</b><span>eFootball modes unlock.</span></li>
+          <li><b>Two players matched and connected</b><span>Both games reach the pre-match menu together.</span></li>
+          <li class="big"><b>A complete 90-minute online match</b><span>Kick-off to full time, results reported, then straight into the next pairing.</span></li>
+          <li><b>One command for anyone</b><span>Docker server, free web address, automatic router setup and an admin page.</span></li>
+        </ol>
+      </div>
+    </article>
+
+    <div class="card next" style="margin-top:28px">
+      <div>
+        <h3>What's next, and how to help</h3>
+        <p class="small muted" style="margin:0">Next up: a relay so any two players can connect, then rooms, co-op and maybe myClub. The most useful help right now is testing on Windows, Steam Deck and across two homes, and reporting what happens.</p>
+      </div>
+      <div class="ctas">
+        <a class="btn primary" href="protocol.html">Technical write-up →</a>
+        <a class="btn plain" href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Report a result</a>
+      </div>
+    </div>
   </div>
 </section>
 
-<section id="faq">
+<section id="help">
+  <div class="wrap">
+    <p class="kicker">Troubleshooting</p>
+    <h2>Something went wrong?</h2>
+    <p class="intro">Find what you see on screen.</p>
+    <div class="card">
+      <table class="help">
+        <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
+        <tbody>
+          <tr><td>"Unable to connect to the server" when the game starts</td><td>Run your join line again. Check that your server's address opens in a web browser on that PC.</td></tr>
+          <tr><td>The network test fails, or eFootball modes stay locked</td><td>Close the game and run the join line again (on Linux the game must be closed). The host should check that ports 443 and 3478 are open.</td></tr>
+          <tr><td>Matchmaking searches forever</td><td>Two players must be in eFootball → Quick Match and searching at the same time.</td></tr>
+          <tr><td>"Failed to connect with opponent"</td><td>The two PCs can't reach each other directly. Use Tailscale: see <a href="#faq-far">playing across the internet</a>.</td></tr>
+          <tr><td>The host's screen says "Router ports are closed"</td><td>Turn on UPnP in your router's settings and run the install line again, or forward the ports it lists.</td></tr>
+          <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
+          <tr><td>The match ends with a "no operation" message</td><td>The game's own rule: a player didn't touch the controller for about 50 seconds.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Still stuck? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Open an issue</a> with what you see and the output of <code>docker logs pesserver</code>.</p>
+  </div>
+</section>
+
+<section id="faq" class="alt">
   <div class="wrap">
     <p class="kicker">Questions</p>
     <h2>Good to know</h2>
-    <details>
+    <details class="q">
       <summary>Does this modify or crack the game?</summary>
-      <p>No. The game files stay exactly as Steam installed them. The project only provides a server for the game to talk to. You need your own legal copy of PES 2021 on Steam; this project doesn't host, share or patch any game files.</p>
+      <p>No. The game files stay exactly as Steam installed them, and this project doesn't host, share or patch any game files. It only provides a server for the game to talk to. You need your own legal copy of PES 2021 on Steam.</p>
     </details>
-    <details>
-      <summary>What exactly does the join line change on my PC?</summary>
+    <details class="q">
+      <summary>What exactly does the join line do on my PC?</summary>
       <ul>
-        <li>It adds a few lines to your <b>hosts file</b>, so the game's old Konami server names point to your friend's server.</li>
-        <li>It trusts your friend's server <b>certificate</b>, so the game's connection test passes. The certificate only works for Konami's server names. On Linux and Steam Deck it's trusted only inside the game.</li>
+        <li>It downloads a small setup script from your friend's server and runs it. The script asks for administrator rights (Windows) or your sudo password (Linux).</li>
+        <li>The script adds 6 lines to your <b>hosts file</b>, so the game's old Konami server names point to your friend's server.</li>
+        <li>It trusts your friend's server <b>certificate</b> so the game's connection test passes: on Windows in the machine's Trusted Root store, on Linux only inside the game. The certificate is locked to Konami's names (<code>konami.net</code>).</li>
       </ul>
-      <p>Nothing else. Run the same line with <code>leave</code> instead of <code>join</code> to undo both. You can open the join address in a browser first to read exactly what it will do.</p>
+      <p>Nothing else. Run the same line with <code>leave</code> instead of <code>join</code> to undo both. You can read the exact script before running it by opening <code>https://your-server-address/join.ps1</code> (Windows) or <code>/join.sh</code> (Linux) in a browser, or <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/pesserver/web">on GitHub</a>.</p>
     </details>
-    <details>
+    <details class="q">
       <summary>Should I trust a server my friend runs?</summary>
-      <p>Join servers run by people you trust, like any game server. The certificate you trust is locked to Konami's server names, so a server owner can't use it to impersonate your bank or any other website. The server only ever sees your player name, Steam ID, IP address and match results. Run the <code>leave</code> line any time to remove it all.</p>
+      <p>Only use the join line with people you trust: it runs their server's script with administrator rights. The certificate it installs can't be used against other websites, because it's locked to Konami's server names.</p>
+      <p>The server stores your player name, Steam ID and match results, sees your IP address, and keeps a log of the game's messages on the host's disk.</p>
     </details>
-    <details>
+    <details class="q" id="faq-far">
+      <summary>Can I play with friends in other cities or countries?</summary>
+      <p>Probably, but it's not tested yet: so far everything was tested on one home network. The server opens the host's router ports automatically; the match itself then needs the two players' PCs to reach each other directly. If they can't ("Failed to connect with opponent"), put everyone on one private network with <a href="https://tailscale.com">Tailscale</a>, a free app for small groups:</p>
+      <ul>
+        <li>Everyone installs Tailscale and joins the host's network.</li>
+        <li>The host runs the install line again with their Tailscale address (shown in the Tailscale app), for example:</li>
+      </ul>
+      <div class="cmd"><pre id="c-ts">curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | PUBLIC_IP=100.x.y.z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
+      <ul><li>Everyone runs their join line again.</li></ul>
+      <p>A built-in relay that removes this step is on the to-do list.</p>
+    </details>
+    <details class="q" id="faq-host">
+      <summary>Host: how do I see the password again, stop or update the server?</summary>
+      <ul>
+        <li>Show the address, join lines and admin password again: <code>docker logs pesserver</code></li>
+        <li>Restart: <code>docker restart pesserver</code> · Stop: <code>docker rm -f pesserver</code></li>
+        <li>Update to the latest version: run the install line again. Players and results are kept.</li>
+      </ul>
+    </details>
+    <details class="q">
+      <summary>Will our accounts and results survive a restart?</summary>
+      <p>Yes. Player names, results and the server's certificate stay on the host's disk through restarts, reboots and updates. The free web address changes when the server restarts, but players who already joined don't need to do anything, unless the host's IP address changes: then everyone runs their join line again.</p>
+    </details>
+    <details class="q">
       <summary>Does it cost anything?</summary>
       <p>No. The software, the web address and the admin page are free. The host just needs a computer that's on while you play.</p>
     </details>
-    <details id="faq-far">
-      <summary>Can I play with friends in other cities or countries?</summary>
-      <p>Usually yes: the server opens your router's ports automatically. If two players still can't connect, put everyone on one private network with <a href="https://tailscale.com">Tailscale</a> (free for small groups):</p>
-      <ul>
-        <li>Everyone installs Tailscale and joins the host's network.</li>
-        <li>The host runs the install line again with their Tailscale address (shown in the Tailscale app):<br><code>curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | PUBLIC_IP=100.x.y.z sh</code></li>
-        <li>Everyone runs their join line again.</li>
-      </ul>
-      <p>A built-in relay that removes this step is on the to-do list.</p>
-    </details>
-    <details>
-      <summary>Will our accounts and results survive a restart?</summary>
-      <p>Yes. Player names, results and the server's certificate are kept on the host's disk and survive restarts, reboots and updates. Only the free web address changes when the server restarts; players who already joined don't need to do anything.</p>
-    </details>
-    <details>
-      <summary>Is this affiliated with Konami?</summary>
-      <p>No. It's an independent fan preservation project, built so a game people paid for keeps working online. PES and eFootball are trademarks of Konami.</p>
+    <details class="q">
+      <summary>Is this legal? Is it affiliated with Konami?</summary>
+      <p>It's an independent fan preservation project, not affiliated with Konami, so that a game people paid for keeps working online. It only reimplements the server side of the network protocol, for interoperability, and contains no Konami code or assets. Every player uses their own copy of the game. The project's code is MIT-licensed. PES and eFootball are trademarks of Konami.</p>
     </details>
   </div>
 </section>
@@ -518,24 +648,32 @@ footer a { color: var(--muted); }
 
 <footer>
   <div class="wrap">
-    <span>PES 2021 Online is an independent fan preservation project. No game files are included or distributed: every player needs their own copy of PES 2021 on Steam. Not affiliated with Konami; PES and eFootball are trademarks of Konami.</span>
+    <p class="legal">PES 2021 Online is an independent fan preservation project. No game files are included or distributed: every player needs their own copy of PES 2021 on Steam. Not affiliated with Konami; PES and eFootball are trademarks of Konami. Code under the <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/LICENSE">MIT license</a>.</p>
     <span><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a> · <a href="protocol.html">Technical write-up</a> · <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Report a problem</a></span>
   </div>
 </footer>
 
 <script>
+  const live = document.getElementById("live");
   document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", () => {
-    const text = document.getElementById(b.dataset.copy).textContent;
-    const done = () => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500); };
-    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => {});
+    const el = document.getElementById(b.dataset.copy), text = el.textContent;
+    const done = ok => {
+      b.textContent = ok ? "Copied" : "Press Ctrl+C";
+      live.textContent = ok ? "Copied to clipboard" : "Copy failed: the text is selected, press Ctrl+C";
+      setTimeout(() => { b.textContent = "Copy"; }, 1800);
+    };
+    const select = () => { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => done(true), () => { select(); done(false); });
+    else { select(); let ok = false; try { ok = document.execCommand("copy"); } catch (e) {} done(ok); }
   }));
-  const root = document.documentElement, key = "pes-theme";
-  try { const t = localStorage.getItem(key); if (t) root.dataset.theme = t; } catch (e) {}
+  const root = document.documentElement;
   document.getElementById("theme").addEventListener("click", () => {
     const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
     root.dataset.theme = dark ? "light" : "dark";
-    try { localStorage.setItem(key, root.dataset.theme); } catch (e) {}
+    try { localStorage.setItem("pes-theme", root.dataset.theme); } catch (e) {}
   });
+  const openTarget = () => { const d = document.getElementById(location.hash.slice(1)); if (d && d.tagName === "DETAILS") d.open = true; };
+  addEventListener("hashchange", openTarget); openTarget();
 </script>
 </body>
 </html>
