@@ -55,14 +55,15 @@ code, pre { font-family: var(--mono); }
 .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--fg); text-decoration: none; letter-spacing: -.01em; white-space: nowrap; }
 .logo svg { width: 28px; height: 28px; flex: none; }
 .nav ul { display: flex; align-items: center; gap: 18px; list-style: none; margin: 0 0 0 auto; padding: 0; }
-.nav ul a { color: var(--muted); text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block; padding: 10px 2px; }
+.nav ul a { color: var(--muted); text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block; padding: 10px 2px; white-space: nowrap; }
 .nav ul a.on { color: var(--fg); box-shadow: inset 0 -2px 0 var(--brand); }
 .nav ul a:hover { color: var(--fg); }
 .nav .gh svg { width: 22px; height: 22px; display: block; }
 .theme { border: 1px solid var(--line); background: var(--bg2); color: var(--fg); border-radius: 99px; width: 36px; height: 36px; cursor: pointer; display: grid; place-items: center; flex: none; }
 .theme svg { width: 18px; height: 18px; }
 @media (max-width: 640px) { .logo span { display: none; } .nav ul { gap: 12px; } .nav ul a { font-size: 14px; } .nav .wrap { gap: 10px; } }
-@media (max-width: 400px) { .nav .gh { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 13px; } }
+@media (max-width: 460px) { .nav .gh { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 13px; } }
+@media (max-width: 380px) { .nav ul li:nth-child(3) { display: none; } .nav ul { gap: 8px; } .nav .wrap { gap: 8px; padding: 0 14px; } }
 
 /* hero */
 .hero { background: radial-gradient(1200px 500px at 80% -10%, rgba(60,207,142,.25), transparent 60%), linear-gradient(160deg, var(--pitch1), var(--pitch2)); color: #fff; position: relative; overflow: hidden; }
@@ -153,11 +154,12 @@ details.changes ul { font-size: 14px; padding-left: 18px; color: var(--muted); }
 .feature-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--brand-soft); color: var(--brand); display: grid; place-items: center; margin-bottom: 14px; }
 .feature-icon svg { width: 24px; height: 24px; }
 .shot { margin: 28px 0 0; }
+.shot a { display: block; }
 .shot img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line); box-shadow: var(--shadow); }
 .shot figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
-.shot .dark { display: none; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shot .light { display: none; } :root:not([data-theme="light"]) .shot .dark { display: block; } }
-:root[data-theme="dark"] .shot .light { display: none; } :root[data-theme="dark"] .shot .dark { display: block; }
+.shot a.dark { display: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shot a.light { display: none; } :root:not([data-theme="light"]) .shot a.dark { display: block; } }
+:root[data-theme="dark"] .shot a.light { display: none; } :root[data-theme="dark"] .shot a.dark { display: block; }
 
 /* story */
 .chapter { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 22px; padding: 34px 0; border-top: 1px solid var(--line); }
@@ -265,7 +267,7 @@ footer a { color: var(--muted); }
         <a class="btn ghost" href="#inside">How we did it</a>
       </div>
       <a class="pill-status" href="#status"><i aria-hidden="true"></i>Early access: proven on Linux · testers wanted for Windows, Steam Deck and two separate PCs</a>
-      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or cheap server</b> to host.</p>
+      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or cheap server</b> to host (Windows/Mac hosting works through Docker Desktop, untested).</p>
       <ul class="facts">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>1 command to host</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>1 line to join</li>
@@ -335,7 +337,7 @@ footer a { color: var(--muted); }
     </div>
     <a class="card teaser" href="#inside"><span><b>How we brought it back</b><br><span class="muted small">Nine short chapters on how PES 2021's online mode works, from secret handshakes to error codes that point at source files.</span></span><span class="go" aria-hidden="true">→</span></a>
     <nav class="jump" aria-label="Jump to"><a href="#host">Host a server</a><a href="#join">Join a friend</a><a href="#help">Fix a problem</a><a href="#inside">How it works</a></nav>
-    <p class="note">Tried it on Windows, a Steam Deck, through the Steam client or across two homes? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Tell us how it went</a>; it's the most useful thing you can do for the project right now.</p>
+    <p class="note">Tried it on Windows, a Steam Deck, through the Steam client or across two homes? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues/new?template=test-report.md">Tell us how it went</a>; it's the most useful thing you can do for the project right now.</p>
   </div>
 </section>
 
@@ -352,7 +354,7 @@ footer a { color: var(--muted); }
           <p class="small muted">Use any Linux computer that stays on while you play: your gaming PC, a laptop, a Raspberry Pi or a cheap cloud server. Open a terminal, paste the command and press Enter.</p>
           <p class="small muted">It asks for your password (sudo), installs Docker if it's missing, and when it's ready shows <b>your server's web address</b>, <b>the line for your friends</b> and <b>your admin password</b>.</p>
           <p class="small muted"><b>Playing on the same PC?</b> If PES 2021 is installed there, the installer offers to set it up for you too.</p>
-          <p class="small muted"><b>Good to know:</b> the installer opens 6 ports on your router to the internet. The join page, admin page and game services are reachable on your public IP as well as the web address; the admin page is protected by its password.</p>
+          <p class="small muted"><b>Good to know:</b> the installer installs Docker with Docker's official script if it's missing, starts the server in a container that restarts after reboots until you stop it, opens 6 ports on your router, and keeps a Cloudflare tunnel running for the web address. The join page, admin page and game services are reachable from the internet (the admin page needs its password). Players, results and a message log are kept in a Docker volume. <a href="#faq-host">Stop or remove it</a> any time.</p>
         </div>
         <div>
           <div class="cmd"><span class="label">Linux terminal</span><pre id="c-host">curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
@@ -371,7 +373,7 @@ footer a { color: var(--muted); }
           <h3>Friends join, once</h3>
           <p class="small muted">Each player runs the line the host sends them, once.</p>
           <ol class="small how">
-            <li><b>Windows:</b> press Start, type <b>PowerShell</b>, open it, paste the line, press Enter and click <b>Yes</b>. If Windows Firewall later asks about PES 2021, click <b>Allow</b>.</li>
+            <li><b>Windows:</b> press Start, type <b>PowerShell</b>, open it, paste the line, press Enter and click <b>Yes</b>. A second, administrator window opens and finishes with <b>Done!</b>. If Windows Firewall later asks about PES 2021, click <b>Allow</b>.</li>
             <li><b>Linux:</b> start the game once from Steam, <b>close it</b>, then paste the line in a terminal (needs <code>python3</code>, which most distributions include).</li>
             <li><b>Steam Deck:</b> switch to Desktop Mode, open <b>Konsole</b>, type <code>passwd</code> to set a password if you never have, then paste the line.</li>
           </ol>
@@ -435,9 +437,9 @@ footer a { color: var(--muted); }
       </div>
     </div>
     <figure class="shot">
-      <img class="light" src="admin-light.png" width="1475" height="1434" loading="lazy" alt="The admin page: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands.">
-      <img class="dark" src="admin-dark.png" width="1475" height="1434" loading="lazy" alt="The admin page in dark mode: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands.">
-      <figcaption>The real admin page, filled with demo players.</figcaption>
+      <a class="light" href="admin-light.webp"><img src="admin-light.webp" width="1475" height="1434" loading="lazy" alt="The admin page: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands."></a>
+      <a class="dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1475" height="1434" loading="lazy" alt="The admin page in dark mode: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands."></a>
+      <figcaption>The real admin page, filled with made-up demo players and scores. Tap to open it full size.</figcaption>
     </figure>
   </div>
 </section>
@@ -455,7 +457,7 @@ footer a { color: var(--muted); }
           <tr><td>The network test fails, or eFootball modes stay locked</td><td>Close the game and run the join line again (on Linux the game must be closed). The host should check that ports 443 and 3478 are open.</td></tr>
           <tr><td>Matchmaking searches forever</td><td>Two players must be in eFootball → Quick Match and searching at the same time.</td></tr>
           <tr><td>"Failed to connect with opponent"</td><td>The two PCs can't reach each other directly. Use Tailscale: see <a href="#faq-far">playing across the internet</a>.</td></tr>
-          <tr><td>The host's screen says "Router ports are closed"</td><td>Turn on UPnP in your router's settings and run the install line again, or forward the ports it lists.</td></tr>
+          <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server this message is normal: open the 6 ports in the provider's firewall instead.</td></tr>
           <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
           <tr><td>The match ends with a "no operation" message</td><td>The game's own rule: a player didn't touch the controller for about 50 seconds.</td></tr>
         </tbody>
@@ -489,7 +491,7 @@ footer a { color: var(--muted); }
     </details>
     <details class="q" id="faq-far">
       <summary>Can I play with friends in other cities or countries?</summary>
-      <p>Probably, but it's not tested yet: so far everything was tested on one home network. The server opens the host's router ports automatically; the match itself then needs the two players' PCs to reach each other directly. If they can't ("Failed to connect with opponent"), put everyone on one private network with <a href="https://tailscale.com">Tailscale</a>, a free app for small groups:</p>
+      <p>Probably, but it's not tested yet: so far everything was tested on one home network. The server opens the host's router ports automatically; the match itself then needs the two players' PCs to reach each other directly. If they can't ("Failed to connect with opponent"), put everyone on one private network with <a href="https://tailscale.com">Tailscale</a>, a free app for small groups (this workaround is untested too):</p>
       <ul>
         <li>Everyone installs Tailscale and joins the host's network.</li>
         <li>The host runs the install line again with their Tailscale address (shown in the Tailscale app), for example:</li>
@@ -517,14 +519,14 @@ footer a { color: var(--muted); }
     </details>
     <details class="q" id="faq-winhost">
       <summary>Host: can I host from Windows or a Mac?</summary>
-      <p>Yes, with Docker Desktop and a few more steps (not yet tested by us, and playing on the same Windows PC that hosts is untested too):</p>
+      <p>Yes, with Docker Desktop and a few more steps. Not yet tested by us, including playing on the same Windows PC that hosts:</p>
       <ol>
         <li>Install <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> and start it.</li>
         <li>Download the project (<a href="https://github.com/MohamedAliRashad/pes2021-private-server/archive/refs/heads/main.zip">ZIP</a>) and unzip it.</li>
-        <li>Find your computer's address. Windows: in PowerShell run <code>ipconfig</code> and note the "IPv4 Address", for example <code>192.168.1.50</code>. Mac: run <code>ipconfig getifaddr en0</code> in Terminal.</li>
+        <li>Choose the address players will use. Friends in your home only: your computer's address (Windows: <code>ipconfig</code> in PowerShell, "IPv4 Address"; Mac: <code>ipconfig getifaddr en0</code> in Terminal), for example <code>192.168.1.50</code>. Friends in other homes: your public IP (search "what is my IP"), which also needs the port forwarding in step 6, or everyone's <a href="#faq-far">Tailscale</a> address. This mode gives every player the same single address.</li>
         <li>Open a terminal in the unzipped folder (Windows: right-click the folder → <b>Open in Terminal</b>; Mac: right-click → <b>New Terminal at Folder</b>) and create the settings file. Windows: <code>Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii</code>. Mac: <code>echo PUBLIC_IP=192.168.1.50 &gt; .env</code>. (With Notepad, choose "Save as type: All files" or it saves <code>.env.txt</code>.)</li>
         <li>In that terminal run <code>docker compose -f docker-compose.bridge.yml up -d</code>, then <code>docker compose -f docker-compose.bridge.yml logs</code> to see the join lines and password.</li>
-        <li>For friends outside your home, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this PC.</li>
+        <li>If you used your public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this computer. Players in your own home may then need their router's "NAT loopback" to reach that public address.</li>
       </ol>
     </details>
     <details class="q">
@@ -546,7 +548,7 @@ footer a { color: var(--muted); }
   <div class="wrap">
     <p class="kicker">Under the hood</p>
     <h2>How PES 2021's online mode actually works</h2>
-    <p class="intro">Nobody handed us a manual. We worked this out by watching what the game sends, reading how its code reads the replies, and answering it until it believed it was talking to Konami again. Here's what we found, in plain words.</p>
+    <p class="intro">Nobody handed us a manual. Other fans' earlier server projects gave useful hints, but this version of the game had to be worked out by watching what it sends, reading how its code reads the replies, and answering it until it believed it was talking to Konami again. Here's what we found, in plain words.</p>
 
     <article class="chapter">
       <div class="n" aria-hidden="true">01</div>
@@ -559,7 +561,7 @@ footer a { color: var(--muted); }
           <li><b>3 · Menu</b><span>The online lobby, on a fresh connection. Your game says "still here" every 30 seconds.</span></li>
         </ol>
         <p>Konami's servers no longer answer, so the game can't get past the first desk. Our server just has to be a convincing desk clerk. The game finds it through your PC's <b>hosts file</b>, a small address book Windows and Linux check before asking the internet:</p>
-        <div class="flow" role="img" aria-label="The game asks for Konami's gate address, the hosts file answers with your friend's server address, and the game connects there."><span>Game: "where is <code>pes21-x64-gate.cs.konami.net</code>?"</span><b class="a" aria-hidden="true">→</b><span class="k">hosts file: "203.0.113.7"</span><b class="a" aria-hidden="true">→</b><span>your friend's server</span></div>
+        <div class="flow" role="img" aria-label="The game asks for Konami's gate address, the hosts file answers with your friend's server address, and the game connects there."><span>Game: "where is Konami's gate server?"</span><b class="a" aria-hidden="true">→</b><span class="k">hosts file: 203.0.113.7</span><b class="a" aria-hidden="true">→</b><span>your friend's server</span></div>
         <p class="gloss">That one line in the address book is what the join line adds (six of them, one per Konami server name).</p>
       </div>
     </article>
@@ -630,7 +632,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
         <p class="quote">"I'm looking." Then silence, for five minutes.</p>
         <p>When you press <b>Go to Matchmaking</b>, the game says "I'm looking" once, then goes completely silent and waits. It never asks again. The server has to tap it on the shoulder with a message that says, precisely, <i>matching finished</i>, who is <b>home</b>, who is <b>away</b>, and where to find each other.</p>
         <div class="flow" role="img" aria-label="Game says I'm looking, then waits in silence; the server must push matching finished with home, away and addresses."><span>Game: "I'm looking"</span><b class="a" aria-hidden="true">→</b><span>… silence …</span><b class="a" aria-hidden="true">←</b><span class="k">server: "matching finished: you're home, they're away, here's where"</span></div>
-        <p>Get one word wrong and the game ignores it, waits five minutes, and shows an error. For a while our two test players searched forever on the same PC.</p>
+        <p>Get one word wrong and the game ignores it, waits five minutes, and shows an error. For a while our two test players sat on "Searching for an opponent…" until the five-minute timeout, over and over.</p>
       </div>
     </article>
 
@@ -664,7 +666,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
             </tbody>
           </table>
         </div>
-        <p style="margin-top:14px">Each code pointed straight at the part of the game that was unhappy, which turned days of guessing into minutes.</p>
+        <p style="margin-top:14px">Each code pointed straight at the part of the game that was unhappy, which turned hours of guessing into minutes.</p>
       </div>
     </article>
 
@@ -681,8 +683,8 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
     <article class="chapter">
       <div class="n" aria-hidden="true">09</div>
       <div>
-        <h3>From silence to a full match in two days</h3>
-        <p>The core work happened on 4–5 November 2026, against the original 1.01.00 game (times in UTC+2):</p>
+        <h3>From silence to a full 90-minute match in 14 hours</h3>
+        <p>All on 4 November 2026, against the original 1.01.00 game (times in UTC+2), with one-command hosting ready by midnight:</p>
         <ol class="timeline">
           <li><b>4 Nov, 04:28 · the game reaches us</b><span>The first message is captured: 152 bytes nobody can read yet.</span></li>
           <li><b>4 Nov, ~15:10 · the first message decodes</b><span>A crash trace leads to the decoder; the "handshake" turns out to be "send me the server list".</span></li>
@@ -713,7 +715,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
       </div>
       <div class="ctas">
         <a class="btn primary" href="protocol.html">Technical write-up →</a>
-        <a class="btn plain" href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Report a result</a>
+        <a class="btn plain" href="https://github.com/MohamedAliRashad/pes2021-private-server/issues/new?template=test-report.md">Report a result</a>
       </div>
     </div>
   </div>
@@ -753,8 +755,9 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
   const sync = () => { const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; btn.innerHTML = dark ? sun : moon; btn.setAttribute("aria-pressed", String(dark)); btn.setAttribute("aria-label", "Dark theme"); };
   sync(); btn.addEventListener("click", () => setTimeout(sync, 0));
   const links = [...document.querySelectorAll('.nav ul a[href^="#"]')];
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id)); }), { rootMargin: "-45% 0px -50% 0px" });
-  links.forEach(a => { const t = document.querySelector(a.getAttribute("href")); if (t) io.observe(t); });
+  const owner = { host: "#host", server: "#host", join: "#join", howplay: "#join", help: "#help", faq: "#faq", inside: "#inside" };
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { const h = owner[e.target.id] || ""; links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === h)); } }), { rootMargin: "-45% 0px -50% 0px" });
+  ["host", "join", "howplay", "server", "help", "faq", "inside", "status"].forEach(id => { const t = document.getElementById(id); if (t) io.observe(t); });
   const openTarget = () => { const d = document.getElementById(location.hash.slice(1)); if (d && d.tagName === "DETAILS") d.open = true; };
   addEventListener("hashchange", openTarget); openTarget();
 </script>

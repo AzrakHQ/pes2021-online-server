@@ -53,7 +53,8 @@ The web address changes when the server restarts. Friends who already joined don
 
 Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and start it. Download this
 repo (**Code → Download ZIP**) and unzip it. In that folder, create a file named `.env` containing one
-line with your PC's address (find it with `ipconfig`, "IPv4 Address"):
+line with the address every player will use: your PC's LAN address for friends in your home (`ipconfig`,
+"IPv4 Address"), or your public IP / Tailscale IP for friends elsewhere:
 ```
 PUBLIC_IP=192.168.1.50
 ```
@@ -63,8 +64,9 @@ that folder:
 docker compose -f docker-compose.bridge.yml up -d
 docker compose -f docker-compose.bridge.yml logs
 ```
-For friends outside your house, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to
-this PC. Not yet tested: playing on the same Windows PC that hosts.
+With a public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this PC (players in
+your own home may then need "NAT loopback" on the router). Not yet tested, including playing on the
+same Windows PC that hosts.
 </details>
 
 ---

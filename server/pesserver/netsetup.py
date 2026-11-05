@@ -332,7 +332,8 @@ def banner(password=None, color=True):
         out.append(Y("   !  Your internet provider shares one public IP (CGNAT): friends outside your house\n"
                      "      can't connect. Use Tailscale (see the README) or a cloud server."))
     elif wan and not STATE["mapped"] and not pinned:
-        out.append(Y("   !  Router ports are closed") + D(f" ({STATE['upnp_error'] or 'UPnP off'}). For friends outside "
-                 f"your house,\n      enable UPnP on your router or forward TCP 80,443,8080,10000 + UDP 3478,7600 to {lan}."))
+        out.append(Y("   !  Router ports are closed") + D(f" ({STATE['upnp_error'] or 'UPnP off'}).\n"
+                 f"      At home: enable UPnP on your router, or forward TCP 80,443,8080,10000 + UDP 3478,7600 to {lan}.\n"
+                 "      On a cloud server this is normal: open those ports in the provider's firewall instead."))
     out += [line, ""]
     return "\n".join(out)

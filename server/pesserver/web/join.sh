@@ -17,8 +17,9 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 curl -fsS "$BASE/install-ca-proton.py" -o "$TMP/ca.py"
 
 if [ "$UNINSTALL" = 1 ]; then
-  python3 "$TMP/ca.py" --remove-all ${PES_PREFIX:+"$PES_PREFIX"}
   [ "${PES_SKIP_HOSTS:-0}" = 1 ] || sudo sed -i "/$MARK/d" /etc/hosts
+  python3 "$TMP/ca.py" --remove-all ${PES_PREFIX:+"$PES_PREFIX"} \
+    || echo "Note: the certificate step was skipped (game folder not found, or the game is running)."
   echo "Done. PES 2021 no longer uses $SERVER."
   exit 0
 fi
