@@ -22,8 +22,11 @@ It prints your **admin page** and its **password**.
 Open the admin page and click **Download the mod**. You get one file, `dinput8.dll`. Send it to each
 friend on Discord, WhatsApp or Telegram (email usually blocks this kind of file).
 
-It already knows your server, and keeps working after your server restarts. Playing on the same PC?
-Use the same file yourself.
+It already knows your server, and keeps working after your server restarts.
+
+**Playing on the same PC?** The installer finds PES 2021 on your computer (Steam libraries and
+`~/Games`): close the game, then on the admin page under **This PC** click **Install mod**. On Linux it
+also sets the Wine option for you, so no launch option is needed.
 
 ## 3. Friends: drop it in and play
 
@@ -46,6 +49,10 @@ delete the file.
 | "Router ports are closed" on the host | Turn on **UPnP** in your router settings and run the install again, or forward the ports it lists |
 | "Failed to connect with opponent" | The two PCs can't reach each other directly. Everyone installs [Tailscale](https://tailscale.com); the host runs the install line again with `PUBLIC_IP=<host's Tailscale IP>` before `sh` |
 | Play on another server | Get that server's file and replace yours, or hold **Shift** while the game starts and paste its address |
+
+**New players** need nothing from you: the first time someone with your mod goes online (eFootball →
+Quick Match), the game asks for a region and a player name, and your server saves that player, tied to
+their Steam account. They appear on the admin page.
 
 Server commands: `sudo docker logs pesserver` (shows the admin page and password again) ·
 `sudo docker stop pesserver` · `sudo docker start pesserver`. To update, run the install line again.

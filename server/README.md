@@ -53,6 +53,9 @@ Environment variables:
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |
 | `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner |
+| `pesserver/identity.py` | the server's Ed25519 identity, signed notes and hellos for the mod, writing settings into the mod DLL |
+| `pesserver/gamesetup.py` | admin page "This PC": installs the mod into PES copies the installer found (`/games/<n>`, `/prefixes/<n>`) |
+| `mod/` | the mod (`dinput8.dll`): MinHook hooks, Monocypher signatures, built by the Dockerfile's first stage |
 | `pesserver/events.py` | live activity for the admin page: online players, match phases and scores, saved results |
 | `pesserver/web/` | player page, `join.ps1` / `join.sh` (served with the server address filled in), Proton CA installer |
 | `pesserver/schemas.json` | response schemas of ~400 commands, extracted from the client (`notes/re/extract_schemas.py`) |

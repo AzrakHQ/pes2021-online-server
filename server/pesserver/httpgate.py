@@ -123,6 +123,25 @@ async def _admin(service, method, route, headers, body):
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"]}
         return "200 OK", json.dumps(snap).encode(), "application/json"
+    if route == "/admin/api/games":
+        from . import gamesetup
+        return "200 OK", json.dumps(gamesetup.status()).encode(), "application/json"
+    if route in ("/admin/api/games/install", "/admin/api/games/remove") and method == "POST":
+        from . import gamesetup
+        gid = str(json.loads(body or b"{}").get("id", ""))
+        try:
+            if route.endswith("install"):
+                if not os.path.isfile(MOD_DLL):
+                    return "404 Not Found", b'{"error":"This server was built without the mod."}', "application/json"
+                result = gamesetup.install(gid, mod_bytes())
+                events.feed(service, "The mod was installed in this PC's game", "info")
+            else:
+                result = gamesetup.remove(gid)
+        except LookupError:
+            return "404 Not Found", b'{"error":"game not found"}', "application/json"
+        except (PermissionError, OSError) as e:
+            return "409 Conflict", json.dumps({"error": str(e)}).encode(), "application/json"
+        return "200 OK", json.dumps(result).encode(), "application/json"
     if route == "/admin/api/kick" and method == "POST":
         try:
             pid = int(json.loads(body or b"{}").get("pid"))
@@ -199,9 +218,14 @@ def _mod(service, route, headers, writer, path=""):
     if not os.path.isfile(MOD_DLL):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
     url = f"{scheme}://{host}" if not netsetup._ip(server) else ""   # a name (e.g. dynamic DNS) outlives IP changes
+    return "200 OK", mod_bytes(url), "application/octet-stream", b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
+
+
+def mod_bytes(url=""):
+    """The mod DLL with this server's identity and addresses written in."""
+    from . import identity, netsetup
     settings = identity.mod_settings(os.environ.get("SERVER_NAME", "PES 2021 server"), url, netsetup.game_addrs())
-    body = identity.pack_mod(open(MOD_DLL, "rb").read(), settings)
-    return "200 OK", body, "application/octet-stream", b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
+    return identity.pack_mod(open(MOD_DLL, "rb").read(), settings)
 
 
 async def serve_tls(service, host, port, certfile, keyfile, stun_host="127.0.0.1", stun_port=3478, gate_port=10000):

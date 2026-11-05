@@ -56,6 +56,13 @@
   .invite .cmd { margin-top:6px; }
   @media (max-width: 800px) { .invite { grid-template-columns:1fr; gap:12px; } }
   footer.cmds { color:var(--muted); font-size:13px; margin:8px 0 24px; }
+  .game { display:flex; align-items:center; gap:14px; padding:10px 0; border-top:1px solid var(--line); flex-wrap:wrap; }
+  .game:first-child { border-top:0; }
+  .game .path { flex:1; min-width:220px; font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overflow-wrap:anywhere; }
+  .game .st { font-size:14px; }
+  .ok { color:var(--accent); font-weight:600; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
+  @media (prefers-color-scheme: dark) { button.primary { color:#04241a; } }
   footer.cmds code { display:inline; padding:2px 6px; font-size:12px; }
   .dl { display:block; text-align:center; background:var(--accent); color:#fff; border-radius:10px; padding:11px 14px; font-weight:600; text-decoration:none; }
   .dl:hover { filter:brightness(1.08); }
@@ -103,6 +110,13 @@
       <li><b>They play:</b> eFootball → Quick Match. To undo, they delete the file.</li>
       <li>Or send this page, where they can download it themselves: <span class="cmd"><code id="jp"></code><button data-copy="jp">Copy</button></span></li>
     </ol>
+  </section>
+
+  <section class="card" id="thispc" hidden>
+    <h2>This PC</h2>
+    <p class="muted" style="margin:0 0 10px">PES 2021 is installed on this computer. Close the game, then install the mod with one click to play on your own server.</p>
+    <div id="games"></div>
+    <div id="gmsg" class="warn"></div>
   </section>
 
   <div class="tiles">
@@ -210,6 +224,14 @@ async function refresh() {
 document.addEventListener("click", async e => {
   const c = e.target.closest("[data-copy]");
   if (c) { navigator.clipboard?.writeText($(c.dataset.copy).textContent).then(() => { c.textContent = "Copied"; setTimeout(() => c.textContent = "Copy", 1400); }); }
+  const g = e.target.closest("[data-game]");
+  if (g) {
+    g.disabled = true; $("gmsg").textContent = "";
+    const r = await fetch("/admin/api/games/" + g.dataset.act, {method: "POST", body: JSON.stringify({id: g.dataset.game}),
+                                                                 headers: {Authorization: "Bearer " + pw}}).catch(() => null);
+    if (!r || !r.ok) { const j = r ? await r.json().catch(() => ({})) : {}; $("gmsg").textContent = j.error || "That didn't work. Is the game closed?"; }
+    loadGames();
+  }
   const k = e.target.closest("[data-kick]");
   if (k && confirm(`Kick ${k.dataset.name}? Their game will disconnect from the server.`)) {
     await api("/admin/api/kick", {method: "POST", body: JSON.stringify({pid: +k.dataset.kick})}).catch(() => {});
@@ -219,7 +241,26 @@ document.addEventListener("click", async e => {
 $("lf").onsubmit = e => { e.preventDefault(); pw = $("pw").value.trim(); try { localStorage.setItem("pes-admin", pw); } catch (_) {} start(); };
 $("logout").onclick = () => { pw = ""; try { localStorage.removeItem("pes-admin"); } catch (_) {} showLogin(); };
 
-function start() { clearInterval(timer); refresh(); timer = setInterval(refresh, 3000); }
+const MODSTATE = {none: "No mod yet", ours: "✓ Mod installed for this server", "other-server": "Mod for another server",
+                  foreign: "Another mod's dinput8.dll is in this folder"};
+async function loadGames() {
+  let gs;
+  try { gs = await api("/admin/api/games"); } catch (e) { return; }
+  $("thispc").hidden = !gs.length;
+  $("games").innerHTML = gs.map(g => {
+    const wine = g.override === null
+      ? `Steam launch option needed: <code class="inline">WINEDLLOVERRIDES="dinput8=n,b" %command%</code>`
+      : g.override ? "Wine set to load it" : "Wine setting not set yet";
+    const ready = g.mod === "ours" && g.override !== false;
+    const btn = g.mod === "foreign" ? "" : ready
+      ? `<button data-game="${esc(g.id)}" data-act="remove">Remove</button>`
+      : `<button class="primary" data-game="${esc(g.id)}" data-act="install">${g.mod === "none" ? "Install mod" : "Update mod"}</button>`;
+    return `<div class="game"><div class="path" title="${esc(g.path)}">${esc(g.path)}</div>
+      <div class="st"><span class="${ready ? "ok" : ""}">${MODSTATE[g.mod]}</span><br><span class="muted">${wine}</span></div>${btn}</div>`;
+  }).join("");
+}
+
+function start() { clearInterval(timer); refresh(); loadGames(); timer = setInterval(refresh, 3000); }
 pw ? start() : showLogin();
 </script>
 </body>

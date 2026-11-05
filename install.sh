@@ -45,9 +45,42 @@ if [ "$pulled" = 0 ]; then
     $DOCKER build -q -t "$IMAGE" "$REPO" >/dev/null || { echo "Could not build the server image."; exit 1; }
   fi
 fi
+# PES 2021 on this computer? Share only those game folders (and their Wine prefixes) with the
+# server, so the admin page can put the mod in with one click.
+prefix_for() {
+  case "$1" in
+    */steamapps/common/*)
+      p="${1%%/steamapps/common/*}/steamapps/compatdata/1259970/pfx"
+      [ -f "$p/user.reg" ] && { printf '%s' "$p"; return; } ;;
+  esac
+  for c in "$1/../proton/pfx" "$1/../pfx"; do
+    [ -f "$c/user.reg" ] && { (cd "$c" && pwd -P); return; }
+  done
+}
+GAMES_LIST="$(mktemp)"
+{
+  for root in "$HOME/.steam/steam" "$HOME/.local/share/Steam" "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam"; do
+    [ -f "$root/steamapps/libraryfolders.vdf" ] || continue
+    printf '%s\n' "$root"
+    sed -n 's/^[[:space:]]*"path"[[:space:]]*"\(.*\)"[[:space:]]*$/\1/p' "$root/steamapps/libraryfolders.vdf"
+  done | while IFS= read -r lib; do
+    [ -d "$lib/steamapps/common" ] && find "$lib/steamapps/common" -maxdepth 2 -name PES2021.exe 2>/dev/null
+  done
+  [ -d "$HOME/Games" ] && find "$HOME/Games" -maxdepth 6 -name PES2021.exe -not -path '*/pfx/*' 2>/dev/null
+} | while IFS= read -r exe; do (cd "$(dirname "$exe")" && pwd -P); done | sort -u > "$GAMES_LIST"
+set --
+n=0
+while IFS= read -r d; do
+  n=$((n + 1))
+  set -- "$@" -v "$d:/games/$n" -e "PES_GAME_$n=$d"
+  p="$(prefix_for "$d")"
+  [ -n "$p" ] && set -- "$@" -v "$p:/prefixes/$n" -e "PES_PREFIX_$n=$p"
+done < "$GAMES_LIST"
+rm -f "$GAMES_LIST"
+
 $DOCKER rm -f pesserver >/dev/null 2>&1 || true
 $DOCKER run -d --name pesserver --network host --restart unless-stopped \
-  -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -v pesserver-data:/data "$IMAGE" >/dev/null
+  -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -v pesserver-data:/data "$@" "$IMAGE" >/dev/null
 
 i=0
 until out="$($DOCKER exec pesserver cat /tmp/pesserver-banner.txt 2>/dev/null)" && [ -n "$out" ]; do
@@ -55,4 +88,6 @@ until out="$($DOCKER exec pesserver cat /tmp/pesserver-banner.txt 2>/dev/null)" 
   if [ "$i" -gt 90 ]; then echo "The server did not start. See: $DOCKER logs pesserver"; exit 1; fi
   sleep 1
 done
-printf '%s\n\n' "$out"
+printf '%s\n' "$out"
+[ "$n" -gt 0 ] && printf '   PES 2021 found on this computer: install the mod from the admin page (This PC).\n'
+echo
