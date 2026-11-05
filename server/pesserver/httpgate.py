@@ -130,6 +130,17 @@ def server_id():
     return _SID[0]
 
 
+def _rl_key(peer):
+    import ipaddress
+    try:
+        ip = ipaddress.ip_address(peer.split("%")[0])
+    except ValueError:
+        return peer
+    if ip.version == 6 and not ip.ipv4_mapped:
+        return str(ipaddress.ip_network(f"{ip}/64", strict=False))
+    return str(ip.ipv4_mapped or ip) if ip.version == 6 else str(ip)
+
+
 _FAILED = {}                                  # client IP -> times of recent wrong passwords
 
 
@@ -269,8 +280,9 @@ async def _admin(service, method, route, headers, body, peer=""):
     if route == "/admin/api/login" and method == "POST":
         for ip in [ip for ip, ts in _FAILED.items() if not ts or now - ts[-1] > 60]:
             del _FAILED[ip]                   # forget addresses with no recent failures
-        recent = [t for t in _FAILED.get(peer, []) if now - t < 60]
-        _FAILED[peer] = recent
+        key = _rl_key(peer)                   # IPv6: one /64 counts as one address
+        recent = [t for t in _FAILED.get(key, []) if now - t < 60]
+        _FAILED[key] = recent
         everyone = sum(len([t for t in ts if now - t < 60]) for ts in _FAILED.values())
         import ipaddress
         try:

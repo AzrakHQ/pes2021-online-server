@@ -384,3 +384,9 @@ def test_admin_rebinding_and_csp(tmp_path):
             srv.close()
     import json
     asyncio.run(go())
+
+
+def test_password_limit_groups_ipv6_by_64():
+    k = httpgate._rl_key
+    assert k("2001:db8:1:2::1") == k("2001:db8:1:2:ffff::9") != k("2001:db8:1:3::1")
+    assert k("192.168.1.5") == "192.168.1.5" and k("::ffff:192.168.1.5") == "192.168.1.5"

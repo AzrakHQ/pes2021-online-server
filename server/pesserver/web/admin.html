@@ -42,7 +42,7 @@
   .skip { position:absolute; left:-9999px; } .skip:focus { left:16px; top:8px; z-index:20; background:var(--card); padding:6px 10px; border-radius:8px; }
 
   .banner { border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:14px; }
-  .banner.down { border:2px solid var(--live); background:var(--card); position:sticky; top:8px; z-index:10; box-shadow:0 4px 14px rgba(0,0,0,.12); }
+  .banner.down { border:2px solid var(--live); background:var(--card); box-shadow:0 4px 14px rgba(0,0,0,.12); }
   body.stale #thispc button, body.stale [data-kick] { pointer-events:none; opacity:.6; filter:grayscale(1); }
   body.stale #dl { pointer-events:none; background:var(--code); color:var(--muted); border-color:var(--line); }
   body.stale #stats, body.stale #board { filter:grayscale(.6); }
@@ -108,6 +108,8 @@
   .game .msg { grid-column:1 / -1; font-size:14px; }
   .game .msg:empty { display:none; }
   .act .skipbtn { flex-basis:100%; text-align:right; font-size:13px; padding:2px; }
+  @media (max-width: 600px) { .act .skipbtn { flex-basis:auto; } }
+  @media (max-width: 800px) { #c-live { order:1; } #c-online { order:2; } #c-results { order:4; } #c-feed { order:5; } #c-net { order:6; } #board.netbad #c-net { order:3; } }
   .game .st .pill { margin-bottom:2px; }
   #uptime:not(:empty) + #until:not(:empty)::before { content:" · "; }
   #err.blocked { margin:12px 0 0; min-height:0; }
@@ -149,7 +151,7 @@
   td { padding:8px; border-bottom:1px solid var(--line); overflow-wrap:anywhere; }
   tr:last-child td { border-bottom:0; }
   td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  td.name { font-weight:600; min-width:10em; max-width:20em; overflow-wrap:anywhere; word-break:normal; }
+  td.name { font-weight:600; min-width:10em; max-width:20em; overflow-wrap:break-word; word-break:normal; }
 
   td.nw, span.nw { white-space:nowrap; }
   abbr[title] { text-decoration:none; cursor:help; }
@@ -165,13 +167,13 @@
   .score { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; text-align:center; }
   .score.vs { font-size:15px; color:var(--muted); font-weight:600; }
   .phase { grid-column:1/-1; text-align:center; font-size:13px; }
-  @media (max-width: 420px) { #live .match { gap:8px; padding:10px; } #live .score { font-size:20px; } .match .side { -webkit-line-clamp:3; } }
+  @media (max-width: 420px) { #live .match { gap:8px; padding:10px; } #live .score { font-size:20px; } .match .side { display:block; -webkit-line-clamp:unset; } }
 
   .results { list-style:none; margin:0; padding:0; }
   .results li { display:grid; grid-template-columns:7.5em minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:baseline; padding:7px 0; border-bottom:1px solid var(--line); font-size:14px; }
   .results li:last-child { border-bottom:0; }
-  .results .h { text-align:right; overflow-wrap:anywhere; min-width:0; }
-  .results .a { overflow-wrap:anywhere; min-width:0; }
+  .results .h { text-align:right; overflow-wrap:break-word; min-width:0; }
+  .results .a { overflow-wrap:break-word; min-width:0; }
   .results .s { font-variant-numeric:tabular-nums; font-weight:700; white-space:nowrap; }
   .results .win { font-weight:700; }
   .results time, .feed time { color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; font-size:13px; }
@@ -228,7 +230,7 @@
       <input type="text" name="username" autocomplete="username" value="admin" hidden>
       <label for="pw">Admin password</label>
       <div class="pwrow"><input id="pw" type="password" autocomplete="current-password" aria-describedby="err"><button type="button" id="showpw">Show<span class="sr"> password</span></button></div>
-      <div id="err" role="alert" tabindex="-1"></div>
+      <div id="err" aria-live="assertive" tabindex="-1"></div>
       <label class="remember" id="remember-row"><input type="checkbox" id="remember"> <span>Keep me signed in on this device for 30 days</span></label>
       <button type="submit" class="primary" id="signin">Sign in</button>
     </form>
@@ -247,7 +249,7 @@
   </header>
 
   <div id="down" class="banner down" role="alert" hidden></div>
-  <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours. To turn it off, run the install command again with it empty: <code>… | ADMIN_REMOTE= sh</code>.</details></div>
+  <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours. To turn it off, run this on the server: <span class="linkrow"><code>curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh</code><button type="button" class="small" data-copytext="curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh" data-copied="Command copied">Copy</button></span></details></div>
 
   <section class="card invite" aria-labelledby="inv-h">
     <div>
@@ -343,6 +345,7 @@ function cmdsHtml() {
 }
 const isTs = a => /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(a || "") || String(a || "").toLowerCase().startsWith("fd7a:115c:a1e0:");
 const startCmd = () => dockerDesktop ? "docker start pesserver" : "sudo docker start pesserver";
+const nm = n => esc(n).replace(/([_.])/g, "$1<wbr>");   // long handles break at _ and .
 const shown = {}, rowMsg = {}, dlHTML = document.getElementById("dl").innerHTML;
 
 // Replace a section's HTML only when it changed; keep keyboard focus on the same control,
@@ -393,7 +396,7 @@ const where = ip => { ip = String(ip || "").toLowerCase();
   return "Internet"; };
 
 async function api(path, opts = {}) {
-  const r = await fetch(path, {...opts, signal: AbortSignal.timeout(4000),
+  const r = await fetch(path, {...opts, signal: AbortSignal.timeout(opts.timeout || 4000),
                                headers: {...(opts.headers || {}), Authorization: "Bearer " + token}});
   const j = await r.json().catch(() => ({}));
   if (!r.ok) { const e = new Error(j.error || "failed"); e.status = r.status; throw e; }
@@ -420,7 +423,7 @@ function setDown(on) {
     text("status-t", Date.now() < backUntil ? "Back online" : "Server online");
     return;
   }
-  if (!last && failures === 0) { $("board").hidden = true; put("stats", `<div class="quiet">Waiting for the server…</div>`); }
+  if (!last && failures === 0) { $("board").hidden = true; put("stats", `<div class="quiet">Live matches and results appear when the server answers.</div>`); }
   ++failures;                                   // announce the outage once, not on every poll; a hung
   if (downSince || (failures < 2 && !(lastOkAt && Date.now() - lastOkAt > 8000))) return;   // server counts at once
   downSince = lastOkAt || Date.now();
@@ -431,8 +434,10 @@ function setDown(on) {
   document.body.classList.add("stale");
   document.querySelectorAll("[data-kick], #thispc button").forEach(b => b.setAttribute("aria-disabled", "true"));
   $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").textContent; $("dl").textContent = "Waiting for the server…";
-  $("down").innerHTML = (lastOkAt ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b>` : `<b>The server isn't answering.</b>`) + ` Is that computer on? Start the server with <code>${startCmd()}</code>. This page keeps trying.`;
-  $("down").hidden = false;
+  const downHtml = lastOkAt
+    ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? Start the server with <code>${startCmd()}</code>. This page keeps trying.`
+    : `<b>The server's game service isn't answering.</b> Restart it on the server computer with <code>${dockerDesktop ? "docker" : "sudo docker"} restart pesserver</code>. This page keeps trying.`;
+  $("down").hidden = false; requestAnimationFrame(() => { $("down").innerHTML = downHtml; });   // shown first, so the alert is read
 }
 
 function reachInfo(s) {
@@ -450,8 +455,10 @@ async function refresh() {
   inflight = true;
   let d;
   const slow = setTimeout(() => { if (!downSince) { backUntil = 0; text("status-t", "Checking…"); } }, 3000);
-  try { d = await api("/admin/api/state"); }
-  catch (e) { clearTimeout(slow); inflight = false; if (e.status === 401) return signedOut(); return setDown(true); }
+  try { d = await api("/admin/api/state", {timeout: 3000}); }
+  catch (e) { clearTimeout(slow); inflight = false; if (e.status === 401) return signedOut();
+    if (e.name === "TimeoutError" && lastOkAt) failures = Math.max(failures, 1);   // hung: say so now
+    return setDown(true); }
   clearTimeout(slow); inflight = false;
   setDown(false);
   last = d;
@@ -486,12 +493,13 @@ function render(d) {
   $("pcpill").hidden = first || !pn || $("thispc").hidden;
   if (!$("pcpill").hidden) put("pcpill", `${I.warn} This PC: ${pn} ${pn === 1 ? "copy needs" : "copies need"} attention ${I.down}`);
   const pc = $("thispc"), anchor = first ? $("stats") : $("board").nextElementSibling;
-  if (first ? pc.nextElementSibling !== $("stats") : pc.previousElementSibling !== $("board")) {
-    const f = pc.contains(document.activeElement) ? document.activeElement : null;
+  const busy = pc.contains(document.activeElement) || pc.matches(":hover") || Object.keys(rowMsg).length > 0;
+  if (!busy && (first ? pc.nextElementSibling !== $("stats") : pc.previousElementSibling !== $("board"))) {
+    const moving = !first && !pc.hidden && pc.nextElementSibling === $("stats");
     pc.parentNode.insertBefore(pc, anchor);
-    if (f) f.focus();
+    if (moving) $("pc-live").textContent = "The server computer card moved below the match info.";
   }
-  $("board").classList.toggle("board-quiet", quiet); $("board").hidden = false;
+  $("board").classList.toggle("board-quiet", quiet); $("board").hidden = false; $("board").classList.toggle("netbad", !reachInfo(s).ok);
   const playing = d.live.filter(m => m.kickoff && m.phase !== "Full time").length, ready = d.live.filter(m => !m.kickoff && m.phase !== "Full time").length;
   const today = d.results.filter(r => new Date(r.ended * 1000).toDateString() === new Date().toDateString()).length;
   put("stats", quiet
@@ -500,7 +508,7 @@ function render(d) {
       : `<div class="quiet"><b>Waiting for your first friend.</b> Send them the mod; they appear here within seconds of starting PES 2021.<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
     : `<div class="tiles">
         <a class="tile" href="#h-online"><b>${d.online.length}</b><span>${d.online.length === 1 ? "player" : "players"} online</span></a>
-        <a class="tile" href="#h-online"><b>${d.searching}</b><span>looking for a match${d.searching === 1 && d.online.find(p => /search/i.test(p.status)) ? ` · ${esc(d.online.find(p => /search/i.test(p.status)).name)}` : ""}</span></a>
+        <a class="tile" href="#h-online"${d.searching === 1 && d.online.find(p => /search/i.test(p.status)) ? ` title="${esc(d.online.find(p => /search/i.test(p.status)).name)} is looking for a match"` : ""}><b>${d.searching}</b><span>looking for a match</span></a>
         <a class="tile" href="#h-live"><b>${playing}</b><span>${playing === 1 ? "match" : "matches"} live${ready ? ` · ${ready} getting ready` : ""}</span></a>
         <a class="tile" href="#h-results"><b>${d.played_total}</b><span>${d.played_total === 1 ? "match" : "matches"} played${today ? ` · ${today} today` : ""}</span></a></div>`);
   // with nobody around, keep only the network card (it may need fixing before anyone can join)
@@ -516,16 +524,16 @@ function render(d) {
   const fin = done.length ? `<p class="finished">Just finished: ${done.map(m => `${esc(m.home_name)} ${m.home_score}–${m.away_score} ${esc(m.away_name)}`).join(" · ")}</p>` : "";
   put("live", going.length ? `<ul class="list-plain" aria-label="Live matches">` + going.map(m => `
     <li class="match"><span class="sr">${m.kickoff || m.phase === "Full time" ? `${esc(m.home_name)} ${m.home_score}, ${esc(m.away_name)} ${m.away_score}.` : `${esc(m.home_name)} versus ${esc(m.away_name)}.`}</span>
-      <div class="side" aria-hidden="true" title="${esc(m.home_name)}">${esc(m.home_name)}</div>
+      <div class="side" aria-hidden="true" title="${esc(m.home_name)}">${nm(m.home_name)}</div>
       <div class="score${m.kickoff || m.phase === "Full time" ? "" : " vs"}" aria-hidden="true">${m.kickoff || m.phase === "Full time" ? `${m.home_score} – ${m.away_score}` : "vs"}</div>
-      <div class="side away" aria-hidden="true" title="${esc(m.away_name)}">${esc(m.away_name)}</div>
+      <div class="side away" aria-hidden="true" title="${esc(m.away_name)}">${nm(m.away_name)}</div>
       <div class="phase">${phaseLabel(m)}</div>
     </li>`).join("") + `</ul>` + fin : fin ? fin : d.searching === 1 ? `<p class="empty">One friend is searching for a match. Another friend needs to choose Quick Match too.</p>`
     : `<p class="empty">No one is playing. A match starts when two friends choose Quick Match at the same time.</p>`);
 
   put("online", d.online.length ? `<div class="tablewrap"><table><caption class="sr">Players online now</caption>
     <thead><tr><th scope="col">Player</th><th scope="col" class="hide-xs">Status</th><th scope="col" class="hide-sm hide-md">Connection</th><th scope="col" class="num hide-sm hide-md">Online for</th><th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
-    d.online.map(p => `<tr><td class="name">${esc(p.name)}<small class="show-xs">${esc(p.status)} · ${where(p.ip)} · ${dur(now - p.since)}</small></td><td class="hide-xs"><span class="nw">${esc(p.status)}</span>${opponent(d, p.name) ? ` vs ${esc(opponent(d, p.name))}` : ""}<small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
+    d.online.map(p => `<tr><td class="name">${nm(p.name)}<small class="show-xs">${esc(p.status)} · ${where(p.ip)} · ${dur(now - p.since)}</small></td><td class="hide-xs"><span class="nw">${esc(p.status)}</span>${opponent(d, p.name) ? ` vs ${esc(opponent(d, p.name))}` : ""}<small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
       <td class="hide-sm hide-md muted conn">${where(p.ip)}<small>${esc(p.ip)}</small></td><td class="num muted hide-sm hide-md">${dur(now - p.since)}</td>
       <td class="num act"><button class="danger" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></td></tr>`).join("") +
     `</tbody></table></div><p class="note">Kick disconnects someone now; they can reconnect. There's no ban yet: anyone who has the mod file or your server's address can join.</p>`
@@ -536,8 +544,8 @@ function render(d) {
   put("results", d.results.length ? `<ul class="results">` + rs.map(r => {
       const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
       return `<li><time datetime="${iso(r.ended)}">${when(r.ended, now)}</time>
-        <span class="h ${hw ? "win" : ""}" title="${esc(r.home_name)}">${esc(r.home_name)}${hw ? '<span class="sr"> won</span>' : ""}</span><span class="s">${r.home_score}–${r.away_score}</span>
-        <span class="a ${aw ? "win" : ""}" title="${esc(r.away_name)}">${esc(r.away_name)}${aw ? '<span class="sr"> won</span>' : ""}${r.reason ? ` <span class="pill neutral tag">abandoned</span>` : ""}</span></li>`;
+        <span class="h ${hw ? "win" : ""}" title="${esc(r.home_name)}">${nm(r.home_name)}${hw ? '<span class="sr"> won</span>' : ""}</span><span class="s">${r.home_score}–${r.away_score}</span>
+        <span class="a ${aw ? "win" : ""}" title="${esc(r.away_name)}">${nm(r.away_name)}${aw ? '<span class="sr"> won</span>' : ""}${r.reason ? ` <span class="pill neutral tag">abandoned</span>` : ""}</span></li>`;
     }).join("") + `</ul>` +
     (d.results.length > nRes ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">${showAllResults ? "Show fewer" : d.results.length < d.played_total ? `Show last ${d.results.length} results (older ones aren't kept)` : `Show all ${d.results.length} results`}</button>` : "")
     : `<p class="empty">Finished matches will be listed here.</p>`);
@@ -612,7 +620,7 @@ function gameRow(g) {
     st = `<span class="pill warn tag">Another mod's file</span><div class="what">Another mod's <code>dinput8.dll</code> is in this folder. Move it out of the folder shown above, then click Check again.</div>`;
     btn = `<button type="button" data-reload="${esc(g.id)}" data-key="game-${esc(g.id)}" aria-label="Check again: ${esc(name)}">Check again</button>`;
   } else if (g.mod === "none") {
-    st = `<span class="pill neutral tag">Not installed</span>${g.prefix ? what : `<div class="what">Copies <code>dinput8.dll</code> into the game folder. You'll then add one ${steam ? "Steam launch option" : "launcher setting"} (shown here).</div>`}`; btn = b("primary", "install", "Install mod");
+    st = `<span class="pill neutral tag">Not installed</span>${g.prefix ? what : `<div class="what">Copies <code>dinput8.dll</code> into the game folder. After installing, you'll paste one ${steam ? "Steam launch option" : "launcher setting"}; this card shows it.</div>`}`; btn = b("primary", "install", "Install mod");
   } else if (g.mod === "other-server") {
     st = `<span class="pill neutral tag">Uses another server</span><div class="what">The mod here points to a different server. This replaces it with this server's mod. Friends on the other server aren't affected.</div>`; btn = b("", "switch", "Use this server instead");
   } else if (g.override === false) {
@@ -626,20 +634,21 @@ function gameRow(g) {
     } else {
       st = steam
         ? `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, add this Steam launch option. In Steam: PES 2021 → Properties → Launch options, paste <code>${esc(opt)}</code> ${copyBtn}</div>`
-        : `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, add this setting in your launcher. In Lutris or your launcher, add the environment variable <code>${esc(opt)}</code> ${copyBtn}</div>`;
+        : `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, start PES with this environment variable set (in Lutris: Configure → System options → Environment variables): <code>${esc(opt)}</code> ${copyBtn}</div>`;
       btn = `<button type="button" class="primary" data-optdone="${esc(g.path)}" data-key="lo-done-${esc(g.id)}" aria-label="I've added it: launch option for ${esc(name)}">I've added it</button> ${b("danger", "remove", "Uninstall")}`;
-      info = `<span class="muted small">The server can't see launch options, so confirm here once you've added it.</span>`;
+      st += `<div class="what">The server can't see launch options, so click "I've added it" once it's in.</div>`;
     }
   } else {
     st = `<span class="pill tag">${I.ok} Ready to play</span>`; btn = b("danger", "remove", "Uninstall");
   }
   const ready = g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g)));
+  let skipb = "";
   if (!ready && skipped(g)) info = `<span class="muted small">Skipped in this browser.</span> <button type="button" class="linkbtn" data-unskip="${esc(g.path)}" data-key="unskip-${esc(g.id)}" aria-label="Set up ${esc(name)} after all">Set it up after all</button>`;
-  else if (!ready) btn += `<button type="button" class="linkbtn skipbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}" aria-label="Skip ${esc(name)}: I don't play on this copy">Skip this copy</button>`;
+  else if (!ready) skipb = `<button type="button" class="linkbtn skipbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}" aria-label="Skip ${esc(name)}: I don't play on this copy">Skip this copy</button>`;
   const msg = rowMsg[g.id] ? rowMsg[g.id].html : "";
   return `<div class="game"><div class="where"><b>${esc(name)}</b>
       <code class="parent" title="${esc(g.path)}">${esc(String(g.path).replace(/^\/home\/[^/]+/, "~"))}</code><div class="st">${st}</div></div>
-    <div class="act">${failed ? "" : btn}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
+    <div class="act">${failed ? "" : btn}${skipb}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
 }
 function libraryOf(path) {
   const p = String(path).split("/").filter(Boolean), i = p.indexOf("steamapps");
@@ -687,12 +696,13 @@ async function loadGames(force, focusMsg, focusKey) {
   const html = need === 0 && !Object.keys(rowMsg).length
     ? `<details class="pcready"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this PC is ready to play (${gs.length} ${gs.length === 1 ? "copy" : "copies"})` : `PES 2021 on this PC: ${okCnt} ready, ${gs.length - okCnt} skipped`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
-        : `Want to play on this computer too? ${gs.length > 1 ? `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup` : "Set up its copy of PES 2021 here"}${actionable ? `: close PES 2021, then use the button next to ${actionable === 1 ? "it" : "each copy"}.` : need === 1 ? ". Follow the step below." : ". Follow the step under each copy."}`}</p>${rows}`;
+        : `Want to play on this computer too? ${gs.length > 1 ? `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup` : "Set up its copy of PES 2021 here"}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : ". Follow the step under each copy."}`}</p>${rows}`;
   put("games", html, force);
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }
   if (focusMsg) { const m = $("games").querySelector(`[data-key="msg-${CSS.escape(focusMsg)}"]`); (m && m.textContent.trim() ? m : $("pc-h")).focus(); }
 }
 function doneMsg(act, ng) {
+  justMarked.add(ng.path);                       // keep the row in place until the page reloads
   $("pc-live").textContent = act === "remove" ? "Mod removed." : "Mod installed. Start PES 2021, then eFootball, Quick Match.";
   if (act !== "remove" && ng.override === null) {
     $("pc-live").textContent = "Mod copied. Add the launch option, then confirm.";
@@ -806,10 +816,10 @@ document.addEventListener("click", async e => {
     return loadGames(true, null, g && "skip-" + g.id); }
   const od = e.target.closest("[data-optdone]");
   if (od) { try { localStorage.setItem("pes-optdone:" + od.dataset.optdone, "1"); } catch (_) {} justMarked.add(od.dataset.optdone);
-    $("pc-live").textContent = "Marked as ready"; const g = lastGames.find(x => x.path === od.dataset.optdone); return loadGames(true, null, g && "lo-undo-" + g.id); }
+    $("pc-live").textContent = "Marked as ready"; const g = lastGames.find(x => x.path === od.dataset.optdone); if (g) delete rowMsg[g.id]; return loadGames(true, null, g && "lo-undo-" + g.id); }
   const ou = e.target.closest("[data-optundo]");
   if (ou) { try { localStorage.removeItem("pes-optdone:" + ou.dataset.optundo); } catch (_) {} justMarked.delete(ou.dataset.optundo);
-    $("pc-live").textContent = "Marked as not ready"; const g = lastGames.find(x => x.path === ou.dataset.optundo); return loadGames(true, null, g && "lo-done-" + g.id); }
+    $("pc-live").textContent = "Marked as not ready"; const g = lastGames.find(x => x.path === ou.dataset.optundo); if (g) delete rowMsg[g.id]; return loadGames(true, null, g && "lo-done-" + g.id); }
   const g = e.target.closest("[data-game]");
   if (g) return gameAction(g);
   const k = e.target.closest("[data-kick]");
@@ -871,7 +881,7 @@ fetch("/admin/api/info").then(r => r.json()).then(i => {
   if (i.docker_desktop) $("forgot").innerHTML = "Forgot it? On this computer, open a terminal and run <code>docker logs pesserver</code>.";
   if (i.host_ok === false) {
     const where = i.lan ? `<a href="http://${i.lan}/admin">http://${i.lan}/admin</a>` : "the server's address (for example http://192.168.x.x/admin)";
-    $("err").innerHTML = `This page was opened by a web name, which the admin page doesn't accept. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
+    $("err").innerHTML = `For safety, the admin page only opens by its number address. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
     $("lf").before($("err")); $("err").classList.add("blocked"); $("lf").hidden = true; $("forgot").hidden = true; $("lsub").hidden = true; ($("err").querySelector("a") || $("err")).focus();
     $("signin").disabled = true;
   }
@@ -894,7 +904,7 @@ function start() {
   let until = 0; try { until = +(localStorage.getItem("pes-admin-until") || sessionStorage.getItem("pes-admin-until") || 0); } catch (e) {}
   text("until", until ? "signed in until " + new Intl.DateTimeFormat([], until * 1000 - Date.now() < 86400000 ? {hour: "numeric", minute: "2-digit"} : {month: "short", day: "numeric"}).format(new Date(until * 1000)) : "");
   refresh(); loadGames();
-  setTimeout(() => { if (!last && !downSince) put("stats", `<div class="quiet">Waiting for the server…</div>`); }, 2000);
+  setTimeout(() => { if (!last && !downSince) put("stats", `<div class="quiet">Live matches and results appear when the server answers.</div>`); }, 2000);
   timer = setInterval(refresh, 3000); gamesTimer = setInterval(loadGames, 15000);
 }
 token ? start() : showLogin();
