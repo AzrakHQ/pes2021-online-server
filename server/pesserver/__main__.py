@@ -92,6 +92,9 @@ async def run(a):
     else:
         netsetup.STATE["lan"] = netsetup.lan_ip()
     netsetup.STATE["ready"] = True
+    from . import turn
+    await turn.start(svc, data_dir, netsetup.STATE["lan"], netsetup.STATE["wan"],
+                     [os.environ.get("PESSERVER_PUBLIC_ADDR", "")])
     show_banner()
     identity.start_publisher()
     from . import events, updates
@@ -116,6 +119,7 @@ async def run(a):
         logging.info("shutting down")
         if os.environ.get("PES_CONSOLE") == "1":
             print("\n   Stopping the server...", flush=True)
+        turn.stop()
         if a.auto_net:
             await asyncio.to_thread(netsetup.teardown)
         st.close()

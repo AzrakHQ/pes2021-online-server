@@ -41,6 +41,11 @@ def skip_port(port):
     PORTS = [(p, proto) for p, proto in PORTS if p != port]
 
 
+def _ports():
+    from . import turn
+    return PORTS + turn.ports()
+
+
 def _ip(s):
     try:
         ip = ipaddress.ip_address(s)
@@ -209,7 +214,7 @@ def setup(use_upnp=True, renew_every=1800):
                 STATE["upnp"] = gw.control_url
                 if ext and not is_public(ext):
                     STATE["cgnat"] = True           # the router itself is behind another NAT (ISP CGNAT)
-                for port, proto in PORTS:
+                for port, proto in _ports():
                     try:
                         gw.add(port, proto)
                         STATE["mapped"].append(f"{port}/{proto.lower()}")
@@ -227,7 +232,7 @@ def setup(use_upnp=True, renew_every=1800):
     if gw and STATE["mapped"]:
         def renew():
             while not _stop.wait(renew_every):
-                for port, proto in PORTS:
+                for port, proto in _ports():
                     try:
                         gw.add(port, proto)
                     except Exception as e:  # noqa: BLE001

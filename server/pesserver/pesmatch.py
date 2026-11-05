@@ -478,3 +478,6 @@ def _verdict(svc, rid, room):
     events.feed(svc, "Ratings: " + ", ".join(f"{events.name_of(svc, p)} {old[p][0]} → {new[p][0]}" for p in (home, away)),
                 "result")
     return room["verdict"]
+
+
+from . import turn  # noqa: E402,F401  (registers the TURN commands; imports pesmatch lazily)
