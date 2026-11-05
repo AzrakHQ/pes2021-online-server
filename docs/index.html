@@ -418,7 +418,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
     <div class="grid3">
       <div class="card">
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></div>
-        <h3>One file per friend</h3>
+        <h3>One file for all your friends</h3>
         <p class="small muted">The admin page hands you the mod with your server built in. Friends drop it in the game folder; there's nothing to type and nothing to install.</p>
       </div>
       <div class="card">
@@ -458,7 +458,8 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
                 <li>Create the cheapest <b>Ubuntu 24.04</b> server at any cloud provider. While creating it, find the box for a start-up script (<b>User data</b>, <b>Cloud config</b> or <b>Initialization script</b>), paste this (it contains a random admin password made in your browser just now):
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-ud">#!/<wbr>bin/<wbr>sh
 curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 ADMIN_PASSWORD='choose-a-long-password' sh</pre><button class="copy" data-copy="c-cloud-ud" type="button">Copy</button></div>
-                  <p class="small genpw-note">Your admin password: <b class="genpw">the one at the end of the script (change it to your own)</b>. Write it down: you sign in with it, and the admin page shows your friends' IP addresses.</p>
+                  <p class="small genpw-note">Your admin password: <b class="genpw">the one at the end of the script (change it to your own, at least 10 characters)</b>. Write it down: you sign in with it, and the admin page shows your friends' IP addresses. It also stays in your provider's server settings, so anyone with your cloud account can see it.</p>
+                  <noscript><p class="small">JavaScript is off, so no password was made for you: replace <code>choose-a-long-password</code> with your own (at least 10 characters). The server refuses the example and anything shorter.</p></noscript>
                   On DigitalOcean, for example: Create → Droplets → <b>Ubuntu 24.04</b> → the cheapest Basic plan → Advanced options → <b>Add initialization scripts</b> (menu names may differ a little).</li>
                 <li>If the provider has a firewall for the server, allow <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b>. On Oracle Cloud, also run the two <code>iptables</code> lines in <a href="#hosthelp">Help → For hosts</a>.</li>
                 <li>About 5 minutes after it starts, open <b>http://&lt;the server's IP&gt;/admin</b>, sign in with that password, and download the mod for your friends. Your provider's dashboard lists the server's IP next to it. Nothing after 10 minutes? Open the provider's web console and run <code>sudo tail -30 /var/log/cloud-init-output.log</code> to see what the installer printed. The admin page isn't encrypted, so don't sign in from public Wi-Fi.</li>
@@ -513,7 +514,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
           <div class="step-num" aria-hidden="true">2</div>
           <h3>The host sends friends one file</h3>
           <p class="small muted">Open your admin page, sign in with the password, and click <b>Download the mod for friends</b>. You get one small file, <code>dinput8.dll</code>, made for your server.</p>
-          <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> (or <b>Friends use</b> and your address, if you set a fixed one) means friends outside your home should be able to connect. If it says <b>Home network only</b>, only friends on your Wi-Fi can join; for friends elsewhere, or if it warns about router ports or CGNAT, see <a href="#hosthelp">Help → For hosts</a>.</p>
+          <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> means friends outside your home should be able to connect. If it says <b>Friends use</b> and your address (you set a fixed one), friends can connect only if that address's ports are open; the server can't check this itself. If it says <b>Home network only</b>, only friends on your Wi-Fi can join; for friends elsewhere, or if it warns about router ports or CGNAT, see <a href="#hosthelp">Help → For hosts</a>.</p>
           <p class="small muted">Send it to each friend on <b>Discord, WhatsApp or Telegram</b>. Email usually blocks this kind of file. Or copy the link under the button (your server's address) and send that: it opens a page where friends download the file themselves.</p>
           <p class="small muted"><b>First test:</b> have one friend start the game. They appear under <b>Online now</b> on your admin page within a minute.</p>
         </div>
@@ -540,6 +541,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
         <div>
           <div class="step-num" aria-hidden="true">3</div>
           <h3>Friends drop it in and play</h3>
+          <p class="small warnline" style="margin:0 0 8px">Only use a file your host sent you directly.</p>
           <ol class="small how">
             <li>In Steam, right-click <b>PES 2021</b> → <b>Manage</b> → <b>Browse local files</b>, and put <code>dinput8.dll</code> in that folder, next to <code>PES2021.exe</code> (your browser saved it in <b>Downloads</b>: drag it from there, or right-click → Cut, then Paste). Already a <code>dinput8.dll</code> there from another mod? Move it somewhere safe first: only one file with that name can load.</li>
             <li><b>Steam Deck / Linux only:</b> right-click PES 2021 → <b>Properties</b> → <b>Launch options</b>, and paste this line. On a Steam Deck, switch to Desktop Mode first to download the file (for example from Discord in the browser).
@@ -583,6 +585,10 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       <table class="help"><caption class="sr">Help for players</caption>
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
+          <tr><td>The log (<code>pes2021-online.log</code>) says <i>not found: is the host's server running?</i></td><td>The host's server is off or can't be reached. Ask the host to check it's running; if their internet address changed, they send you a fresh file.</td></tr>
+          <tr><td>The log says <i>is not this server (bad proof)</i></td><td>Something else answers at your host's old address. Ask your host for a fresh file from their admin page.</td></tr>
+          <tr><td>The log says <i>no server set up</i></td><td>This <code>dinput8.dll</code> wasn't made by a server (for example a copy you built yourself). Use the file from your host's admin page or download link.</td></tr>
+          <tr><td>The log has a line starting with <i>ERROR:</i></td><td>The mod couldn't start properly. Delete <code>dinput8.dll</code>, put a fresh copy in, and if it happens again <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">open an issue</a> with the log.</td></tr>
           <tr><td>"Unable to connect to the server" when going online</td><td>The host's server must be running. If the log says <i>not found</i>, the server is off or unreachable: the host checks it's up and its router ports are open. If the host's internet address changed, they send a fresh file from the admin page.</td></tr>
           <tr><td>The browser or Windows says the file may be harmful, or blocks it</td><td>Chrome and Edge warn about every <code>.dll</code> download. Choose <b>Keep</b> (Chrome: ⋮ → Keep; Edge: … → Keep → Keep anyway). Discord, WhatsApp and Telegram may show a similar warning; it's the same file, keep it.</td></tr>
           <tr><td>Can't find the game folder, or there's no "Browse local files"</td><td>In the Steam <b>Library</b>, right-click PES 2021 → <b>Manage</b> → <b>Browse local files</b>. It's usually <code>C:\Program Files (x86)\Steam\steamapps\common\eFootball PES 2021 SEASON UPDATE</code>; on a Steam Deck, <code>/home/deck/.steam/steam/steamapps/common/…</code>.</td></tr>
@@ -712,7 +718,8 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
         <li>Easiest: while you create the server (step 1), paste this into its start-up script box (<b>User data</b> / <b>Cloud config</b> / <b>Initialization script</b>); it contains a random admin password made in your browser:
           <div class="cmd" style="margin-top:8px"><pre id="c-cloud-ud2">#!/<wbr>bin/<wbr>sh
 curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 ADMIN_PASSWORD='choose-a-long-password' sh</pre><button class="copy" data-copy="c-cloud-ud2" type="button">Copy</button></div>
-          <p class="small genpw-note">Your admin password: <b class="genpw">the one at the end of the script (change it to your own)</b>. Write it down. Then skip to step 5.</p>
+          <p class="small genpw-note">Your admin password: <b class="genpw">the one at the end of the script (change it to your own, at least 10 characters)</b>. Write it down (it also stays in your provider's server settings). Then skip to step 5.</p>
+          <noscript><p class="small">JavaScript is off: replace <code>choose-a-long-password</code> with your own (at least 10 characters). The server refuses the example and anything shorter.</p></noscript>
           Or open the server's terminal (the provider's web console, or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line, which lets you open the admin page from your home over the internet. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
           <div class="cmd" style="margin-top:8px"><pre id="c-cloud">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud" type="button">Copy</button></div>
           The admin page isn't encrypted, so its password crosses the internet in the clear: keep the generated password, and don't sign in from public Wi-Fi.</li>
@@ -959,7 +966,7 @@ answer with a 16-byte key
       <div class="n" aria-hidden="true">10</div>
       <div>
         <h3>From one line to one file</h3>
-        <p class="quote">The safest change to a player's PC is none at all.</p>
+        <p class="quote">The smallest change to a player's PC is one file in the game folder.</p>
         <p>The first version asked every player to paste a line into a terminal. It ran with administrator rights, edited the PC's hosts file and installed a certificate in Windows. It worked, but it asked friends to trust a lot, and it touched the whole PC for the sake of one game.</p>
         <p>The mod does the same two jobs from inside the game instead. PES 2021, like many PC games, loads a file named <code>dinput8.dll</code> from its own folder when it starts. Ours passes the game's controller requests straight on to Windows, and while the game runs it answers the game's "where is Konami?" with your friend's server, and accepts that server for the network test. Close the game and it's gone; delete it (and its small <code>pes2021-online.ini</code> and <code>.log</code> files) and nothing is left.</p>
         <p>One more problem: home servers restart, and an old address might later belong to someone else. So each server has a permanent <b>identity</b>, a secret key it never shares, and every copy of the mod carries the matching public half. Before connecting anywhere, the mod sends a random challenge and only accepts an address that answers with the right signature:</p>
