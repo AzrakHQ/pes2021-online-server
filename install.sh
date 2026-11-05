@@ -32,7 +32,7 @@ REPO="https://github.com/MohamedAliRashad/pes2021-private-server.git#main:server
 pulled=0
 for try in 1 2 3; do
   if err="$($DOCKER pull -q "$IMAGE" 2>&1)"; then pulled=1; break; fi
-  if [ "$try" -lt 3 ]; then echo "Download failed, retrying..."; sleep 3; fi
+  if [ "$try" -lt 3 ]; then echo "Download failed ($(printf '%s' "$err" | tail -n 1)), retrying..."; sleep 5; fi
 done
 if [ "$pulled" = 0 ]; then
   if [ -n "${PES_IMAGE:-}" ] && $DOCKER image inspect "$IMAGE" >/dev/null 2>&1; then
