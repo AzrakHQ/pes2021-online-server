@@ -3,7 +3,7 @@
 The 4 letters are a hash of the source file basename (0x141154020): chars summed into 4 buckets by
 index % 4, each bucket % 26 + 'A'.  usage: [PES_EXE=path/PES2021.exe] errcode.py CODE [CODE...]"""
 import os, re, sys
-EXE = os.environ.get("PES_EXE") or os.path.join(os.path.dirname(__file__), "..", "..", "game", "files", "PES2021.exe")
+EXE = os.environ.get("PES_EXE") or next((p for p in (os.path.join(os.path.dirname(os.path.abspath(__file__)), *([".."] * k), "game", "files", "PES2021.exe") for k in (2, 3)) if os.path.exists(p)), "PES2021.exe")
 
 def tag(name):
     b = [0, 0, 0, 0]

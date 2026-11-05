@@ -117,7 +117,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <main id="main" tabindex="-1">
 <h1>Technical write-up: how PES 2021 talks to its servers</h1>
 <p class="sub">The network protocol of eFootball PES 2021 (1.01.00, Steam), reverse-engineered as far as login, the network test and Quick Match need it, as implemented by this project's server. Last update: <b>2026-11-05</b>.</p>
-<div class="plain"><b>In plain words:</b> the game connects to a "gate" server on TCP port 10000 and exchanges small messages written in MessagePack, each compressed, encrypted with Blowfish and sealed with a checksum. A few extra requests go over HTTP and HTTPS, and a STUN check measures your network. Matches themselves run directly between the two players. The <a href="./#inside">main page tells the story</a>; this page has the details for developers: byte layouts, keys, every command and the code addresses they were found at.</div>
+<div class="plain"><b>In plain words:</b> the game connects to a "gate" server on TCP port 10000 and exchanges small messages written in MessagePack, each compressed, encrypted with Blowfish and sealed with a checksum. A few extra requests go over HTTP and HTTPS, and a STUN check measures your network. Matches themselves run directly between the two players. The <a href="./#inside">main page tells the story</a>; this page has the details for developers: byte layouts, keys, every command and the code addresses they were found at. Everything beyond Quick Match (relay, rooms, results, co-op, menus) is on <a href="functions.html">How the online functions work</a>.</div>
 
 <div class="legend">
   <span class="pair"><span class="tag t-ok">LIVE</span><span class="sub" style="margin:0">verified against the real client</span></span>
@@ -276,9 +276,9 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <h3>Frame kinds <span class="tag t-static">STATIC</span></h3>
 <div class="tw" tabindex="0" role="region" aria-label="Wire format (table, scrolls sideways)"><table><thead><tr><th scope="col">Kind</th><th scope="col">Decoder behaviour (0x1418566c0)</th><th scope="col">Seen</th></tr></thead>
 <tr><td class="mono">0x0060, 0x0010</td><td>easy tier: data_len, original_size, zlib flag, data</td><td><span class="tag t-ok">LIVE</span> 0x0060</td></tr>
-<tr><td class="mono">0x0070, 0x0020</td><td>same, with an extra leading u32 (likely session / user id)</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
-<tr><td class="mono">0x0071–72, 0x0021–22</td><td>short form (u32 only)</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
-<tr><td class="mono">0x1060, 0x1070–72</td><td>enhanced tier: 56-byte header, AES-256 body</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
+<tr><td class="mono">0x0070, 0x0020</td><td><b>first fragment</b> of a message over ~1015 bytes: total_len, chunk_len, original_size, zlib flag, chunk (<a href="functions.html#frags">details</a>)</td><td><span class="tag t-static">STATIC</span></td></tr>
+<tr><td class="mono">0x0071–72, 0x0021–22</td><td>middle / last fragment: chunk_len, chunk</td><td><span class="tag t-static">STATIC</span></td></tr>
+<tr><td class="mono">0x1060, 0x1070–72</td><td>enhanced tier (only after a 32-byte session key): kind not XOR'd, IV, AES-256-CBC with SHA-256 (<a href="functions.html#aes">layout</a>)</td><td><span class="tag t-static">STATIC</span></td></tr>
 </table></div>
 
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
@@ -287,7 +287,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <tr><td>Frame XOR key</td><td class="mono">5b 9f 2e 64</td><td>.data 0x143515acc</td><td><span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>Integrity</td><td>MD5(header ∥ body)</td><td>frame bytes 8–23</td><td><span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>Easy key (Blowfish-ECB)</td><td class="mono">d8890af0 66c96b40 d701aefc 436ff9fe c9899816 7a74483d 3914730c 5c01c03c e28e86e5 89c4a185 f8540651 d2eca36b 5c1a40ee c5e9daae</td><td>.data 0x1434d61c0 (56 B), installed by 0x14116eeb0 when no key is set. First 16 bytes = MGSV's static key.</td><td><span class="tag t-ok">LIVE</span></td></tr>
-<tr><td>Session key</td><td>CMD_SET_CURRENTPLAYER <code>key</code> = base64; decoded bytes become the Blowfish key (key_size 32 would switch to AES-256)</td><td>installed by 0x141233ee0; derivation confirmed live by the server trying candidates</td><td><span class="tag t-ok">LIVE</span></td></tr>
+<tr><td>Session key</td><td>CMD_SET_CURRENTPLAYER <code>key</code> = base64; decoded bytes become the Blowfish key (key_size 32 would switch to AES-256)</td><td>installed by the SET_CURRENTPLAYER handler 0x1410f9ca0 (CMD_RECONNECT: 0x141233ee0); derivation confirmed live by the server trying candidates</td><td><span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>Key holder</td><td><code>fox::ncl::NclDaemon</code> (vt 0x142a4d6c0)</td><td>easy key +0xe8 / len +0x120 · AES key +0x124 / len +0x144</td><td><span class="tag t-static">STATIC</span></td></tr>
 </table></div>
 
@@ -351,7 +351,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <div class="panel"><ol>
   <li>After MATCHMENU both clients Kick Off → <code>CMD_CHANGE_GAMEPHASE</code> GAMELOAD → ENTRY → <b>1ST</b>. Gameplay itself is peer-to-peer UDP between the clients; the server only sees phase reports and events. <span class="tag t-ok">LIVE</span></li>
   <li>Phases reported (each with <code>gtimer</code>, the game clock): DATASYNC, TEAMSELECT, MATCHMENU, GAMELOAD, ENTRY, 1ST, 1ST_15MIN, 1ST_30MIN, BREAK1 (half-time), 2ND, 2ND_15MIN, 2ND_30MIN, then the end of the match. A bare NOERR reply to each is enough. <span class="tag t-ok">LIVE</span></li>
-  <li>Events during play: <code>CMD_ADD_FOUL</code> (fouls, yellow cards); both clients report the same events, and their clocks stay in sync. <span class="tag t-ok">LIVE</span> <code>CMD_ADD_GOAL</code> exists in the client but no goal has been scored in a test match yet. <span class="tag t-static">STATIC</span></li>
+  <li>Events during play: <code>CMD_ADD_FOUL</code> (fouls, yellow cards); both clients report the same events, and their clocks stay in sync. <span class="tag t-ok">LIVE</span> Goals are reported as <code>CMD_ADD_SCORE</code> {goal_side, goal_player_pid, assist_*, gtimer}; there is no CMD_ADD_GOAL in the client (<a href="functions.html#gamequeue">details</a>). <span class="tag t-ok">LIVE</span></li>
   <li><b>Full time</b>: both clients send <code>CMD_CHANGE_GAMEPHASE {phase END, gtimer 94107}</code> (90 min + stoppage), then show the highlights reel and match records. Post-match reporting: <code>CMD_SET_PLAYDATA_MATCH</code> (HTTP, URL type PLAYDATA_MATCH, JSON <code>play_data</code>), <code>CMD_SEND_STATS_DATA {match_id, stats[] per side}</code>, <code>CMD_SEND_GAME_RESULT {game_phase END, side, home/away_score, home/away_team_id, abnormalend_reason NOERR, …}</code>, <code>CMD_REQ_GAMEADDPOINT</code>, <code>CMD_LEAVE_ROOM</code>. A bare NOERR to each returns both players to the menu; a new Go to Matchmaking pairs them again straight away. Verified with a complete 90-minute match on 2026-11-04 (18:20–18:52, Arsenal v Arsenal 0–0). <span class="tag t-ok">LIVE</span></li>
   <li>The player who leaves the post-match screens second reports <code>DISCONN_P2P</code> / <code>GNCX_0003</code> (OnlineModeMultiplay.cpp): the peer link has already closed. The result is still recorded normally. <span class="tag t-ok">LIVE</span></li>
   <li>Abnormal end: <code>CMD_SEND_ABNORMALEND {reason, error_code}</code>. Seen reasons: <code>NO_OPERATION</code> (a player gave no input for ~50 s; this is the game's AFK rule), <code>DISCONN_P2P</code> (peer link lost), <code>LOAD_TIMEOUT</code>. With real server-environment timeouts, both games returned to the menu without crashing (the LOAD_TIMEOUT crash in the matchmaking section happened only with zero timeouts). <span class="tag t-ok">LIVE</span></li>
@@ -435,15 +435,17 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 <h2 id="open">Open questions</h2>
+<p>Every remaining online function is now mapped from the game's code on a separate page, <a href="functions.html"><b>How the online functions work</b></a>: what each command does, what the server must send, all 433 commands and all error codes. What's left to build:</p>
 <ul>
-  <li>Game relay (TURN-style fallback for players who cannot reach each other directly): the server returns relay info, but UDP 7600 is only a logging placeholder. <span class="tag t-unk">OPEN</span></li>
-  <li>Final scores from CMD_SEND_GAME_RESULT are stored (<code>pes_matches</code>) and shown on the admin page; detailed statistics (SEND_STATS_DATA) are acknowledged but not stored. Ratings, divisions and rankings are not implemented, and live goal events (CMD_ADD_GOAL) have not been seen yet because every test match ended 0–0. <span class="tag t-unk">OPEN</span></li>
-  <li>myClub, events, rooms/lobbies UI. <span class="tag t-unk">OPEN</span></li>
+  <li><b>Relay fallback:</b> the game uses a standard TURN relay over TLS, but only when <code>CMD_GET_TURN_SERVER_LIST</code> returns servers. We return none, so there's no fallback yet. The UDP 7600 "game relay" is a different, Konami-only mode that Quick Match never uses. <a href="functions.html#net">Details</a> <span class="tag t-static">STATIC</span> <span class="tag t-unk">OPEN</span></li>
+  <li><b>Results:</b> final scores are stored, but goals arrive as <code>CMD_ADD_SCORE</code> (there is no CMD_ADD_GOAL), so live scores don't update yet. The rating verdict (<code>CMD_WATCH_GAMEADDPOINT</code>) is never pushed, so one player waits 20 s after each match. <a href="functions.html#results">Details</a> <span class="tag t-unk">OPEN</span></li>
+  <li><b>Rooms for playing a chosen friend</b>, co-op, divisions, myClub and events: protocol mapped, not implemented. <span class="tag t-unk">OPEN</span></li>
 </ul>
 
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 <h2 id="log">Changelog</h2>
 <ul class="log">
+  <li><b>2026-11-05</b> — <b>Every online function mapped</b> on a new page, <a href="functions.html">How the online functions work</a>: the TURN relay fallback, the match-session state machine, peer notices, the rating verdict push, divisions, Free-lobby rooms, co-op, spectating, CHECK_CHEAT checksums, in-game announcements, the fragment and AES frame formats, 186 error sites and a catalogue of all 433 commands. The schema extractor now finds 1,907 more reply fields.</li>
   <li><b>2026-11-05</b> — Cloud servers install with a fixed public address (<code>PUBLIC_IP</code> from ipify) and remote admin; re-running the installer keeps those settings. Mod: an address typed in the Shift box is fetched over plain HTTP, IP or name. Friends' page sends a hash-pinned CSP.</li>
   <li><b>2026-11-05</b> — <b>The mod replaces the join commands</b>: one <code>dinput8.dll</code> per server, no admin rights or system changes; signed server identity; admin page download and one-click install on the host's own PC; the Cloudflare tunnel was removed again (the mod never needed a web link); admin page limited to the home network.</li>
   <li><b>2026-11-05</b> — Free public web address per server (Cloudflare quick tunnel, <code>https://&lt;words&gt;.trycloudflare.com</code>) for the join page and scripts; join scripts receive the server's LAN + internet IPs and pick the one answering <code>/status</code> with the server id (sha1 of its CA). Password-protected admin page (<code>/admin</code>): online players, live matches by phase, saved results (<code>pes_matches</code>), league table, activity feed, kick. Note: the game logs in twice (ACCOUNT then MENU connection); a pairing can be abandoned with LEAVE_ROOM before kick-off and re-paired in a new room.</li>

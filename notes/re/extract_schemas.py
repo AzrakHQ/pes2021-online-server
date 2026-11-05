@@ -15,10 +15,11 @@ objects appear in the same flat map (the top-level loop ignores keys it doesn't 
 extra keys is harmless). Usage: python3 extract_schemas.py out.json   (needs capstone + numpy)
 """
 import json, re, sys
-sys.path.insert(0, __import__("os").path.join(__import__("os").path.dirname(__file__), "keyex"))
+sys.path.insert(0, __import__("os").path.join(__import__("os").path.dirname(__file__), "functions", "tools"))
 import pe  # noqa: E402
 
 UNPACK, MEMCMP, STRCOPY = 0x141c190a0, 0x1415a1726, 0x140409430
+STREQ = 0x140cf3990  # std::string == const char*; many parsers compare keys with it instead of memcmp
 
 
 def class_names():
@@ -79,7 +80,7 @@ def keys_and_types(fva):
             continue
         if not (1 <= len(k) < 64 and all(32 <= c < 127 for c in k)) or k == b"NotImplement":
             continue
-        if any(x.mnemonic == "call" and x.op_str == hex(MEMCMP) for x in L[i + 1:i + 4]):
+        if any(x.mnemonic == "call" and x.op_str in (hex(MEMCMP), hex(STREQ)) for x in L[i + 1:i + 4]):
             sites.append((i, k.decode()))
     fields = {}
     for n, (i, key) in enumerate(sites):
