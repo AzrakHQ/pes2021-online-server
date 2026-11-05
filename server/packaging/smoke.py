@@ -31,13 +31,22 @@ try:
     else:
         raise SystemExit("no answer on :18080 after 60 s")
     assert json.loads(body)["id"], body
+    # the game's network test: HTTPS on the same port, NTL name, verified against the server's CA
+    import socket
     ctx = ssl.create_default_context(cafile=os.path.join(data, "certs", "ca.crt"))
-    ctx.check_hostname = False                 # the name is ntl.*; here we only check TLS works on :18080
-    assert get("https://127.0.0.1:18080/status", ctx)[0] == 200
+    with ctx.wrap_socket(socket.create_connection(("127.0.0.1", 18080), timeout=5),
+                         server_hostname="ntl.service.konami.net") as t:
+        t.sendall(b"GET /status HTTP/1.1\r\nHost: ntl.service.konami.net\r\nConnection: close\r\n\r\n")
+        assert t.recv(64).startswith(b"HTTP/1.1 200"), "network test over TLS"
+    # a browser opening https://<address>:8080/admin (no name) gets the admin page's own certificate
+    loose = ssl.create_default_context(); loose.check_hostname = False; loose.verify_mode = ssl.CERT_NONE
+    with loose.wrap_socket(socket.create_connection(("127.0.0.1", 18080), timeout=5)) as t:
+        der = t.getpeercert(binary_form=True)
+    assert b"PES 2021 server admin page" in der, "admin certificate"
     assert b"PES 2021 Server" in get("http://127.0.0.1:18080/admin")[1]
     status, dll = get("http://127.0.0.1:18080/mod/dinput8.dll")
     assert status == 200 and dll[:2] == b"MZ" and len(dll) > 50000, len(dll)
-    print("smoke test passed: http, https on the same port, admin page, mod download")
+    print("smoke test passed: http, https (game and admin certificates) on the same port, admin page, mod download")
 finally:
     if sys.platform == "win32":
         p.send_signal(signal.CTRL_BREAK_EVENT)
