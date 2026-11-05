@@ -1,7 +1,8 @@
 # Rooms / Online Match Lobby — static RE + implementation spec
 
 ## Corrections from later findings (2026-11-05)
-- **PES 2021's menus don't show the lobby** (live test): the flows ship in dt16_all.cpk and TopMenuNew.json has `12_freelobby`, but no visible menu item leads there. How to reach it is being investigated.
+- **Menu path: Kick Off → Friendly Match Lobby** (8th item, below Cup in a scrolling list; Team Play Lobby is 9th). An earlier correction here wrongly called it hidden (lobby.md).
+- Live (livetests.md): REQWATCHL_ROOMLIST is a real request; the order is CREATEJOIN_ROOM then SET_GAMEENV; in REQWATCHL_ROOMPLAYERLIST_NTL `pname.psn_user_id` must be a **list**. The game still exits about 2 s after the player list (under investigation).
 - Mode names (sweep.md): `lobby_type` FREE/MULTI/MYCLUB/PESLEAGUE; JOIN_ONLINE_MODE `online_mode` QUICK/RANKMATCH/FREE/MULTI/MYCLUB/PESLEAGUE/MATCHDAY/COOP/EDIT_DATA_LIVE_UPDATE.
 
 

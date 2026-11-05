@@ -17,7 +17,8 @@ summary is [docs/functions.html](../../../docs/functions.html); these files keep
 | [nettune.md](nettune.md) | `proto_opt` tuning tree (all link timeouts/thresholds), P2P↔TURN failover rules, ntl_nat_type bits, NAT test |
 | [messages.md](messages.md) | how message ids map to text, the server-error dialog table, on-screen code formats, useful replies |
 | [sweep.md](sweep.md) | leftover unknowns settled: rating-screen modes, division/sort/mode enums, revision check, version gates |
-| [livetests.md](livetests.md) | live tests 2026-11-05: TURN (dual-route SOFTWARE + DTLS leg), Live Update end to end, reconnect, AFK, hidden lobbies |
+| [lobby.md](lobby.md) | where the room lobbies are in the menu (Kick Off list), how the menu table is built, other entry points |
+| [livetests.md](livetests.md) | live tests 2026-11-05: TURN (dual-route SOFTWARE + DTLS leg), Live Update end to end, reconnect, AFK, Friendly Match Lobby (room creation) |
 | [survey.md](survey.md) | catalogue counts, error codes, myClub / clans / PES League / Matchday / events |
 
 Tags in the reports: **[static]** read in code at the cited address, **[log]** seen in our traffic,

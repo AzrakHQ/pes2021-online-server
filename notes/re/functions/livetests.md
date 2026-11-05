@@ -74,6 +74,27 @@ instrumented at runtime from a scratch launcher (no repo code changed). Tags: [l
 ## Menus
 - The eFootball menu lists Quick Match, Online Divisions, Online Co-op, Matchday, Online Tournament.
 - Kick Off lists Local Match, Local Match [UEFA EURO], Co-op, Random Selection Match, Versus, League, Cup.
-- **The Free / MOM room lobbies are not in any visible menu.** Their screen flows ship in dt16_all.cpk
-  (`common/script/flow/Online/Lobby/*` 94 files, `Online/MOMLobby/*` 107), and `TopMenu/TopMenuNew.json` defines
-  events `12_freelobby` / `13_multilobby` next to `11_quick`, but no visible menu item leads there. [live + data]
+- **Correction (later the same day):** the lobbies **are** in the menu. The Kick Off list scrolls, and after Cup come
+  Friendly Match Lobby, Team Play Lobby and Training. The first test stopped scrolling at Cup.
+
+## Friendly Match Lobby (second session, test handlers per rooms.md) [live]
+- `JOIN_ONLINE_MODE {online_mode "FREE"}`, then SEND_IPANDPORT_NTL, GET_SERVER_ENV, CHECK_CHEAT,
+  GET_URGENT_ANNOUNCEMENT (online_mode FREE), GET_MANNER_WARN, GET_PRIVATEINFOTITLELIST.
+- `GET_LOBBYLIST {lobby_type "FREE", lang}` → JOIN_LOBBY {lobby_id 1} → GET_LOBBYINFO {lobby_id 1} → GET_BLOCKLIST.
+  - A bare NOERR for GET_BLOCKLIST gives "Unable to send or receive data."
+  - With `{count 1, bklist [blob{name, player_num, max_player_num, block_id 1}]}` it goes on: JOIN_BLOCK {block_id 1}
+    → **REQWATCHL_ROOMLIST is sent as a request** → the "Match Room List" screen ("Set up Match Room",
+    "Number of rooms 0").
+- Set up Match Room:
+  - Room Settings (Room Name "Room <player>", Room Security, Password) → General Match Settings (Match Time 10 min,
+    Injuries, Ball Type, Time limit, Overtime, PK, Max. No. of Substitutions) → Next.
+  - The game then sends CHECK_STRING {str room name} → **CMD_CREATEJOIN_ROOM** {name, match_type OC_FREE, lang,
+    max_players 2, is_invite_limit NO, password "", enable_guest YES, vs_com …} → **CMD_SET_GAMEENV** {game_env:
+    blob of cpuLevel, gametime, injury, ball_type, exGame, pkOnOff, substitution, exSubstitution, limitTime} →
+    CMD_REQWATCHL_ROOMPLAYERLIST_NTL {room_id}.
+- **The game exits** (window gone, no SEH record) after our player-list reply:
+  - with `pname.psn_user_id` as an object (as in WATCH_MATCHING): within 1.5 s;
+  - with it as an empty list (as the parser types it): the list is accepted, but the game still exits about 2 s
+    later, before CMD_ENTRY_GAME;
+  - sending the list once instead of twice changes nothing.
+  - Cause under investigation.
