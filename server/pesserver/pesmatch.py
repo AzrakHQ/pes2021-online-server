@@ -12,7 +12,7 @@ Model (from the client's own response parsers, server/pesserver/schemas.json):
 Address blobs are passed through exactly as the peer reported them ({address_family, sa_data} where
 sa_data is a raw Windows sockaddr payload carried in a msgpack str).
 """
-import logging, time
+import logging, os, time
 
 import msgpack
 
@@ -319,7 +319,6 @@ def _room_of(svc, pid):
 
 @cmd("CMD_GET_GAMERELAY")
 def get_gamerelay(svc, sess, req):
-    import os
     from .netsetup import advertised_addr
     ip = advertised_addr(svc, sess)
     out = {"result": NOERR, "gamerelay_index": 0, "grid": 1, "ip_addr": ip,
@@ -330,7 +329,6 @@ def get_gamerelay(svc, sess, req):
 
 @cmd("CMD_SET_GAMERELAY_CHECK_RES")
 def set_gamerelay_check_res(svc, sess, req):
-    import os
     pid = _pid(sess); rid, room = _room_of(svc, pid)
     log.info("GAMERELAY_CHECK_RES pid %s room %s req=%s", pid, rid, {k: v for k, v in req.items() if not k.startswith("_")})
     if room is not None:
@@ -386,3 +384,97 @@ def get_matchid(svc, sess, req):
     if room is not None and "match_id" not in room:
         room["match_id"] = f"{int(room['t'])}{rid:06d}"
     return {"result": NOERR, "match_id": room["match_id"] if room else "", "upload": "NO"}
+
+
+# ---- match record and the rating verdict (CMD_WATCH_GAMEADDPOINT) ---------------------------------
+# After the final whistle each game's TaskWatchGame (0x141120730) waits for the verdict push; without it
+# the game sends CMD_REQ_GAMEADDPOINT after 10 s, gives up after 20 s and skips the rating screen
+# (seen live: both games stall). Layout from parser 0x141d7f540, notes/re/functions/results.md.
+# A gameend_reason other than NORMAL_END/INJURY shows error OLXH186, so only finished matches get one.
+ELO_K, ELO_START = 32, 1000
+
+
+@cmd("CMD_CHANGE_GAMEPHASE")
+def change_gamephase(svc, sess, req):
+    pid = _pid(sess)
+    rid, room = _room_of(svc, pid)
+    if room is not None:
+        room.setdefault("phase", {})[pid] = str(req.get("phase", ""))
+        if (os.environ.get("PESSERVER_VERDICT_AT_END") == "1" and "pushed_at_end" not in room
+                and all(room["phase"].get(p) == "END" for p in room["members"])):
+            # Test-session switch: also push at the final whistle to every member (unconfirmed path).
+            room["pushed_at_end"] = True
+            v = _verdict(svc, rid, room)
+            for p in room["members"]:
+                if (s := svc.online.get(p)) is not None and v is not None:
+                    _send_later(s, "CMD_WATCH_GAMEADDPOINT", 0, 0x60, 1, v)
+    return {"result": NOERR}
+
+
+@cmd("CMD_ADD_SCORE")
+def add_score(svc, sess, req):
+    # Both games report every goal with the same gtimer; a set keeps one copy.
+    rid, room = _room_of(svc, _pid(sess))
+    side = str(req.get("goal_side", "")).upper()
+    if room is not None and side in ("HOME", "AWAY"):
+        room.setdefault("goals", set()).add((req.get("gtimer"), side))
+    return {"result": NOERR}
+
+
+@cmd("CMD_REQ_GAMEADDPOINT")
+def req_gameaddpoint(svc, sess, req):
+    pid = _pid(sess)
+    rid, room = _room_of(svc, pid)
+    v = _verdict(svc, rid, room) if room is not None else None
+    if v is not None:
+        _send_later(sess, "CMD_WATCH_GAMEADDPOINT", 0, 0x60, 1, v)
+        log.info("VERDICT push -> pid %s (room %s)", pid, rid)
+    else:
+        log.info("VERDICT none for pid %s (room %s): match did not reach END", pid, rid)
+    return {"result": NOERR}
+
+
+def _elo(ra, rb, score):
+    return round(ra + ELO_K * (score - 1 / (1 + 10 ** ((rb - ra) / 400))))
+
+
+def _verdict(svc, rid, room):
+    """The WATCH_GAMEADDPOINT body for a finished match; ratings are updated once per room."""
+    if "verdict" in room:
+        return room["verdict"]
+    if "END" not in room.get("phase", {}).values() or len(room["members"]) != 2:
+        return None
+    from . import events
+    from .pescmds import _db
+    goals = room.get("goals", set())
+    score = {s: sum(1 for _, g in goals if g == s) for s in ("HOME", "AWAY")}
+    home, away = room["owner"], next(p for p in room["members"] if p != room["owner"])
+    side = {home: "HOME", away: "AWAY"}
+    db = _db(svc)
+    old = {p: (db.execute("SELECT rating, win_streak FROM pes_players WHERE pid=?", (p,)).fetchone()
+               or (ELO_START, 0)) for p in (home, away)}
+    result = {home: 0.5 + 0.5 * ((score["HOME"] > score["AWAY"]) - (score["HOME"] < score["AWAY"]))}
+    result[away] = 1 - result[home]
+    new = {p: (_elo(old[p][0], old[q][0], result[p]), old[p][1] + 1 if result[p] == 1 else 0)
+           for p, q in ((home, away), (away, home))}
+    with svc.accounts.lock, db:
+        for p, (r, streak) in new.items():
+            db.execute("UPDATE pes_players SET rating=?, win_streak=? WHERE pid=?", (r, streak, p))
+    players = []
+    for p in (home, away):
+        info = _player(svc, _username(svc, p)) or {"name": f"Player{p}"}
+        pname = msgpack.packb({"name": info["name"] or "", "xuid_one": "", "is_deleted": "NO",
+                               "psn_user_id": msgpack.packb({"account_id": 0, "online_id": "", "is_valid_cache": "NO"})},
+                              use_bin_type=True)
+        players.append({"pid": p, "pes_pname": pname, "rating_type": "RANKMATCH", "rating": new[p][0],
+                        "oldrating": old[p][0], "rating_boost_type": "NONE", "rating_boost_rate": 0,
+                        "rating_compe": 0, "side": side[p], "contWin_num": new[p][1],
+                        "skill_rank": "SKILL_RANK_NONE", "is_rankup_skill_rank": "NO", "is_first_skillrank": "NO"})
+    winner = "WINNER_HOME" if result[home] == 1 else "WINNER_AWAY" if result[away] == 1 else "WINNER_NONE"
+    room["verdict"] = {"result": NOERR, "player_count": 2, "player_list": [msgpack.packb(x, use_bin_type=True) for x in players],
+                       "winner_side": winner, "gameend_reason": "NORMAL_END", "is_pk": "NO"}
+    log.info("VERDICT room %s %d-%d: %s", rid, score["HOME"], score["AWAY"],
+             {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
+    events.feed(svc, "Ratings: " + ", ".join(f"{events.name_of(svc, p)} {old[p][0]} → {new[p][0]}" for p in (home, away)),
+                "result")
+    return room["verdict"]

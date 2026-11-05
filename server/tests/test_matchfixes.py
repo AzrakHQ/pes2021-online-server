@@ -145,3 +145,61 @@ def test_tamper_report_reaches_the_admin_feed(svc):
     s = _searching(svc, 1)
     assert pescmds._dispatch(svc, s, "CMD_SEND_TAMPER_DATA", {"pid": 1, "data": "Doping:123"}) == {"result": "NOERR"}
     assert any("edited player data" in e["text"] for e in events.snapshot(svc)["feed"])
+
+
+# ---- rating verdict: WATCH_GAMEADDPOINT answers the game's REQ after the final whistle -------------
+def _played(svc, monkeypatch, goals, end=True):
+    pushed = []
+    monkeypatch.setattr(pesmatch, "_send_later", lambda s, msgid, rq, k, sq, body: pushed.append((s.pes_pid, msgid, body)))
+    a, b = _searching(svc, 1), _searching(svc, 2)
+    for phase in ("1ST", "2ND") + (("END",) if end else ()):
+        for s in (a, b):
+            pescmds._dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": phase, "gtimer": 1})
+    for gtimer, side in goals:
+        for s in (a, b):                                    # both games report each goal
+            pescmds._dispatch(svc, s, "CMD_ADD_SCORE", {"goal_side": side, "gtimer": gtimer})
+    pushed.clear()
+    for s in (b, a):
+        assert pescmds._dispatch(svc, s, "CMD_REQ_GAMEADDPOINT", {"pid": s.pes_pid}) == {"result": "NOERR"}
+    return [(pid, body) for pid, m, body in pushed if m == "CMD_WATCH_GAMEADDPOINT"]
+
+
+def _list(body):
+    return {e["pid"]: e for e in (msgpack.unpackb(x, raw=False) for x in body["player_list"])}
+
+
+def test_finished_match_gets_the_verdict_and_ratings_move_once(svc, monkeypatch):
+    got = _played(svc, monkeypatch, [(100, "AWAY"), (200, "AWAY"), (300, "HOME")])
+    assert [pid for pid, _ in got] == [2, 1]
+    body = got[0][1]
+    assert body is got[1][1]                                # computed once, same verdict for both
+    assert (body["winner_side"], body["gameend_reason"], body["player_count"]) == ("WINNER_AWAY", "NORMAL_END", 2)
+    pl = _list(body)
+    assert (pl[1]["side"], pl[1]["oldrating"], pl[1]["rating"], pl[1]["contWin_num"]) == ("HOME", 1000, 984, 0)
+    assert (pl[2]["side"], pl[2]["oldrating"], pl[2]["rating"], pl[2]["contWin_num"]) == ("AWAY", 1000, 1016, 1)
+    assert msgpack.unpackb(pl[2]["pes_pname"], raw=False)["name"] == "P2"
+    row = svc.accounts.db.execute("SELECT rating, win_streak FROM pes_players WHERE pid=2").fetchone()
+    assert tuple(row) == (1016, 1)
+    assert pescmds.validate("CMD_WATCH_GAMEADDPOINT", body)
+    assert any("Ratings:" in e["text"] for e in events.snapshot(svc)["feed"])
+
+
+def test_draw_keeps_equal_ratings(svc, monkeypatch):
+    body = _played(svc, monkeypatch, [])[0][1]
+    assert body["winner_side"] == "WINNER_NONE" and {e["rating"] for e in _list(body).values()} == {1000}
+
+
+def test_aborted_match_gets_no_verdict(svc, monkeypatch):
+    # anything but NORMAL_END would show error OLXH186; the game moves on by itself after 20 s
+    assert _played(svc, monkeypatch, [(100, "HOME")], end=False) == []
+
+
+def test_reconnect_takes_over_the_players_place_with_a_new_key(svc, monkeypatch):
+    monkeypatch.setattr(pesmatch, "_send_later", lambda *a: None)
+    old = _searching(svc, 1)                                 # waiting for an opponent when the line drops
+    new = SimpleNamespace(peer_ip="192.168.1.5")
+    r = pescmds._dispatch(svc, new, "CMD_RECONNECT", {"pid": 1, "platform": "STEAM", "patch_version": "1.01.00"})
+    assert r["result"] == "NOERR" and r["key_size"] == 16 and len(base64.b64decode(r["key"])) == 16
+    assert svc.online[1] is new and new.pes_pid == 1 and new.pes_sums == old.pes_sums
+    assert pesmatch._state(svc)["queue"] == [(1, new)]
+    assert pescmds._dispatch(svc, SimpleNamespace(), "CMD_RECONNECT", {"pid": 99})["result"] == "ERR_LOGIN_FAILED"

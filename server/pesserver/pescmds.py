@@ -136,6 +136,10 @@ def _db(svc):
             CREATE TABLE IF NOT EXISTS pes_players(
                 pid INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, name TEXT,
                 steamid TEXT, psid INTEGER, created REAL NOT NULL, last_login REAL);""")
+            cols = {r[1] for r in db.execute("PRAGMA table_info(pes_players)")}
+            for col, decl in (("rating", "INTEGER NOT NULL DEFAULT 1000"), ("win_streak", "INTEGER NOT NULL DEFAULT 0")):
+                if col not in cols:                     # databases made before ratings existed
+                    db.execute(f"ALTER TABLE pes_players ADD COLUMN {col} {decl}")
         svc._pes_schema = True
     return db
 
@@ -251,11 +255,11 @@ def get_server_env(svc, sess, req):
 
 
 # ---- MENU server -----------------------------------------------------------------------------------
-@cmd("CMD_SET_CURRENTPLAYER")
-def set_currentplayer(svc, sess, req):
-    # The response hands the client a session crypto key (installed via 0x141233ee0: 32 bytes -> AES
-    # enhanced tier, else Blowfish easy key). The client's next frame is encrypted with it; the codec
-    # learns the exact derivation by trying candidates (see NclCodec.offer_keys).
+def _session_key(sess):
+    """A new session crypto key for the reply (installed via 0x141233ee0: 32 bytes -> AES enhanced tier,
+    else Blowfish easy key). Keep it 16 bytes: 32 would switch the whole game to AES until restart. The
+    client's next frame is encrypted with it; the codec learns the exact derivation by trying candidates
+    (see NclCodec.offer_keys)."""
     import base64
     raw = os.urandom(16)
     key = base64.b64encode(raw).decode()
@@ -264,10 +268,44 @@ def set_currentplayer(svc, sess, req):
         a = key.encode()
         codec.offer_keys([("base64-decoded", raw), ("ascii", a), ("ascii[:16]", a[:16]),
                           ("ascii+NUL", a + b"\0")])
-    log.info("SET_CURRENTPLAYER -> session key %s (raw %s)", key, raw.hex())
-    return {"result": NOERR, "key": key, "key_size": len(raw),
+    return {"key": key, "key_size": len(raw)}
+
+
+@cmd("CMD_SET_CURRENTPLAYER")
+def set_currentplayer(svc, sess, req):
+    k = _session_key(sess)
+    log.info("SET_CURRENTPLAYER -> session key %s", k["key"])
+    return {"result": NOERR, **k,
             "nation_code_server": os.environ.get("PESSERVER_NATION", "US"), "chat_probi": "NO",
             "is_select_code_changed": "NO", "subscription_active": "NO", "subscription_expire_date": 0}
+
+
+@cmd("CMD_RECONNECT")
+def reconnect(svc, sess, req):
+    # OnlineSystemClientReconnect.cpp (task 0x1411e1e70): after the gate connection drops, the game
+    # fetches the server list, opens a new connection and sends {pid, platform, patch_version,
+    # dlc_version, online_mode} without logging in again. The reply carries a new session key, like
+    # SET_CURRENTPLAYER. The new connection takes over the player's place (rooms and pushes go by pid).
+    try:
+        pid = int(req.get("pid") or 0)
+    except (TypeError, ValueError):
+        pid = 0
+    r = _db(svc).execute("SELECT username FROM pes_players WHERE pid=?", (pid,)).fetchone() if pid else None
+    if r is None or sess is None:
+        log.warning("RECONNECT refused: unknown pid %r", req.get("pid"))
+        return {"result": "ERR_LOGIN_FAILED"}
+    old = svc.online.get(pid)
+    sess.pes_username, sess.pes_pid = r[0], pid
+    for attr in ("pes_versions", "pes_sums", "pes_match_req"):
+        if old is not None and hasattr(old, attr) and not hasattr(sess, attr):
+            setattr(sess, attr, getattr(old, attr))
+    svc.online[pid] = sess
+    mm = getattr(svc, "pes_mm", None)
+    if mm is not None:
+        mm["queue"] = [(p, sess if p == pid else s) for p, s in mm["queue"]]
+    k = _session_key(sess)
+    log.info("RECONNECT pid %s (%s) -> session key %s", pid, r[0], k["key"])
+    return {"result": NOERR, **k}
 
 
 # ---- schema-driven defaults + validation ----------------------------------------------------------
