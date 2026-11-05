@@ -341,7 +341,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       </div>
       <p class="roles"><a href="#host">I'm hosting →</a><a href="#join">A friend sent me a file →</a><a href="protocol.html">The technical write-up →</a></p>
       <a class="pill-status" href="#status"><i aria-hidden="true"></i>Early access: proven on Linux · testers wanted for Windows, Steam Deck and two separate PCs</a>
-      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or cheap server</b> to host (Windows/Mac hosting should work through Docker Desktop, untested).</p>
+      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC</b> to host (a cloud server, or Windows/Mac with Docker Desktop, should work but is untested).</p>
     </div>
     <svg class="hero-art" viewBox="0 0 520 400" role="img" aria-labelledby="art-t">
       <title id="art-t">Two players connect to your server for login and matchmaking; the match itself runs directly between the two players.</title>
@@ -456,7 +456,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
             <li><b>Someone has a Linux PC</b> that stays on while you play: one command, about 2 minutes. It's right here.</li>
             <li><details><summary><b>Windows or Mac only, want it easy:</b> a small cloud server, about $5 a month, about 10 minutes (untested)</summary>
               <ol class="inline-steps">
-                <li>Create the cheapest <b>Ubuntu 24.04</b> server at any cloud provider. While creating it, find the box for a start-up script (<b>User data</b>, <b>Cloud config</b> or <b>Initialization script</b>), paste this (it contains a random admin password made in your browser just now):
+                <li>Create the cheapest <b>Ubuntu 24.04</b> server at any cloud provider. While creating it, find the box for a start-up script (<b>User data</b>, <b>Cloud config</b> or <b>Initialization script</b>), paste this:
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-ud">#!/<wbr>bin/<wbr>sh
 # open the server's own firewall too (Oracle's images block ports; harmless elsewhere)
 iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT 2>/<wbr>dev/<wbr>null
@@ -467,7 +467,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
                   <noscript><p class="small">JavaScript is off, so no password was made for you: replace <code>choose-a-long-password</code> with your own (at least 10 characters). The server refuses the example and anything shorter.</p></noscript>
                   Where the box is (menu names may differ a little): <b>DigitalOcean</b> → Create Droplet → Advanced options → Add initialization scripts · <b>Hetzner</b> → Add Server → Cloud config · <b>AWS Lightsail</b> → Create instance → Add launch script · <b>Oracle Always Free</b> → Create instance → Show advanced options → Management → Initialization script (ARM images are untested).</li>
                 <li>If the provider has a firewall for the server (a "security group" or "firewall rules"), allow <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b>. The script already opens the server's own firewall (needed on Oracle).</li>
-                <li>About 5 minutes after it starts, open <b>http://&lt;the server's IP&gt;/admin</b>, sign in with that password, and download the mod for your friends. Your provider's dashboard lists the server's IP next to it. Nothing after 10 minutes? Open the provider's web console and run <code>sudo tail -30 /var/log/cloud-init-output.log</code> to see what the installer printed. The admin page isn't encrypted, so don't sign in from public Wi-Fi.</li>
+                <li>About 5 minutes after it starts, open <b>http://&lt;the server's IP&gt;/admin</b>, sign in with that password, and download the mod for your friends. Password not accepted? The server replaces an example or too-short password with its own: in the provider's web console run <code>sudo docker logs pesserver</code> to see it. Your provider's dashboard lists the server's IP next to it. Nothing after 10 minutes? Open the provider's web console and run <code>sudo tail -30 /var/log/cloud-init-output.log</code> to see what the installer printed. The admin page isn't encrypted, so don't sign in from public Wi-Fi.</li>
               </ol>
               <details class="inline-steps"><summary>No start-up script box?</summary><p>Open its web console (or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.</p>
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-q">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud-q" type="button">Copy</button></div>
@@ -585,7 +585,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
     <h2>Something went wrong?</h2>
     <p class="intro">Find what you see. For a friend's problem, the mod's log, <code>pes2021-online.log</code> in their game folder, usually says why. Curious how it all works underneath? Read the <a href="protocol.html">technical write-up</a>.</p>
     <h3 class="sr" id="help-players">For friends (players)</h3>
-    <details class="card helpgrp" open aria-labelledby="help-players">
+    <details class="card helpgrp" open>
       <summary><span class="hg">For friends (players)</span></summary>
       <table class="help"><caption class="sr">Help for players</caption>
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
@@ -609,7 +609,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       </table>
     </details>
     <h3 class="sr" id="help-hosts">For hosts</h3>
-    <details class="card helpgrp" id="hosthelp" open aria-labelledby="help-hosts">
+    <details class="card helpgrp" id="hosthelp" open>
       <summary><span class="hg">For hosts</span></summary>
       <table class="help"><caption class="sr">Help for hosts</caption>
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
@@ -718,7 +718,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       <summary>How do I run it on a cloud server?</summary>
       <p>A cloud server is a good choice if nobody has a Linux PC, your home router can't open ports, or your provider uses CGNAT. Its address never changes and it's on all the time. This should work but hasn't been tested yet; please <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues/new?template=test-report.md">report how it goes</a>.</p>
       <ol>
-        <li>Create a small <b>Ubuntu 24.04</b> server (64-bit) with any cloud provider: the cheapest size is plenty (1 CPU, 1 GB of memory), usually about $4–6 a month, and some providers have free tiers. While creating it, paste this into its start-up script box; it contains a random admin password made in your browser:
+        <li>Create a small <b>Ubuntu 24.04</b> server (64-bit) with any cloud provider: the cheapest size is plenty (1 CPU, 1 GB of memory), usually about $4–6 a month, and some providers have free tiers. While creating it, paste this into its start-up script box:
           <div class="cmd" style="margin-top:8px"><pre id="c-cloud-ud2">#!/<wbr>bin/<wbr>sh
 # open the server's own firewall too (Oracle's images block ports; harmless elsewhere)
 iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT 2>/<wbr>dev/<wbr>null
@@ -1003,7 +1003,7 @@ answer with a 16-byte key
 
 <footer>
   <div class="wrap">
-    <p class="legal">PES 2021 Online is an independent fan preservation project. No game files are included or distributed: every player needs their own copy of PES 2021 on Steam. Not affiliated with Konami; PES and eFootball are trademarks of Konami. Code under the <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/LICENSE">MIT license</a> (the mod includes MinHook, BSD-2-Clause, and Monocypher, CC0/BSD-2-Clause). Made by Mohamed Ali Rashad; thanks to <a href="https://github.com/Nikow5/Pes2021PrivateServer">Nikow5's PES 2021 server work</a> and the Metal Gear Solid V / MGO3 server-emulator community for prior research.</p>
+    <p class="legal">PES 2021 Online is an independent fan preservation project. No game files are included or distributed: every player needs their own copy of PES 2021 on Steam. Not affiliated with Konami; PES and eFootball are trademarks of Konami. Code under the <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/LICENSE">MIT license</a> (the mod includes <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/server/mod/minhook/LICENSE.txt">MinHook, BSD-2-Clause</a>, and Monocypher, CC0/BSD-2-Clause). Made by Mohamed Ali Rashad; thanks to <a href="https://github.com/Nikow5/Pes2021PrivateServer">Nikow5's PES 2021 server work</a> and the Metal Gear Solid V / MGO3 server-emulator community for prior research.</p>
     <span><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a> · <a href="protocol.html">Technical write-up</a> · <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Report a problem</a></span>
   </div>
 </footer>
@@ -1057,7 +1057,7 @@ answer with a 16-byte key
     if (!/^[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}$/.test(pw)) pw = [0, 4, 8].map(o => Array.from(r.slice(o, o + 4), x => abc[x % abc.length]).join("")).join("-");
     try { localStorage.setItem("pes-cloud-pw", pw); } catch (e) {}
     document.querySelectorAll("#c-cloud-ud, #c-cloud-ud2").forEach(pre => { pre.innerHTML = pre.innerHTML.replace("choose-a-long-password", pw); });
-    document.querySelectorAll(".genpw").forEach(b => { b.textContent = pw; });
+    document.querySelectorAll(".genpw").forEach(b => { b.textContent = pw + " (made in your browser just now)"; });
   } catch (e) {}
   if (/Windows|Macintosh/.test(navigator.userAgent)) { const d = document.querySelector(".pick details"); if (d) d.open = true; }   // Windows/Mac visitors: show the cloud path
   if (innerWidth <= 600) document.querySelectorAll("details.helpgrp").forEach(d => d.open = false);   // phones: start folded
