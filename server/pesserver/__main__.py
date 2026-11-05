@@ -79,6 +79,7 @@ async def run(a):
     logging.info("gate tcp/%d  http tcp/%d  stun udp/%d", a.gate_port, a.http_port, a.stun_port)
     svc.admin_password = netsetup.admin_password(data_dir)
     svc.data_dir = data_dir
+    httpgate.load_remote(data_dir)
     from . import identity
     identity.init(data_dir)
     logging.info("server identity %s", identity.public_hex())

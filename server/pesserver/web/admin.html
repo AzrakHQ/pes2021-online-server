@@ -246,7 +246,7 @@
   <div class="card">
     <h1><span aria-hidden="true">⚽ </span>PES 2021 Server</h1>
     <p class="muted" style="margin:0" id="lsub">Sign in to your PES 2021 server.</p>
-    <div id="login-remote" class="banner remote login-warn" hidden style="margin-top:12px"><b>Remote admin is on:</b> this sign-in page can be reached from the internet and isn't encrypted, so anyone between you and the server could read your password. Prefer Tailscale; sign-ins last 12 hours.</div>
+    <div id="login-remote" class="banner remote login-warn" hidden style="margin-top:12px"><b>Opened from the internet:</b> the connection is encrypted. Sign-ins from the internet last 12 hours.</div>
     <form id="lf">
       <input type="text" name="username" autocomplete="username" value="admin" hidden>
       <label for="pw">Admin password</label>
@@ -255,6 +255,7 @@
       <label class="remember" id="remember-row"><input type="checkbox" id="remember"> <span>Keep me signed in on this device for 30 days</span></label>
       <button type="submit" class="primary" id="signin">Sign in</button>
     </form>
+    <button type="button" class="linkbtn" id="local-in" hidden style="margin-top:10px">This is the server's computer: open without a password</button>
     <p class="small muted" style="margin:14px 0 0" id="forgot">Forgot it? It's shown in the server's window on the server computer.</p>
   </div>
 </main>
@@ -271,7 +272,7 @@
 
   <div id="down" class="banner down" role="alert" hidden></div>
   <div id="update" class="banner remote" hidden></div>
-  <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours. <span id="remote-off">To turn it off, start the server again without <code>ADMIN_REMOTE=1</code>.</span><span id="remote-public" hidden>It is on because this computer's own address is public, so it can't be switched off here; prefer Tailscale and sign in only from trusted networks.</span></details></div>
+  <div id="remote" class="banner remote" hidden><b>The admin page can be opened from the internet</b> (encrypted, with the password). Turn it off on the <a href="#h-net">Network</a> card when you don't need it.</div>
 
   <section class="card invite" aria-labelledby="inv-h">
     <div>
@@ -537,9 +538,8 @@ function render(d) {
   text("jp-note", s.link_home_only ? " (works on your Wi-Fi only)" : "");
   text("devices", s.sessions > 1 ? `${s.sessions} active sign-ins.` : "");
   $("remote").hidden = !s.remote_admin;
-  $("remote-off").hidden = s.remote_env === false; $("remote-public").hidden = s.remote_env !== false;
-  text("foot-warn", s.remote_admin ? "Remote admin is on: anyone who finds this page can try your password, and it isn't encrypted."
-                                   : "The admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale.");
+  text("foot-warn", location.protocol === "https:" ? "Opened over the internet, encrypted."
+    : s.same_pc ? "Opened on the server's computer." : "On your home network the admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale.");
   put("cmds", cmdsHtml());
   // once friends are playing, the invite card shrinks to the download and the link
   const est = d.played_total > 0 || d.players.length >= 2;
@@ -650,6 +650,13 @@ function render(d) {
     (ranked.length && d.results.some(r => r.reason) ? `<p class="note">Abandoned matches count with the score when they ended.</p>` : ""));
 }
 
+function remoteHtml(s) {
+  const fp = (s.admin_fp || "").split(":").slice(0, 8).join(":");
+  if (s.remote_admin) return `<div class="ok">${I.ok} Admin page from the internet: on <button type="button" class="linkbtn" data-remote="0">Turn off</button></div>
+    <div class="small muted">Open <b>${esc(s.remote_url || "https://<your internet address>:8080/admin")}</b> anywhere and sign in with the password. The browser warns once because the certificate is this server's own: continue if its SHA-256 fingerprint starts with <code>${esc(fp)}</code>.${s.cgnat || (!s.ports_open.length && !s.pinned) ? " It works once your server can be reached from outside your home (router ports open)." : ""}</div>`;
+  return `<div>Admin page from the internet: off <button type="button" class="small" data-remote="1">Turn on</button></div>
+    <div class="small muted">Turn it on to open this page from anywhere, encrypted (HTTPS) and with the password. Home network and Tailscale work without it.</div>`;
+}
 function netHtml(s) {
   const out = [`<div>Home network address <b>${esc(s.lan)}</b></div>`];
   if (s.wan) out.push(`<div>${s.cgnat ? "Shared internet address (CGNAT)" : "Internet address"} <b>${esc(s.wan)}</b></div>`);
@@ -659,6 +666,7 @@ function netHtml(s) {
   else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't connect yet.</b> Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then <a href="#install-cmd">start the server again</a>. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.</div>
     <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward ${esc(s.ports || "TCP 8080, 10000 + UDP 3478, 7600")} to ${esc(s.lan)}.</details>`);
   if (s.pinned && s.wan && !isTs(s.pinned) && /^[\d.]+$/.test(s.pinned) && s.pinned !== s.wan) out.push(`<div class="small muted">Your fixed address (${esc(s.pinned)}) is different from this network's internet address (${esc(s.wan)}). If friends can't connect, check PUBLIC_IP.</div>`);
+  out.push(remoteHtml(s));
   if (!s.wan && !s.pinned && !s.ports_open.length && !s.cgnat) out.push(`<div class="muted">Friends on your Wi-Fi can connect. Want friends elsewhere? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale</a>.</div>`);
   return out.join("");
 }
@@ -893,6 +901,13 @@ document.addEventListener("click", async e => {
     $("copy-live").textContent = ok ? (ct.dataset.copied || "Copied") : code ? "Selected. Press Ctrl+C to copy" : "Copy failed";
     setTimeout(() => { ct.textContent = ct.dataset.label || "Copy"; }, 2000); return;
   }
+  const rm = e.target.closest("[data-remote]");
+  if (rm) {
+    rm.disabled = true;
+    try { await api("/admin/api/remote", {method: "POST", body: JSON.stringify({on: rm.dataset.remote === "1"})}); }
+    catch (err) { if (err.status !== 401) alert("Couldn't change it: the server didn't answer. Try again."); }
+    refresh(); return;
+  }
   const more = e.target.closest("[data-more]");
   if (more) {
     if (more.dataset.more === "results") showAllResults = !showAllResults; else feedAll = !feedAll;
@@ -972,7 +987,8 @@ $("lf").onsubmit = async e => {
     if (r.status === 429) throw new Error("Too many wrong tries. Wait a minute, then try again.");
     if (r.status === 403) throw new Error(j.error === "open the admin page by its address"
       ? "Open this page by the server's address (for example http://192.168.x.x/admin), not a web name."
-      : "The admin page only opens from the server's home network.");
+      : j.error === "use https" ? "From the internet, open the secure address: https://" + location.host + "/admin"
+      : "The admin page only opens from the server's home network, unless the host turns on internet access.");
     if (r.status === 401) throw Object.assign(new Error("That password doesn't match. Check for typos."), {wrong: true});
     if (!r.ok || !j.token) throw new Error("The server had a problem. Try again in a moment.");
     token = j.token; store.set(token, $("remember").checked);
@@ -999,7 +1015,18 @@ $("dl").addEventListener("click", () => { $("dl-done").textContent = "Your downl
 $("showpw").onclick = () => { const on = $("pw").type === "password"; $("pw").type = on ? "text" : "password";
   $("showpw").innerHTML = (on ? "Hide" : "Show") + '<span class="sr"> password</span>'; };
 $("pw").addEventListener("input", () => { $("pw").removeAttribute("aria-invalid"); $("pw").removeAttribute("aria-describedby"); if (!$("err").dataset.keep) $("err").textContent = ""; });
-fetch("/admin/api/info").then(r => r.json()).then(i => {
+const infoP = fetch("/admin/api/info").then(r => r.json()).catch(() => ({}));
+async function localSignIn() {
+  const r = await fetch("/admin/api/login", {method: "POST", headers: {"X-PES-Local": "1"}, signal: AbortSignal.timeout(8000), body: JSON.stringify({local: true})});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.token) throw new Error("not this PC");
+  token = j.token; store.set(token, true);
+  try { localStorage.setItem("pes-admin-until", String(j.expires || "")); } catch (_) {}
+  start();
+}
+$("local-in").onclick = () => localSignIn().catch(() => { $("local-in").hidden = true; showLogin("Sign in with the password."); });
+infoP.then(i => {
+  $("local-in").hidden = !i.same_pc;
   if (i.host_ok === false) {
     const where = i.admin_url && i.lan ? `<a href="${esc(i.admin_url)}">${esc(i.admin_url)}</a>` : "the server's address (for example http://192.168.x.x/admin)";
     $("err").innerHTML = `For safety, the admin page only opens by the server's address, not a web name. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
@@ -1007,8 +1034,8 @@ fetch("/admin/api/info").then(r => r.json()).then(i => {
     $("signin").disabled = true;
   }
   if (i.password_replaced) $("forgot").innerHTML = "This server was started with the website's example password (or one under 10 characters), so it made its own. " + "It's shown in the server's window.";
-  if (i.remote) { $("login-remote").hidden = false; $("remember-row").hidden = true; $("remember").checked = false; }
-}).catch(() => {});
+  if (i.internet) { $("login-remote").hidden = false; $("remember-row").hidden = true; $("remember").checked = false; }
+});
 $("logout").onclick = async () => {
   let ok = true;
   try { await api("/admin/api/logout", {method: "POST"}); } catch (e) { ok = e.status === 401; }
@@ -1038,7 +1065,8 @@ function start() {
   setTimeout(() => { if (!last && !downSince) put("stats", `<div class="quiet">Live matches and results appear when the server answers.</div>`); }, 2000);
   timer = setInterval(refresh, 3000); gamesTimer = setInterval(loadGames, 15000);
 }
-token ? start() : showLogin();
+if (token) start();
+else infoP.then(i => i.same_pc ? localSignIn().catch(() => showLogin()) : showLogin());
 </script>
 </body>
 </html>

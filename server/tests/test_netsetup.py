@@ -39,10 +39,11 @@ def test_igd_description_and_ssdp_parsing():
 def test_banner(monkeypatch, tmp_path):
     monkeypatch.setitem(netsetup.STATE, "mapped", ["80/tcp"])
     b = netsetup.banner("pw-1", color=False)
-    assert "Admin page   http://192.168.1.50/admin" in b and "203.0.113.7" not in b
-    monkeypatch.setenv("ADMIN_REMOTE", "1")
-    assert "from anywhere: http://203.0.113.7/admin" in netsetup.banner(color=False)
-    monkeypatch.delenv("ADMIN_REMOTE")
+    assert "Admin page     http://localhost/admin" in b and "Other devices  http://192.168.1.50/admin" in b
+    assert "203.0.113.7" not in b
+    monkeypatch.setitem(httpgate.REMOTE, "on", True)
+    assert "Internet       https://203.0.113.7:8080/admin" in netsetup.banner(color=False)
+    monkeypatch.setitem(httpgate.REMOTE, "on", False)
     assert "pw-1" in b and "download the one file" in b
     assert "join" not in b and "irm " not in b and "trycloudflare" not in b
     assert "Password" not in netsetup.banner(color=False)
@@ -55,7 +56,7 @@ def test_banner(monkeypatch, tmp_path):
     monkeypatch.setattr(netsetup, "WEB_PORT", 8080)
     monkeypatch.setattr(netsetup, "NOTES", ["Port 443 is not available"])
     b = netsetup.banner(color=False)
-    assert "http://192.168.1.50:8080/admin" in b and "Port 443 is not available" in b
+    assert "http://localhost:8080/admin" in b and "http://192.168.1.50:8080/admin" in b and "Port 443 is not available" in b
 
 
 def test_join_pages_follow_user_agent_and_host(tmp_path):
@@ -338,15 +339,12 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
 
 
 def test_admin_only_from_own_networks(monkeypatch):
-    monkeypatch.delenv("ADMIN_REMOTE", raising=False)
+    monkeypatch.setitem(httpgate.REMOTE, "on", False)
     for ok in ("127.0.0.1", "192.168.1.20", "10.0.0.5", "172.17.0.1", "100.101.1.2", "::1", "::ffff:192.168.1.9", "fd00::1"):
         assert httpgate.admin_allowed(ok), ok
     for bad in ("8.8.8.8", "156.204.152.194", "2001:4860::1", "", "nonsense"):
         assert not httpgate.admin_allowed(bad), bad
-    monkeypatch.setenv("ADMIN_REMOTE", "1")
-    assert httpgate.admin_allowed("8.8.8.8")
-    monkeypatch.delenv("ADMIN_REMOTE")
-    monkeypatch.setitem(netsetup.STATE, "lan", "8.8.4.4")       # a cloud server with a public address
+    monkeypatch.setitem(httpgate.REMOTE, "on", True)            # the host's switch
     assert httpgate.admin_allowed("8.8.8.8")
 
 
@@ -363,7 +361,7 @@ def test_admin_rebinding_and_csp(tmp_path):
         port = srv.sockets[0].getsockname()[1]
         try:
             code, out = await _http(port, "GET", "/admin/api/info")
-            assert code == 200 and {k: v for k, v in json.loads(out).items() if k not in ("lan", "admin_url", "password_replaced")} == {"remote": False, "host_ok": True}
+            assert code == 200 and {k: v for k, v in json.loads(out).items() if k not in ("lan", "admin_url", "password_replaced")} == {"remote": False, "internet": False, "host_ok": True, "same_pc": True}
         finally:
             srv.close()
     import json

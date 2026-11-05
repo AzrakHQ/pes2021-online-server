@@ -655,6 +655,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
     <details class="q" id="faq-host">
       <summary>How do I see the password again, stop or update the server?</summary>
       <ul>
+        <li><b>The admin page:</b> on the server's own PC it opens without a password (<code>http://localhost:8080/admin</code>, or <code>http://localhost/admin</code> on Windows). Other devices on your Wi-Fi or Tailscale use the address and password shown in the server's window. Away from home, turn on <b>Admin page from the internet</b> on its Network card: it then opens at <code>https://&lt;your internet address&gt;:8080/admin</code>, encrypted, with the password. The browser warns once, because the certificate is the server's own; the Network card shows its fingerprint.</li>
         <li><b>Started with the one line (your PC):</b> the address and password are in the server's window. <b>Ctrl+C</b> or closing the window stops it (and closes the router ports it opened). Paste the same line to start it again: it updates itself first, and players, results and friends' mod files are kept. The admin page also tells you when a newer version is out.</li>
         <li>Remove everything: first click <b>Uninstall</b> on the admin page's server-computer card (if you used it). Then delete the server's folder: <code>%LOCALAPPDATA%\PES2021 Server</code> on Windows, <code>~/.local/share/pes2021-server</code> on Linux. This deletes players, results and the server's identity, so old mod files stop working.</li>
       </ul>

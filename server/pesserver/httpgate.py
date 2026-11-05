@@ -24,7 +24,8 @@ def make_handler(service, stun_host, stun_port, gate_port):
             extra = b""
             if route == "/admin" or route.startswith("/admin/api/"):
                 peer = (writer.get_extra_info("peername") or ("",))[0]
-                status, out, ctype = await _admin(service, method, route, headers, body, peer)
+                secure = writer.get_extra_info("ssl_object") is not None
+                status, out, ctype = await _admin(service, method, route, headers, body, peer, secure)
                 extra = (b"X-Frame-Options: DENY\r\nContent-Security-Policy: " + admin_csp().encode() + b"\r\n"
                          b"Referrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n"
                          b"Cross-Origin-Resource-Policy: same-origin\r\n"
@@ -192,33 +193,58 @@ def _sessions(service):
     return service._admin_sessions
 
 
-def admin_allowed(peer):
-    """The admin page opens only from the server's own networks: home/LAN (private ranges),
-    Tailscale (100.64.0.0/10), this machine. ADMIN_REMOTE=1 allows it from anywhere (cloud servers
-    behind NAT); a machine whose own address is public (a cloud server) allows it automatically."""
+# The admin page from the internet: off unless the host turns it on (a switch on the admin page,
+# kept in <data>/admin_remote). When on, internet visitors get it over HTTPS only.
+REMOTE = {"on": False, "path": None}
+
+
+def load_remote(data_dir):
+    REMOTE["path"] = os.path.join(data_dir, "admin_remote")
+    REMOTE["on"] = os.path.exists(REMOTE["path"])
+
+
+def set_remote(on):
+    REMOTE["on"] = bool(on)
+    if REMOTE["path"]:
+        if on:
+            open(REMOTE["path"], "w").close()
+        elif os.path.exists(REMOTE["path"]):
+            os.remove(REMOTE["path"])
+
+
+def _peer_ip(peer):
     import ipaddress
+    try:
+        ip = ipaddress.ip_address((peer or "").split("%")[0])
+    except ValueError:
+        return None
+    return ip.ipv4_mapped if ip.version == 6 and ip.ipv4_mapped else ip
+
+
+def from_internet(peer):
+    """Not this machine, the home network or Tailscale (100.64.0.0/10 isn't 'global')."""
+    ip = _peer_ip(peer)
+    return ip is None or ip.is_global
+
+
+def same_pc(peer):
+    """The browser runs on the server's own computer (loopback, or this machine's own address)."""
     from . import netsetup
-    if os.environ.get("ADMIN_REMOTE") == "1":
-        return True
-    try:
-        ip = ipaddress.ip_address(peer.split("%")[0])
-        if ip.version == 6 and ip.ipv4_mapped:
-            ip = ip.ipv4_mapped
-    except ValueError:
-        return False
-    if not ip.is_global:                      # home/LAN, Tailscale's 100.64.0.0/10, loopback, link-local
-        return True
-    lan = netsetup.STATE.get("lan")
-    try:
-        return bool(lan) and ipaddress.ip_address(lan).is_global
-    except ValueError:
-        return False
+    ip = _peer_ip(peer)
+    return bool(ip) and (ip.is_loopback or str(ip) == (netsetup.STATE.get("lan") or ""))
+
+
+def admin_allowed(peer):
+    """The admin page opens from this machine, the home network and Tailscale; from the internet
+    only when the host switched that on."""
+    return REMOTE["on"] or not from_internet(peer)
 
 
 ADMIN_BLOCKED = b"""<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
 <title>PES 2021 Admin</title><body style="font:16px/1.6 system-ui,sans-serif;max-width:560px;margin:60px auto;padding:0 16px">
 <h1>Admin page: home network only</h1><p>For safety, the admin page only opens from the server's own network
 (and Tailscale). Open it from a device on the same Wi-Fi as the server, using the address the server printed.</p>
+<p>To open it from anywhere, the host turns on <b>Admin page from the internet</b> on the admin page (Network card).</p>
 </body>"""
 
 
@@ -250,12 +276,28 @@ def host_ok(headers):
             or name.endswith((".local", ".lan", ".home", ".internal", ".ts.net")) or "." not in name)
 
 
-async def _admin(service, method, route, headers, body, peer=""):
-    """Admin page (/admin) and its JSON API, protected by the admin password."""
+def _admin_fp(service):
+    from . import certs
+    return certs.admin_fingerprint(os.path.join(getattr(service, "data_dir", "") or ".", "certs"))
+
+
+def _https_page(headers):
+    url = "https://" + headers.get("host", "") + "/admin"
+    return ('<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">'
+            f'<meta http-equiv="refresh" content="0;url={url}"><title>PES 2021 Admin</title>'
+            '<body style="font:16px/1.6 system-ui,sans-serif;max-width:560px;margin:60px auto;padding:0 16px">'
+            f'<h1>Opening the secure page…</h1><p>From the internet the admin page only opens encrypted: <a href="{url}">{url}</a>. '
+            "Your browser will warn that it can't check the certificate (it's the server's own): continue to the site.</p></body>").encode()
+
+
+async def _admin(service, method, route, headers, body, peer="", secure=False):
+    """Admin page (/admin) and its JSON API. The server's own PC signs in without a password; other devices
+    use the password; from the internet only when switched on, and only over HTTPS."""
     import hmac, time as _time
     from . import events, netsetup
     if route == "/admin/api/info":            # public: lets the sign-in page warn before a password is typed
-        return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8"), "host_ok": bool(host_ok(headers)),
+        return "200 OK", json.dumps({"remote": REMOTE["on"], "internet": from_internet(peer), "host_ok": bool(host_ok(headers)),
+                                     "same_pc": same_pc(peer) and bool(host_ok(headers)),
                                      "lan": (netsetup.STATE.get("lan") or "") if admin_allowed(peer) else "",
                                      "admin_url": netsetup.web_url(netsetup.STATE.get("lan") or "") + "/admin" if admin_allowed(peer) else "",
                                      "password_replaced": bool(netsetup.PASSWORD_IGNORED)}).encode(), "application/json"
@@ -265,6 +307,10 @@ async def _admin(service, method, route, headers, body, peer=""):
         if route == "/admin":
             return "403 Forbidden", ADMIN_BLOCKED, "text/html; charset=utf-8"
         return "403 Forbidden", b'{"error":"home network only"}', "application/json"
+    if from_internet(peer) and not secure:        # never let the password cross the internet in the clear
+        if route == "/admin":
+            return "200 OK", _https_page(headers), "text/html; charset=utf-8"
+        return "403 Forbidden", b'{"error":"use https"}', "application/json"
     if route == "/admin":
         return "200 OK", open(os.path.join(WEB, "admin.html"), "rb").read(), "text/html; charset=utf-8"
     now = _time.time()
@@ -287,13 +333,18 @@ async def _admin(service, method, route, headers, body, peer=""):
             req = json.loads(body or b"{}")
         except ValueError:
             req = {}
+        # The host's own PC: no password. host_ok (checked above) stops DNS rebinding; the custom header
+        # can't be sent cross-site without a CORS preflight we never answer, so websites can't even try.
+        if req.get("local") and same_pc(peer) and headers.get("x-pes-local") == "1":
+            token = _sessions(service).new(True)
+            return "200 OK", json.dumps({"token": token, "expires": _sessions(service).expires(token)}).encode(), "application/json"
         pw = getattr(service, "admin_password", None)
         if not pw or not hmac.compare_digest(str(req.get("password", "")).encode(), pw.encode()):
             recent.append(now)
             await asyncio.sleep(1)            # slow down password guessing
             return "401 Unauthorized", b'{"error":"wrong password"}', "application/json"
-        # with remote admin on, sessions travel over the plain internet: keep them short
-        token = _sessions(service).new(bool(req.get("remember")) and not admin_allowed("8.8.8.8"))
+        # sign-ins from the internet can't be kept for 30 days
+        token = _sessions(service).new(bool(req.get("remember")) and not from_internet(peer))
         return "200 OK", json.dumps({"token": token, "expires": _sessions(service).expires(token)}).encode(), "application/json"
     given = headers.get("authorization", "")[7:] if headers.get("authorization", "").startswith("Bearer ") else ""
     if not _sessions(service).valid(given):
@@ -304,6 +355,15 @@ async def _admin(service, method, route, headers, body, peer=""):
     if route == "/admin/api/logout-all" and method == "POST":
         _sessions(service).clear()
         return "200 OK", b'{"ok":true}', "application/json"
+    if route == "/admin/api/remote" and method == "POST":
+        try:
+            on = bool(json.loads(body or b"{}").get("on"))
+        except ValueError:
+            return "400 Bad Request", b'{"error":"bad request"}', "application/json"
+        set_remote(on)
+        events.feed(service, "The admin page can now be opened from the internet (HTTPS)" if on
+                    else "The admin page is back to home network only", "info")
+        return "200 OK", json.dumps({"remote_admin": REMOTE["on"]}).encode(), "application/json"
     if route == "/admin/api/state":
         snap = events.snapshot(service)
         st = netsetup.STATE
@@ -317,7 +377,8 @@ async def _admin(service, method, route, headers, body, peer=""):
                           "data_dir": getattr(service, "data_dir", ""), "lan_url": netsetup.web_url(st["lan"] or ""), "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
-                          "remote_admin": admin_allowed("8.8.8.8"), "remote_env": os.environ.get("ADMIN_REMOTE") == "1",
+                          "remote_admin": REMOTE["on"], "remote_url": f"https://{st['wan']}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}/admin" if st["wan"] else "",
+                          "admin_fp": _admin_fp(service), "same_pc": same_pc(peer), "local_url": netsetup.local_admin_url(),
                           "link_home_only": not reachable,
                           "sessions": len([1 for v in _sessions(service).s.values() if v > now]),
                           "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex()),
@@ -558,15 +619,28 @@ def mod_bytes(url=""):
     return identity.pack_mod(open(MOD_DLL, "rb").read(), settings)
 
 
-async def serve_tls(service, host, port, certfile, keyfile, stun_host="127.0.0.1", stun_port=3478, gate_port=10000):
-    """Same handler over TLS on its own port (443: players set up with the /join line, and older mods)."""
+def tls_context(certfile, keyfile):
+    """The game's network test asks for an NTL name (SNI) and gets the NTL certificate; anything else
+    (a browser opening https://<address>:8080/admin sends no name for an IP) gets the admin certificate."""
     import ssl
+    from . import certs
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ctx.load_cert_chain(certfile, keyfile)
+    d = os.path.dirname(certfile)
+    if os.path.exists(os.path.join(d, "admin.crt")):
+        admin = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        admin.load_cert_chain(os.path.join(d, "admin.crt"), os.path.join(d, "admin.key"))
 
-    def sni(sslobj, name, _ctx):
-        log.info("TLS ClientHello SNI=%s", name)
-    ctx.sni_callback = sni
+        def sni(sslobj, name, _ctx):
+            if (name or "").lower() not in certs.NTL:
+                sslobj.context = admin
+        ctx.sni_callback = sni
+    return ctx
+
+
+async def serve_tls(service, host, port, certfile, keyfile, stun_host="127.0.0.1", stun_port=3478, gate_port=10000):
+    """Same handler over TLS on its own port (443: players set up with the /join line, and older mods)."""
+    ctx = tls_context(certfile, keyfile)
 
     def on_handshake_error(loop, context):
         log.info("TLS handshake/stream error: %s %r", context.get("message"), context.get("exception"))
@@ -595,9 +669,8 @@ async def _serve_mux(handler, host, port, tls):
     """Plain HTTP and HTTPS on one port: a connection whose first byte is a TLS handshake (0x16) gets TLS.
     The mod sends the game's network test (normally HTTPS on 443) here, so the server needs no port
     below 1024 and no administrator rights. tls = (certfile, keyfile)."""
-    import socket, ssl
-    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    ctx.load_cert_chain(*tls)
+    import socket
+    ctx = tls_context(*tls)
     loop = asyncio.get_running_loop()
     sock = socket.create_server((host, port), family=socket.AF_INET6 if ":" in host else socket.AF_INET, backlog=128)
     sock.setblocking(False)

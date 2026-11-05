@@ -30,6 +30,11 @@ def port_list():
     return f"TCP {tcp} + UDP {udp}"
 
 
+def local_admin_url():
+    """The admin page on the server's own PC (signs in without a password)."""
+    return ("http://localhost" + ("" if WEB_PORT == 80 else f":{WEB_PORT}")) + "/admin"
+
+
 def skip_port(port):
     """The server isn't listening there (no rights for a low port): don't ask the router for it."""
     global PORTS
@@ -313,15 +318,16 @@ def banner(password=None, color=True):
     pinned = os.environ.get("PESSERVER_PUBLIC_ADDR")
     here = pinned or lan
     line = D("  " + "─" * 66)
-    admin = web_url(here) + "/admin"
-    from . import VERSION
+    from . import VERSION, httpgate
+    port = os.environ.get("PESSERVER_HTTP_PORT", "8080")
     out = ["", line, f"   ⚽  {B('PES 2021 SERVER')}" + " " * 39 + G("● ONLINE"),
            D(f"       version {VERSION}"), line, "",
-           f"   {B('Admin page')}   {C(admin)}"]
-    if wan and wan != here and os.environ.get("ADMIN_REMOTE") == "1":
-        out.append(D(f"                from anywhere: {web_url(wan)}/admin"))
+           f"   {B('Admin page')}     {C(local_admin_url())}" + D("   (this PC, no password)"),
+           f"   {B('Other devices')}  {C(web_url(here) + '/admin')}"]
+    if wan and httpgate.REMOTE["on"]:
+        out.append(f"   {B('Internet')}       {C(f'https://{wan}:{port}/admin')}")
     if password:
-        out.append(f"   {B('Password')}     {Y(password)}")
+        out.append(f"   {B('Password')}       {Y(password)}" + D("   (other devices)"))
     out += ["", D("   Open it to download the one file your friends need."), ""]
     if PASSWORD_IGNORED:
         out.append(Y("   !  ADMIN_PASSWORD was the example or too short, so this generated password is used instead."))

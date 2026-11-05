@@ -100,8 +100,34 @@ def _make_leaf(d):
     _write(os.path.join(d, "server.crt"), cert.public_bytes(serialization.Encoding.PEM) + ca_pem)
 
 
+def _make_admin(d):
+    """Self-signed certificate for the admin page over HTTPS (opened from the internet). Browsers warn once,
+    since nobody vouches for it; the admin page shows its fingerprint so the host can check it."""
+    k = _key()
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "PES 2021 server admin page")])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    cert = (x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(k.public_key())
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(now - datetime.timedelta(minutes=5)).not_valid_after(now + datetime.timedelta(days=3650))
+            .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
+            .add_extension(x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH]), critical=False)
+            .sign(k, hashes.SHA256()))
+    _write(os.path.join(d, "admin.key"), _pem_key(k), private=True)
+    _write(os.path.join(d, "admin.crt"), cert.public_bytes(serialization.Encoding.PEM))
+
+
+def admin_fingerprint(d):
+    """SHA-256 of the admin certificate, as browsers show it (AB:CD:...)."""
+    try:
+        cert = x509.load_pem_x509_certificate(open(os.path.join(d, "admin.crt"), "rb").read())
+    except (OSError, ValueError):
+        return ""
+    return ":".join(f"{b:02X}" for b in cert.fingerprint(hashes.SHA256()))
+
+
 def ensure(d):
-    """Create (or renew) <d>/ca.crt and <d>/server.crt + server.key; returns (certfile, keyfile)."""
+    """Create (or renew) <d>/ca.crt, <d>/server.crt + server.key (the game's network test) and
+    <d>/admin.crt + admin.key (the admin page over HTTPS); returns (certfile, keyfile)."""
     global CA_REPLACED
     os.makedirs(d, exist_ok=True)
     ca = os.path.join(d, "ca.crt")
@@ -117,4 +143,6 @@ def ensure(d):
     if not _leaf_ok(srv, ca):
         log.info("issuing the server certificate")
         _make_leaf(d)
+    if not os.path.exists(os.path.join(d, "admin.crt")):
+        _make_admin(d)
     return srv, os.path.join(d, "server.key")

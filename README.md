@@ -23,7 +23,9 @@ curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-se
 ```
 
 It downloads the server (one program, 15–30 MB, no admin rights) and prints your **admin page** and its
-**password**. Keep the window open while you play: **Ctrl+C** or closing it stops the server. Paste the same line
+**password**. On the server's own PC the admin page opens without the password; other devices on your Wi-Fi
+(or Tailscale) use it. To open it from anywhere, turn on **Admin page from the internet** on its Network card
+(HTTPS: the browser warns once, since the certificate is the server's own). Keep the window open while you play: **Ctrl+C** or closing it stops the server. Paste the same line
 next time: it always starts the newest version.
 
 ## 2. Host: send your friends the mod
