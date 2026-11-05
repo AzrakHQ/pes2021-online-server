@@ -47,7 +47,7 @@ def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False)
                              b"X-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
             elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
-                if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200"):
+                if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
                     note_download(service, (writer.get_extra_info("peername") or ("",))[0])
             elif path.startswith("/status"):
                 from . import pesmatch
@@ -324,7 +324,8 @@ async def _admin(service, method, route, headers, body, peer=""):
         snap["server"] = {"main": main, "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
-                          "remote_admin": admin_allowed("8.8.8.8"), "link_home_only": not reachable,
+                          "remote_admin": admin_allowed("8.8.8.8"), "remote_env": os.environ.get("ADMIN_REMOTE") == "1",
+                          "link_home_only": not reachable,
                           "sessions": len([1 for v in _sessions(service).s.values() if v > now]),
                           "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex()),
                           "mod_sha256": mod_sha256(mod_url(service, headers, None)),

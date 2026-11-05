@@ -110,8 +110,8 @@
   .pc-sub { font-size:14px; color:var(--muted); margin:-6px 0 8px; }
   .game .st { font-size:14px; margin-top:2px; }
   .game .act { justify-self:end; padding-top:2px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
-  .what code { display:inline-block; max-width:100%; white-space:nowrap; overflow-x:auto; vertical-align:bottom; }
-  @media (max-width: 420px) { .what code { white-space:normal; overflow-wrap:anywhere; } }
+  .what code { display:inline-block; max-width:100%; white-space:nowrap; vertical-align:baseline; }
+  @media (max-width: 640px) { .what code { white-space:normal; overflow-wrap:anywhere; } }
   .game .msg { grid-column:1 / -1; font-size:14px; }
   .game .msg:empty { display:none; }
   .game.skipped .where b { opacity:.8; }
@@ -262,14 +262,14 @@
   </header>
 
   <div id="down" class="banner down" role="alert" hidden></div>
-  <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours. To turn it off, run this on the server: <span class="linkrow"><code>curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh</code><button type="button" class="small" data-copytext="curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh" data-copied="Command copied">Copy</button></span></details></div>
+  <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours. <span id="remote-off">To turn it off, run this on the server: <span class="linkrow"><code>curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh</code><button type="button" class="small" data-copytext="curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh" data-copied="Command copied">Copy</button></span></span><span id="remote-public" hidden>It is on because this computer's own address is public, so it can't be switched off here; prefer Tailscale and sign in only from trusted networks.</span></details></div>
 
   <section class="card invite" aria-labelledby="inv-h">
     <div>
       <h2 id="inv-h" tabindex="-1">Invite your friends</h2>
       <div class="reach" id="inv-reach" style="margin:0 0 10px"></div>
       <p class="intro-p">Send each friend this one file, once. It already knows your server and keeps working after restarts.</p>
-      <a class="dl" id="dl" href="/mod/dinput8.dll" download="dinput8.dll"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"/></svg> Download the mod for friends</a>
+      <a class="dl" id="dl" href="/mod/dinput8.dll?from=admin" download="dinput8.dll"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"/></svg> Download the mod for friends</a>
       <p class="small" id="dl-done" aria-live="polite" style="margin:8px 0 0"></p>
       <p class="small muted onefile" style="margin:8px 0 0">One file, <code>dinput8.dll</code>. Send it on Discord, WhatsApp or Telegram; email usually blocks this kind of file.</p>
       <div class="small" style="margin-top:14px"><b>Or send this link.</b> It opens a page with the download and these same steps<span id="jp-note"></span>:</div>
@@ -453,7 +453,7 @@ function setDown(on) {
   if (downSince || (failures < 2 && !(lastOkAt && Date.now() - lastOkAt > 8000))) return;   // server counts at once
   downSince = lastOkAt || Date.now();
   if (!last) { text("jp", "Appears when the server answers"); $("jp").classList.add("waiting"); }
-  pill.className = "pill bad"; text("status-t", "Not answering"); $("status-live").textContent = "The server isn't answering.";
+  pill.className = "pill bad"; text("status-t", "Not answering");
   text("stalenote", lastOkAt ? "Showing what the server last reported at " + hm.format(new Date(lastOkAt)) + "." : "");
   text("uptime", lastOkAt ? "Last update " + hm.format(new Date(lastOkAt)) : "");
   document.body.classList.add("stale");
@@ -501,6 +501,7 @@ function render(d) {
   text("jp-note", s.link_home_only ? " (works on your Wi-Fi only)" : "");
   text("devices", s.sessions > 1 ? `${s.sessions} active sign-ins.` : "");
   $("remote").hidden = !s.remote_admin || !!s.docker_desktop;
+  $("remote-off").hidden = s.remote_env === false; $("remote-public").hidden = s.remote_env !== false;
   text("foot-warn", s.docker_desktop ? "The admin page only opens on this computer (localhost:8090)." : s.remote_admin ? "Remote admin is on: anyone who finds this page can try your password, and it isn't encrypted."
                                    : "The admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale.");
   put("cmds", cmdsHtml());
@@ -604,7 +605,7 @@ function render(d) {
   const ranked = [...played].sort((a, b) => pts(b) - pts(a) || gd(b) - gd(a) || a.played - b.played || a.name.localeCompare(b.name));
   put("league", (ranked.length ? `<div class="tablewrap"><table><caption class="sr">League table</caption>
     <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col" class="num"><abbr title="Played">P</abbr></th><th scope="col" class="num hide-xs"><abbr title="Won">W</abbr></th><th scope="col" class="num hide-xs"><abbr title="Drawn">D</abbr></th><th scope="col" class="num hide-xs"><abbr title="Lost">L</abbr></th><th scope="col" class="num hide-sm"><abbr title="Goal difference">GD</abbr></th><th scope="col" class="num"><abbr title="Points">Pts</abbr></th><th scope="col" class="num hide-sm hide-lg">Last sign-in</th></tr></thead><tbody>` +
-    ranked.map((p, i) => `<tr><td class="muted">${i + 1}</td><td class="name">${nm(p.name)}<small class="show-xs">${p.won}-${p.drawn}-${p.lost} · GD ${gd(p) > 0 ? "+" : ""}${gd(p)}</small></td>
+    ranked.map((p, i) => `<tr><td class="muted">${i + 1}</td><td class="name">${nm(p.name)}<small class="show-xs">${p.won}W ${p.drawn}D ${p.lost}L · GD ${gd(p) > 0 ? "+" : ""}${gd(p)}</small></td>
       <td class="num">${p.played}</td><td class="num hide-xs">${p.won}</td><td class="num hide-xs">${p.drawn}</td><td class="num hide-xs">${p.lost}</td>
       <td class="num hide-sm">${gd(p) > 0 ? "+" : ""}${gd(p)}</td><td class="num"><b>${pts(p)}</b></td>
       <td class="num hide-sm hide-lg">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span>` : p.last_login ? `<span class="muted">${ago(p.last_login, now)}</span>` : "–"}</td></tr>`).join("") + `</tbody></table></div>`
@@ -756,7 +757,7 @@ async function loadGames(force, focusMsg, focusKey) {
   const html = need === 0 && !Object.keys(rowMsg).length && !gs.some(g => justMarked.has(g.path))
     ? `<details class="pcready${okCnt ? "" : " none-ready"}" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this computer is ready to play (${gs.length} ${gs.length === 1 ? "copy" : "copies"})` : `${okCnt ? `PES 2021 on this computer: ${okCnt} ready, ${gs.length - okCnt} skipped` : "PES 2021 on this computer: skipped (set it up any time)"}`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
-        : `${okCnt || gs.some(g => g.mod === "ours") ? "PES 2021 on this computer:" : "Want to play on this computer too?"} ${gs.length > 1 ? (need === gs.length ? `All ${need} copies need setup` : `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup`) : "Set up its copy of PES 2021 here"}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
+        : `${okCnt || gs.some(g => g.mod === "ours") ? "PES 2021 on this computer:" : "Want to play on this computer too?"} ${gs.length > 1 ? (need === gs.length ? `All ${need} copies need setup` : `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup`) : (gs[0].mod === "ours" ? "one step left" : "set up its copy of PES 2021 here")}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
   put("games", html, force);
   [...$("games").querySelectorAll(".act button.primary")].slice(1).forEach(x => x.classList.remove("primary"));
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }

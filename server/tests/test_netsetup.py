@@ -303,6 +303,9 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
             svc_feed = [f for f in events._st(srv_svc)["feed"] if f["kind"] == "web"]
             assert len(svc_feed) == 1 and "downloaded the mod" in svc_feed[0]["text"]
             await get(port, "/mod/dinput8.dll")                                  # same address: no second line
+            httpgate._DOWNLOADS.clear()
+            await get(port, "/mod/dinput8.dll?from=admin")                       # the host's own download isn't logged
+            assert len([f for f in events._st(srv_svc)["feed"] if f["kind"] == "web"]) == 1
             assert len([f for f in events._st(srv_svc)["feed"] if f["kind"] == "web"]) == 1
             r, w = await asyncio.open_connection("127.0.0.1", port)
             w.write(b"HEAD /mod/dinput8.dll HTTP/1.1\r\nHost: pes.example.org\r\n\r\n"); await w.drain()
