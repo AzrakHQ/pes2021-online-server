@@ -110,6 +110,57 @@ def server_id():
 _FAILED = {}                                  # client IP -> times of recent wrong passwords
 
 
+class AdminSessions:
+    """Sign-ins to the admin page. The browser gets a random token instead of keeping the password;
+    only a hash of each token is stored (admin_sessions.json in the data folder), so the file can't
+    be used to sign in. Sign out revokes the token."""
+    REMEMBER, BRIEF = 30 * 86400, 12 * 3600
+
+    def __init__(self, data_dir=None):
+        self.path = os.path.join(data_dir, "admin_sessions.json") if data_dir else None
+        self.s = {}
+        if self.path:
+            try:
+                self.s = json.load(open(self.path))
+            except (OSError, ValueError):
+                self.s = {}
+
+    @staticmethod
+    def _h(token):
+        import hashlib
+        return hashlib.sha256(token.encode()).hexdigest()
+
+    def _save(self):
+        import time as _t
+        self.s = {k: v for k, v in self.s.items() if v > _t.time()}
+        if self.path:
+            tmp = self.path + ".tmp"
+            with open(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as f:
+                json.dump(self.s, f)
+            os.replace(tmp, self.path)
+
+    def new(self, remember):
+        import secrets, time as _t
+        token = secrets.token_urlsafe(32)
+        self.s[self._h(token)] = _t.time() + (self.REMEMBER if remember else self.BRIEF)
+        self._save()
+        return token
+
+    def valid(self, token):
+        import time as _t
+        return bool(token) and self.s.get(self._h(token), 0) > _t.time()
+
+    def revoke(self, token):
+        self.s.pop(self._h(token), None)
+        self._save()
+
+
+def _sessions(service):
+    if not hasattr(service, "_admin_sessions"):
+        service._admin_sessions = AdminSessions(getattr(service, "data_dir", None))
+    return service._admin_sessions
+
+
 def admin_allowed(peer):
     """The admin page opens only from the server's own networks: home/LAN (private ranges),
     Tailscale (100.64.0.0/10), this machine. ADMIN_REMOTE=1 allows it from anywhere (cloud servers
@@ -151,23 +202,36 @@ async def _admin(service, method, route, headers, body, peer=""):
     if route == "/admin":
         return "200 OK", open(os.path.join(WEB, "admin.html"), "rb").read(), "text/html; charset=utf-8"
     now = _time.time()
-    recent = [t for t in _FAILED.get(peer, []) if now - t < 60]
-    _FAILED[peer] = recent
-    if len(recent) >= 5:
-        return "429 Too Many Requests", b'{"error":"too many wrong passwords; wait a minute"}', "application/json"
-    pw = getattr(service, "admin_password", None)
+    if route == "/admin/api/login" and method == "POST":
+        recent = [t for t in _FAILED.get(peer, []) if now - t < 60]
+        _FAILED[peer] = recent
+        if len(recent) >= 5:
+            return "429 Too Many Requests", b'{"error":"too many wrong passwords; wait a minute"}', "application/json"
+        try:
+            req = json.loads(body or b"{}")
+        except ValueError:
+            req = {}
+        pw = getattr(service, "admin_password", None)
+        if not pw or not hmac.compare_digest(str(req.get("password", "")).encode(), pw.encode()):
+            recent.append(now)
+            await asyncio.sleep(1)            # slow down password guessing
+            return "401 Unauthorized", b'{"error":"wrong password"}', "application/json"
+        token = _sessions(service).new(bool(req.get("remember")))
+        return "200 OK", json.dumps({"token": token}).encode(), "application/json"
     given = headers.get("authorization", "")[7:] if headers.get("authorization", "").startswith("Bearer ") else ""
-    if not pw or not hmac.compare_digest(given.encode(), pw.encode()):
-        recent.append(now)
-        await asyncio.sleep(1)                # slow down password guessing
-        return "401 Unauthorized", b'{"error":"wrong password"}', "application/json"
+    if not _sessions(service).valid(given):
+        return "401 Unauthorized", b'{"error":"signed out"}', "application/json"
+    if route == "/admin/api/logout" and method == "POST":
+        _sessions(service).revoke(given)
+        return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/state":
         snap = events.snapshot(service)
         st = netsetup.STATE
         main = "http://" + netsetup.game_addrs()[-1]
         snap["server"] = {"main": main, "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
-                          "cgnat": st["cgnat"], "upnp_error": st["upnp_error"]}
+                          "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
+                          "remote_admin": admin_allowed("8.8.8.8")}
         return "200 OK", json.dumps(snap).encode(), "application/json"
     if route == "/admin/api/games":
         from . import gamesetup

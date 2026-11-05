@@ -27,6 +27,11 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 DOCKER="docker"
 docker info >/dev/null 2>&1 || DOCKER="$SUDO docker"
+if ! $DOCKER info >/dev/null 2>&1; then          # installed but not running (e.g. Arch): start it
+  $SUDO systemctl enable --now docker >/dev/null 2>&1 || $SUDO service docker start >/dev/null 2>&1 || true
+  sleep 2
+  $DOCKER info >/dev/null 2>&1 || { echo "Docker is installed but not running. Start it (sudo systemctl start docker) and run this again."; exit 1; }
+fi
 
 bold "Starting the PES 2021 server..."
 REPO="https://github.com/MohamedAliRashad/pes2021-private-server.git#main:server"

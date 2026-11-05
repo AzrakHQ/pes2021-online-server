@@ -143,6 +143,8 @@ def test_admin_api_needs_password_and_tracks_a_match(tmp_path):
     from pesserver import events, pescmds
     svc = Service(Accounts(str(tmp_path / "a.db")))
     svc.admin_password = "s3cret"
+    svc.data_dir = str(tmp_path)
+    httpgate._FAILED.clear()
     pescmds._db(svc)
     for pid, user, name in ((1, "u1", "Alpha"), (2, "u2", "Bravo")):
         svc.accounts.db.execute("INSERT INTO pes_players(pid, username, name, created) VALUES(?,?,?,0)", (pid, user, name))
@@ -173,11 +175,24 @@ def test_admin_api_needs_password_and_tracks_a_match(tmp_path):
         try:
             assert (await _http(port, "GET", "/admin"))[0] == 200
             assert (await _http(port, "GET", "/admin/api/state"))[0] == 401
-            assert (await _http(port, "GET", "/admin/api/state", headers=[("Authorization", "Bearer nope")]))[0] == 401
-            code, out = await _http(port, "GET", "/admin/api/state", headers=[("Authorization", "Bearer s3cret")])
+            assert (await _http(port, "GET", "/admin/api/state", headers=[("Authorization", "Bearer s3cret")]))[0] == 401
+            assert (await _http(port, "POST", "/admin/api/login", b'{"password": "nope"}'))[0] == 401
+            code, out = await _http(port, "POST", "/admin/api/login", b'{"password": "s3cret", "remember": true}')
+            token = json.loads(out)["token"]
+            auth = [("Authorization", "Bearer " + token)]
+            assert code == 200 and len(token) > 30
+            code, out = await _http(port, "GET", "/admin/api/state", headers=auth)
             assert code == 200 and json.loads(out)["results"][0]["away_name"] == "Bravo"
-            code, _ = await _http(port, "POST", "/admin/api/kick", b'{"pid": 2}', [("Authorization", "Bearer s3cret")])
+            assert json.loads(out)["server"]["remote_admin"] is False
+            code, _ = await _http(port, "POST", "/admin/api/kick", b'{"pid": 2}', auth)
             assert code == 200 and closed == [2]
+            sessions = json.load(open(tmp_path / "admin_sessions.json"))
+            assert token not in json.dumps(sessions) and len(sessions) == 1          # only a hash is kept
+            assert (await _http(port, "POST", "/admin/api/logout", b"", auth))[0] == 200
+            assert (await _http(port, "GET", "/admin/api/state", headers=auth))[0] == 401   # revoked
+            for _ in range(4):
+                await _http(port, "POST", "/admin/api/login", b'{"password": "x"}')
+            assert (await _http(port, "POST", "/admin/api/login", b'{"password": "s3cret"}'))[0] == 429
         finally:
             srv.close()
     asyncio.run(go())

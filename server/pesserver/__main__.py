@@ -31,6 +31,7 @@ async def run(a):
     from . import netsetup
     data_dir = _os.path.dirname(_os.path.abspath(a.db))
     svc.admin_password = netsetup.admin_password(data_dir)
+    svc.data_dir = data_dir
     from . import identity
     identity.init(data_dir)
     logging.info("server identity %s", identity.public_hex())
