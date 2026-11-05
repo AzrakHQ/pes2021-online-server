@@ -127,6 +127,15 @@ def tell(svc, pid, title, body):
         _save(svc)
 
 
+def forget(svc, pid):
+    """Drop a deleted player's waiting note and news mark, so a new player with the same number starts clean."""
+    with _lock:
+        st = _load(svc)
+        st["personal"].pop(str(pid), None)
+        st["seen"] = [p for p in st["seen"] if p != pid]
+        _save(svc)
+
+
 # ---- game side ----------------------------------------------------------------------------------
 def _basic(n):
     return {"announce_id": n["id"], "announce_type": "NO_BANNER_INFO", "title": n["title"], "date": n["date"],

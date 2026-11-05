@@ -4,7 +4,7 @@ Field names come from the client's own request/response parsers (strings cluster
 .rdata, e.g. CMD_GET_SVRLIST parser 0x141d48430). Unknown commands get a generic NOERR so the client
 keeps going while we log what it asks for — that log drives which handler to write next.
 """
-import logging, os, time
+import logging, os, sqlite3, time
 
 import msgpack
 
@@ -156,6 +156,25 @@ def _ensure_account(svc, username):
         db.execute("INSERT OR IGNORE INTO pes_players(username, created) VALUES(?, ?)", (username, time.time()))
         db.execute("UPDATE pes_players SET last_login=? WHERE username=?", (time.time(), username))
     return _player(svc, username)
+
+
+def delete_player(svc, pid):
+    """Remove a registered player (admin page). On their next login the game finds no player data
+    (GET_PLAYER_DATA has_data NO) and asks for a region and a name again, as on the first visit.
+    Match results stay under the names they had, but lose the pid, so a later player who gets the same
+    number (SQLite reuses the highest rowid) doesn't inherit them. Returns the old name, or None."""
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        r = db.execute("SELECT name FROM pes_players WHERE pid=?", (pid,)).fetchone()
+        if r is None:
+            return None
+        db.execute("DELETE FROM pes_players WHERE pid=?", (pid,))
+        try:
+            for col in ("home_pid", "away_pid"):
+                db.execute(f"UPDATE pes_matches SET {col}=NULL WHERE {col}=?", (pid,))
+        except sqlite3.OperationalError:                # no matches table yet
+            pass
+    return r[0] or f"Player {pid}"
 
 
 @cmd("CMD_GET_CHALLENGECODE")

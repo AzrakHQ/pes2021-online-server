@@ -456,6 +456,21 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server." + reason)
         sess.close()
         return "200 OK", b'{"ok":true}', "application/json"
+    if route == "/admin/api/players/delete" and method == "POST":
+        try:
+            pid = int(json.loads(body or b"{}").get("pid"))
+        except (ValueError, TypeError, AttributeError):
+            return "400 Bad Request", b'{"error":"pid"}', "application/json"
+        from . import announce, pescmds
+        name = pescmds.delete_player(service, pid)
+        if name is None:
+            return "404 Not Found", b'{"error":"That player is already gone."}', "application/json"
+        announce.forget(service, pid)
+        sess = service.online.get(pid)
+        if sess is not None and hasattr(sess, "close"):
+            sess.close()                # their next login registers them again (name prompt)
+        events.feed(service, f"{name} was deleted by the admin", "warn")
+        return "200 OK", b'{"ok":true}', "application/json"
     return "404 Not Found", b'{"error":"unknown"}', "application/json"
 
 

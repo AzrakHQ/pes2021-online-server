@@ -49,7 +49,7 @@
 
   .banner { border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:14px; }
   .banner.down { border:2px solid var(--live); background:var(--card); box-shadow:0 4px 14px rgba(0,0,0,.12); }
-  body.stale #thispc button, body.stale [data-kick] { pointer-events:none; opacity:.6; filter:grayscale(1); }
+  body.stale #thispc button, body.stale [data-kick], body.stale [data-del] { pointer-events:none; opacity:.6; filter:grayscale(1); }
   body.stale #dl { pointer-events:none; background:var(--code); color:var(--muted); border-color:var(--line); }
   body.stale #stats, body.stale #board { filter:grayscale(.6); }
 
@@ -109,6 +109,8 @@
   details.pcready > summary { cursor:pointer; font-weight:600; color:var(--accent); }
   details.pcready[open] > summary { margin-bottom:6px; }
   details.pcready > .games { margin-left:6px; padding-left:14px; border-left:2px solid var(--line); }
+  details.players { margin-top:14px; } details.players > summary { cursor:pointer; font-weight:600; color:var(--accent); }
+  details.players[open] > summary { margin-bottom:6px; }
   .game { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 16px; align-items:start; padding:12px 0; border-top:1px solid var(--line); }
   .games > .game:first-child { border-top:0; }
   .game .where b { font-size:15px; overflow-wrap:anywhere; }
@@ -340,7 +342,7 @@
         <section class="card" id="c-net" aria-labelledby="h-net"><h2 id="h-net" tabindex="-1">Network</h2><div class="net" id="net"><div class="skel"></div></div></section>
       </div>
     </div>
-    <section class="card" id="c-league" aria-labelledby="h-league"><h2 id="h-league" tabindex="-1">League table <span class="muted small">(3 points a win)</span></h2><div id="league"><div class="skel"></div><div class="skel short"></div></div></section>
+    <section class="card" id="c-league" aria-labelledby="h-league"><h2 id="h-league" tabindex="-1">League table <span class="muted small">(3 points a win)</span></h2><div id="league"><div class="skel"></div><div class="skel short"></div></div><div id="players"></div><p class="note" id="del-msg" role="status"></p></section>
   </div>
 
   <footer class="foot">
@@ -464,7 +466,7 @@ function setDown(on) {
     if (downSince || pill.className !== "pill") { downSince = 0; pill.className = "pill"; $("down").hidden = true; document.body.classList.remove("stale");
       $("dl").removeAttribute("aria-disabled"); $("dl").removeAttribute("tabindex");
       if ($("dl").dataset.label) { $("dl").innerHTML = dlHTML; delete $("dl").dataset.label; }
-      document.querySelectorAll("[data-kick], #thispc button").forEach(b => b.removeAttribute("aria-disabled")); }
+      document.querySelectorAll("[data-kick], [data-del], #thispc button").forEach(b => b.removeAttribute("aria-disabled")); }
     text("status-t", Date.now() < backUntil ? "Back online" : "Server online");
     return;
   }
@@ -477,7 +479,7 @@ function setDown(on) {
   text("stalenote", lastOkAt ? "Showing what the server last reported at " + hm.format(new Date(lastOkAt)) + "." : "");
   text("uptime", lastOkAt ? "Last update " + hm.format(new Date(lastOkAt)) : "");
   document.body.classList.add("stale");
-  document.querySelectorAll("[data-kick], #thispc button").forEach(b => b.setAttribute("aria-disabled", "true"));
+  document.querySelectorAll("[data-kick], [data-del], #thispc button").forEach(b => b.setAttribute("aria-disabled", "true"));
   $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").textContent; $("dl").textContent = "Waiting for the server…";
   const downHtml = lastOkAt
     ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? If it is, ${restartHint()} This page keeps trying.`
@@ -648,6 +650,13 @@ function render(d) {
     : `<p class="empty">The table fills in after the first finished match.</p>`) +
     (idle.length ? `<p class="note">Not played yet: ${idle.map(p => esc(p.name)).join(", ")}</p>` : "") +
     (ranked.length && d.results.some(r => r.reason) ? `<p class="note">Abandoned matches count with the score when they ended.</p>` : ""));
+  put("players", d.players.length ? `<details class="players" data-key="players-fold"><summary>Registered players (${d.players.length})</summary>
+    <div class="tablewrap"><table><caption class="sr">Registered players</caption>
+    <thead><tr><th scope="col">Player</th><th scope="col" class="num hide-xs">Matches</th><th scope="col" class="num hide-xs">Last sign-in</th><th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
+    [...d.players].sort((a, b) => a.name.localeCompare(b.name)).map(p => `<tr><td class="name">${nm(p.name)}<small class="show-xs">${p.played} ${p.played === 1 ? "match" : "matches"} · ${p.online ? "online" : p.last_login ? ago(p.last_login, now) : "never signed in"}</small></td><td class="num hide-xs">${p.played}</td>
+      <td class="num hide-xs">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span>` : p.last_login ? `<span class="muted">${ago(p.last_login, now)}</span>` : "–"}</td>
+      <td class="num act"><button class="danger small" data-del="${p.pid}" data-key="del-${p.pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}" aria-label="Delete ${esc(p.name)}">Delete</button></td></tr>`).join("") +
+    `</tbody></table></div><p class="note">Deleting a player removes their name, rating and table row. Their past results stay in Results. If they play again, the game asks them for a region and a name, like on their first visit.</p></details>` : "");
 }
 
 function remoteHtml(s) {
@@ -941,6 +950,20 @@ document.addEventListener("click", async e => {
     $("pc-live").textContent = "Marked as not ready"; const g = lastGames.find(x => x.path === ou.dataset.optundo); if (g) delete rowMsg[g.id]; return loadGames(true, null, g && "lo-done-" + g.id); }
   const g = e.target.closest("[data-game]");
   if (g) return gameAction(g);
+  const del = e.target.closest("[data-del]");
+  if (del) {
+    if (document.body.classList.contains("stale")) { $("del-msg").textContent = "The server isn't answering, so nobody can be deleted right now."; return; }
+    if (del.getAttribute("aria-disabled") === "true" || !confirm(`Delete ${del.dataset.name}?` + (del.dataset.online ? " They're online now and get disconnected." : "")
+        + "\n\nTheir name, rating and table row are removed. Past results stay. If they play again, the game asks them for a name like on their first visit.")) return;
+    del.setAttribute("aria-disabled", "true");
+    try { await api("/admin/api/players/delete", {method: "POST", body: JSON.stringify({pid: +del.dataset.del})}); $("del-msg").textContent = `${del.dataset.name} was deleted.`; }
+    catch (err) { if (err.status === 401) return signedOut(); $("del-msg").textContent = err.status === 404 ? `${del.dataset.name} was already deleted.` : `Couldn't delete ${del.dataset.name}. Try again.`; }
+    setTimeout(() => { $("del-msg").textContent = ""; }, 8000);
+    while (inflight) await new Promise(r => setTimeout(r, 100));
+    await refresh();
+    if (!document.activeElement || document.activeElement === document.body) $("h-league").focus();
+    return;
+  }
   const k = e.target.closest("[data-kick]");
   if (k && document.body.classList.contains("stale")) { $("kick-msg").textContent = "The server isn't answering, so nobody can be kicked right now."; return; }
   let reason = null;

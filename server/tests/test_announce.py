@@ -105,3 +105,43 @@ def test_admin_routes(tmp_path):
         finally:
             srv.close()
     asyncio.run(go())
+
+
+def test_admin_deletes_a_player_who_then_registers_again(tmp_path):
+    from pesserver import events
+    svc = _svc(tmp_path)
+    svc.admin_password = "s3cret"
+    httpgate._FAILED.clear()
+    sess = SimpleNamespace()
+    pescmds._dispatch(svc, sess, "CMD_LOGIN", {"username": "410000004100001"})
+    pescmds._dispatch(svc, sess, "CMD_CREATE_PLAYER", {"name": "Tester2"})
+    pid = sess.pes_pid
+    events.snapshot(svc)                                   # creates the matches table
+    db = svc.accounts.db
+    with db:
+        db.execute("INSERT INTO pes_matches(home_pid, away_pid, home_name, away_name, home_score, away_score)"
+                   " VALUES(1, ?, 'Me', 'Tester2', 2, 1)", (pid,))
+    announce.tell(svc, pid, "Note", "Old note")
+    closed = []
+    svc.online[pid] = SimpleNamespace(pes_pid=pid, close=lambda: closed.append(pid))
+
+    async def go():
+        srv = await httpgate.serve(svc, "127.0.0.1", 0)
+        port = srv.sockets[0].getsockname()[1]
+        try:
+            token = json.loads((await _http(port, "POST", "/admin/api/login", b'{"password": "s3cret"}'))[1])["token"]
+            auth = [("Authorization", "Bearer " + token)]
+            assert (await _http(port, "POST", "/admin/api/players/delete", b'{"pid": "x"}', auth))[0] == 400
+            assert (await _http(port, "POST", "/admin/api/players/delete", json.dumps({"pid": pid}).encode()))[0] == 401
+            assert (await _http(port, "POST", "/admin/api/players/delete", json.dumps({"pid": pid}).encode(), auth))[0] == 200
+            assert (await _http(port, "POST", "/admin/api/players/delete", json.dumps({"pid": pid}).encode(), auth))[0] == 404
+        finally:
+            srv.close()
+    asyncio.run(go())
+    assert closed == [pid]
+    assert all(p["name"] != "Tester2" for p in events.snapshot(svc)["players"])
+    assert db.execute("SELECT away_pid, away_name FROM pes_matches").fetchone() == (None, "Tester2")   # result kept, pid freed
+    assert str(pid) not in announce._load(svc)["personal"]
+    again = SimpleNamespace()                              # same game logs in again: asked for a name
+    pescmds._dispatch(svc, again, "CMD_LOGIN", {"username": "410000004100001"})
+    assert pescmds._dispatch(svc, again, "CMD_GET_PLAYER_DATA", {}) == {"result": "NOERR", "has_data": "NO"}
