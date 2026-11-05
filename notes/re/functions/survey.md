@@ -1,5 +1,9 @@
 # Survey (main session): catalog, error codes, big modes
 
+## Corrections from later findings (2026-11-05)
+- On-screen codes: players mostly see **TAG_<sub-code>** (e.g. MXNV_0013, CCWR_0014); TAG+line only where a site has no sub-code (messages.md).
+
+
 ## Command catalog
 433 CMD_* names in the binary (catalog.json). 33 handled by our server, 40 more seen in our logs and answered
 with a bare NOERR, 360 never seen (their menus were never opened). Areas: myClub 125, Match 48, Co-op 42,

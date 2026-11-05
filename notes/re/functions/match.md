@@ -1,5 +1,9 @@
 # Group "match" — online match setup, keep-alive, teardown (PES 2021 1.01.00, static RE)
 
+## Corrections from later findings (2026-11-05)
+- Live (livetests.md): CMD_RECONNECT survives a ~7 s server outage during a match (APLR_0002 at ~15 s); in the menus an outage gives VNBP_0002 with no reconnect. The AFK end came after about 70 s without input.
+
+
 Tags: **[static]** read in code (address cited), **[log]** seen in our traffic (logs/*.log), **[inferred]**, **[guess]**.
 Working files: the working folder (dumps not published; general tools in `notes/re/functions/tools/`) (asm dumps, `errtable.txt` = the client's per-command server-error table,
 `parserofs.py`, `enumtbl.py`).

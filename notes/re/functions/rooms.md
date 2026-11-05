@@ -1,5 +1,10 @@
 # Rooms / Online Match Lobby — static RE + implementation spec
 
+## Corrections from later findings (2026-11-05)
+- **PES 2021's menus don't show the lobby** (live test): the flows ship in dt16_all.cpk and TopMenuNew.json has `12_freelobby`, but no visible menu item leads there. How to reach it is being investigated.
+- Mode names (sweep.md): `lobby_type` FREE/MULTI/MYCLUB/PESLEAGUE; JOIN_ONLINE_MODE `online_mode` QUICK/RANKMATCH/FREE/MULTI/MYCLUB/PESLEAGUE/MATCHDAY/COOP/EDIT_DATA_LIVE_UPDATE.
+
+
 Group **rooms**. Binary PES2021.exe 1.01.00. Scratch material (scripts, dumps): the working folder (dumps not published; general tools in `notes/re/functions/tools/`)
 (`packer.py` request-key scanner, `ptypes.py` reply-type scanner, `enums.py` enum-string resolver,
 `wl_c1340.asm` = watch-list merger). Tags: **[static]** read in code at the address, **[log]** our traffic,

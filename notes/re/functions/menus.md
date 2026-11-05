@@ -1,5 +1,10 @@
 # Group "menus": fair-play checks, news/info, profile/account, store
 
+## Corrections from later findings (2026-11-05)
+- On-screen codes: CCWR450 is shown as **CCWR_0014**, CCWR455 as **CCWR_0015**, CCWR211 as **CCWR_0003** (tag + sub-code; messages.md).
+- `regstate(id)` in param_check_sum is **not** a registration flag: it is the player's weekly condition from PlayerWeekly.bin, used only in live-data mode, otherwise the constant 5 (db.md, confirmed live in livetests.md).
+
+
 Static RE of PES2021.exe 1.01.00 plus our traffic logs. Tags: **[static]** read in code at the cited address,
 **[log]** seen in logs/*.log, **[inferred]**, **[guess]**. Work files (asm dumps, helper scripts):
 the working folder (dumps not published; general tools in `notes/re/functions/tools/`) (tools/: `obj.py` dumps each CommandObject's unique vtable slots, `pfields.py`

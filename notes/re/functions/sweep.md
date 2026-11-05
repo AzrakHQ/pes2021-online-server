@@ -1,5 +1,9 @@
 # Sweep group: settling the earlier groups' "Still unknown" items (static)
 
+## Corrections from later findings (2026-11-05)
+- CCWR211 here is the line form; players see it as **CCWR_0003** (messages.md).
+
+
 Scope: the priority items from results / match / rooms / coop / menus / live / db. Each item has an
 answer, a tag ([static] read in code, [log] seen in our traffic, [inferred], [guess]) and addresses, or
 **needs live test: <test>**. Work files: the working folder (not published) (asm dumps, `scanoff.py`, `dt20/all.dec`).

@@ -104,9 +104,11 @@ COM_STYLES = {60: 'Trickster', 61: 'Mazing Run', 62: 'Speeding Bullet', 63: 'Inc
               64: 'Long Ball Expert', 65: 'Early Cross', 66: 'Long Ranger'}
 SKILL_UI_ORDER = [67, 104, 68, 69, 70, 105, 71, 72, 99, 73, 74, 98, 106, 75, 100, 101, 76, 77, 78, 79, 107, 80, 81,
                   82, 83, 95, 84, 85, 102, 86, 87, 96, 97, 88, 89, 90, 103, 91, 92, 93, 94]  # table 0x142979100
-SKILL_NAMES = ['Scissors Feint', 'Double Touch', 'Flip Flap', 'Marseille Turn', 'Sombrero', 'Chop Turn',
-               'Cut Behind & Turn', 'Scotch Move', 'Sole Control', 'Heading', 'Long Range Curler',
-               'Chip Shot Control', 'Long Range Drive', 'Knuckle Shot', 'Dipping Shot', 'Rising Shot',
+# Names = the game's own English labels (eng/string/all.str skill help list, same UI order). 74 was PES 2020's
+# "Long Range Curler" and 106 the old "Long Range Drive"; PES 2021 renamed them.
+SKILL_NAMES = ['Scissors Feint', 'Double Touch', 'Flip Flap', 'Marseille Turn', 'Sombrero', 'Cross Over Turn',
+               'Cut Behind & Turn', 'Scotch Move', 'Step On Ball Control', 'Heading', 'Long Range Drive',
+               'Chip Shot Control', 'Long Range Shooting', 'Knuckle Shot', 'Dipping Shot', 'Rising Shots',
                'Acrobatic Finishing', 'Heel Trick', 'First-time Shot', 'One-touch Pass', 'Through Passing',
                'Weighted Pass', 'Pinpoint Crossing', 'Outside Curler', 'Rabona', 'No Look Pass', 'Low Lofted Pass',
                'GK Low Punt', 'GK High Punt', 'Long Throw', 'GK Long Throw', 'Penalty Specialist',

@@ -1,5 +1,10 @@
 # Results group: post-match reporting, rating push, divisions and rankings
 
+## Corrections from later findings (2026-11-05)
+- **Quick Match never shows the rating screen** (mode groups 13/19/28/29 only, static table; sweep.md). The verdict push still ends the 20 s wait.
+- Value sets are known (sweep.md): `division` "D1"…"D12"/"NONE", ranking `sort` RATING/WIN_NUM/MATCH_NUM/WIN_STRAIGHT/WIN_RATE, `order` "ASC".
+
+
 Static RE of PES2021.exe 1.01.00 plus our own traffic logs. Tags: **[static]** read in code at the
 address, **[log]** seen in our traffic, **[inferred]**, **[guess]**. Working files (asm dumps, decoders,
 decoded log JSON) are in the working folder (dumps not published; general tools in `notes/re/functions/tools/`). New helper scripts there:

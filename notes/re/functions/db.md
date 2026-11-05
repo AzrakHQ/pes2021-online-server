@@ -1,5 +1,11 @@
 # pesdb: the PES 2021 player/team database (Player.bin, Team.bin, PlayerAssignment.bin, …)
 
+## Corrections from later findings (2026-11-05)
+- Skill names, from the game's English string table (sweep.md): 74 = **Long Range Drive** (PES 2020's Long Range Curler), 106 = **Long Range Shooting**, 99 = **Step On Ball Control**, 105 = **Cross Over Turn**, 101 = **Rising Shots**. tools/pesdb.py uses these names.
+- The downloaded Live Update is saved in `C:\ProgramData\KONAMI\eFootball PES 2021 SEASON UPDATE\save\LIVE00000000`, not in Documents (live test).
+- The live-mode checksum was confirmed live: with an update applied, the game sent exactly the value pesdb.py predicts (livetests.md).
+
+
 Group "db". Static analysis of PES2021.exe 1.01.00 plus the pesdb files in the CPKs. Read-only: nothing was launched.
 Parser: [`tools/pesdb.py`](tools/pesdb.py) (`python3 pesdb.py checksum|player <id>|team <id>|dump out.json`). Field-to-bit map of the
 108 parameters: [`data/player_param_map.json`](data/player_param_map.json). The full JSON dump, the x86 bit-probe emulator and the disassembly

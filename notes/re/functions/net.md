@@ -1,5 +1,12 @@
 # Group "net": P2P, NTL, TURN relay, game relay — PES 2021 1.01.00 (static RE)
 
+## Corrections from later findings (2026-11-05)
+- The "dual route" SOFTWARE directive is **required, not optional**. After allocating, Turn::Impl needs the relay's SOFTWARE to be `HOST:PORT,<text>,0`, otherwise it restarts the session every second. With it, the game opens a second leg over DTLS/UDP and only publishes its relay address once that works. (Live test, livetests.md.)
+- The coturn run's instant disconnect was **not** caused by mobility: our relay granted mobility and the game still disconnected until the SOFTWARE directive was sent.
+- Settled live: REQUESTED-TRANSPORT is UDP (0x11); the client sends MOBILITY-TICKET and SOFTWARE "ktc-0.0.0"; a failing TURN path does not break the match.
+- The multiplay parameters come from the server (`GET_SERVER_ENV.proto_opt` JSON), not a game data file (nettune.md).
+
+
 Working files (asm dumps, helper scripts): the working folder (dumps not published; general tools in `notes/re/functions/tools/`).
 Tags: **[static]** read in code (address given), **[log]** seen in our traffic (logs/*.log), **[inferred]**, **[guess]**.
 
