@@ -390,7 +390,11 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <tr><td class="mono">server/pesserver/pesmatch.py</td><td>quick-match queue and pairing, WATCH_MATCHING long-poll/push with sides, game relay info, relay-check result, peer notice relay, match id</td></tr>
 <tr><td class="mono">server/pesserver/gate.py · service.py</td><td>TCP gate loop (handler crashes are caught and answered) · dispatch and session bookkeeping</td></tr>
 <tr><td class="mono">server/pesserver/stun.py · httpgate.py</td><td>RFC 5389 binding · HTTP 8080 web-API + HTTPS 443 GateInfo.php (8443 when run outside Docker) + <code>/ca.crt</code></td></tr>
-<tr><td class="mono">server/Dockerfile · docker-compose.yml</td><td>one-container deployment; <code>docker-entrypoint.sh</code> generates the CA and certificate</td></tr>
+<tr><td class="mono">server/pesserver/identity.py</td><td>server identity (Ed25519 key), signed <code>/mod/note</code> and <code>/mod/hello</code>, writes settings into the mod DLL</td></tr>
+<tr><td class="mono">server/pesserver/netsetup.py</td><td>LAN / public IP detection, UPnP port mapping, CGNAT detection, per-client advertised address, startup banner</td></tr>
+<tr><td class="mono">server/pesserver/events.py · gamesetup.py</td><td>admin page data (online, live phases, results, league, activity) · "This PC" mod install into mounted game folders</td></tr>
+<tr><td class="mono">server/mod/</td><td>the mod: <code>dinput8.dll</code> proxy, MinHook hooks, Monocypher signature check; built in the Dockerfile's first stage</td></tr>
+<tr><td class="mono">install.sh · server/Dockerfile · docker-compose*.yml</td><td>one-command install (Docker, image, game detection) and one-container deployment; <code>docker-entrypoint.sh</code> also keeps the legacy CA for old join scripts</td></tr>
 </table></div>
 <p>Run: <code>docker compose up</code>, or <code>python3 -m pesserver serve</code> (ncl is the default codec). Every request is logged decoded (<code>RX … CMD_…</code>).</p>
 
