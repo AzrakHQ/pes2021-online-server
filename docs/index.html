@@ -428,7 +428,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
                 <li>Open its web console (or SSH), paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-q">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud-q" type="button">Copy</button></div>
                   It looks up the server's public address and lets you open the admin page from home. The admin page isn't encrypted, so don't sign in from public Wi-Fi. <a href="#faq-cloud">More about cloud hosting</a>.</li>
-                <li>Open the admin page address it prints (if it shows a "from anywhere" line, use that) and download the mod for your friends.</li>
+                <li>Open the admin page address it prints (it's your server's public address) and download the mod for your friends. Keep the install line: running it again updates the server and keeps these settings.</li>
               </ol></details></li>
             <li><details><summary><b>Windows or Mac only, want it free:</b> Docker Desktop on one PC, about 20 minutes (untested)</summary>
               <ol class="inline-steps">
@@ -440,7 +440,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
               </ol>
               <p class="inline-steps"><a href="#faq-winhost">Full steps with the exact commands</a> (which address to use, port forwarding, playing on the same PC).</p></details></li>
           </ul>
-          <p class="small muted"><b>On a Linux PC:</b> open a terminal (on Ubuntu press <b>Ctrl+Alt+T</b>, or search "Terminal" in the app menu), paste the command and press Enter. It asks for your password (sudo); nothing shows while you type it, that's normal. It installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
+          <p class="small muted"><b>On a Linux PC:</b> open a terminal (on Ubuntu press <b>Ctrl+Alt+T</b>, or search "Terminal" in the app menu), paste the command and press Enter. It may ask for your password (sudo); nothing shows while you type it, that's normal. It installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
         </div>
         <div>
           <div class="cmd"><span class="label">Linux terminal</span><pre id="c-host">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
@@ -483,8 +483,8 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
         </div>
         <div>
           <figure class="mini-shot">
-            <a class="light" href="admin-invite-light.webp"><img src="admin-invite-light.webp" width="1431" height="489" loading="lazy" alt="The top of the real admin page: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does."></a>
-            <a class="dark" href="admin-invite-dark.webp"><img src="admin-invite-dark.webp" width="1431" height="489" loading="lazy" alt="The top of the real admin page in dark mode: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does."></a>
+            <a class="light" href="admin-invite-light.webp"><img src="admin-invite-light.webp" width="1431" height="525" loading="lazy" alt="The top of the real admin page: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does."></a>
+            <a class="dark" href="admin-invite-dark.webp"><img src="admin-invite-dark.webp" width="1431" height="525" loading="lazy" alt="The top of the real admin page in dark mode: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does."></a>
             <figcaption class="small muted">Click or tap to enlarge.</figcaption>
           </figure>
           <p class="small muted"><b>Playing on the same PC?</b> If the installer found PES 2021 on it, the admin page has a <b>The server computer</b> card: close the game and click <b>Install mod</b>.</p>
@@ -559,8 +559,8 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       </div>
     </div>
     <figure class="shot">
-      <a class="light" href="admin-light.webp"><img src="admin-light.webp" width="1475" height="1434" loading="lazy" alt="The admin page: an Invite your friends card with the mod download, players online, a live match in the second half, an activity feed and the network card."></a>
-      <a class="dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1475" height="1434" loading="lazy" alt="The admin page in dark mode: an Invite your friends card with the mod download, players online, a live match in the second half, an activity feed and the network card."></a>
+      <a class="light" href="admin-light.webp"><img src="admin-light.webp" width="1474" height="1434" loading="lazy" alt="The admin page once friends are playing: a compact Invite more friends card with the mod download, players online with who they're playing, a live match in the second half, an activity feed and the network card."></a>
+      <a class="dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1474" height="1434" loading="lazy" alt="The admin page in dark mode once friends are playing: a compact Invite more friends card with the mod download, players online with who they're playing, a live match in the second half, an activity feed and the network card."></a>
       <figcaption>The real admin page, filled with made-up demo players and scores. Tap to open it full size.</figcaption>
     </figure>
   </div>
@@ -676,7 +676,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       <ul>
         <li>Show the admin page and password again: <code>sudo docker logs pesserver</code></li>
         <li>Restart: <code>sudo docker restart pesserver</code> · Stop: <code>sudo docker stop pesserver</code> (this also closes the router ports it opened)</li>
-        <li>Update to the latest version: run the install line again. Players, results and your server's identity are kept, so friends' files keep working.</li>
+        <li>Update to the latest version: run the install line again. It keeps the settings you gave the first time (<code>PUBLIC_IP</code>, <code>ADMIN_REMOTE</code>); to clear one, give it empty, for example <code>… | ADMIN_REMOTE= sh</code>. Players, results and your server's identity are kept, so friends' files keep working.</li>
         <li>Remove everything: first click <b>Uninstall</b> on the admin page's server-computer card (if you used it), then <code>sudo docker stop pesserver &amp;&amp; sudo docker rm pesserver; sudo docker volume rm pesserver-data; sudo docker rmi ghcr.io/mohamedalirashad/pes2021-private-server</code> (deletes players and results, and the server's identity, so old mod files stop working; Docker itself stays installed).</li>
       </ul>
       <p>If your user is in the <code>docker</code> group you can leave out <code>sudo</code>.</p>
@@ -700,7 +700,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <div class="cmd" style="margin-top:8px"><pre id="c-cloud">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud" type="button">Copy</button></div>
           The admin page isn't encrypted, so its password crosses the internet in the clear: keep the generated password, and don't sign in from public Wi-Fi.</li>
         <li>The command looks up the server's public address (with the free ipify service) and gives it to players, because a cloud server has no home router to ask. The admin page then shows that fixed address; the ports you opened in step 2 are what let friends in.</li>
-        <li>Open the admin page at the address the banner shows (if it shows a "from anywhere" line, use that one) and download the mod for your friends.</li>
+        <li>Open the admin page at the address the banner shows (it's your server's public address) and download the mod for your friends.</li>
       </ol>
       <p>The match itself still runs directly between the two players' PCs, so a cloud server doesn't fix "Failed to connect with opponent". It does keep login and matchmaking reachable for everyone.</p>
     </details>

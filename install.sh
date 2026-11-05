@@ -5,7 +5,7 @@
 #
 # Installs Docker if it is missing, starts the server (it restarts by itself after a reboot), opens the
 # router's ports with UPnP and prints the admin page (where the host downloads the mod for friends).
-# Run it again to update.
+# Run it again to update (it keeps PUBLIC_IP, ADMIN_REMOTE and UPNP from the previous run).
 # Optional env: PUBLIC_IP=<addr> (pin the address given to players), UPNP=0 (don't touch the router),
 #               ADMIN_REMOTE=1 (admin page from any network, e.g. a cloud server; it isn't encrypted),
 #               PES_IMAGE=<image> (default: the published image).
@@ -87,6 +87,15 @@ while IFS= read -r d; do
 done < "$GAMES_LIST"
 rm -f "$GAMES_LIST"
 
+# Updating: keep the settings the server was started with unless they're given again (PUBLIC_IP= clears one).
+if $DOCKER inspect pesserver >/dev/null 2>&1; then
+  prev() { $DOCKER inspect -f '{{range .Config.Env}}{{println .}}{{end}}' pesserver 2>/dev/null | sed -n "s/^$1=//p" | head -n 1; }
+  kept=""
+  if [ -z "${PUBLIC_IP+x}" ]; then PUBLIC_IP="$(prev PUBLIC_IP)"; [ -n "$PUBLIC_IP" ] && kept="$kept PUBLIC_IP=$PUBLIC_IP"; fi
+  if [ -z "${ADMIN_REMOTE+x}" ]; then ADMIN_REMOTE="$(prev ADMIN_REMOTE)"; [ -n "$ADMIN_REMOTE" ] && kept="$kept ADMIN_REMOTE=$ADMIN_REMOTE"; fi
+  if [ -z "${UPNP+x}" ]; then UPNP="$(prev UPNP)"; [ "${UPNP:-1}" != 1 ] && kept="$kept UPNP=$UPNP"; fi
+  [ -n "$kept" ] && echo "Keeping your earlier settings:$kept (to clear one, run the install line with it empty, e.g. PUBLIC_IP=)"
+fi
 $DOCKER rm -f pesserver >/dev/null 2>&1 || true
 $DOCKER run -d --name pesserver --network host --restart unless-stopped \
   -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -e ADMIN_REMOTE="${ADMIN_REMOTE:-}" \
