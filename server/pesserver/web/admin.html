@@ -18,7 +18,7 @@
   a { color:var(--accent); }
   :focus-visible { outline:3px solid var(--accent); outline-offset:2px; border-radius:6px; }
   [tabindex="-1"]:focus { outline:none; }
-  h2[tabindex="-1"]:focus { outline:2px solid var(--accent); outline-offset:4px; }
+  h2[tabindex="-1"]:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
   .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   .muted { color:var(--muted); }
   .small { font-size:13px; }
@@ -42,8 +42,7 @@
 
   .banner { border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:14px; }
   .banner.down { border:2px solid var(--live); background:var(--card); position:sticky; top:8px; z-index:10; box-shadow:0 4px 14px rgba(0,0,0,.12); }
-  body.stale #stats, body.stale #board { opacity:.75; }
-  body.stale #thispc button { pointer-events:none; opacity:.6; }
+  body.stale #thispc button, body.stale #dl { pointer-events:none; opacity:.6; }
   body.stale #uptime { display:inline !important; }
   .banner.down b { color:var(--live); }
   .banner.remote { background:var(--warnbg); color:var(--fg); border:1px solid var(--warn); }
@@ -56,7 +55,7 @@
   button.primary:hover, .dl:hover { filter:brightness(1.08); color:var(--on-accent); }
   button.danger { color:var(--muted); }
   button.danger:hover, button.danger:focus-visible { border-color:var(--live); color:var(--live); }
-  button:disabled { opacity:.6; cursor:progress; }
+  button:disabled, button[aria-disabled="true"] { opacity:.6; cursor:progress; }
   @media (pointer: coarse) { button, .linkbtn { min-height:40px; } }
   button.small { padding:4px 10px; font-size:13px; }
 
@@ -66,10 +65,9 @@
   .invite p { margin:0 0 12px; }
   .dl { display:block; text-align:center; border-radius:10px; padding:13px 16px; font-size:16px; text-decoration:none; }
   .reach { font-size:14px; margin:10px 0 14px; }
-  .reach a { font-weight:600; }
+  .reach a { font-weight:600; display:inline-block; padding:8px 4px; margin:-8px -4px; }
   .linkrow { display:flex; gap:8px; align-items:stretch; margin-top:6px; }
   .linkrow code { flex:1; min-width:0; padding:9px 12px; user-select:all; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; overflow-wrap:normal; display:block; }
-  @media (max-width: 480px) { .linkrow code { white-space:normal; word-break:break-all; } }
   .stalenote { display:none; } body.stale .stalenote { display:block; }
   .friend h3 { font-size:15px; margin:0 0 8px; }
   .friend ol { margin:0; padding-left:20px; font-size:14px; }
@@ -101,14 +99,15 @@
   .quiet { color:var(--muted); background:var(--card); border:1px dashed var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
   .quiet b { color:var(--fg); }
 
-  .cols { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; }
+  .cols { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:16px; }
+  @media (max-width: 1000px) { .hide-md { display:none; } }
   #board.board-quiet .cols { grid-template-columns:minmax(0,1fr); }
+  #board.board-quiet .col:first-child { display:none; }
   .col { min-width:0; }
   @media (max-width: 800px) {
     .tiles { grid-template-columns:repeat(2,1fr); }
     .cols { display:flex; flex-direction:column; gap:0; }
     .col { display:contents; }
-    #c-live { order:1 } #c-online { order:2 } #c-feed { order:3 } #c-results { order:4 } #c-net { order:5 } #c-net.warnnet { order:0 }
   }
 
   .skel { height:14px; border-radius:6px; background:var(--skel); margin:8px 0; }
@@ -120,16 +119,16 @@
   td { padding:8px; border-bottom:1px solid var(--line); overflow-wrap:anywhere; }
   tr:last-child td { border-bottom:0; }
   td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  td.name { font-weight:600; max-width:220px; }
+  td.name { font-weight:600; max-width:220px; min-width:9em; overflow-wrap:break-word; word-break:normal; }
   td.nw { white-space:nowrap; }
   abbr[title] { text-decoration:none; cursor:help; }
-  @media (max-width: 600px) { .hide-sm { display:none; } td.name { max-width:40vw; } #live .match .side { white-space:normal; overflow-wrap:anywhere; }
+  @media (max-width: 600px) { .hide-sm { display:none; } td.name { max-width:40vw; } 
     .game { grid-template-columns:minmax(0,1fr); } .game .act { justify-self:start; } }
   @media (max-width: 420px) { .hide-xs { display:none; } }
 
   .list-plain { list-style:none; margin:0; padding:0; }
   .match { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:12px; padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:10px; }
-  .match .side { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .match .side { font-weight:600; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow-wrap:anywhere; }
   .match .side:not(.away) { text-align:right; }
   .score { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; text-align:center; }
   .score.vs { font-size:15px; color:var(--muted); font-weight:600; }
@@ -166,11 +165,13 @@
   main.login .card { padding:22px; }
   main.login h1 { font-size:22px; margin:0 0 4px; }
   main.login label { display:block; font-weight:600; margin:16px 0 6px; }
-  main.login input[type=password] { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--field); background:var(--bg); color:var(--fg); font:inherit; }
-  main.login .remember { display:flex; gap:8px; align-items:flex-start; font-weight:400; margin:12px 0 16px; font-size:14px; }
+  main.login #pw { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--field); background:var(--bg); color:var(--fg); font:inherit; }
+  main.login .remember { display:flex; gap:8px; align-items:flex-start; font-weight:400; margin:0 0 16px; font-size:14px; }
   main.login .remember input { margin-top:4px; }
-  .pwrow { display:flex; gap:8px; } .pwrow input { flex:1; min-width:0; }
-  main.login button { width:100%; padding:11px; font-size:15px; }
+  .pwrow { display:flex; gap:8px; margin-bottom:14px; } .pwrow input { flex:1; min-width:0; }
+  main.login button[type=submit] { width:100%; padding:11px; font-size:15px; }
+  .pwrow button { flex:none; width:auto; }
+  .banner.remote.login-warn { margin:0 0 14px; }
   #err { color:var(--live); font-size:14px; min-height:20px; margin-top:10px; }
 </style>
 </head>
@@ -179,11 +180,12 @@
   <div class="card">
     <h1><span aria-hidden="true">⚽ </span>PES 2021 Server</h1>
     <p class="muted" style="margin:0">Sign in to your PES 2021 server.</p>
+    <div id="login-remote" class="banner remote login-warn" hidden style="margin-top:12px"><b>Remote admin is on:</b> this sign-in page can be reached from the internet and isn't encrypted. Only sign in on networks you trust; sign-ins last 12 hours.</div>
     <form id="lf">
       <input type="text" name="username" autocomplete="username" value="admin" hidden>
       <label for="pw">Admin password</label>
-      <div class="pwrow"><input id="pw" type="password" autocomplete="current-password" required aria-describedby="err"><button type="button" id="showpw" aria-pressed="false">Show</button></div>
-      <label class="remember"><input type="checkbox" id="remember"> <span>Keep me signed in on this device for 30 days</span></label>
+      <div class="pwrow"><input id="pw" type="password" autocomplete="current-password" required aria-describedby="err"><button type="button" id="showpw" aria-pressed="false" aria-label="Show password">Show</button></div>
+      <label class="remember" id="remember-row"><input type="checkbox" id="remember"> <span>Keep me signed in on this device for 30 days</span></label>
       <button type="submit" class="primary" id="signin">Sign in</button>
     </form>
     <div id="err" role="alert"></div>
@@ -195,7 +197,7 @@
   <header class="top">
     <h1><span aria-hidden="true">⚽ </span>PES 2021 Server</h1>
     <span class="pill neutral" id="status" role="status"><span class="dot"></span><span id="status-t">Connecting…</span></span>
-    <a class="pill neutral" id="reach" href="#c-net" hidden></a>
+    <a class="pill neutral" id="reach" href="#h-net" hidden></a>
     <span class="muted small" id="uptime"></span>
     <span class="grow"></span>
     <span class="muted small" id="until"></span>
@@ -203,6 +205,7 @@
   </header>
 
   <div id="down" class="banner down" role="alert" hidden></div>
+  <div id="remote" class="banner remote" hidden><b>Anyone on the internet can reach this sign-in page</b> (remote admin is on), and the connection isn't encrypted: your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours.</div>
 
   <section class="card invite" aria-labelledby="inv-h">
     <div>
@@ -211,7 +214,8 @@
       <p>Send each friend this one file, once. It already knows your server and keeps working after restarts.</p>
       <a class="dl" id="dl" href="/mod/dinput8.dll" download="dinput8.dll"><span aria-hidden="true">⬇ </span>Download the mod for friends</a>
       <p class="small" id="dl-done" aria-live="polite" style="margin:8px 0 0"></p>
-      <p class="small muted" style="margin:8px 0 0">One file, <code>dinput8.dll</code>. Send it on Discord, WhatsApp or Telegram; email usually blocks this kind of file.</p>
+      <p class="small muted" style="margin:8px 0 0">One file, <code>dinput8.dll</code>. Send it on Discord, WhatsApp or Telegram; email usually blocks this kind of file.
+        Your server's key is <code id="skey">…</code>: a friend's <code>pes2021-online.log</code> shows the same characters, so they can check the file is really from you.</p>
       <div class="small" style="margin-top:14px"><b>Or send this link.</b> It opens a page with the download and these same steps<span id="jp-note"></span>:</div>
       <div class="linkrow"><code id="jp">Loading…</code><button type="button" id="copy" disabled>Copy link</button></div>
       <span class="sr" id="copy-live" aria-live="polite"></span>
@@ -227,10 +231,8 @@
     </div>
   </section>
 
-  <div id="remote" class="banner remote" hidden><b>Anyone on the internet can reach this sign-in page</b> (remote admin is on), and the connection isn't encrypted: your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours.</div>
-
   <section class="card" id="thispc" aria-labelledby="pc-h" hidden>
-    <h2 id="pc-h">This PC</h2>
+    <h2 id="pc-h" tabindex="-1">This PC</h2>
     <p class="muted small" style="margin:-6px 0 8px">Play on this computer too: set up your own copy of PES 2021.</p>
     <div id="games"></div>
     <span class="sr" id="pc-live" aria-live="polite"></span>
@@ -238,7 +240,7 @@
 
   <div id="stats"></div>
   <p class="stalenote small warn" id="stalenote"></p>
-  <div id="board">
+  <div id="board" hidden>
     <div class="cols">
       <div class="col">
         <section class="card" id="c-live" aria-labelledby="h-live"><h2 id="h-live" tabindex="-1">Live matches</h2><div id="live"><div class="skel"></div><div class="skel short"></div></div></section>
@@ -319,7 +321,8 @@ function dayLabel(t) {
   if (d.toDateString() === y.toDateString()) return "Yesterday";
   return dayName.format(d);
 }
-const where = ip => /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|127\.|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.)/.test(ip || "") ? "Home network" : "Internet";
+const where = ip => /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(ip || "") ? "Tailscale"
+  : /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|127\.)/.test(ip || "") ? "Home network" : "Internet";
 
 async function api(path, opts = {}) {
   const r = await fetch(path, {...opts, signal: AbortSignal.timeout(4000),
@@ -345,20 +348,20 @@ function setDown(on) {
     text("status-t", "Server online");
     return;
   }
-  if (!last && failures === 0) for (const id of ["live", "online", "results", "feed", "net", "league"]) put(id, `<p class="empty">Can't load yet…</p>`);
+  if (!last && failures === 0) { $("board").hidden = true; put("stats", `<div class="quiet">Live data shows here once the server answers.</div>`); }
   if (++failures < 2 || downSince) return;      // announce the outage once, not on every poll
   downSince = lastOkAt || Date.now();
-  if (!last) { text("jp", "Shown when the server answers"); }
+  if (!last) { text("jp", "Appears when the server answers"); }
   text("stalenote", lastOkAt ? "Not live: last update " + hm.format(new Date(lastOkAt)) : "");
   pill.className = "pill bad"; text("status-t", "Not answering");
   text("uptime", lastOkAt ? "last update " + hm.format(new Date(lastOkAt)) : "");
   document.body.classList.add("stale");
-  $("down").innerHTML = `<b>Last heard from the server at ${hm.format(new Date(downSince))}.</b> Is that computer on? Start the server with <code>sudo docker start pesserver</code>. This page keeps trying.`;
+  $("down").innerHTML = (lastOkAt ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b>` : `<b>The server isn't answering.</b>`) + ` Is that computer on? Start the server with <code>sudo docker start pesserver</code>. This page keeps trying.`;
   $("down").hidden = false;
 }
 
 function reachInfo(s) {
-  const bad = {ok: false, short: "Home network only", long: `<span class="warn">⚠ <b>Only friends on your Wi-Fi can join right now.</b></span> <a href="#c-net">Fix this ↓</a>`};
+  const bad = {ok: false, short: "Home network only", long: `<span class="warn">⚠ <b>Only friends on your Wi-Fi can join right now.</b></span> <a href="#h-net">Fix this ↓</a>`};
   if (s.cgnat) return bad;
   if (s.ports_open.length || s.pinned) return {ok: true, short: "Friends anywhere can connect", long: `<span class="ok">✓ Your server is ready. Friends anywhere can join.</span>`};
   if (s.wan) return bad;
@@ -381,8 +384,9 @@ function render(d) {
   const now = d.now, s = d.server;
   text("uptime", "running for " + dur(d.uptime));
   text("jp", s.main); $("jp").title = s.main; $("copy").disabled = false;
+  if (s.key) text("skey", s.key);
   text("jp-note", s.link_home_only ? " (works on your Wi-Fi only)" : "");
-  text("devices", s.sessions > 1 ? `Signed in on ${s.sessions} devices.` : "");
+  text("devices", s.sessions > 1 ? `${s.sessions} active sign-ins.` : "");
   $("remote").hidden = !s.remote_admin;
   const r = reachInfo(s);
   $("reach").hidden = false; $("reach").className = "pill " + (r.ok ? "" : "warn"); text("reach", (r.ok ? "✓ " : "⚠ ") + r.short);
@@ -390,7 +394,7 @@ function render(d) {
   $("c-net").classList.toggle("warnnet", !r.ok);
 
   const quiet = !d.online.length && !d.live.length && !d.played_total;
-  $("board").classList.toggle("board-quiet", quiet);
+  $("board").classList.toggle("board-quiet", quiet); $("board").hidden = false;
   const today = d.results.filter(r => new Date(r.ended * 1000).toDateString() === new Date().toDateString()).length;
   put("stats", quiet
     ? `<div class="quiet"><b>Waiting for your first friend.</b> Send them the mod; they appear here within seconds of starting PES 2021.<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
@@ -408,17 +412,18 @@ function render(d) {
     : m.kickoff ? `<span class="pill live"><span class="dot"></span>${esc(m.phase)}</span> <span class="muted">&nbsp;kicked off ${ago(m.kickoff, now)}</span>`
     : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}${now - (m.started || now) > 300 ? " · stuck? They can leave and search again" : ""}</span>`;
   put("live", d.live.length ? `<ul class="list-plain" aria-label="Live matches">` + d.live.map(m => `
-    <li class="match"><span class="sr">${esc(m.home_name)} ${m.kickoff ? m.home_score : ""} ${m.kickoff ? "" : "versus"} ${esc(m.away_name)} ${m.kickoff ? m.away_score : ""}, ${esc(m.kickoff ? m.phase : "getting ready")}</span>
+    <li class="match" title="${esc(m.home_name)} v ${esc(m.away_name)}"><span class="sr">${esc(m.home_name)} ${m.kickoff ? m.home_score : ""} ${m.kickoff ? "" : "versus"} ${esc(m.away_name)} ${m.kickoff ? m.away_score : ""}, ${esc(m.kickoff ? m.phase : "getting ready")}</span>
       <div class="side" aria-hidden="true">${esc(m.home_name)}</div>
       <div class="score${m.kickoff ? "" : " vs"}" aria-hidden="true">${m.kickoff ? `${m.home_score} – ${m.away_score}` : "vs"}</div>
       <div class="side away" aria-hidden="true">${esc(m.away_name)}</div>
       <div class="phase" aria-hidden="true">${phaseLabel(m)}</div>
-    </li>`).join("") + `</ul>` : `<p class="empty">No one is playing. A match starts when two friends choose Quick Match at the same time.</p>`);
+    </li>`).join("") + `</ul>` : d.searching === 1 ? `<p class="empty">One friend is searching for a match. Another friend needs to choose Quick Match too.</p>`
+    : `<p class="empty">No one is playing. A match starts when two friends choose Quick Match at the same time.</p>`);
 
   put("online", d.online.length ? `<div class="tablewrap"><table><caption class="sr">Players online now</caption>
-    <thead><tr><th scope="col">Player</th><th scope="col">Status</th><th scope="col" class="hide-sm">Connection</th><th scope="col" class="num hide-sm">Online for</th><th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
+    <thead><tr><th scope="col">Player</th><th scope="col">Status</th><th scope="col" class="hide-sm hide-md">Connection</th><th scope="col" class="num hide-sm">Online for</th><th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
     d.online.map(p => `<tr><td class="name">${esc(p.name)}</td><td class="nw">${esc(p.status)}</td>
-      <td class="hide-sm muted nw">${where(p.ip)} · ${esc(p.ip)}</td><td class="num muted hide-sm">${dur(now - p.since)}</td>
+      <td class="hide-sm hide-md muted nw">${where(p.ip)} · ${esc(p.ip)}</td><td class="num muted hide-sm">${dur(now - p.since)}</td>
       <td class="num"><button class="danger" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></td></tr>`).join("") +
     `</tbody></table></div><p class="note">Kick disconnects someone now; they can reconnect. There's no ban: anyone you've sent the mod can come back.</p>`
     : `<p class="empty">Nobody is online right now. Send your friends the mod to get them in.</p>`);
@@ -464,7 +469,8 @@ function netHtml(s) {
   if (s.wan) out.push(`<div>Internet address <b>${esc(s.wan)}</b></div>`);
   if (s.pinned) out.push(`<div>Address given to players <b>${esc(s.pinned)}</b></div>`);
   if (s.cgnat) out.push(`<div class="warn"><b>⚠ Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free) to fix it.</a></div>`);
-  // when everything is fine, the header and the invite card already say so
+  else if (s.pinned) out.push(`<div class="ok">✓ Players get the fixed address ${esc(s.pinned)}</div>`);
+  else if (s.ports_open.length) out.push(`<div class="ok">✓ Router ports open (UPnP)</div>`);
   else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>⚠ Friends outside your home can't connect yet.</b> Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then run the install command again.</div>
     <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to ${esc(s.lan)}.</details>`);
   return out.join("");
@@ -481,7 +487,7 @@ function parent(path) {
 }
 const stateOf = g => g.mod + "/" + g.override;
 function gameRow(g) {
-  const name = label(g.path);
+  const name = g.label || label(g.path);
   let st, btn = "", info = "";
   const b = (cls, act, text) => `<button type="button" class="${cls}" data-game="${esc(g.id)}" data-act="${act}" data-key="game-${esc(g.id)}-${act}" aria-label="${text}: ${esc(name)}">${text}</button>`;
   const what = `<div class="what">Copies <code>dinput8.dll</code> into the game folder and tells PES to load it (keeps a backup of your settings).</div>`;
@@ -497,8 +503,8 @@ function gameRow(g) {
   } else if (g.override === false) {
     st = `<span class="warn">Almost ready: one more step so PES loads the mod</span>${what}`; btn = b("primary", "install", "Finish setup");
   } else if (g.override === null) {
-    st = `<span class="warn">Needs a launch option (Steam on Linux only)</span>`; btn = b("danger small", "remove", "Uninstall");
-    info = `<span class="muted">If you play this copy through Steam on Linux or Steam Deck, also add this launch option:</span> <code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code>`;
+    st = `<span class="warn">Add one Steam launch option to finish</span>`; btn = b("danger small", "remove", "Uninstall");
+    info = `<span class="muted">In Steam: PES 2021 → Properties → Launch options, paste:</span> <code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code> <button type="button" class="small" data-copytext="WINEDLLOVERRIDES=&quot;dinput8=n,b&quot; %command%" data-key="lo-copy-${esc(g.id)}">Copy</button>`;
   } else {
     st = `<span class="ok">✓ Ready to play</span>`; btn = b("danger small", "remove", "Uninstall");
   }
@@ -506,6 +512,10 @@ function gameRow(g) {
   return `<div class="game"><div class="where"><b>${esc(name)}</b>
       <code class="parent">${esc(g.path)}</code><div class="st">${st}</div></div>
     <div class="act">${failed ? "" : btn}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
+}
+function libraryOf(path) {
+  const p = String(path).split("/").filter(Boolean), i = p.indexOf("steamapps");
+  return "/" + (i > 0 ? p.slice(0, i) : p.slice(0, -2)).join("/");
 }
 async function loadGames(force, focusMsg) {
   let gs;
@@ -524,6 +534,9 @@ async function loadGames(force, focusMsg) {
   const need = gs.filter(g => !(g.mod === "ours" && g.override === true)).length;
   const isReady = g => g.mod === "ours" && g.override === true && !rowMsg[g.id];
   const todo = gs.filter(g => !isReady(g)), done = gs.filter(isReady);
+  const counts = {};
+  gs.forEach(g => { counts[label(g.path)] = (counts[label(g.path)] || 0) + 1; });
+  gs.forEach(g => { g.label = counts[label(g.path)] > 1 ? label(g.path).replace(/\)$/, " · " + libraryOf(g.path) + ")") : label(g.path); });
   const rows = need && done.length >= 2
     ? `<div class="games">${todo.map(gameRow).join("")}</div><details class="pcready" style="margin-top:8px"><summary>✓ ${done.length} other copies are ready</summary><div class="games">${done.map(gameRow).join("")}</div></details>`
     : `<div class="games">${gs.map(gameRow).join("")}</div>`;
@@ -532,13 +545,14 @@ async function loadGames(force, focusMsg) {
     : `<p class="muted" style="margin:0 0 4px">${need === 0 ? "PES 2021 on this PC is set up for your server. Just start the game."
         : `${gs.length > 1 ? `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup. ` : ""}Close PES 2021 first, then click the button.`}</p>${rows}`;
   put("games", html, force);
-  if (focusMsg) { const m = $("games").querySelector(`[data-key="msg-${CSS.escape(focusMsg)}"]`); if (m) m.focus(); }
+  if (focusMsg) { const m = $("games").querySelector(`[data-key="msg-${CSS.escape(focusMsg)}"]`); (m || $("pc-h")).focus(); }
 }
 async function gameAction(btn) {
   const id = btn.dataset.game, act = btn.dataset.act, g = lastGames.find(x => x.id === id);
+  if (document.body.classList.contains("stale") || btn.getAttribute("aria-disabled") === "true") return;
   if (act === "remove" && !confirm(`Remove the mod from ${label(g.path)} (${g.path})? That copy can't play online until you install it again.`)) return;
   if (act === "switch" && !confirm("PES 2021 on this PC will stop connecting to the other server and use this one. Continue?")) return;
-  btn.setAttribute("aria-busy", "true"); btn.disabled = true;
+  btn.setAttribute("aria-busy", "true"); btn.setAttribute("aria-disabled", "true");
   btn.textContent = act === "remove" ? "Removing…" : "Installing…";
   let msg;
   try {
@@ -546,13 +560,13 @@ async function gameAction(btn) {
     const ng = gs.find(x => x.id === id) || g;
     msg = act === "remove"
       ? {html: `<span class="muted">Removed.</span>`, state: stateOf(ng), until: Date.now() + 8000}
-      : {html: `<span class="ok">Installed.</span> Start PES 2021 → eFootball → Quick Match. If PES was open, close it; this row will show <b>Finish setup</b> if one more click is needed.`, state: stateOf(ng), until: Date.now() + 20000};
+      : {html: `<span class="ok">Installed.</span> Start PES 2021 → eFootball → Quick Match.`, state: stateOf(ng), until: Date.now() + 20000};
     $("pc-live").textContent = act === "remove" ? "Mod removed" : "Mod installed";
   } catch (e) {
     if (e.status === 401) return signedOut();
     const text = e.name === "TimeoutError" || e.message === "failed" ? "That didn't work. Close the game and try again." : e.message;
     msg = {html: `<span class="err">${esc(text)}</span> <button type="button" data-game="${esc(id)}" data-act="${act}" data-key="retry-${esc(id)}">Try again</button>`,
-           state: g ? stateOf(g) : "", until: Date.now() + 15000, error: true};
+           state: g ? stateOf(g) : "", until: Date.now() + 120000, error: true};
     $("pc-live").textContent = text;
   }
   rowMsg[id] = msg;
@@ -579,6 +593,15 @@ async function copyLink() {
 
 document.addEventListener("click", async e => {
   if (e.target.closest("#copy")) return copyLink();
+  const ct = e.target.closest("[data-copytext]");
+  if (ct) {
+    let ok = false;
+    try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(ct.dataset.copytext); ok = true; } } catch (_) {}
+    if (!ok) { const ta = document.createElement("textarea"); ta.value = ct.dataset.copytext; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); try { ok = document.execCommand("copy"); } catch (_) {} ta.remove(); ct.focus(); }
+    ct.textContent = ok ? "Copied ✓" : "Copy failed";
+    setTimeout(() => { ct.textContent = "Copy"; }, 2000); return;
+  }
   const more = e.target.closest("[data-more]");
   if (more) {
     if (more.dataset.more === "results") showAllResults = !showAllResults; else feedAll = !feedAll;
@@ -589,13 +612,15 @@ document.addEventListener("click", async e => {
   const g = e.target.closest("[data-game]");
   if (g) return gameAction(g);
   const k = e.target.closest("[data-kick]");
-  if (k && confirm(k.dataset.vs ? `Kick ${k.dataset.name}? Their match against ${k.dataset.vs} ends now. They can reconnect.`
+  if (k && k.getAttribute("aria-disabled") !== "true" && confirm(k.dataset.vs ? `Kick ${k.dataset.name}? Their match against ${k.dataset.vs} ends now. They can reconnect.`
                                  : `Kick ${k.dataset.name}? Their game disconnects from the server now; they can reconnect.`)) {
-    k.disabled = true;
+    k.setAttribute("aria-disabled", "true");
     try { await api("/admin/api/kick", {method: "POST", body: JSON.stringify({pid: +k.dataset.kick})}); $("kick-msg").textContent = `${k.dataset.name} was disconnected.`; }
     catch (err) { if (err.status === 401) return signedOut(); $("kick-msg").textContent = `Couldn't kick ${k.dataset.name}; they may have already left.`; }
     const all = [...$("online").querySelectorAll("[data-kick]")], i = all.indexOf(k);
     setTimeout(() => { $("kick-msg").textContent = ""; }, 8000);
+    while (inflight) await new Promise(r => setTimeout(r, 100));
+    delete shown.online;
     await refresh();
     const after = [...$("online").querySelectorAll("[data-kick]")];
     (after[Math.min(i, after.length - 1)] || $("h-online")).focus();
@@ -618,7 +643,7 @@ $("lf").onsubmit = async e => {
     $("pw").removeAttribute("aria-invalid");
     $("pw").value = "";
     start();
-    $("inv-h").focus();
+    $("dl").focus();
   } catch (err) {
     $("signin").disabled = false; $("signin").textContent = "Sign in";
     $("err").textContent = err.name === "TimeoutError" || err instanceof TypeError ? "Can't reach the server. Is it running?" : err.message;
@@ -633,7 +658,10 @@ $("logout-all").onclick = async () => {
 };
 $("dl").addEventListener("click", () => { $("dl-done").textContent = "Your download should start. Then attach dinput8.dll to a Discord, WhatsApp or Telegram message."; });
 $("showpw").onclick = () => { const on = $("pw").type === "password"; $("pw").type = on ? "text" : "password";
-  $("showpw").textContent = on ? "Hide" : "Show"; $("showpw").setAttribute("aria-pressed", String(on)); };
+  $("showpw").setAttribute("aria-pressed", String(on)); };
+fetch("/admin/api/info").then(r => r.json()).then(i => {
+  if (i.remote) { $("login-remote").hidden = false; $("remember-row").hidden = true; $("remember").checked = false; }
+}).catch(() => {});
 $("logout").onclick = async () => {
   try { await api("/admin/api/logout", {method: "POST"}); } catch (e) {}
   token = ""; store.clear(); $("pw").value = ""; showLogin("Signed out here.");

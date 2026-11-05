@@ -313,3 +313,45 @@ def test_admin_only_from_own_networks(monkeypatch):
     monkeypatch.delenv("ADMIN_REMOTE")
     monkeypatch.setitem(netsetup.STATE, "lan", "8.8.4.4")       # a cloud server with a public address
     assert httpgate.admin_allowed("8.8.8.8")
+
+
+def test_admin_port_keeps_the_admin_page_off_the_game_ports(tmp_path, monkeypatch):
+    monkeypatch.setenv("ADMIN_PORT", "8090")
+    httpgate._FAILED.clear()
+    svc = Service(Accounts(str(tmp_path / "a.db"))); svc.admin_password = "pw"; svc.data_dir = str(tmp_path)
+
+    async def go():
+        game = await httpgate.serve(svc, "127.0.0.1", 0)
+        admin = await httpgate.serve(svc, "127.0.0.1", 0, admin_listener=True)
+        try:
+            gp, ap = game.sockets[0].getsockname()[1], admin.sockets[0].getsockname()[1]
+            code, out = await _http(gp, "GET", "/admin")
+            assert code == 404 and b"localhost:8090" in out
+            assert (await _http(gp, "POST", "/admin/api/login", b'{"password": "pw"}'))[0] == 404
+            assert (await _http(ap, "GET", "/admin"))[0] == 200
+            assert (await _http(ap, "POST", "/admin/api/login", b'{"password": "pw"}'))[0] == 200
+            assert (await _http(ap, "GET", "/join"))[0] == 404
+        finally:
+            game.close(); admin.close()
+    asyncio.run(go())
+    assert "localhost:8090/admin" in netsetup.banner("pw", color=False)
+
+
+def test_admin_rebinding_and_csp(tmp_path):
+    svc = Service(Accounts(str(tmp_path / "a.db"))); svc.admin_password = "pw"; svc.data_dir = str(tmp_path)
+    assert httpgate.host_ok({"host": "192.168.1.5"}) and httpgate.host_ok({"host": "192.168.1.5:8080"})
+    assert httpgate.host_ok({"host": "localhost:8090"}) and httpgate.host_ok({"host": "rashad-server.local"})
+    assert not httpgate.host_ok({"host": "evil.example.com"})
+    csp = httpgate.admin_csp()
+    assert "script-src 'sha256-" in csp and "unsafe-inline'; connect" in csp and "'unsafe-inline' 'sha" not in csp
+
+    async def go():
+        srv = await httpgate.serve(svc, "127.0.0.1", 0)
+        port = srv.sockets[0].getsockname()[1]
+        try:
+            code, out = await _http(port, "GET", "/admin/api/info")
+            assert code == 200 and json.loads(out) == {"remote": False}
+        finally:
+            srv.close()
+    import json
+    asyncio.run(go())

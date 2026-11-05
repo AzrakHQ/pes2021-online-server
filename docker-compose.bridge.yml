@@ -11,7 +11,9 @@ services:
     restart: unless-stopped
     environment:
       PUBLIC_IP: ${PUBLIC_IP:?set PUBLIC_IP in .env}
+      ADMIN_PORT: "8090"    # admin page only on this computer: http://localhost:8090/admin
     ports:
+      - "127.0.0.1:8090:8090/tcp"   # admin page (never forward this one)
       - "80:80/tcp"         # player pages (http://server/join)
       - "443:443/tcp"       # HTTPS NAT-traversal gate info (GateInfo.php)
       - "8080:8080/tcp"     # HTTP web-API

@@ -6,7 +6,7 @@ import asyncio, json, logging, os
 log = logging.getLogger("pesserver.http")
 
 
-def make_handler(service, stun_host, stun_port, gate_port):
+def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False):
     async def on_conn(reader, writer):
         try:
             head = await asyncio.wait_for(reader.readuntil(b"\r\n\r\n"), 10)
@@ -22,10 +22,19 @@ def make_handler(service, stun_host, stun_port, gate_port):
             route = path.split("?", 1)[0].rstrip("/").lower()
             status = "200 OK"
             extra = b""
-            if route == "/admin" or route.startswith("/admin/api/"):
+            admin_port = os.environ.get("ADMIN_PORT")
+            if (route == "/admin" or route.startswith("/admin/api/")) and admin_port and not admin_listener:
+                # Docker Desktop: the admin page lives on its own port, published on this computer only
+                status, ctype = "404 Not Found", "text/html; charset=utf-8"
+                out = (f"<!doctype html><meta charset=utf-8><title>PES 2021 Admin</title><body style='font:16px system-ui;margin:60px auto;max-width:560px'>"
+                       f"<h1>The admin page is on the server computer</h1><p>Open <b>http://localhost:{admin_port}/admin</b> "
+                       f"on the computer that runs the server.</p></body>").encode()
+            elif admin_listener and not (route == "/admin" or route.startswith("/admin/api/")):
+                status, out, ctype = "404 Not Found", b"admin port: open /admin", "text/plain"
+            elif route == "/admin" or route.startswith("/admin/api/"):
                 peer = (writer.get_extra_info("peername") or ("",))[0]
                 status, out, ctype = await _admin(service, method, route, headers, body, peer)
-                extra = (b"X-Frame-Options: DENY\r\nContent-Security-Policy: frame-ancestors 'none'\r\n"
+                extra = (b"X-Frame-Options: DENY\r\nContent-Security-Policy: " + admin_csp().encode() + b"\r\n"
                          b"Referrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
             elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
                                              "/leave.ps1", "/install-ca-proton.py", "/banner"):
@@ -34,7 +43,9 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
             elif path.startswith("/status"):
                 from . import pesmatch
-                out = json.dumps({"id": server_id(), "online": len(service.online),
+                from . import identity
+                k = identity.public_hex()
+                out = json.dumps({"id": server_id(), "key": k[:8] + " " + k[8:16], "online": len(service.online),
                                   "queued": len(pesmatch._state(service)["queue"]),
                                   "rooms": len(service.mm.rooms)}).encode(); ctype = "application/json"
             elif path.rstrip("/") == "/ca.crt":
@@ -200,10 +211,39 @@ ADMIN_BLOCKED = b"""<!doctype html><meta charset=utf-8><meta name=viewport conte
 <p>Hosting on a cloud server? Run the install line with <code>ADMIN_REMOTE=1</code> before <code>sh</code>.</p></body>"""
 
 
+def admin_csp():
+    """Only the admin page's own inline script may run (hash-pinned); no other origins."""
+    import base64, hashlib, re as _re
+    if not _CSP:
+        html = open(os.path.join(WEB, "admin.html"), encoding="utf-8").read()
+        hashes = " ".join("'sha256-%s'" % base64.b64encode(hashlib.sha256(m.encode()).digest()).decode()
+                          for m in _re.findall(r"<script>(.*?)</script>", html, _re.S))
+        _CSP.append(f"default-src 'none'; script-src {hashes}; style-src 'unsafe-inline'; connect-src 'self'; "
+                    "img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
+    return _CSP[0]
+
+
+_CSP = []
+
+
+def host_ok(headers):
+    """Block DNS rebinding: the admin API answers only to addresses or local names, not web domains."""
+    from . import netsetup
+    host = headers.get("host", "").strip().lower()
+    name = host[1:host.index("]")] if host.startswith("[") else host.rsplit(":", 1)[0]
+    pinned = (os.environ.get("PESSERVER_PUBLIC_ADDR") or "").lower()
+    return (not name or netsetup._ip(name) or name == "localhost" or name == pinned
+            or name.endswith((".local", ".lan", ".home", ".internal", ".ts.net")) or "." not in name)
+
+
 async def _admin(service, method, route, headers, body, peer=""):
     """Admin page (/admin) and its JSON API, protected by the admin password."""
     import hmac, time as _time
     from . import events, netsetup
+    if route.startswith("/admin/api/") and not host_ok(headers):
+        return "403 Forbidden", b'{"error":"open the admin page by its address"}', "application/json"
+    if route == "/admin/api/info":            # public: lets the sign-in page warn before a password is typed
+        return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8")}).encode(), "application/json"
     if not admin_allowed(peer):
         if route == "/admin":
             return "403 Forbidden", ADMIN_BLOCKED, "text/html; charset=utf-8"
@@ -249,7 +289,8 @@ async def _admin(service, method, route, headers, body, peer=""):
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
                           "remote_admin": admin_allowed("8.8.8.8"), "link_home_only": not reachable,
-                          "sessions": len([1 for v in _sessions(service).s.values() if v > now])}
+                          "sessions": len([1 for v in _sessions(service).s.values() if v > now]),
+                          "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex())}
         return "200 OK", json.dumps(snap).encode(), "application/json"
     if route == "/admin/api/games":
         from . import gamesetup
@@ -380,5 +421,6 @@ async def serve_tls(service, host, port, certfile, keyfile, stun_host="127.0.0.1
                                       ssl=ctx, ssl_handshake_timeout=10)
 
 
-async def serve(service, host="0.0.0.0", port=8080, stun_host="127.0.0.1", stun_port=3478, gate_port=10000):
-    return await asyncio.start_server(make_handler(service, stun_host, stun_port, gate_port), host, port)
+async def serve(service, host="0.0.0.0", port=8080, stun_host="127.0.0.1", stun_port=3478, gate_port=10000,
+                admin_listener=False):
+    return await asyncio.start_server(make_handler(service, stun_host, stun_port, gate_port, admin_listener), host, port)

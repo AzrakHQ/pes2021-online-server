@@ -285,9 +285,12 @@ def banner(password=None, color=True):
     pinned = os.environ.get("PESSERVER_PUBLIC_ADDR")
     here = pinned or lan
     line = D("  " + "─" * 66)
+    admin = f"http://localhost:{os.environ['ADMIN_PORT']}/admin" if os.environ.get("ADMIN_PORT") else f"http://{here}/admin"
     out = ["", line, f"   ⚽  {B('PES 2021 SERVER')}" + " " * 39 + G("● ONLINE"), line, "",
-           f"   {B('Admin page')}   {C(f'http://{here}/admin')}"]
-    if wan and wan != here and os.environ.get("ADMIN_REMOTE") == "1":
+           f"   {B('Admin page')}   {C(admin)}"]
+    if os.environ.get("ADMIN_PORT"):
+        out.append(D("                (on this computer only)"))
+    elif wan and wan != here and os.environ.get("ADMIN_REMOTE") == "1":
         out.append(D(f"                from anywhere: http://{wan}/admin"))
     if password:
         out.append(f"   {B('Password')}     {Y(password)}")

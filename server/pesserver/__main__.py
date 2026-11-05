@@ -25,6 +25,8 @@ async def run(a):
             servers.append(await httpgate.serve(svc, a.host, a.join_port))
         except OSError as e:
             logging.warning("join page not on port %d (%s); use :%d instead", a.join_port, e, a.http_port)
+    if _os.environ.get("ADMIN_PORT"):                 # Docker Desktop: admin page on a local-only port
+        servers.append(await httpgate.serve(svc, a.host, int(_os.environ["ADMIN_PORT"]), admin_listener=True))
     st = await stun.serve(a.stun_host or a.host, a.stun_port)
     await stun.serve_relay(a.stun_host or a.host, int(_os.environ.get("PESSERVER_RELAY_PORT", "7600")))
     logging.info("gate tcp/%d  http tcp/%d  stun udp/%d", a.gate_port, a.http_port, a.stun_port)
