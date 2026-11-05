@@ -99,5 +99,5 @@ until out="$($DOCKER exec pesserver cat /tmp/pesserver-banner.txt 2>/dev/null)" 
   sleep 1
 done
 printf '%s\n' "$out"
-[ "$n" -gt 0 ] && printf '   PES 2021 found on this computer: install the mod from the admin page (This PC).\n'
+[ "$n" -gt 0 ] && printf '   PES 2021 found on this computer: install the mod from the admin page (The server computer).\n'
 echo

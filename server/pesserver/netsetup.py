@@ -217,7 +217,7 @@ _stop = threading.Event()
 
 
 def _watch_wan(gw, every=600):
-    """Home IPs change: re-check the public address so new join lines and URL lists stay right."""
+    """Home IPs change: re-check the public address so new mod files and the admin page stay right."""
     while not _stop.wait(every):
         ip = None
         if os.environ.get("PESSERVER_NO_IPCHECK") != "1":
@@ -229,7 +229,7 @@ def _watch_wan(gw, every=600):
             except Exception:  # noqa: BLE001
                 ip = None
         if ip and ip != STATE["wan"]:
-            log.warning("public IP changed: %s -> %s (players outside your network: run the join line again)",
+            log.warning("public IP changed: %s -> %s (friends outside your network: send them a fresh mod file from the admin page)",
                         STATE["wan"], ip)
             STATE["wan"] = ip
 

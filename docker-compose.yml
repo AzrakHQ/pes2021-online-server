@@ -1,5 +1,5 @@
 # PES 2021 private server (Linux host / VPS). No configuration needed:
-#   docker compose up -d && docker compose logs pesserver     # the log shows the command players run
+#   docker compose up -d && docker compose logs pesserver     # the log shows the admin page and password
 # Optional (in .env or the environment): PUBLIC_IP=<addr> to pin the address handed to players
 # (VPN/Tailscale IP, domain-less VPS); UPNP=0 to not touch the router.
 services:

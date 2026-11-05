@@ -38,7 +38,7 @@ also sets the Wine option for you, so no launch option is needed.
 3. Start the game → **eFootball → Quick Match → Go to Matchmaking**. When two players are searching,
    they get matched.
 
-The mod needs no administrator rights and changes nothing on your PC or in the game's files. **Undo:**
+The mod needs no administrator rights and changes nothing outside the game folder (it writes its own small settings and log file there) or in the game's own files. **Undo:**
 delete the file.
 
 ## Problems?

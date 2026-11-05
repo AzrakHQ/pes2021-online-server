@@ -1,7 +1,7 @@
 #!/bin/sh
 # Starts the PES 2021 private server.
 #   No configuration needed: with host networking it finds its LAN and public addresses, opens the
-#   router's ports with UPnP (UPNP=0 to disable) and prints the one-line command players run.
+#   router's ports with UPnP (UPNP=0 to disable) and prints the admin page address and password.
 #   PUBLIC_IP=<addr> pins the address handed to every client instead (bridge networking, VPS, VPN).
 # On first start it creates /data/certs: a private CA (players trust it via the /join script) and a TLS
 # certificate for the Konami hostnames used by the game's network test.
@@ -15,11 +15,11 @@ mkdir -p "$CERTS"
 
 # The CA is name-constrained to the game's four NTL hostnames (the only HTTPS names the game uses):
 # players trust it, but it cannot vouch for any other website, Konami's real sites included. A CA from
-# an older version (no or broader constraint) is replaced; players then rerun the join line.
+# an older version (no or broader constraint) is replaced; players set up with the old join line rerun it (mod users: nothing to do).
 NTL="ntl.service.konami.net ntleu.service.konami.net ntlus.service.konami.net ntljp.service.konami.net"
 if [ ! -f "$CERTS/ca.crt" ] || ! openssl x509 -in "$CERTS/ca.crt" -noout -ext nameConstraints 2>/dev/null | grep -q "DNS:ntljp.service.konami.net"; then
   if [ -f "$CERTS/ca.crt" ]; then
-    echo "[entrypoint] replacing the old certificate authority with a narrower one (players: run the join line again)"
+    echo "[entrypoint] replacing the old certificate authority with a narrower one (players set up with the old join line: run it again; mod users: nothing to do)"
     mv "$CERTS/ca.crt" "$CERTS/ca.crt.old"
     date +%s > /tmp/pesserver-ca-replaced   # the startup banner tells the host players must rejoin
   fi

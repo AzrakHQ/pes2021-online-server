@@ -476,5 +476,16 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   });
 })();
 </script>
+<script>
+  // Scrollable blocks that overflow get a tab stop and a name, so keyboard users can scroll them.
+  const tabbable = () => document.querySelectorAll("pre, .panel, .tw").forEach(el => {
+    if (el.scrollWidth > el.clientWidth + 1) {
+      if (!el.hasAttribute("tabindex")) el.tabIndex = 0;
+      if (!el.getAttribute("role")) el.setAttribute("role", "region");
+      if (!el.getAttribute("aria-label")) el.setAttribute("aria-label", (el.tagName === "PRE" ? "Code" : "Content") + ", scrolls sideways");
+    }
+  });
+  tabbable(); addEventListener("resize", tabbable);
+</script>
 </body>
 </html>
