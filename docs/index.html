@@ -138,7 +138,8 @@ section.alt .card { background: var(--bg); }
 .pick details summary { cursor: pointer; list-style: revert; }
 .pick details summary::after { content: none !important; }
 .pick .inline-steps li { border: 0; background: none; padding: 0; border-radius: 0; }
-.inline-steps { margin: 8px 0 2px; padding-left: 20px; font-size: 14px; } .inline-steps li { margin-bottom: 4px; }
+.inline-steps { margin: 8px 0 2px; padding-left: 20px; font-size: 14px; }
+@media (max-width: 480px) { .cmd pre { padding: 12px 12px 46px; } .pick > li { padding: 8px 10px; } .pick .inline-steps { padding-left: 16px; } } .inline-steps li { margin-bottom: 4px; }
 p.inline-steps { padding-left: 0; }
 .step p.small.muted { font-size: 16px; color: var(--fg); }
 .mini-shot { margin: 0 0 12px; } .mini-shot img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line); }
@@ -451,7 +452,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           </div>
           <ul class="small muted linuxes">
             <li><b>Ubuntu, Debian:</b> just paste the command. (If it says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first.)</li>
-            <li><b>Fedora:</b> paste the command, then open the ports in Fedora's firewall, which blocks them by default: <code>sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code></li>
+            <li><b>Fedora:</b> paste the command, then open the ports in Fedora's firewall, which blocks some of them by default: <code>sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code></li>
             <li><b>Arch:</b> run <code>sudo pacman -S docker</code> first; the installer starts it.</li>
             <li><b>Steam Deck, SteamOS, Bazzite:</b> can't host (read-only system); join as a friend instead.</li>
             <li>Tested on a desktop Linux PC. A Raspberry Pi (64-bit Raspberry Pi OS) or a cloud server should work but still need testers.</li>
@@ -477,7 +478,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <div class="step-num" aria-hidden="true">2</div>
           <h3>The host sends friends one file</h3>
           <p class="small muted">Open your admin page, sign in with the password, and click <b>Download the mod for friends</b>. You get one small file, <code>dinput8.dll</code>, made for your server.</p>
-          <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> (or a fixed address) means friends outside your home should be able to connect. If it says <b>Home network only</b> or warns about router ports or CGNAT, fix that first (<a href="#help">Help → For hosts</a>).</p>
+          <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> (or <b>Friends use</b> and your address, if you set a fixed one) means friends outside your home should be able to connect. If it says <b>Home network only</b> or warns about router ports or CGNAT, fix that first (<a href="#help">Help → For hosts</a>).</p>
           <p class="small muted">Send it to each friend on <b>Discord, WhatsApp or Telegram</b>. Email usually blocks this kind of file. Or copy the link under the button (your server's address) and send that: it opens a page where friends download the file themselves.</p>
           <p class="small muted"><b>First test:</b> have one friend start the game. They appear under <b>Online now</b> on your admin page within a minute.</p>
         </div>
@@ -598,7 +599,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <tr><td>The installer says "The server did not start"</td><td>Run <code>sudo docker logs pesserver</code> to see why. Usually another program already uses port 80, 443, 8080 or 10000: check with <code>sudo ss -ltnp | grep -E ':(80|443|8080|10000) '</code>, stop that program, then run the install line again.</td></tr>
           <tr><td>"Docker is installed but not running"</td><td>Run <code>sudo systemctl start docker</code>, then run the install line again.</td></tr>
           <tr><td>"Could not build the server image"</td><td>The download from GitHub failed. Check the internet connection and run the install line again.</td></tr>
-          <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server this message is normal: open the 6 ports in the provider's firewall instead.</td></tr>
+          <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server installed with the plain line this is normal: open the 6 ports in the provider's firewall, or run the cloud line from step 1 instead.</td></tr>
           <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
           <tr><td>On an Oracle Cloud server, nobody can connect although the ports are open in its web firewall</td><td>Oracle's Ubuntu images also block ports inside the server. Run <code>sudo iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT</code> and <code>sudo iptables -I INPUT -p udp -m multiport --dports 3478,7600 -j ACCEPT</code>, then <code>sudo netfilter-persistent save</code> so it survives a reboot.</td></tr>
           <tr><td>Docker Desktop says "ports are not available" or "bind: … :80"</td><td>Another Windows program already uses port 80 (often IIS, the "World Wide Web Publishing Service"). Stop it in <b>Services</b>, then run <code>docker compose -f docker-compose.bridge.yml up -d</code> again.</td></tr>
@@ -636,7 +637,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
         <li>for the game's four network-test names only, skips the certificate check, since those names already point to the host's verified server;</li>
         <li>writes what it did to <code>pes2021-online.log</code>.</li>
       </ul>
-      <p>That's all. Besides its own settings and log files next to the game, it doesn't change Windows, needs no administrator rights, and stops the moment the game closes. <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">Read the source</a>.</p>
+      <p>That's all. Besides its own settings and log files next to the game (or its log in <code>%TEMP%</code> if the game folder is read-only), it doesn't change Windows, needs no administrator rights, and stops the moment the game closes. <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">Read the source</a>.</p>
     </details>
     <details class="q" id="faq-trust">
       <summary>Should I trust a mod file my friend sends?</summary>
@@ -695,7 +696,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       <p>A cloud server is a good choice if nobody has a Linux PC, your home router can't open ports, or your provider uses CGNAT. Its address never changes and it's on all the time. This should work but hasn't been tested yet; please <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues/new?template=test-report.md">report how it goes</a>.</p>
       <ol>
         <li>Create a small Linux server with any cloud provider. The cheapest size is plenty (1 CPU, 1 GB of memory), usually about $4–6 a month, and some providers have free tiers. Pick <b>Ubuntu 24.04</b> (64-bit); Intel/AMD and ARM images are both published (ARM still needs testers).</li>
-        <li>In the provider's firewall (often called "security group" or "firewall rules"), allow incoming <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b> from anywhere.</li>
+        <li>In the provider's firewall (often called "security group" or "firewall rules"), allow incoming <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b> from anywhere. On Oracle Cloud, also run the two <code>iptables</code> lines in <a href="#help">Help → For hosts</a>.</li>
         <li>Open the server's terminal (the provider's web console, or SSH) and paste this version of the install line, which lets you open the admin page from your home over the internet. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
           <div class="cmd" style="margin-top:8px"><pre id="c-cloud">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud" type="button">Copy</button></div>
           The admin page isn't encrypted, so its password crosses the internet in the clear: keep the generated password, and don't sign in from public Wi-Fi.</li>
@@ -803,7 +804,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
       <div>
         <h3>The game is an extremely strict reader</h3>
         <p class="quote">"Almost right" crashes the game.</p>
-        <p>Being almost right isn't enough. The game reads replies field by field and either crashes or quietly misbehaves when anything is off:</p>
+        <p>The game reads replies field by field and either crashes or quietly misbehaves when anything is off:</p>
         <ul>
           <li><b>Wrong format, instant error.</b> Replying in JSON instead of MessagePack gives error <code>C_GKCC_0008_200</code> at login.</li>
           <li><b>A number where it expects text</b> made the Terms of Use screen pop up again and again, forever.</li>
