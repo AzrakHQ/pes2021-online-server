@@ -97,12 +97,12 @@ def observe(svc, sess, msgid, req):
                 lv["kickoff"] = time.time()
                 feed(svc, f"Kick-off: {lv['home_name']} vs {lv['away_name']}", "match")
             elif raw == "BREAK1":
-                feed(svc, f"Half-time: {lv['home_name']} {lv['home_score']}-{lv['away_score']} {lv['away_name']}", "match")
+                feed(svc, f"Half-time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "match")
     elif msgid == "CMD_ADD_GOAL" and side == "home":
         scorer = str(req.get("side") or req.get("goal_side") or req.get("score_side") or "").upper()
         if scorer in ("HOME", "AWAY"):
             lv[scorer.lower() + "_score"] += 1
-            feed(svc, f"GOAL! {lv['home_name']} {lv['home_score']}-{lv['away_score']} {lv['away_name']}", "goal")
+            feed(svc, f"GOAL! {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "goal")
     elif msgid == "CMD_SEND_GAME_RESULT":
         hs, as_ = req.get("home_score"), req.get("away_score")
         if isinstance(hs, int) and isinstance(as_, int):
@@ -118,7 +118,7 @@ def observe(svc, sess, msgid, req):
                            (rid, lv["kickoff"] or lv["started"], time.time(), lv["home"], lv["away"],
                             lv["home_name"], lv["away_name"], lv["home_score"], lv["away_score"],
                             "" if reason == "NOERR" else reason))
-            feed(svc, f"Full time: {lv['home_name']} {lv['home_score']}-{lv['away_score']} {lv['away_name']}", "result")
+            feed(svc, f"Full time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "result")
     elif msgid == "CMD_LEAVE_ROOM":
         lv.setdefault("left", set()).add(pid)
         if lv["phase"] != "Full time":

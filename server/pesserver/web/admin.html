@@ -18,7 +18,11 @@
   a { color:var(--accent); }
   :focus-visible { outline:3px solid var(--accent); outline-offset:2px; border-radius:6px; }
   [tabindex="-1"]:focus { outline:none; }
-  h2[tabindex="-1"]:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+  h2[tabindex="-1"]:focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+  h2[tabindex] { width:fit-content; max-width:100%; }
+  @media (max-width: 720px) { .hide-lg { display:none; } }
+  @media (max-width: 360px) { #pcpill { white-space:normal; } }
+  details.pcready.none-ready > summary { color:var(--muted); }
   .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   .muted { color:var(--muted); }
   .small { font-size:13px; }
@@ -204,7 +208,7 @@
   .note { overflow-wrap:anywhere; }
   summary { min-height:24px; padding:3px 0; }
   #pw[aria-invalid="true"] { border-color:var(--live); border-width:2px; } #pw[aria-invalid="true"]:focus-visible { outline-color:var(--live); }
-  #err a:focus-visible { outline-offset:2px; border-radius:4px; } #err a { padding:0 2px; display:inline-block; } #err.blocked { color:var(--fg); }
+  #err a:focus-visible { outline-offset:2px; border-radius:4px; } #err a { padding:0 2px; display:inline-block; } #err.blocked { color:var(--fg); } #err.blocked a { margin-right:4px; }
   #feed h3.day { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:10px 0 2px; }
   .conn-sm { display:none; white-space:normal; overflow-wrap:anywhere; } @media (min-width: 421px) and (max-width: 720px), (min-width: 801px) { .conn-sm { display:block; } }
   .finished { font-size:14px; color:var(--muted); margin:4px 0 0; overflow-wrap:anywhere; }
@@ -372,6 +376,7 @@ function put(id, html, force) {
   if (key) {
     const vis = n => n && n.offsetParent !== null;
     let n = el.querySelector(`[data-key="${CSS.escape(key)}"]`) || document.getElementById(key);
+    if (!vis(n) && key.startsWith("msg-")) return;   // a message timed out: leave focus alone
     if (!vis(n)) n = el.closest("section")?.querySelector("h2[tabindex]");
     if (n) n.focus();
   }
@@ -419,9 +424,10 @@ async function api(path, opts = {}) {
 
 function showLogin(msg) {
   clearInterval(timer); clearInterval(gamesTimer);
-  $("app").hidden = true; $("login").hidden = false; $("err").textContent = msg || ""; $("err").className = msg ? "info" : "";
+  $("app").hidden = true; $("login").hidden = false; $("err").textContent = ""; $("err").className = msg ? "info" : "";
+  requestAnimationFrame(() => { $("err").textContent = msg || ""; });
   $("signin").disabled = false; $("signin").textContent = "Sign in";
-  $("pw").focus();
+  if (msg || !matchMedia("(pointer: coarse)").matches) $("pw").focus();
 }
 function signedOut() {
   if (!token) return;                            // already handled by the other request
@@ -494,7 +500,7 @@ function render(d) {
   if (s.mod_sha256) text("ssha", s.mod_sha256.toUpperCase().match(/.{1,8}/g).join(" "));
   text("jp-note", s.link_home_only ? " (works on your Wi-Fi only)" : "");
   text("devices", s.sessions > 1 ? `${s.sessions} active sign-ins.` : "");
-  $("remote").hidden = !s.remote_admin;
+  $("remote").hidden = !s.remote_admin || !!s.docker_desktop;
   text("foot-warn", s.docker_desktop ? "The admin page only opens on this computer (localhost:8090)." : s.remote_admin ? "Remote admin is on: anyone who finds this page can try your password, and it isn't encrypted."
                                    : "The admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale.");
   put("cmds", cmdsHtml());
@@ -530,6 +536,7 @@ function render(d) {
   put("stats", quiet
     ? joinedOnly
       ? `<div class="quiet"><b>${d.players.length > 4 ? d.players.slice(0, 4).map(p => esc(p.name)).join(", ") + ` and ${d.players.length - 4} more` : andList(d.players.map(p => nm(p.name)))} ${d.players.length === 1 ? `has joined.</b> A match starts when ${nm(d.players[0].name)} and one more friend choose Quick Match at the same time.` : `have joined.</b> A match starts when ${d.players.length === 2 ? "both of them choose" : "two of them choose"} Quick Match at the same time.`}<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
+      : d.feed.some(f => f.kind === "web") ? `<div class="quiet"><b>Someone has downloaded the mod.</b> They appear here as soon as they start PES 2021 and open Quick Match.</div>`
       : `<div class="quiet"><b>Waiting for your first friend.</b> Send them the mod; they appear here within seconds of starting PES 2021.<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
     : `<div class="tiles">
         <a class="tile" href="#h-online"><b>${d.online.length}</b><span>${d.online.length === 1 ? "player" : "players"} online</span></a>
@@ -596,11 +603,11 @@ function render(d) {
   const played = d.players.filter(p => p.played), idle = d.players.filter(p => !p.played);
   const ranked = [...played].sort((a, b) => pts(b) - pts(a) || gd(b) - gd(a) || a.played - b.played || a.name.localeCompare(b.name));
   put("league", (ranked.length ? `<div class="tablewrap"><table><caption class="sr">League table</caption>
-    <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col" class="num"><abbr title="Played">P</abbr></th><th scope="col" class="num hide-xs"><abbr title="Won">W</abbr></th><th scope="col" class="num hide-xs"><abbr title="Drawn">D</abbr></th><th scope="col" class="num hide-xs"><abbr title="Lost">L</abbr></th><th scope="col" class="num hide-sm"><abbr title="Goal difference">GD</abbr></th><th scope="col" class="num"><abbr title="Points">Pts</abbr></th><th scope="col" class="num hide-sm">Last sign-in</th></tr></thead><tbody>` +
+    <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col" class="num"><abbr title="Played">P</abbr></th><th scope="col" class="num hide-xs"><abbr title="Won">W</abbr></th><th scope="col" class="num hide-xs"><abbr title="Drawn">D</abbr></th><th scope="col" class="num hide-xs"><abbr title="Lost">L</abbr></th><th scope="col" class="num hide-sm"><abbr title="Goal difference">GD</abbr></th><th scope="col" class="num"><abbr title="Points">Pts</abbr></th><th scope="col" class="num hide-sm hide-lg">Last sign-in</th></tr></thead><tbody>` +
     ranked.map((p, i) => `<tr><td class="muted">${i + 1}</td><td class="name">${nm(p.name)}<small class="show-xs">${p.won}-${p.drawn}-${p.lost} · GD ${gd(p) > 0 ? "+" : ""}${gd(p)}</small></td>
       <td class="num">${p.played}</td><td class="num hide-xs">${p.won}</td><td class="num hide-xs">${p.drawn}</td><td class="num hide-xs">${p.lost}</td>
       <td class="num hide-sm">${gd(p) > 0 ? "+" : ""}${gd(p)}</td><td class="num"><b>${pts(p)}</b></td>
-      <td class="num hide-sm">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span>` : p.last_login ? `<span class="muted">${ago(p.last_login, now)}</span>` : "–"}</td></tr>`).join("") + `</tbody></table></div>`
+      <td class="num hide-sm hide-lg">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span>` : p.last_login ? `<span class="muted">${ago(p.last_login, now)}</span>` : "–"}</td></tr>`).join("") + `</tbody></table></div>`
     : `<p class="empty">The table fills in after the first finished match.</p>`) +
     (idle.length ? `<p class="note">Not played yet: ${idle.map(p => esc(p.name)).join(", ")}</p>` : "") +
     (ranked.length && d.results.some(r => r.reason) ? `<p class="note">Abandoned matches count with the score when they ended.</p>` : ""));
@@ -675,7 +682,7 @@ function gameRow(g) {
   if (!ready && skipped(g)) info = `<span class="muted small">Skipped in this browser.</span> <button type="button" class="linkbtn" data-unskip="${esc(g.path)}" data-key="unskip-${esc(g.id)}" aria-label="Set up ${esc(name)} after all">Set it up after all</button>`;
   else if (!ready) skipb = `<button type="button" class="linkbtn skipbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}" aria-label="Skip ${esc(name)}: I don't play on this copy">Skip this copy</button>`;
   const msg = rowMsg[g.id] ? rowMsg[g.id].html : "";
-  const retry = failed ? `<button type="button" class="${rowMsg[g.id].act === "remove" ? "" : "primary"}" data-game="${esc(g.id)}" data-act="${rowMsg[g.id].act}" data-key="retry-${esc(g.id)}" data-retry="1" aria-label="Try again: ${esc(name)}">${rowMsg[g.id].act === "remove" ? "Try removing again" : "Try installing again"}</button>` : "";
+  const retry = failed ? `<button type="button" class="${rowMsg[g.id].act === "remove" ? "" : "primary"}" data-game="${esc(g.id)}" data-act="${rowMsg[g.id].act}" data-key="retry-${esc(g.id)}" data-retry="1" aria-label="Try again: ${esc(name)}">${{remove: "Try removing again", switch: "Try switching again"}[rowMsg[g.id].act] || "Try installing again"}</button>` : "";
   return `<div class="game${!ready && skipped(g) ? " skipped" : ""}"><div class="where"><b>${esc(name)}</b>
       <code class="parent" title="${esc(g.path)}">${esc(String(g.path).replace(/^\/home\/[^/]+/, "~"))}</code><div class="st">${st}</div></div>
     <div class="act">${failed ? retry : btn}${skipb}${tail}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
@@ -747,9 +754,9 @@ async function loadGames(force, focusMsg, focusKey) {
     ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}<details class="pcready" data-key="pc-ready" style="margin-top:8px"><summary>${I.ok} ${done.length} other ${done.length === 1 ? "copy is" : "copies are"} ${done.some(skipped) ? "ready or skipped" : "ready"}</summary><div class="games">${done.map(gameRow).join("")}</div></details>`
     : moreTodo.length ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}` : `<div class="games">${gs.map(gameRow).join("")}</div>`;
   const html = need === 0 && !Object.keys(rowMsg).length && !gs.some(g => justMarked.has(g.path))
-    ? `<details class="pcready" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this PC is ready to play (${gs.length} ${gs.length === 1 ? "copy" : "copies"})` : `PES 2021 on this PC: ${okCnt} ready, ${gs.length - okCnt} skipped`}</summary>${rows}</details>`
+    ? `<details class="pcready${okCnt ? "" : " none-ready"}" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this computer is ready to play (${gs.length} ${gs.length === 1 ? "copy" : "copies"})` : `${okCnt ? `PES 2021 on this computer: ${okCnt} ready, ${gs.length - okCnt} skipped` : "PES 2021 on this computer: skipped (set it up any time)"}`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
-        : `${okCnt ? "PES 2021 on this computer:" : "Want to play on this computer too?"} ${gs.length > 1 ? `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup` : "Set up its copy of PES 2021 here"}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
+        : `${okCnt || gs.some(g => g.mod === "ours") ? "PES 2021 on this computer:" : "Want to play on this computer too?"} ${gs.length > 1 ? (need === gs.length ? `All ${need} copies need setup` : `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup`) : "Set up its copy of PES 2021 here"}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
   put("games", html, force);
   [...$("games").querySelectorAll(".act button.primary")].slice(1).forEach(x => x.classList.remove("primary"));
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }
@@ -781,7 +788,7 @@ async function gameAction(btn) {
   delete rowMsg[id];
   const box = $("games").querySelector(`[data-key="msg-${CSS.escape(id)}"]`);
   if (box && box.contains(document.activeElement)) box.focus();
-  if (box) box.innerHTML = `<span class="muted">${act === "remove" ? "Removing the mod…" : "Copying the file… (keep PES 2021 closed)"}</span>`;
+  if (box) box.innerHTML = `<span class="muted">${act === "remove" ? "Removing the mod…" : (g && g.mod === "ours" && g.override === false ? "Updating PES 2021's settings… (keep PES 2021 closed)" : "Copying the file… (keep PES 2021 closed)")}</span>`;
   $("pc-live").textContent = act === "remove" ? "Removing the mod…" : "Installing the mod…";
   btn.textContent = act === "remove" ? "Removing…" : "Installing…";
   btn.closest(".game")?.querySelectorAll("button").forEach(x => x.setAttribute("aria-disabled", "true"));
@@ -869,7 +876,7 @@ document.addEventListener("click", async e => {
   const sk = e.target.closest("[data-skip]:not([aria-disabled=true])");
   if (sk) { try { localStorage.setItem("pes-pc-skip:" + sk.dataset.skip, "1"); } catch (_) {}
     const sg = lastGames.find(x => x.path === sk.dataset.skip); if (sg) delete rowMsg[sg.id]; justMarked.delete(sk.dataset.skip);
-    $("pc-live").textContent = "Skipped. You can set it up later from the list of other copies."; await loadGames(true); return $("pc-h").focus(); }
+    $("pc-live").textContent = lastGames.length === 1 ? "Skipped. Open this card any time to set it up." : "Skipped. You can set it up later from the list of other copies."; await loadGames(true); return $("pc-h").focus(); }
   const us = e.target.closest("[data-unskip]");
   if (us) { try { localStorage.removeItem("pes-pc-skip:" + us.dataset.unskip); } catch (_) {}
     const g = lastGames.find(x => x.path === us.dataset.unskip); justMarked.add(us.dataset.unskip); $("pc-live").textContent = "Shown again.";

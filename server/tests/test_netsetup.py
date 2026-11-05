@@ -171,7 +171,7 @@ def test_admin_api_needs_password_and_tracks_a_match(tmp_path):
     assert len(snap["results"]) == 1 and snap["results"][0]["home_score"] == 2       # saved once
     alpha = next(p for p in snap["players"] if p["name"] == "Alpha")
     assert (alpha["played"], alpha["won"]) == (1, 1)
-    assert any("Full time: Alpha 2-1 Bravo" in f["text"] for f in snap["feed"])
+    assert any("Full time: Alpha 2–1 Bravo" in f["text"] for f in snap["feed"])
 
     async def go():
         srv = await httpgate.serve(svc, "127.0.0.1", 0)
