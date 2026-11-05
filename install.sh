@@ -8,6 +8,7 @@
 # Run it again to update (it keeps PUBLIC_IP, ADMIN_REMOTE and UPNP from the previous run).
 # Optional env: PUBLIC_IP=<addr> (pin the address given to players), UPNP=0 (don't touch the router),
 #               ADMIN_REMOTE=1 (admin page from any network, e.g. a cloud server; it isn't encrypted),
+#               ADMIN_PASSWORD=<pw> (choose the admin password instead of a generated one),
 #               PES_IMAGE=<image> (default: the published image).
 set -eu
 IMAGE="${PES_IMAGE:-ghcr.io/mohamedalirashad/pes2021-private-server:latest}"
@@ -93,12 +94,13 @@ if $DOCKER inspect pesserver >/dev/null 2>&1; then
   kept=""
   if [ -z "${PUBLIC_IP+x}" ]; then PUBLIC_IP="$(prev PUBLIC_IP)"; [ -n "$PUBLIC_IP" ] && kept="$kept PUBLIC_IP=$PUBLIC_IP"; fi
   if [ -z "${ADMIN_REMOTE+x}" ]; then ADMIN_REMOTE="$(prev ADMIN_REMOTE)"; [ -n "$ADMIN_REMOTE" ] && kept="$kept ADMIN_REMOTE=$ADMIN_REMOTE"; fi
+  if [ -z "${ADMIN_PASSWORD+x}" ]; then ADMIN_PASSWORD="$(prev ADMIN_PASSWORD)"; [ -n "$ADMIN_PASSWORD" ] && kept="$kept ADMIN_PASSWORD=(your chosen one)"; fi
   if [ -z "${UPNP+x}" ]; then UPNP="$(prev UPNP)"; [ "${UPNP:-1}" != 1 ] && kept="$kept UPNP=$UPNP"; fi
   [ -n "$kept" ] && echo "Keeping your earlier settings:$kept (to clear one, run the install line with it empty, e.g. PUBLIC_IP=)"
 fi
 $DOCKER rm -f pesserver >/dev/null 2>&1 || true
 $DOCKER run -d --name pesserver --network host --restart unless-stopped \
-  -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -e ADMIN_REMOTE="${ADMIN_REMOTE:-}" \
+  -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -e ADMIN_REMOTE="${ADMIN_REMOTE:-}" -e ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
   -v pesserver-data:/data "$@" "$IMAGE" >/dev/null
 
 i=0
