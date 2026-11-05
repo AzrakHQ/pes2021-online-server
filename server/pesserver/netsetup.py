@@ -321,6 +321,12 @@ def banner(password=None, color=True):
            f"     Linux / Deck  {C(f'curl -fsSL {main}/join | bash')}"]
     if not url and not pinned and wan and wan != lan:
         out.append(D(f"     Same house?   use http://{lan} instead"))
+    stable = pinned or (wan if STATE["mapped"] else None)
+    if url and stable:
+        # The tunnel name changes on every restart; the IP lines keep working while the IP stays the same.
+        out += [D("     The web address changes when the server restarts. These keep working:"),
+                D(f"     Windows       irm http://{stable}/join | iex"),
+                D(f"     Linux / Deck  curl -fsSL http://{stable}/join | bash")]
     out += ["", f"   {B('Admin page')}     {C(main + '/admin')}" + (D(f"   (or http://{lan}/admin)") if url else "")]
     if password:
         out.append(f"   {B('Password')}       {Y(password)}")

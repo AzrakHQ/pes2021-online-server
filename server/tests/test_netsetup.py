@@ -45,6 +45,9 @@ def test_banner(monkeypatch):
     b = netsetup.banner(color=False)
     assert "curl -fsSL https://brave-tiger.trycloudflare.com/join | bash" in b
     assert "https://brave-tiger.trycloudflare.com/admin" in b and "Password" not in b
+    assert "irm http://203.0.113.7/join | iex" in b and "keep working" in b   # survives a tunnel change
+    monkeypatch.setitem(netsetup.STATE, "mapped", [])
+    assert "keep working" not in netsetup.banner(color=False)                # ports closed: no IP line
     assert netsetup.game_addrs() == ["192.168.1.50", "203.0.113.7"]
 
 
