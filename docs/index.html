@@ -11,6 +11,8 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mohamedalirashad.github.io/pes2021-private-server/">
 <meta property="og:image" content="https://mohamedalirashad.github.io/pes2021-private-server/og.png">
+<meta property="og:image:alt" content="PES 2021 Online: a private server for eFootball PES 2021. Friends get one small file.">
+<link rel="canonical" href="https://mohamedalirashad.github.io/pes2021-private-server/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Ccircle%20cx='16'%20cy='16'%20r='15'%20fill='%230c4a37'/%3E%3Cpolygon%20points='16,9%2022.7,13.9%2020.1,21.8%2011.9,21.8%209.3,13.9'%20fill='%23fff'/%3E%3C/svg%3E">
@@ -150,7 +152,7 @@ section.alt .pick li { background: var(--bg); }
 .banner-mock { background: var(--code-bg); color: #cfe9dc; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; font: 13px/1.7 var(--mono); white-space: normal; overflow-wrap: anywhere; }
 .banner-mock > div:not(.bm-title) { padding-left: 132px; text-indent: -132px; }
 .banner-mock .bm-title { color: #fff; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.15); padding-bottom: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; gap: 20px; }
-.banner-mock .bm-title span { color: #3ccf8e; }
+.banner-mock .bm-title span { color: #3ccf8e; white-space: nowrap; }
 .admin-mock { display: grid; gap: 10px; margin: 0 0 12px; }
 .am-card { background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; display: grid; gap: 6px; }
 section.alt .am-card { background: var(--bg); }
@@ -285,6 +287,7 @@ details.q .cmd { max-width: 48em; margin-bottom: 16px; }
 @media (max-width: 600px) { .totop { right: 10px; bottom: 10px; width: 44px; height: 44px; padding: 0; display: grid; place-items: center; font-size: 0; opacity: .85; }
   .totop::before { content: "↑"; font-size: 20px; } footer { padding-bottom: 72px; }
   .hook { flex-direction: column; align-items: flex-start; } }
+.totop[hidden] { display: none; }
 .totop:hover { color: var(--on-brand); filter: brightness(1.08); }
 dialog.lightbox { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
 dialog.lightbox::backdrop { background: rgba(0,0,0,.75); }
@@ -437,7 +440,8 @@ footer a { color: var(--muted); }
             <div><span class="bm-k">Password</span>k7Rm-2Qx9-PaLw</div>
           </div>
           <ul class="small muted linuxes">
-            <li><b>Ubuntu, Debian, Fedora:</b> just paste the command. (If it says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first, or <code>sudo dnf install curl</code> on Fedora.)</li>
+            <li><b>Ubuntu, Debian:</b> just paste the command. (If it says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first.)</li>
+            <li><b>Fedora:</b> paste the command, then open the ports in Fedora's firewall, which blocks them by default: <code>sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code></li>
             <li><b>Arch:</b> run <code>sudo pacman -S docker</code> first; the installer starts it.</li>
             <li><b>Steam Deck, SteamOS, Bazzite:</b> can't host (read-only system); join as a friend instead.</li>
             <li>Tested on a desktop Linux PC. A Raspberry Pi (64-bit Raspberry Pi OS) or a cloud server should work but still need testers.</li>
@@ -478,7 +482,7 @@ footer a { color: var(--muted); }
               <li>The file carries your server's <b>identity</b> and addresses, so your friends never type anything.</li>
               <li>It keeps working after your server restarts: it remembers your server's last address and checks it's really you before connecting.</li>
               <li>Some home connections get a new internet address when the router restarts. If friends suddenly can't connect, send the file again (the admin page always shows the current address).</li>
-              <li>If your server has a web name (for example a free dynamic DNS name, set with <code>PUBLIC_IP=</code>) and friends download the file from your link, their file looks that name up again and follows address changes by itself (not yet tested with a real dynamic DNS name).</li>
+              <li>If your server has a web name (for example a free dynamic DNS name, set with <code>PUBLIC_IP=</code>), every copy of the file carries that name and follows address changes by itself (not yet tested with a real dynamic DNS name). Setting <code>PUBLIC_IP</code> turns off automatic router setup, so forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to this computer yourself.</li>
             </ul>
           </details>
         </div>
@@ -489,7 +493,7 @@ footer a { color: var(--muted); }
           <div class="step-num" aria-hidden="true">3</div>
           <h3>Friends drop it in and play</h3>
           <ol class="small how">
-            <li>In Steam, right-click <b>PES 2021</b> → <b>Manage</b> → <b>Browse local files</b>, and put <code>dinput8.dll</code> in that folder, next to <code>PES2021.exe</code>.</li>
+            <li>In Steam, right-click <b>PES 2021</b> → <b>Manage</b> → <b>Browse local files</b>, and put <code>dinput8.dll</code> in that folder, next to <code>PES2021.exe</code>. Already a <code>dinput8.dll</code> there from another mod? Move it somewhere safe first: only one file with that name can load.</li>
             <li><b>Steam Deck / Linux only:</b> right-click PES 2021 → <b>Properties</b> → <b>Launch options</b>, and paste this line. On a Steam Deck, switch to Desktop Mode first to download the file (for example from Discord in the browser).
               <div class="cmd" style="margin-top:8px"><pre id="c-launch">WINEDLLOVERRIDES="dinput8=n,b" %command%</pre><button class="copy" data-copy="c-launch" type="button">Copy</button></div></li>
             <li>Start PES 2021. The first time, pick your region, accept the terms and choose a player name.</li>
@@ -585,7 +589,7 @@ footer a { color: var(--muted); }
           <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server this message is normal: open the 6 ports in the provider's firewall instead.</td></tr>
           <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
           <tr><td>On an Oracle Cloud server, nobody can connect although the ports are open in its web firewall</td><td>Oracle's Ubuntu images also block ports inside the server. Run <code>sudo iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT</code> and <code>sudo iptables -I INPUT -p udp -m multiport --dports 3478,7600 -j ACCEPT</code>, then <code>sudo netfilter-persistent save</code> so it survives a reboot.</td></tr>
-          <tr><td>It works on the host's PC, but nobody else can connect</td><td>The host computer's own firewall is blocking the ports. On Ubuntu with ufw: <code>sudo ufw allow 80,443,8080,10000/tcp</code> and <code>sudo ufw allow 3478,7600/udp</code>. On a cloud server, also open them in the provider's firewall settings.</td></tr>
+          <tr><td>It works on the host's PC, but nobody else can connect</td><td>The host computer's own firewall is blocking the ports. On Ubuntu with ufw: <code>sudo ufw allow 80,443,8080,10000/tcp</code> and <code>sudo ufw allow 3478,7600/udp</code>. On Fedora: <code>sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code>. On a cloud server, also open them in the provider's firewall settings.</td></tr>
         </tbody>
       </table>
     </details>
@@ -628,7 +632,7 @@ footer a { color: var(--muted); }
         <li><b>Get it straight from your host.</b> They send it to you directly, or you download it from their link at home (not on public Wi-Fi; that link isn't encrypted). Avoid copies passed on by other people.</li>
         <li><b>Check the hash.</b> In the game folder run <code>Get-FileHash .\dinput8.dll</code> on Windows (Linux: <code>sha256sum dinput8.dll</code>) and compare the result with the SHA-256 on your host's download page or admin page (capital or small letters and spaces don't matter). A match means your copy is exactly the file their server hands out; it can't tell you whether you reached the right server in the first place, which is why the first point matters. No match? Ask your host to download it again: the hash changes when the server's address changes.</li>
         <li><b>The key in your log</b> (the first 16 characters after <code>key</code> in the first line of <code>pes2021-online.log</code>; the friends' page shows them split by a space, the admin page as one block) only tells you which server the file connects to.</li>
-        <li><b>What's inside:</b> the official build with their server's details written into a fixed 2 KB settings area: its key, name, addresses, its web address if it has one, and an address-book field that's empty for now. The rest is identical to the public build in <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">server/mod</a>. It can only make your game talk to their server and can't be redirected elsewhere (unless you switch servers yourself with Shift, see below): a server that doesn't hold their secret key is refused.</li>
+        <li><b>What's inside:</b> the official build with their server's details written into a fixed 2 KB settings area: its key, name, addresses, its web address if it has one, and an address-book field that's empty for now. The rest is the official build of the public source in <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">server/mod</a>, compiled inside the server's Docker image. It can only make your game talk to their server and can't be redirected elsewhere (unless you switch servers yourself with Shift, see below): a server that doesn't hold their secret key is refused.</li>
       </ul>
       <p>The server stores your player name, Steam ID and match results, sees your IP address, and keeps a log of the game's messages on the host's disk. Like any peer-to-peer game, your opponent's PC connects straight to yours during a match, so it sees your IP address too.</p>
     </details>
@@ -700,6 +704,7 @@ footer a { color: var(--muted); }
         <li>If you used your public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this computer. The admin page isn't on those ports, so it stays private.</li>
         <li>Playing on this same PC? Download the mod from the admin page like your friends do and put it next to <code>PES2021.exe</code> (the server-computer card only appears with the Linux installer).</li>
       </ol>
+      <p>Later, in that same folder: update with <code>docker compose -f docker-compose.bridge.yml pull</code> and then <code>docker compose -f docker-compose.bridge.yml up -d</code> (players, results and friends' files are kept). Stop and remove it with <code>docker compose -f docker-compose.bridge.yml down</code>; deleting the <code>server-data</code> folder as well removes players, results and the server's identity, so old mod files stop working.</p>
     </details>
     <details class="q">
       <summary>Will our accounts and results survive a restart?</summary>

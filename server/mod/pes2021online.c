@@ -427,9 +427,7 @@ static void base_url(const wchar_t *in, char *out, size_t cap)
     size_t n = strlen(s);
     if (n >= 5 && !_stricmp(s + n - 5, "/join")) s[n - 5] = 0;
     if (strstr(s, "://")) { snprintf(out, cap, "%s", s); return; }
-    BOOL ip = s[0] != 0;
-    for (char *p = s; *p; p++) if (!((*p >= '0' && *p <= '9') || *p == '.' || *p == ':')) ip = FALSE;
-    snprintf(out, cap, "%s://%s", ip ? "http" : "https", s);
+    snprintf(out, cap, "http://%s", s);         /* IP or name: the server's /mod/note is plain HTTP */
 }
 
 static void dlg_try(void)
