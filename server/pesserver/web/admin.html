@@ -33,13 +33,14 @@
   .pill.warn { background:var(--warnbg); color:var(--warn); }
   .pill.live { background:var(--live); color:var(--on-live); }
   .pill.neutral { background:var(--code); color:var(--muted); }
-  .pill.tag { font-size:11px; padding:1px 8px; }
+  .pill.tag { font-size:12px; padding:2px 8px; }
   .dot { width:8px; height:8px; border-radius:50%; background:currentColor; flex:none; }
   .linkbtn { background:none; border:0; color:var(--muted); text-decoration:underline; text-underline-offset:3px; cursor:pointer; font:inherit; font-size:14px; padding:6px 2px; }
   .linkbtn:hover { color:var(--fg); }
   #logout { margin-left:auto; }
   @media (max-width: 480px) { header.top h1 { font-size:20px; flex:0 0 calc(100% - 90px); } #logout { order:1; } header.top .pill { order:2; } }
-  .skip { position:absolute; left:-9999px; } .skip:focus { left:16px; top:8px; z-index:20; background:var(--card); padding:6px 10px; border-radius:8px; }
+  .skip { position:absolute; left:-9999px; } .skip:focus { left:16px; top:8px; z-index:20; background:var(--card); padding:8px 12px; border-radius:8px; }
+  body.stale #reach, body.stale #inv-reach, body.stale #pcpill { filter:grayscale(1); opacity:.7; }
 
   .banner { border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:14px; }
   .banner.down { border:2px solid var(--live); background:var(--card); box-shadow:0 4px 14px rgba(0,0,0,.12); }
@@ -113,7 +114,6 @@
   header.top a.pill { min-height:28px; } @media (pointer: coarse) { header.top a.pill { min-height:36px; } }
   .act .skipbtn { flex-basis:100%; text-align:right; font-size:13px; padding:2px; }
   @media (max-width: 600px) { .act .skipbtn { flex-basis:auto; } }
-  @media (max-width: 800px) { #c-live { order:1; } #c-online { order:2; } #c-results { order:4; } #c-feed { order:5; } #c-net { order:6; } #board.netbad #c-net { order:3; } }
   .game .st .pill { margin-bottom:2px; }
   #uptime:not(:empty) + #until:not(:empty)::before { content:" · "; }
   #err.blocked { margin:12px 0 0; min-height:0; }
@@ -132,7 +132,7 @@
   .quiet b { color:var(--fg); }
 
   .cols { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:16px; }
-  .hide-md { display:none; }
+  @media (min-width: 801px) { .hide-md { display:none; } }
   #board.board-quiet .cols { grid-template-columns:minmax(0,1fr); }
   #board.board-quiet .col:first-child { display:none; }
   .col { min-width:0; }
@@ -201,7 +201,7 @@
   #pw[aria-invalid="true"] { border-color:var(--live); border-width:2px; } #pw[aria-invalid="true"]:focus-visible { outline-color:var(--live); }
   #err a:focus-visible { outline-offset:2px; border-radius:4px; } #err a { padding:0 2px; } #err.blocked { color:var(--fg); }
   #feed h3.day { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:10px 0 2px; }
-  .conn-sm { display:none; white-space:normal; overflow-wrap:anywhere; } @media (min-width: 421px) { .conn-sm { display:block; } }
+  .conn-sm { display:none; white-space:normal; overflow-wrap:anywhere; } @media (min-width: 421px) and (max-width: 600px), (min-width: 801px) { .conn-sm { display:block; } }
   .finished { font-size:14px; color:var(--muted); margin:4px 0 0; }
   footer.foot { color:var(--muted); font-size:13px; margin-top:8px; }
   footer.foot summary { cursor:pointer; }
@@ -243,7 +243,7 @@
 </main>
 
 <main class="app" id="app" hidden>
-  <a class="skip" href="#inv-h">Skip to the download</a>
+  <a class="skip" href="#inv-h">Skip to inviting friends</a>
   <header class="top">
     <h1><span aria-hidden="true">⚽ </span>PES 2021 Server</h1>
     <span class="pill neutral" id="status"><span class="dot"></span><span id="status-t">Connecting…</span></span><span class="sr" id="status-live" aria-live="polite"></span>
@@ -349,7 +349,7 @@ function cmdsHtml() {
 }
 const isTs = a => /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(a || "") || String(a || "").toLowerCase().startsWith("fd7a:115c:a1e0:");
 const startCmd = () => dockerDesktop ? "docker start pesserver" : "sudo docker start pesserver";
-const nm = n => esc(n).replace(/([_.])/g, "$1<wbr>");   // long handles break at _ and .
+const nm = n => esc(n).replace(/(_|\.(?!\d))/g, "$1<wbr>");   // long handles break at _ and .
 const shown = {}, rowMsg = {}, dlHTML = document.getElementById("dl").innerHTML;
 
 // Replace a section's HTML only when it changed; keep keyboard focus on the same control,
@@ -358,7 +358,9 @@ function put(id, html, force) {
   const el = $(id);
   if (!force && shown[id] === html) return;
   const a = document.activeElement, key = a && el.contains(a) ? (a.dataset.key || a.id) : null;
+  const openKeys = [...el.querySelectorAll("details[data-key]")].filter(x => x.open).map(x => x.dataset.key);
   shown[id] = html; el.innerHTML = html;
+  openKeys.forEach(k => { const x = el.querySelector(`details[data-key="${CSS.escape(k)}"]`); if (x) x.open = true; });
   if (key) {
     const vis = n => n && n.offsetParent !== null;
     let n = el.querySelector(`[data-key="${CSS.escape(key)}"]`) || document.getElementById(key);
@@ -413,7 +415,10 @@ function showLogin(msg) {
   $("signin").disabled = false; $("signin").textContent = "Sign in";
   $("pw").focus();
 }
-function signedOut() { token = ""; store.clear(); showLogin("You were signed out. Sign in again."); }
+function signedOut() {
+  let until = 0; try { until = +(localStorage.getItem("pes-admin-until") || sessionStorage.getItem("pes-admin-until") || 0); } catch (e) {}
+  token = ""; store.clear(); showLogin(until && until * 1000 < Date.now() ? "Your sign-in expired. Sign in again." : "You were signed out. Sign in again.");
+}
 
 function setDown(on) {
   const pill = $("status");
@@ -439,7 +444,7 @@ function setDown(on) {
   document.querySelectorAll("[data-kick], #thispc button").forEach(b => b.setAttribute("aria-disabled", "true"));
   $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").textContent; $("dl").textContent = "Waiting for the server…";
   const downHtml = lastOkAt
-    ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? Start the server with <code>${startCmd()}</code>. This page keeps trying.`
+    ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? If it is, restart the server: <code>${dockerDesktop ? "docker" : "sudo docker"} restart pesserver</code>. This page keeps trying.`
     : `<b>The server isn't answering yet.</b> If this lasts, restart it on the server computer with <code>${dockerDesktop ? "docker" : "sudo docker"} restart pesserver</code>. This page keeps trying.`;
   $("down").hidden = false; requestAnimationFrame(() => { $("down").innerHTML = downHtml; });   // shown first, so the alert is read
 }
@@ -488,7 +493,7 @@ function render(d) {
     $("fsteps").open = !est; text("inv-h", est ? "Invite more friends" : "Invite your friends"); }
   const r = reachInfo(s);
   $("reach").hidden = false; $("reach").className = "pill " + (r.neutral ? "neutral" : r.ok ? "" : "warn"); put("reach", `${r.neutral ? "" : r.ok ? I.ok : I.warn}<span class="rt">${esc(r.short)}</span>${I.down}`); $("reach").title = r.short + ": network details";
-  put("inv-reach", r.long);
+  put("inv-reach", !r.ok || (!(d.played_total > 0 || d.players.length >= 2) && !r.neutral) ? r.long : "");
 
   const joinedOnly = !d.online.length && !d.live.length && !d.played_total && d.players.length > 0;
   const quiet = (!d.online.length && !d.live.length && !d.played_total && !d.players.length) || joinedOnly;
@@ -504,6 +509,9 @@ function render(d) {
     if (moving) $("pc-live").textContent = "The server computer card moved below the match info.";
   }
   $("board").classList.toggle("board-quiet", quiet); $("board").hidden = false; $("board").classList.toggle("netbad", !reachInfo(s).ok);
+  const netUp = !reachInfo(s).ok && matchMedia("(max-width: 800px)").matches;
+  if (netUp && $("c-net").nextElementSibling !== $("c-results")) $("c-results").before($("c-net"));
+  else if (!netUp && $("c-net").previousElementSibling !== $("c-feed")) $("c-feed").after($("c-net"));
   const playing = d.live.filter(m => m.kickoff && m.phase !== "Full time").length, ready = d.live.filter(m => !m.kickoff && m.phase !== "Full time").length;
   const today = d.results.filter(r => new Date(r.ended * 1000).toDateString() === new Date().toDateString()).length;
   put("stats", quiet
@@ -537,7 +545,7 @@ function render(d) {
 
   put("online", d.online.length ? `<div class="tablewrap"><table><caption class="sr">Players online now</caption>
     <thead><tr><th scope="col">Player</th><th scope="col" class="hide-xs">Status</th><th scope="col" class="hide-sm hide-md">Connection</th><th scope="col" class="num hide-sm hide-md">Online for</th><th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
-    d.online.map(p => `<tr><td class="name">${nm(p.name)}<small class="show-xs">${esc(p.status)} · ${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since)}</small></td><td class="hide-xs"><span class="nw">${esc(p.status)}</span>${opponent(d, p.name) ? ` vs ${nm(opponent(d, p.name))}` : ""}<small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
+    d.online.map(p => `<tr><td class="name">${nm(p.name)}<small class="show-xs">${esc(p.status)} · ${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since)}</small></td><td class="hide-xs"><span class="nw">${pending(d, p.name) ? "Getting ready" : esc(p.status)}</span>${opponent(d, p.name) || pending(d, p.name) ? ` vs ${nm(opponent(d, p.name) || pending(d, p.name))}` : ""}<small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
       <td class="hide-sm hide-md muted conn">${where(p.ip)}<small>${esc(p.ip)}</small></td><td class="num muted hide-sm hide-md">${dur(now - p.since)}</td>
       <td class="num act"><button class="danger" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></td></tr>`).join("") +
     `</tbody></table></div><p class="note">Kick disconnects someone now; they can reconnect. There's no ban yet: anyone who has the mod file or your server's address can join.</p>`
@@ -641,8 +649,7 @@ function gameRow(g) {
         ? `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, add this Steam launch option. In Steam: PES 2021 → Properties → Launch options, paste <code>${esc(opt)}</code> ${copyBtn}</div>`
         : `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, ${/\/lutris\//i.test(g.path) ? "in Lutris open Configure → System options → Environment variables and add" : /\/heroic\//i.test(g.path) ? "in Heroic open Settings → Advanced → Environment variables and add" : "start PES 2021 with this environment variable set (put it before the command you use to start it)"}: <code>${esc(opt)}</code> ${copyBtn}</div>`;
       btn = `<button type="button" class="primary" data-optdone="${esc(g.path)}" data-key="lo-done-${esc(g.id)}" aria-label="I've added it: launch option for ${esc(name)}">I've added it</button>`;
-      tail = b("linkbtn skipbtn", "remove", "Uninstall");
-      st += `<div class="what">The server can't see launch options, so click "I've added it" once it's in.</div>`;
+      st += `<div class="what">The server can't see launch options, so click "I've added it" once it's in. Changed your mind? ${b("linkbtn", "remove", "Uninstall")}</div>`;
     }
   } else {
     st = `<span class="pill tag">${I.ok} Ready to play</span>`; btn = b("danger", "remove", "Uninstall");
@@ -693,18 +700,26 @@ async function loadGames(force, focusMsg, focusKey) {
   const todo = gs.filter(g => !isReady(g)), done = gs.filter(isReady);
   const counts = {};
   gs.forEach(g => { counts[label(g.path)] = (counts[label(g.path)] || 0) + 1; });
-  const seen = {};
-  gs.forEach(g => { const l = label(g.path); g.label = counts[l] > 1 ? l.replace(/\)$/, `, ${/Steam/.test(l) ? "library" : "copy"} ${seen[l] = (seen[l] || 0) + 1})`) : l; });
-  const keep = g => rowMsg[g.id] || justMarked.has(g.path) || document.activeElement?.closest?.(`[data-game="${CSS.escape(g.id)}"], [data-key$="-${CSS.escape(g.id)}"]`);
+  const seen = {}, libs = [...new Set(gs.filter(g => /\/steamapps\//.test(g.path)).map(g => libraryOf(g.path)))];
+  const folder = g => String(g.path).split("/").filter(Boolean).pop();
+  gs.forEach(g => {
+    const l = label(g.path);
+    if (counts[l] < 2) { g.label = l; return; }
+    if (/Steam/.test(l)) {
+      const lib = libraryOf(g.path), sameLib = gs.filter(x => /\/steamapps\//.test(x.path) && libraryOf(x.path) === lib).length > 1;
+      g.label = `PES 2021 (Steam${libs.length > 1 ? `, library ${libs.indexOf(lib) + 1}` : ""}${sameLib ? `, ${folder(g)}` : ""})`;
+    } else g.label = l.replace(/\)$/, `, copy ${seen[l] = (seen[l] || 0) + 1})`);
+  });
+  const keep = g => rowMsg[g.id] || justMarked.has(g.path);
   const shownTodo = todo.length >= 3 ? todo.filter((g, i) => i < 2 || keep(g)) : todo, moreTodo = todo.filter(g => !shownTodo.includes(g));
-  const more = moreTodo.length ? `<details class="pcready" style="margin-top:8px"><summary>Show ${moreTodo.length} more ${moreTodo.length === 1 ? "copy" : "copies"} that need setup</summary><div class="games">${moreTodo.map(gameRow).join("")}</div></details>` : "";
+  const more = moreTodo.length ? `<details class="pcready" data-key="pc-more" style="margin-top:8px"><summary>Show ${moreTodo.length} more ${moreTodo.length === 1 ? "copy" : "copies"} that need setup</summary><div class="games">${moreTodo.map(gameRow).join("")}</div></details>` : "";
   const rows = need && done.length >= 1
-    ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}<details class="pcready" style="margin-top:8px"><summary>${I.ok} ${done.length} other ${done.length === 1 ? "copy is" : "copies are"} ${done.some(skipped) ? "ready or skipped" : "ready"}</summary><div class="games">${done.map(gameRow).join("")}</div></details>`
+    ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}<details class="pcready" data-key="pc-ready" style="margin-top:8px"><summary>${I.ok} ${done.length} other ${done.length === 1 ? "copy is" : "copies are"} ${done.some(skipped) ? "ready or skipped" : "ready"}</summary><div class="games">${done.map(gameRow).join("")}</div></details>`
     : moreTodo.length ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}` : `<div class="games">${gs.map(gameRow).join("")}</div>`;
   const html = need === 0 && !Object.keys(rowMsg).length
-    ? `<details class="pcready"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this PC is ready to play (${gs.length} ${gs.length === 1 ? "copy" : "copies"})` : `PES 2021 on this PC: ${okCnt} ready, ${gs.length - okCnt} skipped`}</summary>${rows}</details>`
+    ? `<details class="pcready" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this PC is ready to play (${gs.length} ${gs.length === 1 ? "copy" : "copies"})` : `PES 2021 on this PC: ${okCnt} ready, ${gs.length - okCnt} skipped`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
-        : `Want to play on this computer too? ${gs.length > 1 ? `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup` : "Set up its copy of PES 2021 here"}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : ". Follow the step under each copy."}`}</p>${rows}`;
+        : `${okCnt ? "PES 2021 on this computer:" : "Want to play on this computer too?"} ${gs.length > 1 ? `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup` : "Set up its copy of PES 2021 here"}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : ". Follow the step under each copy."}`}</p>${rows}`;
   put("games", html, force);
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }
   if (focusMsg) { const m = $("games").querySelector(`[data-key="msg-${CSS.escape(focusMsg)}"]`); (m && m.textContent.trim() ? m : $("pc-h")).focus(); }
@@ -738,7 +753,7 @@ async function gameAction(btn) {
   btn.textContent = act === "remove" ? "Removing…" : "Installing…";
   let msg;
   try {
-    const gs = await api("/admin/api/games/" + (act === "switch" ? "install" : act), {method: "POST", body: JSON.stringify({id})});
+    const gs = await api("/admin/api/games/" + (act === "switch" ? "install" : act), {method: "POST", body: JSON.stringify({id}), timeout: 15000});
     msg = doneMsg(act, gs.find(x => x.id === id) || g);
   } catch (e) {
     if (e.status === 401) return signedOut();
@@ -891,7 +906,7 @@ fetch("/admin/api/info").then(r => r.json()).then(i => {
   if (i.docker_desktop) $("forgot").innerHTML = "Forgot it? On this computer, open a terminal and run <code>docker logs pesserver</code>.";
   if (i.host_ok === false) {
     const where = i.lan ? `<a href="http://${i.lan}/admin">http://${i.lan}/admin</a>` : "the server's address (for example http://192.168.x.x/admin)";
-    $("err").innerHTML = `For safety, the admin page only opens by the server's IP address. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
+    $("err").innerHTML = `For safety, the admin page only opens by the server's address, not a web name. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
     $("lf").before($("err")); $("err").classList.add("blocked"); $("lf").hidden = true; $("forgot").hidden = true; $("lsub").hidden = true; ($("err").querySelector("a") || $("err")).focus();
     $("signin").disabled = true;
   }
@@ -904,6 +919,10 @@ $("logout").onclick = async () => {
   showLogin(ok ? "Signed out here." : "Signed out in this browser. The server couldn't be reached, so this sign-in may still work on other devices until it expires. Sign in again later and use 'Sign out on all devices' if you're worried.");
 };
 
+function pending(d, name) {
+  const m = d.live.find(m => !m.kickoff && m.phase !== "Full time" && (m.home_name === name || m.away_name === name));
+  return m ? (m.home_name === name ? m.away_name : m.home_name) : "";
+}
 function opponent(d, name) {
   const m = d.live.find(m => m.kickoff && m.phase !== "Full time" && (m.home_name === name || m.away_name === name));
   return m ? (m.home_name === name ? m.away_name : m.home_name) : "";

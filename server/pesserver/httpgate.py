@@ -340,9 +340,12 @@ async def _admin(service, method, route, headers, body, peer=""):
                 if not os.path.isfile(MOD_DLL):
                     return "404 Not Found", b'{"error":"This server was built without the mod."}', "application/json"
                 result = gamesetup.install(gid, mod_bytes(mod_url(service, headers, None)))
-                events.feed(service, "The mod was installed in this PC's game", "info")
+                verb = "installed in"
             else:
                 result = gamesetup.remove(gid)
+                verb = "removed from"
+            path = next((g["path"] for g in result if g["id"] == gid), "")
+            events.feed(service, f"The mod was {verb} this PC's PES 2021 ({os.path.basename(path.rstrip('/')) or 'game folder'})", "info")
         except LookupError:
             return "404 Not Found", b'{"error":"That game folder is gone. Run the install command again to look for PES 2021."}', "application/json"
         except PermissionError as e:
