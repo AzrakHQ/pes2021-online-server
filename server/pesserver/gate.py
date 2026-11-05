@@ -31,14 +31,6 @@ async def serve(service, codec_factory, host="0.0.0.0", port=10000, idle=300):
                 msg = await asyncio.wait_for(codec.read(reader), timeout=idle)
                 if msg is None:
                     break
-                if getattr(sess, "kick_result", None):
-                    # Kicked by the admin: answer this request with an error the game shows, then hang up.
-                    await send(Message(msg.name, msg.seq, {"result": sess.kick_result,
-                                                           "_kind": msg.body.get("_kind", 0x60),
-                                                           "_seq": msg.body.get("_seq", 1)}))
-                    log.info("kick: answered %s with %s", msg.name, sess.kick_result)
-                    await asyncio.sleep(2)
-                    break
                 try:
                     reply = await service.handle(sess, msg)
                 except Exception:  # a handler bug must not drop the client's session

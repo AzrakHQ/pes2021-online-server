@@ -330,7 +330,30 @@ async def _admin(service, method, route, headers, body, peer=""):
                           "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex()),
                           "mod_sha256": mod_sha256(mod_url(service, headers, None)),
                           "docker_desktop": bool(os.environ.get("ADMIN_PORT"))}
+        from . import announce
+        snap["announce"] = announce.snapshot(service)
         return "200 OK", json.dumps(snap).encode(), "application/json"
+    if route in ("/admin/api/message", "/admin/api/restart") and method == "POST":
+        from . import announce
+        try:
+            req = json.loads(body or b"{}")
+            if route.endswith("message"):
+                if req.get("clear"):
+                    announce.clear_news(service)
+                    events.feed(service, "The message to players was removed", "info")
+                else:
+                    announce.set_news(service, req.get("title"), req.get("body"))
+                    events.feed(service, "A message to players was posted", "info")
+            else:
+                minutes = int(req.get("minutes") or 0)
+                if not 0 <= minutes <= 24 * 60:
+                    raise ValueError("minutes")
+                announce.set_restart(service, minutes)
+                events.feed(service, f"Restart warning set for {minutes} minutes from now" if minutes
+                            else "Restart warning cancelled", "info")
+        except (ValueError, TypeError, AttributeError):
+            return "400 Bad Request", b'{"error":"Write a title and a message."}', "application/json"
+        return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
     if route == "/admin/api/games":
         from . import gamesetup
         return "200 OK", json.dumps(gamesetup.status()).encode(), "application/json"
@@ -364,19 +387,19 @@ async def _admin(service, method, route, headers, body, peer=""):
             pid = int(req.get("pid"))
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"pid"}', "application/json"
-        result = str(req.get("result") or "")
-        if result and not __import__("re").fullmatch(r"ERR_[A-Z_]{2,40}", result):
-            return "400 Bad Request", b'{"error":"result"}', "application/json"
         sess = service.online.get(pid)
         if sess is None or not hasattr(sess, "close"):
             return "404 Not Found", b'{"error":"not online"}', "application/json"
         events.feed(service, f"{events.name_of(service, pid)} was kicked by the admin", "warn")
-        if result:
-            # the game shows this code on its next request (heartbeats come about every 17 s)
-            sess.kick_result = result
-            asyncio.get_running_loop().call_later(25, sess.close)
-        else:
-            sess.close()
+        # The game shows only "Connection to server lost" (VNBP_0001) whatever error we send, so the
+        # reason waits as a one-time box the next time they enter an online mode.
+        from . import announce
+        try:
+            reason = "\n\nReason: " + announce.clean(req.get("reason"), announce.REASON_MAX)
+        except ValueError:
+            reason = ""
+        announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server." + reason)
+        sess.close()
         return "200 OK", b'{"ok":true}', "application/json"
     return "404 Not Found", b'{"error":"unknown"}', "application/json"
 

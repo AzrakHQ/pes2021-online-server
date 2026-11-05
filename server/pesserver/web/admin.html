@@ -72,6 +72,14 @@
   button:disabled, button[aria-disabled="true"] { opacity:.6; filter:grayscale(1); cursor:progress; }
   @media (pointer: coarse) { button, .linkbtn, summary { min-height:44px; } }
   button.small { padding:4px 10px; font-size:13px; }
+  .msgf label { display:block; font-weight:600; font-size:14px; margin:10px 0 4px; }
+  .msgf input, .msgf textarea, .msgf select { width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--field); background:var(--bg); color:var(--fg); font:inherit; font-size:14px; }
+  .msgf textarea { min-height:84px; resize:vertical; }
+  .msgf select { width:auto; }
+  .msgf .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  .msgnow { border-left:3px solid var(--accent); padding:6px 10px; margin:0 0 4px; white-space:pre-line; overflow-wrap:anywhere; }
+  .msgnow b { display:block; }
+  .msgf hr { border:0; border-top:1px solid var(--line); margin:16px 0 4px; }
 
   /* invite */
   .invite { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:28px; border:2px solid var(--accent); }
@@ -309,6 +317,24 @@
       </div>
       <div class="col">
         <section class="card" id="c-feed" aria-labelledby="h-feed"><h2 id="h-feed" tabindex="-1">Activity</h2><div id="feed"><div class="skel"></div><div class="skel short"></div></div></section>
+        <section class="card msgf" id="c-msg" aria-labelledby="h-msg"><h2 id="h-msg" tabindex="-1">Message to players</h2>
+          <div id="msgnow"></div>
+          <form id="msgform">
+            <label for="msg-title">Title</label><input id="msg-title" maxlength="60" autocomplete="off" placeholder="Tournament on Friday">
+            <label for="msg-body">Message</label><textarea id="msg-body" maxlength="600" placeholder="Matches start at 9 pm. Be online by 8:45."></textarea>
+            <div class="row"><button class="primary" type="submit" id="msg-send">Show in the game</button><button type="button" id="msg-clear" hidden>Remove message</button></div>
+            <p class="note">Players see it as a pop-up in the main menu, on the Online Information list when they sign in, and once in a box before Quick Match.</p>
+          </form>
+          <hr>
+          <form id="rsform">
+            <label for="rs-min">Planned restart</label>
+            <div id="rsnow" class="small"></div>
+            <div class="row"><select id="rs-min"><option value="5">in 5 minutes</option><option value="10">in 10 minutes</option><option value="15" selected>in 15 minutes</option><option value="30">in 30 minutes</option><option value="60">in 1 hour</option></select>
+              <button type="submit" id="rs-set">Warn players</button><button type="button" id="rs-cancel" hidden>Cancel warning</button></div>
+            <p class="note">Anyone who starts matchmaking gets the game's own warning: "maintenance work starting at [time]… Are you sure you want to start a match now?"</p>
+          </form>
+          <p class="note" id="msg-live" role="status"></p>
+        </section>
         <section class="card" id="c-net" aria-labelledby="h-net"><h2 id="h-net" tabindex="-1">Network</h2><div class="net" id="net"><div class="skel"></div></div></section>
       </div>
     </div>
@@ -490,8 +516,18 @@ async function refresh() {
   render(d);
 }
 
+function renderMsg(a) {
+  if (!a) return;
+  const hm = t => new Date(t * 1000).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
+  put("msgnow", a.news ? `<div class="msgnow"><span class="small muted">Showing now${a.news.seen ? ` · seen before Quick Match by ${a.news.seen}` : ""}</span><b>${esc(a.news.title)}</b>${esc(a.news.body)}</div>` : "");
+  $("msg-clear").hidden = !a.news; text("msg-send", a.news ? "Replace message" : "Show in the game");
+  text("rsnow", a.restart ? (a.restart * 1000 > Date.now() ? `Warning players about a restart at ${hm(a.restart)} (their own clock shows their local time).`
+                                                          : `The restart time (${hm(a.restart)}) has passed. Restart the server, or cancel the warning.`) : "");
+  $("rs-cancel").hidden = !a.restart; text("rs-set", a.restart ? "Change time" : "Warn players");
+}
 function render(d) {
   const now = d.now, s = d.server;
+  renderMsg(d.announce);
   text("uptime", "Running for " + dur(d.uptime)); meta();
   text("jp", s.main); $("jp").title = s.main; $("jp").classList.toggle("long", s.main.length > 40); $("jp").classList.remove("waiting"); $("copy").disabled = false;
   dockerDesktop = !!s.docker_desktop;
@@ -892,11 +928,13 @@ document.addEventListener("click", async e => {
   if (g) return gameAction(g);
   const k = e.target.closest("[data-kick]");
   if (k && document.body.classList.contains("stale")) { $("kick-msg").textContent = "The server isn't answering, so nobody can be kicked right now."; return; }
-  if (k && k.getAttribute("aria-disabled") !== "true" && confirm(k.dataset.vs ? `Kick ${k.dataset.name}? Their match against ${k.dataset.vs} ends now. They can reconnect.`
-                                 : `Kick ${k.dataset.name}? Their game disconnects from the server now; they can reconnect.`)) {
+  let reason = null;
+  if (k && k.getAttribute("aria-disabled") !== "true" && (reason = prompt((k.dataset.vs ? `Kick ${k.dataset.name}? Their match against ${k.dataset.vs} ends now. They can reconnect.`
+                                 : `Kick ${k.dataset.name}? Their game disconnects from the server now; they can reconnect.`)
+                                 + "\n\nThe game only says \"Connection to server lost\". When they come back, they'll see a note from you. Add a reason (optional):", "")) !== null) {
     const i = [...$("online").querySelectorAll("[data-kick]")].indexOf(k);
     k.setAttribute("aria-disabled", "true");
-    try { await api("/admin/api/kick", {method: "POST", body: JSON.stringify({pid: +k.dataset.kick})}); $("kick-msg").textContent = `${k.dataset.name} was disconnected.`; }
+    try { await api("/admin/api/kick", {method: "POST", body: JSON.stringify({pid: +k.dataset.kick, reason: reason.slice(0, 200)})}); $("kick-msg").textContent = `${k.dataset.name} was disconnected.`; }
     catch (err) { if (err.status === 401) return signedOut(); $("kick-msg").textContent = `Couldn't kick ${k.dataset.name}; they may have already left.`; }
     setTimeout(() => { $("kick-msg").textContent = ""; }, 8000);
     while (inflight) await new Promise(r => setTimeout(r, 100));
@@ -906,6 +944,21 @@ document.addEventListener("click", async e => {
     (after[Math.min(i, after.length - 1)] || $("h-online")).focus();
   }
 });
+async function msgCall(path, body, done) {
+  try { renderMsg(await api(path, {method: "POST", body: JSON.stringify(body)})); text("msg-live", done); return true; }
+  catch (err) { if (err.status === 401) { signedOut(); return false; }
+    text("msg-live", err.status === 400 ? "Write a title and a message first." : "Couldn't reach the server. Try again."); return false; }
+  finally { setTimeout(() => text("msg-live", ""), 8000); }
+}
+$("msgform").onsubmit = async e => {
+  e.preventDefault();
+  const title = $("msg-title").value.trim(), body = $("msg-body").value.trim();
+  if (!title || !body) { text("msg-live", "Write a title and a message first."); (title ? $("msg-body") : $("msg-title")).focus(); return; }
+  if (await msgCall("/admin/api/message", {title, body}, "Message posted. Players see it next time they reach the main menu or Quick Match.")) { $("msg-title").value = ""; $("msg-body").value = ""; }
+};
+$("msg-clear").onclick = () => msgCall("/admin/api/message", {clear: true}, "Message removed.");
+$("rsform").onsubmit = e => { e.preventDefault(); msgCall("/admin/api/restart", {minutes: +$("rs-min").value}, "Restart warning set."); };
+$("rs-cancel").onclick = () => msgCall("/admin/api/restart", {minutes: 0}, "Restart warning cancelled.");
 $("lf").onsubmit = async e => {
   e.preventDefault();
   const password = $("pw").value.trim();

@@ -328,7 +328,40 @@ def dispatch(svc, sess, msgid, req):
     return resp
 
 
+def _unjson(v):
+    """{"__blob__": obj} -> one msgpack blob; {"__blobs__": [objs]} -> list of blobs (dev overrides)."""
+    if isinstance(v, dict):
+        if "__blob__" in v:
+            return msgpack.packb(_unjson(v["__blob__"]), use_bin_type=True)
+        if "__blobs__" in v:
+            return blobs([_unjson(x) for x in v["__blobs__"]])
+        return {k: _unjson(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_unjson(x) for x in v]
+    return v
+
+
+def _override(svc, msgid):
+    """Development hook: <data>/overrides.json maps a command name to the reply to send instead.
+    Read on every request, so reply shapes can be tried against the real game without a restart."""
+    import json
+    path = os.path.join(getattr(svc, "data_dir", "") or ".", "overrides.json")
+    try:
+        with open(path) as f:
+            table = json.load(f)
+    except (OSError, ValueError):
+        return None
+    if msgid not in table:
+        return None
+    resp = {"result": NOERR, **_unjson(table[msgid])}
+    log.info("OVERRIDE %s -> %s", msgid, sorted(resp))
+    return resp
+
+
 def _dispatch(svc, sess, msgid, req):
+    over = _override(svc, msgid)
+    if over is not None:
+        return over
     fn = HANDLERS.get(msgid)
     if fn is None:
         # Minimal reply on purpose: client parsers only overwrite keys that are present, so absent keys
