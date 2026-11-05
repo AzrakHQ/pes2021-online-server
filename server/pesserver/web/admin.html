@@ -23,7 +23,8 @@
   .tile { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow); }
   .tile b { display:block; font-size:28px; line-height:1.1; }
   .tile span { color:var(--muted); font-size:13px; }
-  .grid { display:grid; grid-template-columns:1.4fr 1fr; gap:16px; }
+  .grid { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:16px; }
+  .grid > div { min-width:0; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px; min-width:0; }
   h2 { font-size:15px; margin:0 0 12px; }
   table { width:100%; border-collapse:collapse; font-size:14px; }
@@ -37,7 +38,7 @@
   .score { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; text-align:center; }
   .phase { grid-column:1/-1; text-align:center; font-size:13px; }
   .cmd { display:flex; gap:8px; margin:6px 0 10px; }
-  code { flex:1; min-width:0; background:var(--code); border-radius:8px; padding:9px 12px; font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overflow-x:auto; white-space:nowrap; }
+  code { flex:1; min-width:0; background:var(--code); border-radius:8px; padding:9px 12px; font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:normal; overflow-wrap:anywhere; }
   button { border:1px solid var(--line); background:var(--card); color:var(--fg); border-radius:8px; padding:6px 12px; cursor:pointer; font:inherit; font-size:13px; }
   button:hover { border-color:var(--accent); color:var(--accent); }
   button.danger:hover { border-color:var(--live); color:var(--live); }

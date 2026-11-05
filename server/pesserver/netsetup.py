@@ -199,6 +199,7 @@ def setup(use_upnp=True, renew_every=1800):
             STATE["upnp_error"] = str(e)
             gw = None
     STATE["wan"] = web_ip
+    threading.Thread(target=_watch_wan, args=(gw,), daemon=True).start()
     if gw and STATE["mapped"]:
         def renew():
             while not _stop.wait(renew_every):
@@ -213,6 +214,24 @@ def setup(use_upnp=True, renew_every=1800):
 
 
 _stop = threading.Event()
+
+
+def _watch_wan(gw, every=600):
+    """Home IPs change: re-check the public address so new join lines and URL lists stay right."""
+    while not _stop.wait(every):
+        ip = None
+        if os.environ.get("PESSERVER_NO_IPCHECK") != "1":
+            ip = public_ip_from_web()
+        if not ip and gw is not None:
+            try:
+                ext = gw.external_ip()
+                ip = ext if is_public(ext) else None
+            except Exception:  # noqa: BLE001
+                ip = None
+        if ip and ip != STATE["wan"]:
+            log.warning("public IP changed: %s -> %s (players outside your network: run the join line again)",
+                        STATE["wan"], ip)
+            STATE["wan"] = ip
 
 
 def teardown():

@@ -61,7 +61,8 @@ code, pre { font-family: var(--mono); }
 .nav .gh svg { width: 22px; height: 22px; display: block; }
 .theme { border: 1px solid var(--line); background: var(--bg2); color: var(--fg); border-radius: 99px; width: 36px; height: 36px; cursor: pointer; display: grid; place-items: center; flex: none; }
 .theme svg { width: 18px; height: 18px; }
-@media (max-width: 640px) { .logo span { display: none; } .nav ul { gap: 14px; } .nav ul a { font-size: 14px; } .nav .wrap { gap: 12px; } }
+@media (max-width: 640px) { .logo span { display: none; } .nav ul { gap: 12px; } .nav ul a { font-size: 14px; } .nav .wrap { gap: 10px; } }
+@media (max-width: 400px) { .nav .gh { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 13px; } }
 
 /* hero */
 .hero { background: radial-gradient(1200px 500px at 80% -10%, rgba(60,207,142,.25), transparent 60%), linear-gradient(160deg, var(--pitch1), var(--pitch2)); color: #fff; position: relative; overflow: hidden; }
@@ -95,7 +96,7 @@ h3 { font-size: 21px; line-height: 1.3; margin: 0 0 8px; letter-spacing: -.01em;
 .intro { color: var(--muted); font-size: 19px; max-width: 42em; margin: 0 0 36px; }
 .card { background: var(--bg2); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
 section.alt .card { background: var(--bg); }
-.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
 .grid3 > *, .step > div { min-width: 0; }
 @media (max-width: 900px) { .grid3 { grid-template-columns: 1fr; } }
 .muted { color: var(--muted); }
@@ -143,6 +144,11 @@ details.changes ul { font-size: 14px; padding-left: 18px; color: var(--muted); }
 .log .t { color: #7f978b; } .log .h { color: #8fe3bd; font-weight: 700; }
 .quote { border-left: 4px solid var(--brand); padding: 4px 0 4px 16px; margin: 14px 0; font-size: 19px; font-weight: 600; max-width: 40em; }
 .gloss { font-size: 14px; color: var(--muted); }
+.teaser { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 18px; text-decoration: none; color: var(--fg); }
+.teaser:hover { border-color: var(--brand); color: var(--fg); }
+.teaser .go { font-size: 28px; color: var(--brand); font-weight: 800; }
+.example pre { padding-right: 16px; }
+.warnline { font-size: 14px; color: var(--fg); background: var(--brand-soft); border-radius: 10px; padding: 10px 12px; margin: 4px 0 0; }
 /* features */
 .feature-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--brand-soft); color: var(--brand); display: grid; place-items: center; margin-bottom: 14px; }
 .feature-icon svg { width: 24px; height: 24px; }
@@ -235,7 +241,8 @@ footer a { color: var(--muted); }
       <span>PES 2021 Online</span>
     </a>
     <ul>
-      <li><a href="#play">Play</a></li>
+      <li><a href="#host">Host</a></li>
+      <li><a href="#join">Join</a></li>
       <li><a href="#help">Help</a></li>
       <li><a href="#faq">FAQ</a></li>
       <li><a href="#inside">How it works</a></li>
@@ -257,8 +264,8 @@ footer a { color: var(--muted); }
         <a class="btn primary" href="#play">Start playing</a>
         <a class="btn ghost" href="#inside">How we did it</a>
       </div>
-      <a class="pill-status" href="#status"><i aria-hidden="true"></i>Early access: tested on Linux, testers wanted for Windows and Steam Deck</a>
-      <p class="needs">You need: <b>PES 2021 on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or cheap server</b> to host.</p>
+      <a class="pill-status" href="#status"><i aria-hidden="true"></i>Early access: proven on Linux · testers wanted for Windows, Steam Deck and two separate PCs</a>
+      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or cheap server</b> to host.</p>
       <ul class="facts">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>1 command to host</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>1 line to join</li>
@@ -304,7 +311,7 @@ footer a { color: var(--muted); }
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>eFootball → Quick Match matchmaking</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Full matches: both halves, fouls, cards, half-time</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Results saved, then straight into the next match</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Linux players, with the game running under Proton</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Linux, tested with two copies of the game on one PC, running under Proton</span></li>
         </ul>
       </div>
       <div class="card test">
@@ -313,7 +320,8 @@ footer a { color: var(--muted); }
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Windows players: the join script is written but not yet run on a real Windows PC</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Starting the game from the Steam client: our tests launched the game directly under Proton</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Steam Deck: same as Linux, not yet tried on a Deck</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Friends in different homes: so far tested only on one home network</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Two separate PCs, in the same home or far apart: not tested yet</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Goals: every test match so far ended 0–0, so scoring hasn't been seen yet</span></li>
         </ul>
       </div>
       <div class="card no">
@@ -325,6 +333,7 @@ footer a { color: var(--muted); }
         </ul>
       </div>
     </div>
+    <a class="card teaser" href="#inside"><span><b>How we brought it back</b><br><span class="muted small">Nine short chapters on how PES 2021's online mode works, from secret handshakes to error codes that point at source files.</span></span><span class="go" aria-hidden="true">→</span></a>
     <nav class="jump" aria-label="Jump to"><a href="#host">Host a server</a><a href="#join">Join a friend</a><a href="#help">Fix a problem</a><a href="#inside">How it works</a></nav>
     <p class="note">Tried it on Windows, a Steam Deck, through the Steam client or across two homes? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Tell us how it went</a>; it's the most useful thing you can do for the project right now.</p>
   </div>
@@ -343,7 +352,7 @@ footer a { color: var(--muted); }
           <p class="small muted">Use any Linux computer that stays on while you play: your gaming PC, a laptop, a Raspberry Pi or a cheap cloud server. Open a terminal, paste the command and press Enter.</p>
           <p class="small muted">It asks for your password (sudo), installs Docker if it's missing, and when it's ready shows <b>your server's web address</b>, <b>the line for your friends</b> and <b>your admin password</b>.</p>
           <p class="small muted"><b>Playing on the same PC?</b> If PES 2021 is installed there, the installer offers to set it up for you too.</p>
-          <p class="small muted"><b>Good to know:</b> the installer opens 6 ports on your router to the internet, and the admin page gets a public address protected by its password. <b>Cloud server?</b> UPnP doesn't apply there: open TCP 80, 443, 8080, 10000 and UDP 3478, 7600 in your provider's firewall.</p>
+          <p class="small muted"><b>Good to know:</b> the installer opens 6 ports on your router to the internet. The join page, admin page and game services are reachable on your public IP as well as the web address; the admin page is protected by its password.</p>
         </div>
         <div>
           <div class="cmd"><span class="label">Linux terminal</span><pre id="c-host">curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
@@ -353,7 +362,7 @@ footer a { color: var(--muted); }
             <div><span class="bm-k">Send to friends</span>irm https://brave-tiger-moon-river…/join | iex</div>
             <div><span class="bm-k">Admin page</span>…/admin · password k7Rm-2Qx9-PaLw</div>
           </div>
-          <p class="note"><b>Windows or Mac host?</b> It works with Docker Desktop, with a few more steps: <a href="#faq-winhost">hosting from Windows or Mac</a>.</p>
+          <p class="note"><b>No Linux PC?</b> Rent a small cloud server (any provider's cheapest Ubuntu server works; some have free tiers), open its web console, paste the command, and open TCP 80, 443, 8080, 10000 and UDP 3478, 7600 in its firewall settings. Or host from <a href="#faq-winhost">Windows or a Mac</a> with Docker Desktop.</p>
         </div>
       </div>
       <div class="card step" id="join">
@@ -366,7 +375,7 @@ footer a { color: var(--muted); }
             <li><b>Linux:</b> start the game once from Steam, <b>close it</b>, then paste the line in a terminal (needs <code>python3</code>, which most distributions include).</li>
             <li><b>Steam Deck:</b> switch to Desktop Mode, open <b>Konsole</b>, type <code>passwd</code> to set a password if you never have, then paste the line.</li>
           </ol>
-          <details class="changes">
+          <details class="changes" open>
             <summary>What this changes on your PC</summary>
             <ul>
               <li>Adds 6 lines to your <b>hosts file</b> so Konami's old server names point to your friend's server.</li>
@@ -376,9 +385,11 @@ footer a { color: var(--muted); }
           </details>
         </div>
         <div>
-          <div class="cmd"><span class="label">Windows · PowerShell</span><pre id="c-win">irm https://your-server-address/join | iex</pre><button class="copy" data-copy="c-win" type="button">Copy</button></div>
-          <div class="cmd"><span class="label">Linux · Steam Deck terminal</span><pre id="c-lin">curl -fsSL https://your-server-address/join | bash</pre><button class="copy" data-copy="c-lin" type="button">Copy</button></div>
-          <p class="note">Use the exact line your host sends you: <code>your-server-address</code> is only a placeholder. Opening the server's address in a browser shows the same lines with copy buttons.</p>
+          <p class="small muted" style="margin:0 0 8px"><b>Your host's line will look like this</b> (use theirs, not these examples):</p>
+          <div class="cmd example"><span class="label">Windows · PowerShell</span><pre>irm https://brave-tiger-moon-river.trycloudflare.com/join | iex</pre></div>
+          <div class="cmd example"><span class="label">Linux · Steam Deck terminal</span><pre>curl -fsSL https://brave-tiger-moon-river.trycloudflare.com/join | bash</pre></div>
+          <p class="warnline">This runs your host's setup script with administrator rights: it adds 6 lines to your hosts file and trusts a certificate that only works for konami.net. Use it only with people you trust. <a href="#faq-undo">Undo any time</a>.</p>
+          <p class="note">Opening the host's address in a browser shows their lines with copy buttons.</p>
           <p class="note"><b>Did it work?</b> The window ends with <b>Done!</b>. In the game, eFootball's connection test then passes and Quick Match unlocks.</p>
         </div>
       </div>
@@ -424,18 +435,12 @@ footer a { color: var(--muted); }
       </div>
     </div>
     <figure class="shot">
-      <img class="light" src="admin-light.png" width="1770" height="1290" loading="lazy" alt="The admin page: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands.">
-      <img class="dark" src="admin-dark.png" width="1770" height="1290" loading="lazy" alt="The admin page in dark mode: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands.">
+      <img class="light" src="admin-light.png" width="1475" height="1434" loading="lazy" alt="The admin page: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands.">
+      <img class="dark" src="admin-dark.png" width="1475" height="1434" loading="lazy" alt="The admin page in dark mode: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands.">
       <figcaption>The real admin page, filled with demo players.</figcaption>
     </figure>
   </div>
 </section>
-
-
-
-
-
-
 
 <section id="help" class="alt">
   <div class="wrap">
@@ -446,7 +451,7 @@ footer a { color: var(--muted); }
       <table class="help">
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
-          <tr><td>"Unable to connect to the server" when the game starts</td><td>Run your join line again. Check that your server's address opens in a web browser on that PC.</td></tr>
+          <tr><td>"Unable to connect to the server" when the game starts</td><td>Run your join line again. Then, on that PC, open <code>http://&lt;host's IP&gt;:8080/status</code> in a browser (the host's IP is shown on their screen). If it doesn't load, the host's ports are closed or their IP changed.</td></tr>
           <tr><td>The network test fails, or eFootball modes stay locked</td><td>Close the game and run the join line again (on Linux the game must be closed). The host should check that ports 443 and 3478 are open.</td></tr>
           <tr><td>Matchmaking searches forever</td><td>Two players must be in eFootball → Quick Match and searching at the same time.</td></tr>
           <tr><td>"Failed to connect with opponent"</td><td>The two PCs can't reach each other directly. Use Tailscale: see <a href="#faq-far">playing across the internet</a>.</td></tr>
@@ -516,15 +521,15 @@ footer a { color: var(--muted); }
       <ol>
         <li>Install <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> and start it.</li>
         <li>Download the project (<a href="https://github.com/MohamedAliRashad/pes2021-private-server/archive/refs/heads/main.zip">ZIP</a>) and unzip it.</li>
-        <li>Find your PC's address: in PowerShell run <code>ipconfig</code> and note the "IPv4 Address", for example <code>192.168.1.50</code>.</li>
-        <li>In the unzipped folder, create a file named <code>.env</code> in Notepad with one line: <code>PUBLIC_IP=192.168.1.50</code> (or in PowerShell: <code>Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii</code>).</li>
-        <li>Open a terminal in that folder and run <code>docker compose -f docker-compose.bridge.yml up -d</code>, then <code>docker compose -f docker-compose.bridge.yml logs</code> to see the join lines and password.</li>
+        <li>Find your computer's address. Windows: in PowerShell run <code>ipconfig</code> and note the "IPv4 Address", for example <code>192.168.1.50</code>. Mac: run <code>ipconfig getifaddr en0</code> in Terminal.</li>
+        <li>Open a terminal in the unzipped folder (Windows: right-click the folder → <b>Open in Terminal</b>; Mac: right-click → <b>New Terminal at Folder</b>) and create the settings file. Windows: <code>Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii</code>. Mac: <code>echo PUBLIC_IP=192.168.1.50 &gt; .env</code>. (With Notepad, choose "Save as type: All files" or it saves <code>.env.txt</code>.)</li>
+        <li>In that terminal run <code>docker compose -f docker-compose.bridge.yml up -d</code>, then <code>docker compose -f docker-compose.bridge.yml logs</code> to see the join lines and password.</li>
         <li>For friends outside your home, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this PC.</li>
       </ol>
     </details>
     <details class="q">
       <summary>Will our accounts and results survive a restart?</summary>
-      <p>Yes. Player names, results and the server's certificate stay on the host's disk through restarts, reboots and updates. The free web address changes when the server restarts, but players who already joined don't need to do anything. If the host's IP address changes, the host runs <code>sudo docker logs pesserver</code>, sends the new join line, and everyone runs it.</p>
+      <p>Yes. Player names, results and the server's certificate stay on the host's disk through restarts, reboots and updates. The free web address changes when the server restarts, but players who already joined don't need to do anything. If the host's internet IP changes, the server notices within 10 minutes; friends outside the host's home then run their join line again. If the server restarted, the host sends the new line from <code>sudo docker logs pesserver</code>.</p>
     </details>
     <details class="q">
       <summary>Does it cost anything?</summary>
@@ -532,7 +537,7 @@ footer a { color: var(--muted); }
     </details>
     <details class="q">
       <summary>Is this legal? Is it affiliated with Konami?</summary>
-      <p>It's an independent fan preservation project, not affiliated with Konami, so that a game people paid for keeps working online. It only reimplements the server side of the network protocol, for interoperability. It contains no Konami code or game assets, only the interface details needed to talk to the game (message field names and the protocol key built into the game). Every player uses their own copy of the game. The project's code is MIT-licensed. PES and eFootball are trademarks of Konami.</p>
+      <p>It's an independent fan preservation project, not affiliated with Konami, so that a game people paid for keeps working online. It only reimplements the server side of the network protocol, for interoperability. It contains no Konami code or game assets, only the interface details needed to talk to the game (message field names and the protocol key built into the game). Every player uses their own copy of the game. The project's code is MIT-licensed. PES and eFootball are trademarks of Konami. (This is not legal advice.)</p>
     </details>
   </div>
 </section>
@@ -547,7 +552,7 @@ footer a { color: var(--muted); }
       <div class="n" aria-hidden="true">01</div>
       <div>
         <h3>Your game checks in at three desks before you see the menu</h3>
-        <p>When you open eFootball, the game connects to a server address it remembers from Konami and checks in at three "desks" in turn, like at an airport:</p>
+        <p>When you start the game, it connects to a server address it remembers from Konami and checks in at three "desks" in turn, like at an airport:</p>
         <ol class="desks">
           <li><b>1 · Gate</b><span>"Here are our servers, 53 web addresses you'll need, and today's date."</span></li>
           <li><b>2 · Account</b><span>"Who are you?" Reads your Steam ID and creates your player the first time.</span></li>
@@ -614,6 +619,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
         <h3>The connection test is a real security check</h3>
         <p>Before eFootball modes unlock, the game tests your network. It asks a server "what's my address from the outside?" (a <b>STUN</b> check, the standard trick games use to see through home routers), then fetches a small status page over <b>HTTPS</b>.</p>
         <p>That HTTPS request checks certificates exactly like a web browser does. A stand-in server without a trusted certificate fails the test, and the online modes stay locked. That's why the join line installs your server's certificate, restricted to Konami's names so it isn't valid for anything else.</p>
+        <div class="flow" role="img" aria-label="The test: a STUN check, then an HTTPS page with a certificate check, then eFootball unlocks."><span>STUN: "my outside address?"</span><b class="a" aria-hidden="true">→</b><span>HTTPS status page<br><small>certificate checked</small></span><b class="a" aria-hidden="true">→</b><span class="k">eFootball unlocked</span></div>
       </div>
     </article>
 
@@ -623,7 +629,8 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
         <h3>Matchmaking hinges on one exact sentence</h3>
         <p class="quote">"I'm looking." Then silence, for five minutes.</p>
         <p>When you press <b>Go to Matchmaking</b>, the game says "I'm looking" once, then goes completely silent and waits. It never asks again. The server has to tap it on the shoulder with a message that says, precisely, <i>matching finished</i>, who is <b>home</b>, who is <b>away</b>, and where to find each other.</p>
-        <p>Get one word wrong and the game ignores it, waits five minutes, and shows an error. For a while our two test players searched forever while sitting next to each other.</p>
+        <div class="flow" role="img" aria-label="Game says I'm looking, then waits in silence; the server must push matching finished with home, away and addresses."><span>Game: "I'm looking"</span><b class="a" aria-hidden="true">→</b><span>… silence …</span><b class="a" aria-hidden="true">←</b><span class="k">server: "matching finished: you're home, they're away, here's where"</span></div>
+        <p>Get one word wrong and the game ignores it, waits five minutes, and shows an error. For a while our two test players searched forever on the same PC.</p>
       </div>
     </article>
 
@@ -633,7 +640,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
         <h3>The match itself never goes through the server</h3>
         <div class="flow" role="img" aria-label="Both players talk to the server for short notes; the match itself goes directly between the two players."><span>You</span><b class="a" aria-hidden="true">⇄ notes ⇄</b><span class="k">server</span><b class="a" aria-hidden="true">⇄ notes ⇄</b><span>Your friend</span></div>
         <div class="flow" aria-hidden="true"><span>You</span><b class="a">⇄ ⇄ the match itself, directly ⇄ ⇄</b><span>Your friend</span></div>
-        <p>Once paired, the two games connect <b>directly to each other</b> and play the match between themselves. The server only passes a few short notes between them ("I'm ready", "I've left") and otherwise stays out of the way. That's why it's tiny: about 50 MB of memory.</p>
+        <p>Once paired, the two games connect <b>directly to each other</b> and play the match between themselves. The server only passes a few short notes between them ("I'm ready", "I've left") and otherwise stays out of the way. That's why it's tiny: about 50 MB of memory (measured with <code>docker stats</code>).</p>
         <p>It still hears how the match is going, because both games report every stage:</p>
         <ul class="phases" aria-label="Match stages reported by the game, in order">
           <li>DATASYNC</li><li>TEAMSELECT</li><li>MATCHMENU</li><li>GAMELOAD</li><li>ENTRY</li><li class="hl">1ST</li><li>BREAK1</li><li class="hl">2ND</li><li>END</li>
@@ -677,14 +684,14 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
         <h3>From silence to a full match in two days</h3>
         <p>The core work happened on 4–5 November 2026, against the original 1.01.00 game (times in UTC+2):</p>
         <ol class="timeline">
-          <li><b>The game reaches us</b><span>Its requests arrive at our server instead of Konami's dead addresses.</span></li>
-          <li><b>The first message decodes</b><span>A crash trace leads to the decoder; the "handshake" turns out to be "send me the server list".</span></li>
+          <li><b>4 Nov, 04:28 · the game reaches us</b><span>The first message is captured: 152 bytes nobody can read yet.</span></li>
+          <li><b>4 Nov, ~15:10 · the first message decodes</b><span>A crash trace leads to the decoder; the "handshake" turns out to be "send me the server list".</span></li>
           <li><b>4 Nov, 15:43 · a player is created</b><span>All three desks pass and the first player name is saved.</span></li>
-          <li><b>The connection test passes</b><span>eFootball modes unlock.</span></li>
-          <li><b>Two players matched and connected</b><span>Both games reach the pre-match menu together.</span></li>
-          <li class="big"><b>4 Nov, 18:20–18:52 · a complete 90-minute online match</b><span>Arsenal v Arsenal, 0–0, kick-off to full time, then straight into the next pairing. The server's own log:</span></li>
+          <li><b>4 Nov, 15:53 · the connection test passes</b><span>eFootball modes unlock.</span></li>
+          <li><b>4 Nov, 16:04 · two players matched</b><span>At 16:32 both games reach the pre-match menu together; first kick-off at 17:22.</span></li>
+          <li class="big"><b>4 Nov, 18:20–18:52 · a complete 90-minute online match</b><span>Arsenal v Arsenal, 0–0, kick-off to full time, then straight into the next pairing. Condensed from the server's log:</span></li>
         </ol>
-        <pre class="log" tabindex="0" aria-label="Server log of the first complete match"><span class="t">18:19:24</span>  <span class="h">MATCH FOUND</span> room 5    owner 2 vs 1
+        <pre class="log" tabindex="0" aria-label="Condensed server log of the first complete match"><span class="t">18:19:24</span>  <span class="h">MATCH FOUND</span> room 5    owner 2 vs 1
 <span class="t">18:20:07</span>  phase GAMELOAD        both players loading
 <span class="t">18:20:52</span>  phase 1ST             <span class="h">kick-off</span>
 <span class="t">18:34:40</span>  phase BREAK1          half-time
@@ -693,7 +700,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
 <span class="t">18:53:04</span>  SEND_GAME_RESULT      score 0–0
 <span class="t">18:54:05</span>  <span class="h">MATCH FOUND</span> room 6    straight into the next one</pre>
         <ol class="timeline" style="margin-top:14px">
-          <li><b>4 Nov, 22:07 · the server in Docker</b><span>Fresh container, new players, a full match through it.</span></li>
+          <li><b>4 Nov, 21:33–22:05 · the server in Docker</b><span>Fresh container, new players, a full 90-minute match through it.</span></li>
           <li><b>5 Nov, 00:28 · one command for anyone</b><span>Free web address, automatic router setup and an admin page.</span></li>
         </ol>
       </div>
@@ -716,7 +723,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
 
 <footer>
   <div class="wrap">
-    <p class="legal">PES 2021 Online is an independent fan preservation project. No game files are included or distributed: every player needs their own copy of PES 2021 on Steam. Not affiliated with Konami; PES and eFootball are trademarks of Konami. Code under the <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/LICENSE">MIT license</a>.</p>
+    <p class="legal">PES 2021 Online is an independent fan preservation project. No game files are included or distributed: every player needs their own copy of PES 2021 on Steam. Not affiliated with Konami; PES and eFootball are trademarks of Konami. Code under the <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/LICENSE">MIT license</a>. Made by Mohamed Ali Rashad; thanks to <a href="https://github.com/Nikow5/Pes2021PrivateServer">Nikow5's PES 2021 server work</a> and the Metal Gear Solid V / MGO3 server-emulator community for prior research.</p>
     <span><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a> · <a href="protocol.html">Technical write-up</a> · <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Report a problem</a></span>
   </div>
 </footer>

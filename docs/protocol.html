@@ -36,6 +36,11 @@ a{color:var(--accent);text-underline-offset:3px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .panel{overflow-x:auto} .panel svg{min-width:620px}
 @media (max-width:660px){.panel:has(svg)::before{content:"Scroll sideways to see the whole diagram →";display:block;font-size:13px;color:var(--muted);margin-bottom:6px}}
+.skip{position:absolute;left:-999px;top:8px;background:var(--panel);color:var(--ink);padding:8px 14px;border-radius:8px;z-index:99}
+.skip:focus{left:8px}
+h2 .top{float:right;font-size:13px;font-weight:600;text-decoration:none;margin-top:6px}
+@media (max-width:380px){.site ul li:last-child{display:none}}
+@media (max-width:420px){.site .logo{display:none}.site ul{gap:10px}.site ul a{font-size:13px}.site .in{gap:10px}}
 footer.site-foot{border-top:1px solid var(--line);color:var(--muted);font-size:14px}
 footer.site-foot .in{max-width:1080px;margin:0 auto;padding:28px 16px 48px;display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
 footer.site-foot a{color:var(--muted)}
@@ -88,12 +93,13 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <header class="site"><div class="in">
   <a class="logo" href="./" aria-label="PES 2021 Online, main page"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0c4a37"/><polygon points="16,9 22.7,13.9 20.1,21.8 11.9,21.8 9.3,13.9" fill="#fff"/></svg><span>PES 2021 Online</span></a>
-  <ul><li><a href="./#play">Play</a></li><li><a href="./#inside">How it works</a></li><li><a href="./#help">Help</a></li><li><a href="./#faq">FAQ</a></li><li><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a></li></ul>
+  <nav aria-label="Main" style="margin-left:auto"><ul><li><a href="./#host">Host</a></li><li><a href="./#join">Join</a></li><li><a href="./#inside">How it works</a></li><li><a href="./#help">Help</a></li><li><a href="./#faq">FAQ</a></li><li><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a></li></ul>
   <button class="theme" id="theme" type="button" aria-label="Switch between light and dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
 </div></header>
-<main>
+<main id="main">
 <h1>Technical write-up: how PES 2021 talks to its servers</h1>
 <p class="sub">The full reverse-engineered network protocol of eFootball PES 2021 (1.01.00, Steam), as implemented by this project's server. Last update: <b>2026-11-05</b>.</p>
 <div class="plain"><b>In plain words:</b> the game connects to a "gate" server on TCP port 10000 and exchanges small messages written in MessagePack, each compressed, encrypted with Blowfish and sealed with a checksum. A few extra requests go over HTTP and HTTPS, and a STUN check measures your network. Matches themselves run directly between the two players. The <a href="./#inside">main page tells the story</a>; this page has the details for developers: byte layouts, keys, every command and the code addresses they were found at.</div>
@@ -105,7 +111,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <span class="tag t-unk">UNKNOWN</span><span class="sub" style="margin:0">open</span>
 </div>
 
-<nav class="toc" aria-label="Sections">
+<nav class="toc" id="contents" aria-label="Sections">
   <a href="#status">Status</a><a href="#topology">Topology</a><a href="#stack">Layer stack</a><a href="#exchange">Gate exchange</a><a href="#login">Login</a><a href="#rules">Encoding rules</a><a href="#frames">Wire format</a><a href="#crypto">Crypto</a><a href="#cmds">Commands</a><a href="#nat">NAT test</a><a href="#mm2">Matchmaking protocol</a><a href="#mmlive">Matchmaking live</a><a href="#match">Match live</a><a href="#errors">Error codes</a><a href="#deploy">Deployment</a><a href="#dlcp">Not the gate: dlcp</a><a href="#server">Our server</a><a href="#tooling">How it was tested</a><a href="#method">How we found it</a><a href="#rva">Key addresses</a><a href="#open">Open questions</a><a href="#log">Changelog</a>
 </nav>
 
@@ -123,7 +129,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <div class="stat"><b>Deployment</b><span class="t-ok">✔ one Docker container, private CA generated on first start</span></div>
 </div>
 
-<h2 id="topology">Topology</h2>
+<h2 id="topology">Topology<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="panel">
 <svg viewBox="0 0 960 330" role="img" aria-label="Topology: the PES client connects through a resolver redirect to the local gate, HTTP and STUN services">
   <rect class="hl" x="20" y="110" width="200" height="110" rx="10"/>
@@ -144,7 +150,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <text x="520" y="156" class="muted" font-size="13">web API (Steam auth, live update, relay) · GateInfo.php</text>
   <rect class="box" x="500" y="190" width="420" height="60" rx="10"/>
   <text x="520" y="216" font-weight="700">STUN / NTL  udp/3478</text>
-  <text x="520" y="236" class="muted" font-size="13">ntleu.service.konami.net · NAT type / public mapping</text>
+  <text x="520" y="236" class="muted" font-size="13">ntl.service.konami.net · NAT type / public mapping</text>
   <rect class="box" x="500" y="260" width="420" height="55" rx="10" stroke-dasharray="5 4"/>
   <text x="520" y="284" font-weight="700">Peer ↔ peer match traffic</text>
   <text x="520" y="302" class="muted" font-size="13">direct UDP between the two games · never touches the server</text>
@@ -156,7 +162,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <p class="sub" style="margin:6px 0 0">Official servers are offline (NXDOMAIN). The DRM-wrapped exe is never patched; everything is redirected at the resolver.</p>
 </div>
 
-<h2 id="stack">Layer stack (gate connection)</h2>
+<h2 id="stack">Layer stack (gate connection)<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="panel">
 <svg viewBox="0 0 960 360" role="img" aria-label="Protocol layer stack from TCP up to MessagePack commands">
   <g font-size="14">
@@ -181,7 +187,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </svg>
 </div>
 
-<h2 id="exchange">Gate exchange</h2>
+<h2 id="exchange">Gate exchange<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="panel">
 <svg viewBox="0 0 960 300" role="img" aria-label="Sequence: the client sends CMD_GET_SVRLIST, the server answers with a server list">
   <text x="170" y="30" text-anchor="middle" font-weight="700">Client</text>
@@ -201,7 +207,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </div>
 <div class="note"><b>Correction (2026-11-04).</b> The 152-byte "hello" is not a key exchange. It is an ordinary <code>CMD_GET_SVRLIST</code> request, and the client speaks first. The RC4 / dlcp code found earlier is real, but it is a different link (see <a href="#dlcp">Not the gate</a>). The old "reply must be 16 bytes" result was a side effect: our reply was decoded as a command, and a 16-byte body produced a garbage length that crashed the client's MessagePack reader.</div>
 
-<h2 id="login">Login sequence (live)</h2>
+<h2 id="login">Login sequence (live)<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="panel">
 <ol>
   <li><b>GATE</b> (tcp/10000): CMD_GET_SVRLIST → CMD_GET_URLLIST → CMD_GET_SVRVERSION → CMD_GET_SVRTIME → CMD_GET_EULA_NATION_LIST → CMD_GET_EULA_NATION_CODE → CMD_DISCONNECT <code>logoutstat=MOV</code>. A second gate session fetches CMD_GET_GLOBALINFOTITLELIST. <span class="tag t-ok">LIVE</span></li>
@@ -215,7 +221,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </ol>
 </div>
 
-<h2 id="rules">Encoding rules the client enforces</h2>
+<h2 id="rules">Encoding rules the client enforces<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Rule</th><th>Evidence</th></tr>
 <tr><td>Every list of objects is an <b>array of msgpack-encoded blobs</b>; the client runs its unpacker on each element</td><td>svrlist loop 0x141d48a41 crashed on inline maps <span class="tag t-ok">LIVE</span></td></tr>
@@ -226,7 +232,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </table></div>
 <p>All 398 command response schemas (field names + STR/NUM/LIST/OBJ) are extracted in bulk by <code>notes/re/extract_schemas.py</code> from the <code>Cmd…Result@commandautomake</code> RTTI classes into <code>server/pesserver/schemas.json</code>.</p>
 
-<h2 id="frames">Wire format</h2>
+<h2 id="frames">Wire format<a class="top" href="#contents">↑ Contents</a></h2>
 <h3>NclMio frame <span class="tag t-ok">LIVE</span> <span class="tag t-static">STATIC</span></h3>
 <div class="bytes">
   <div>kind<small>u16 BE</small></div><div>len<small>u16 BE</small></div><div>seq<small>u32 BE</small></div>
@@ -253,7 +259,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <tr><td class="mono">0x1060, 0x1070–72</td><td>enhanced tier: 56-byte header, AES-256 body</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
 </table></div>
 
-<h2 id="crypto">Crypto</h2>
+<h2 id="crypto">Crypto<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Item</th><th>Value</th><th>Where</th><th><span class="sr">Status</span></th></tr>
 <tr><td>Frame XOR key</td><td class="mono">5b 9f 2e 64</td><td>.data 0x143515acc</td><td><span class="tag t-ok">LIVE</span></td></tr>
@@ -263,32 +269,32 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <tr><td>Key holder</td><td><code>fox::ncl::NclDaemon</code> (vt 0x142a4d6c0)</td><td>easy key +0xe8 / len +0x120 · AES key +0x124 / len +0x144</td><td><span class="tag t-static">STATIC</span></td></tr>
 </table></div>
 
-<h2 id="cmds">Commands</h2>
+<h2 id="cmds">Commands<a class="top" href="#contents">↑ Contents</a></h2>
 <p>Field names are read from the client's own parsers: each command's request and response keys sit together in <code>.rdata</code>.</p>
 <div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Command</th><th>Request</th><th>Response</th><th><span class="sr">Status</span></th></tr>
 <tr><td>CMD_GET_SVRLIST</td><td>svrtype, client, timeout, lang, patch_version, dlc_version</td><td>result, server_num, svrlist[ svrtype, svraddr, svrport, svrgid, max_player_num, player_num ]</td><td><span class="tag t-ok">LIVE</span> req</td></tr>
-<tr><td>CMD_GET_SVRTIME</td><td>svrtype, client</td><td>result, date</td><td><span class="tag t-static">STATIC</span></td></tr>
-<tr><td>CMD_GET_SVRVERSION</td><td>svrtype, client, patch_version, dlc_version, livedata_version</td><td>result, version, patch_version, dlc_version, eula_version, eula_myclub_version, livedata_version, eula_privacy_* versions</td><td><span class="tag t-static">STATIC</span></td></tr>
-<tr><td>CMD_GET_URLLIST</td><td>svrtype, client, lang</td><td>result, url_num, ulist[ type, url ]</td><td><span class="tag t-static">STATIC</span></td></tr>
+<tr><td>CMD_GET_SVRTIME</td><td>svrtype, client</td><td>result, date</td><td><span class="tag t-ok">LIVE</span></td></tr>
+<tr><td>CMD_GET_SVRVERSION</td><td>svrtype, client, patch_version, dlc_version, livedata_version</td><td>result, version, patch_version, dlc_version, eula_version, eula_myclub_version, livedata_version, eula_privacy_* versions</td><td><span class="tag t-ok">LIVE</span></td></tr>
+<tr><td>CMD_GET_URLLIST</td><td>svrtype, client, lang</td><td>result, url_num, ulist[ type, url ]</td><td><span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>CMD_AUTH_STEAM (HTTP form), CMD_LOGIN</td><td>steamid, package_type / username, hash, platform, sku</td><td>result (raw msgpack map)</td><td><span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>Matchmaking: CMD_START_MATCHING, CMD_WATCH_MATCHING …</td><td colspan="2">see <a href="#mm2">Matchmaking protocol</a> and <a href="#mmlive">Matchmaking — live</a></td><td><span class="tag t-ok">LIVE</span></td></tr>
 <tr><td>CMD_GET_LOBBYLIST, CMD_JOIN_LOBBY, CMD_CREATEJOIN_ROOM, CMD_JOIN_ROOM_NTL</td><td colspan="2">field names known from the parsers; not used by Quick Match, not implemented yet</td><td><span class="tag t-unk">UNKNOWN</span></td></tr>
 </table></div>
 <p class="sub">Result codes: <code>NOERR</code>, <code>ERR_NOTFOUND</code>, <code>ERR_LOGIN_FAILED</code>, <code>ERR_DIFFERENT_PATCHVERSION</code>, <code>ERR_SERVERNOTREADY</code>, … Server types: <code>GATE</code>, <code>ACCOUNT</code>, <code>MENU</code>, <code>VDPCHAT</code>.</p>
 
-<h2 id="nat">NAT test ("Testing network environment")</h2>
+<h2 id="nat">NAT test ("Testing network environment")<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="panel">
 <ul>
   <li>Resolves <code>ntl.service.konami.net</code>, sends 32-byte UDP probes to port 3478, opens TLS to port 443, and does UPnP discovery against the LAN router. <span class="tag t-ok">LIVE</span></li>
   <li>Its UDP socket is bound to the network interface, so it cannot reach 127.0.0.1 — the redirect target must be the machine's LAN address. <span class="tag t-ok">LIVE</span></li>
-  <li>Probe order: (1) 32-byte Binding Request with vendor attr <code>0xF000</code> (8 bytes: <code>05730000 00000002</code>); (2) TLS to port 443 with SNI <code>ntl.service.konami.net</code> (no HTTP request seen after the handshake yet); (3) 64-byte Binding Requests every 5 s with vendor attrs <code>0x9090</code> (24 B, starts <code>10000001</code>) and <code>0x9091</code> (12 B, <code>00010104 00000000 &lt;counter&gt;</code>). A plain Binding Success is not accepted. <span class="tag t-ok">LIVE</span></li>
+  <li>Probe order: (1) 32-byte Binding Request with vendor attr <code>0xF000</code> (8 bytes: <code>05730000 00000002</code>); (2) TLS to port 443 with SNI <code>ntl.service.konami.net</code> (no HTTP request seen after the handshake yet); (3) 64-byte Binding Requests every 5 s with vendor attrs <code>0x9090</code> (24 B, starts <code>10000001</code>) and <code>0x9091</code> (12 B, <code>00010104 00000000 &lt;counter&gt;</code>). The keepalives need more than a plain Binding Success (see next item). <span class="tag t-ok">LIVE</span></li>
   <li>A plain Binding Success (XOR-MAPPED + MAPPED, same tid) <b>is</b> accepted for the 0xF000 "MappingTestIA" probe. The 0x9090/0x9091 packets are post-test <b>keepalives</b> (RP_P2P_HEADER / RP_RELIABILITY); a new serial every 5 s means they are being answered. Don't send OTHER-ADDRESS unless a real alternate IP:port exists. <span class="tag t-ok">LIVE</span></li>
   <li><b>GateInfo.php</b>: <code>POST https://ntl.service.konami.net/ntl/api/GateInfo.php</code>, User-Agent <code>NTL HttpModule/0.1</code>, body <code>req={"titleCode":"PES2021",…}</code>. WinHTTP default certificate validation (no pinning) — solved by a private CA, name-constrained to <code>konami.net</code>, that the join line trusts: on Windows in the machine Root store, on Linux only inside the game's Proton prefix (<code>server/pesserver/web/install-ca-proton.py</code> writes it into <code>system.reg</code>). Reply is text lines: <code>STATUS: 200</code>, <code>API_STATUS: 0</code>, <code>LOG_ACTIVE: 0</code>, <code>SERVER_TIME: &lt;unix&gt;</code>. <span class="tag t-ok">LIVE</span></li>
 </ul>
 </div>
 
-<h2 id="mm2">Matchmaking protocol (from the client's parsers)</h2>
+<h2 id="mm2">Matchmaking protocol (from the client's parsers)<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Command</th><th>Role</th><th>Reply fields</th></tr>
 <tr><td>CMD_SEND_IPANDPORT_NTL</td><td>client reports its addresses</td><td>result</td></tr>
@@ -301,7 +307,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </table></div>
 <p>Address blobs are <code>{address_family, sa_data}</code> with <code>sa_data</code> a raw Windows sockaddr payload carried in a msgpack <i>string</i> (non-UTF-8 bytes) — the server must decode strings leniently.</p>
 
-<h2 id="mmlive">Matchmaking — live</h2>
+<h2 id="mmlive">Matchmaking — live<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="panel"><ol>
   <li>eFootball → NAT test → live-update check → CMD_SEND_IPANDPORT_NTL (host_addr blob with raw sockaddr) → CMD_GET_GAME_TEAM_LIST, CMD_GET_SERVER_ENV, CMD_CHECK_CHEAT, CMD_GET_URGENT_ANNOUNCEMENT (online_mode QUICK), CMD_GET_MANNER_WARN. <span class="tag t-ok">LIVE</span></li>
   <li>Select Team → CMD_GET_QUICKMATCHOPTION → "Matchmaking Settings" → Go to Matchmaking → CMD_GET_MAINTENANCE_INFO, <b>CMD_START_MATCHING</b> {matching_type OC_QUICK, has_guestplayer, guest_info}. <span class="tag t-ok">LIVE</span></li>
@@ -309,24 +315,24 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <li><b>Server push</b> <code>CMD_WATCH_MATCHING</code> (kind 0x60, seq 1, rqid 0): pushes are routed by <b>msgid only</b> to watches the client registered (0x141239840 / 0x1412395f0). The key field is <code>matching_state</code>: <code>FINISH</code> → match accepted; missing → ignored → 300 s timeout = error <code>EYRH763</code> (line 763 of the quick-match task). Members: blobs {pid, pname, is_owner YES/NO, matching_order, host/reflexive/relayed_addr, ntl_nat_type}. <span class="tag t-ok">LIVE</span></li>
   <li><b>Game relay</b>: <code>CMD_GET_GAMERELAY</code> is an HTTP web-API call to URL-list type <code>GET_GAMERELAY</code> (then <code>GET_TURN_SERVER_LIST</code> as fallback). Missing type → instant local failure <code>ER_MATCHING_RETRY</code>. We now serve all 53 URL types from the client's enum (0x14021ee70), short paths to fit one frame. <span class="tag t-ok">LIVE</span></li>
   <li><b>Peer signalling</b>: clients send <code>CMD_SEND_SYNC_NOTICE / SEND_SYSTEM_NOTICE {pid_list, data}</code> ("1,", "END:pid=2;time=…"); the server must relay each as <code>CMD_WATCH_SYNC_NOTICE / WATCH_SYSTEM_NOTICE {data}</code> to the listed pids. With relay on, both report <code>CMD_SET_GAMERELAY_CHECK_RES {game_sycom P2P, error_code NOERR}</code> and exchange UDP <b>directly</b>; server pushes <code>CMD_WATCH_GAMERELAY_CHECK_RES {error_code NOERR}</code>. <span class="tag t-ok">LIVE</span></li>
-  <li>Then CMD_SEND_MATCHING_RESULT {member, vs_member, game_sycom P2P}, CMD_SET_GAMEMEMBER, CMD_SET_GAMEMEMBERENV {envlist pid/side/sideLeader}, CMD_GET_MATCHID, CMD_CHANGE_GAMEPHASE TEAMSELECT → <b>MATCHMENU</b> (online pre-match menu, shared countdown) → host Kick Off → both <b>GAMELOAD</b>. <span class="tag t-ok">LIVE</span></li>
+  <li>Then CMD_SEND_MATCHING_RESULT {member, vs_member, game_sycom P2P}, CMD_SET_GAMEMEMBER, CMD_SET_GAMEMEMBERENV {envlist pid/side/sideLeader}, CMD_GET_MATCHID, CMD_CHANGE_GAMEPHASE TEAMSELECT → <b>MATCHMENU</b> (online pre-match menu, shared countdown) → both players Kick Off → both <b>GAMELOAD</b>. <span class="tag t-ok">LIVE</span></li>
   <li><b>Sides</b>: every WATCH_MATCHING member blob needs <code>side</code> = <code>HOME</code> (owner) / <code>AWAY</code>. Without it the HOME team is never filled and team-data sync aborts with <code>MMGC_0002</code> (MultiplayCmdTeamDataSync.cpp line 2). <span class="tag t-ok">LIVE</span></li>
   <li><b>Team list</b>: <code>CMD_GET_GAME_TEAM_LIST</code> must return the selectable clubs as blobs {team_id, team_class, division_point}; ids are the game's internal DB ids (100 Man Utd, 101 Arsenal, 108 Barcelona, 114 PSG, 116 Ajax, 120 Juventus, 127 Bayern, 131 Celtic). Empty list → no team to pick. <span class="tag t-ok">LIVE</span></li>
   <li><b>Server environment</b>: <code>CMD_GET_SERVER_ENV</code> timeouts must be real values (load_timeout 180, long_outofplay 120, init_not_end 240, cmd_lack 180 …). Zero-filled defaults made the client abort instantly with LOAD_TIMEOUT (<code>QVHE1459</code>, GameModeMatchListenerMatch.cpp) and then crash while tearing down match::Online. Lesson: an unhandled command gets a bare <code>{result: NOERR}</code> so the client keeps its own defaults — never zero-filled fields. <span class="tag t-ok">LIVE</span></li>
 </ol>
 </div>
 
-<h2 id="match">Match — live</h2>
+<h2 id="match">Match — live<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="panel"><ol>
   <li>After MATCHMENU both clients Kick Off → <code>CMD_CHANGE_GAMEPHASE</code> GAMELOAD → ENTRY → <b>1ST</b>. Gameplay itself is peer-to-peer UDP between the clients; the server only sees phase reports and events. <span class="tag t-ok">LIVE</span></li>
   <li>Phases reported (each with <code>gtimer</code>, the game clock): DATASYNC, TEAMSELECT, MATCHMENU, GAMELOAD, ENTRY, 1ST, 1ST_15MIN, 1ST_30MIN, BREAK1 (half-time), 2ND, 2ND_15MIN, 2ND_30MIN, then the end of the match. A bare NOERR reply to each is enough. <span class="tag t-ok">LIVE</span></li>
-  <li>Events during play: <code>CMD_ADD_FOUL</code> (fouls, yellow cards), <code>CMD_ADD_GOAL</code>; both clients report the same events, and their clocks stay in sync. <span class="tag t-ok">LIVE</span></li>
+  <li>Events during play: <code>CMD_ADD_FOUL</code> (fouls, yellow cards); both clients report the same events, and their clocks stay in sync. <span class="tag t-ok">LIVE</span> <code>CMD_ADD_GOAL</code> exists in the client but no goal has been scored in a test match yet. <span class="tag t-static">STATIC</span></li>
   <li><b>Full time</b>: both clients send <code>CMD_CHANGE_GAMEPHASE {phase END, gtimer 94107}</code> (90 min + stoppage), then show the highlights reel and match records. Post-match reporting: <code>CMD_SET_PLAYDATA_MATCH</code> (HTTP, URL type PLAYDATA_MATCH, JSON <code>play_data</code>), <code>CMD_SEND_STATS_DATA {match_id, stats[] per side}</code>, <code>CMD_SEND_GAME_RESULT {game_phase END, side, home/away_score, home/away_team_id, abnormalend_reason NOERR, …}</code>, <code>CMD_REQ_GAMEADDPOINT</code>, <code>CMD_LEAVE_ROOM</code>. A bare NOERR to each returns both players to the menu; a new Go to Matchmaking pairs them again straight away. Verified with a complete 90-minute match on 2026-11-04 (18:20–18:52, Arsenal v Arsenal 0–0). <span class="tag t-ok">LIVE</span></li>
   <li>The player who leaves the post-match screens second reports <code>DISCONN_P2P</code> / <code>GNCX_0003</code> (OnlineModeMultiplay.cpp): the peer link has already closed. The result is still recorded normally. <span class="tag t-ok">LIVE</span></li>
-  <li>Abnormal end: <code>CMD_SEND_ABNORMALEND {reason, error_code}</code>. Seen reasons: <code>NO_OPERATION</code> (a player gave no input for ~50 s; this is the game's AFK rule), <code>DISCONN_P2P</code> (peer link lost), <code>LOAD_TIMEOUT</code>. In every case both games returned to the menu without crashing. <span class="tag t-ok">LIVE</span></li>
+  <li>Abnormal end: <code>CMD_SEND_ABNORMALEND {reason, error_code}</code>. Seen reasons: <code>NO_OPERATION</code> (a player gave no input for ~50 s; this is the game's AFK rule), <code>DISCONN_P2P</code> (peer link lost), <code>LOAD_TIMEOUT</code>. With real server-environment timeouts, both games returned to the menu without crashing (the LOAD_TIMEOUT crash in the matchmaking section happened only with zero timeouts). <span class="tag t-ok">LIVE</span></li>
 </ol></div>
 
-<h2 id="errors">Error codes</h2>
+<h2 id="errors">Error codes<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="panel">
 <p>On-screen codes such as <code>EYRH763</code> or <code>MMGC_0002_0_…</code> encode the <b>source file</b> and <b>line</b>: the four letters are a hash of the .cpp basename (characters bucketed by index mod 4, each bucket summed mod 26 + 'A'), followed by the line number. <code>notes/re/errcode.py</code> matches the letters against every source-file name in the binary's strings.</p>
 <div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
@@ -337,7 +343,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </table></div>
 </div>
 
-<h2 id="deploy">Deployment</h2>
+<h2 id="deploy">Deployment<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="panel"><ol>
   <li>Host (Linux): <code>curl -fsSL …/install.sh | sh</code> installs Docker if needed and runs the server image (published as <code>ghcr.io/mohamedalirashad/pes2021-private-server</code>; built from the repo when it can't be pulled) with host networking. No configuration: <code>netsetup.py</code> finds the LAN IP, asks the router for its external IP and opens TCP 80/443/8080/10000 + UDP 3478/7600 over UPnP IGD (renewed every 30 min, removed on stop), checks the public IP against a what-is-my-IP service to detect CGNAT, and prints the player commands. Docker Desktop hosts use <code>docker-compose.bridge.yml</code> with a fixed <code>PUBLIC_IP</code>. <span class="tag t-ok">LIVE</span></li>
   <li><b>Per-client address</b>: SVRLIST / URLLIST / GAMERELAY carry the server address. Without a pinned <code>PUBLIC_IP</code>, a client from a non-global address (LAN, Tailscale 100.64/10, loopback) gets the local address its TCP connection reached (<code>sockname</code>); an internet client gets the public IP. One server serves LAN and internet players at once. <span class="tag t-ok">LIVE</span></li>
@@ -347,7 +353,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <li>What the join scripts do: hosts-file entries for <code>pes21-x64-gate.cs.konami.net</code>, <code>pes21-x64-stun.cs.konami.net</code>, <code>ntl / ntleu / ntlus / ntljp.service.konami.net</code>, and trust the server CA (Windows: <code>Import-Certificate</code> into <code>Cert:\LocalMachine\Root</code>; Linux: the game's Proton prefix only). The CA carries a critical <code>nameConstraints</code> extension (permitted <code>DNS:konami.net</code>, all IPs excluded), so it cannot vouch for any other site. No change to the game files.</li>
 </ol></div>
 
-<h2 id="dlcp">Not the gate: kps::dlcp</h2>
+<h2 id="dlcp">Not the gate: kps::dlcp<a class="top" href="#contents">↑ Contents</a></h2>
 <p>Real, statically mapped, but not used on the gate connection. Most likely the peer-to-peer match link. Quick Match doesn't need it: matches work without the server touching this link.</p>
 <div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Item</th><th>Value</th></tr>
@@ -357,7 +363,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <tr><td>Record</td><td>[type | RFC 1071 checksum | payload], decoder 0x142052be0, checksum 0x142052e90</td></tr>
 </table></div>
 
-<h2 id="server">Our server</h2>
+<h2 id="server">Our server<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>File</th><th>Role</th></tr>
 <tr><td class="mono">server/pesserver/ncl.py</td><td>NclCodec: frame, Blowfish easy tier, envelope, zlib, msgpack</td></tr>
@@ -369,10 +375,10 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </table></div>
 <p>Run: <code>docker compose up</code>, or <code>python3 -m pesserver serve</code> (ncl is the default codec). Every request is logged decoded (<code>RX … CMD_…</code>).</p>
 
-<h2 id="tooling">How it was tested</h2>
-<p class="sub">Every finding marked LIVE was checked against the game's original 1.01.00 executable, run directly under Proton on Linux (a run started through the Steam client is still pending). A recorded log of real client requests is replayed through the server's handlers offline and each reply is validated against the reply formats extracted from the game (<code>server/tests</code>). End-to-end runs drove two game clients through login, the network test, matchmaking and complete 90-minute matches. The local test harness itself is not part of the published repo.</p>
+<h2 id="tooling">How it was tested<a class="top" href="#contents">↑ Contents</a></h2>
+<p class="sub">Every finding marked LIVE was checked against the game's original 1.01.00 executable, run directly under Proton on Linux (a run started through the Steam client is still pending). A recorded log of real client requests is replayed through the server's handlers offline and each reply is validated against the reply formats extracted from the game (<code>server/test_ncl.py</code>; the published repo replays the captured first frames in <code>notes/re/captures</code>, the full recorded log stays local). End-to-end runs drove two copies of the game on one Linux PC through login, the network test, matchmaking and complete 90-minute matches. The local test harness itself is not part of the published repo.</p>
 
-<h2 id="method">How we found it</h2>
+<h2 id="method">How we found it<a class="top" href="#contents">↑ Contents</a></h2>
 <ol>
   <li>Wine's own debug channels (<code>WINEDEBUG=+seh,+winsock</code>) showed the client crashing in <code>memcpy</code> called from <code>0x1418568bb</code> right after reading our reply.</li>
   <li>That function is the NclMio decoder: it builds a message object, decrypts the body, and switches on <code>kind</code>.</li>
@@ -381,7 +387,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <li>Blowfish-ECB with that key turned the captured "hello" into readable MessagePack.</li>
 </ol>
 
-<h2 id="rva">Key addresses (image base 0x140000000)</h2>
+<h2 id="rva">Key addresses (image base 0x140000000)<a class="top" href="#contents">↑ Contents</a></h2>
 <div class="tw" tabindex="0" role="region" aria-label="Scrollable table"><table>
 <tr><th>Address</th><th>What</th></tr>
 <tr><td class="mono">0x1418548c0</td><td>NclMio parse (XOR, header, md5)</td></tr>
@@ -395,14 +401,14 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <tr><td class="mono">vt 0x142a4f0a0 / 0x142a4f600</td><td>NclMio / NclEnhancedMio</td></tr>
 </table></div>
 
-<h2 id="open">Open questions</h2>
+<h2 id="open">Open questions<a class="top" href="#contents">↑ Contents</a></h2>
 <ul>
   <li>Game relay (TURN-style fallback for players who cannot reach each other directly): the server returns relay info, but UDP 7600 is only a logging placeholder. <span class="tag t-unk">OPEN</span></li>
   <li>Final scores from CMD_SEND_GAME_RESULT are stored (<code>pes_matches</code>) and shown on the admin page; detailed statistics (SEND_STATS_DATA) are acknowledged but not stored. Ratings, divisions and rankings are not implemented, and live goal events (CMD_ADD_GOAL) have not been seen yet because every test match ended 0–0. <span class="tag t-unk">OPEN</span></li>
   <li>myClub, events, rooms/lobbies UI. <span class="tag t-unk">OPEN</span></li>
 </ul>
 
-<h2 id="log">Changelog</h2>
+<h2 id="log">Changelog<a class="top" href="#contents">↑ Contents</a></h2>
 <ul class="log">
   <li><b>2026-11-05</b> — Free public web address per server (Cloudflare quick tunnel, <code>https://&lt;words&gt;.trycloudflare.com</code>) for the join page and scripts; join scripts receive the server's LAN + internet IPs and pick the one answering <code>/status</code> with the server id (sha1 of its CA). Password-protected admin page (<code>/admin</code>): online players, live matches by phase, saved results (<code>pes_matches</code>), league table, activity feed, kick. Note: the game logs in twice (ACCOUNT then MENU connection); a pairing can be abandoned with LEAVE_ROOM before kick-off and re-paired in a new room.</li>
   <li><b>2026-11-04</b> — <b>One-command hosting</b>: <code>install.sh</code> (installs Docker, runs the published image), zero-config networking (UPnP, public-IP/CGNAT detection, per-client advertised address), player setup served at <code>/join</code> and <code>/leave</code>, CA written directly into the Proton prefix registry. Tested: installer → served join script on both prefixes → fresh users → network test → matched → kick-off.</li>

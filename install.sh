@@ -47,7 +47,7 @@ until out="$($DOCKER exec pesserver cat /tmp/pesserver-banner.txt 2>/dev/null)" 
   sleep 1
 done
 printf '%s\n' "$out"
-printf '   \033[2mStatus: %s logs -f pesserver   ·   Stop: %s rm -f pesserver   ·   Update: run this again\033[0m\n\n' "$DOCKER" "$DOCKER"
+printf '   \033[2mStatus: %s logs -f pesserver   ·   Stop: %s stop pesserver   ·   Update: run this again\033[0m\n\n' "$DOCKER" "$DOCKER"
 
 # Playing on this PC too? Offer to set up the local game (needs a terminal to answer).
 for d in "$HOME/.steam/steam" "$HOME/.local/share/Steam"; do
