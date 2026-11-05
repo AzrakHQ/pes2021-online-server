@@ -110,7 +110,7 @@ h3 { font-size: 21px; line-height: 1.3; margin: 0 0 8px; letter-spacing: -.01em;
 section.alt .card { background: var(--bg); }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
 .grid3 > *, .step > div { min-width: 0; }
-#status .grid3 { align-items: stretch; }
+#status .grid3 { align-items: start; }
 @media (max-width: 900px) { .grid3 { grid-template-columns: 1fr; } }
 .muted { color: var(--muted); }
 .small { font-size: 15px; }
@@ -426,7 +426,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
               <ol class="inline-steps">
                 <li>At any cloud provider (for example Hetzner, DigitalOcean or Oracle's free tier), create the cheapest <b>Ubuntu 24.04</b> server. On Hetzner, for example: <b>Add Server</b> → a location near you → <b>Ubuntu 24.04</b> → the cheapest shared-CPU type → create it (menu names may differ a little).</li>
                 <li>In its firewall settings, allow <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b>.</li>
-                <li>Open its web console (or SSH), paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
+                <li>Open its web console (or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-q">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud-q" type="button">Copy</button></div>
                   It looks up the server's public address and lets you open the admin page from home. The admin page isn't encrypted, so don't sign in from public Wi-Fi. <a href="#faq-cloud">More about cloud hosting</a>.</li>
                 <li>Open the admin page address it prints (it's your server's public address) and download the mod for your friends. Keep the install line: running it again updates the server and keeps these settings.</li>
@@ -463,7 +463,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
               <li>Prefer to read it first? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/install.sh">View install.sh</a> (about 100 lines).</li>
               <li>Installs Docker if it's missing, using Docker's official script from get.docker.com (it runs as administrator).</li>
               <li>Starts the server in a container that restarts after reboots until you stop it. It uses about 50 MB of memory.</li>
-              <li>Opens 6 ports on your router (UPnP) so friends outside your home can reach you.</li>
+              <li>Opens 6 ports on your router (UPnP) so friends outside your home can reach you. They close when the server stops, and expire on their own within 2 hours if it never stops cleanly (power cut).</li>
               <li>If PES 2021 is installed on this computer, gives the server (a root container with host networking) read and write access to <b>only those game folders</b> and their Proton prefix (the game's Windows drive; only its registry file is changed, and a backup copy, <code>user.reg.pes2021-backup</code>, is kept next to it), so the admin page can install the mod for you in one click.</li>
               <li>The admin page is plain HTTP and opens only from your home network (and Tailscale). On a cloud server whose network card has the public IP, it's reachable from anywhere automatically; on others you switch remote access on yourself, see <a href="#faq-cloud">cloud hosting</a>.</li>
               <li>While your router ports are open, your server's address is public: anyone who has it can open your friends' page, download the mod and join. There's no ban yet; <b>Kick</b> on the admin page disconnects someone, but they can come back.</li>
@@ -478,14 +478,14 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <div class="step-num" aria-hidden="true">2</div>
           <h3>The host sends friends one file</h3>
           <p class="small muted">Open your admin page, sign in with the password, and click <b>Download the mod for friends</b>. You get one small file, <code>dinput8.dll</code>, made for your server.</p>
-          <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> (or <b>Friends use</b> and your address, if you set a fixed one) means friends outside your home should be able to connect. If it says <b>Home network only</b> or warns about router ports or CGNAT, fix that first (<a href="#help">Help → For hosts</a>).</p>
+          <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> (or <b>Friends use</b> and your address, if you set a fixed one) means friends outside your home should be able to connect. If it says <b>Home network only</b>, only friends on your Wi-Fi can join; for friends elsewhere, or if it warns about router ports or CGNAT, see <a href="#help">Help → For hosts</a>.</p>
           <p class="small muted">Send it to each friend on <b>Discord, WhatsApp or Telegram</b>. Email usually blocks this kind of file. Or copy the link under the button (your server's address) and send that: it opens a page where friends download the file themselves.</p>
           <p class="small muted"><b>First test:</b> have one friend start the game. They appear under <b>Online now</b> on your admin page within a minute.</p>
         </div>
         <div>
           <figure class="mini-shot">
-            <a class="light" href="admin-invite-light.webp"><img src="admin-invite-light.webp" width="1431" height="525" loading="lazy" alt="The top of the real admin page: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does."></a>
-            <a class="dark" href="admin-invite-dark.webp"><img src="admin-invite-dark.webp" width="1431" height="525" loading="lazy" alt="The top of the real admin page in dark mode: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does."></a>
+            <a class="light" href="admin-invite-light.webp"><img src="admin-invite-light.webp" width="670" height="477" loading="lazy" alt="The top of the real admin page: Invite your friends, the router status, a large Download the mod for friends button, and a link to send instead."></a>
+            <a class="dark" href="admin-invite-dark.webp"><img src="admin-invite-dark.webp" width="670" height="477" loading="lazy" alt="The top of the real admin page in dark mode: Invite your friends, the router status, a large Download the mod for friends button, and a link to send instead."></a>
             <figcaption class="small muted">Click or tap to enlarge.</figcaption>
           </figure>
           <p class="small muted"><b>Playing on the same PC?</b> If the installer found PES 2021 on it, the admin page has a <b>The server computer</b> card: close the game and click <b>Install mod</b>.</p>
@@ -510,7 +510,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
             <li><b>Steam Deck / Linux only:</b> right-click PES 2021 → <b>Properties</b> → <b>Launch options</b>, and paste this line. On a Steam Deck, switch to Desktop Mode first to download the file (for example from Discord in the browser).
               <div class="cmd" style="margin-top:8px"><pre id="c-launch">WINEDLLOVERRIDES="dinput8=n,b" %command%</pre><button class="copy" data-copy="c-launch" type="button">Copy</button></div></li>
             <li>Start PES 2021. The first time, pick your region, accept the terms and choose a player name.</li>
-            <li>Go to <b>eFootball → Quick Match</b>, pick a team and press <b>Go to Matchmaking</b>. When two players are searching, the server pairs them: press <b>Proceed</b>, then both press <b>Kick Off</b>.</li>
+            <li>Go to <b>eFootball → Quick Match</b>, pick a team and press <b>Go to Matchmaking</b>. When two players are searching, the server pairs them: press <b>Proceed</b>, then both press <b>Kick Off</b>. With more than two people searching, the server pairs them in the order they searched; you can't pick your opponent yet.</li>
           </ol>
           <details class="changes">
             <summary>What the mod changes on your PC</summary>
@@ -652,7 +652,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
     </details>
     <details class="q" id="faq-undo">
       <summary>How do I undo it?</summary>
-      <p>Delete <code>dinput8.dll</code> from the game folder (and <code>pes2021-online.ini</code> / <code>.log</code> if you like), and on Steam Deck / Linux remove the launch option. Nothing else was changed.</p>
+      <p>Delete <code>dinput8.dll</code> from the game folder (and <code>pes2021-online.ini</code> / <code>.log</code> if you like), and on Steam Deck / Linux remove the launch option. If the mod was installed from the admin page on the server computer, click <b>Uninstall</b> there instead. Nothing else was changed.</p>
       <p><b>Set up earlier with a join line?</b> That older method changed your hosts file and installed a certificate. Remove both with the undo line for your system, which comes from this website and works even if the server is gone:</p>
       <div class="cmd"><span class="label">Windows · PowerShell</span><pre id="c-leave-w">irm https://<wbr>mohamedalirashad.<wbr>github.<wbr>io/<wbr>pes2021-private-server/<wbr>leave.<wbr>ps1 | iex</pre><button class="copy" data-copy="c-leave-w" type="button">Copy</button></div>
       <div class="cmd"><span class="label">Linux · Steam Deck (close the game first)</span><pre id="c-leave-l">curl -fsSL https://<wbr>mohamedalirashad.<wbr>github.<wbr>io/<wbr>pes2021-private-server/<wbr>leave.<wbr>sh | bash</pre><button class="copy" data-copy="c-leave-l" type="button">Copy</button></div>
@@ -697,7 +697,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       <ol>
         <li>Create a small Linux server with any cloud provider. The cheapest size is plenty (1 CPU, 1 GB of memory), usually about $4–6 a month, and some providers have free tiers. Pick <b>Ubuntu 24.04</b> (64-bit); Intel/AMD and ARM images are both published (ARM still needs testers).</li>
         <li>In the provider's firewall (often called "security group" or "firewall rules"), allow incoming <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b> from anywhere. On Oracle Cloud, also run the two <code>iptables</code> lines in <a href="#help">Help → For hosts</a>.</li>
-        <li>Open the server's terminal (the provider's web console, or SSH) and paste this version of the install line, which lets you open the admin page from your home over the internet. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
+        <li>Open the server's terminal (the provider's web console, or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line, which lets you open the admin page from your home over the internet. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
           <div class="cmd" style="margin-top:8px"><pre id="c-cloud">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud" type="button">Copy</button></div>
           The admin page isn't encrypted, so its password crosses the internet in the clear: keep the generated password, and don't sign in from public Wi-Fi.</li>
         <li>The command looks up the server's public address (with the free ipify service) and gives it to players, because a cloud server has no home router to ask. The admin page then shows that fixed address; the ports you opened in step 2 are what let friends in.</li>
@@ -719,14 +719,14 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
                 (on this computer only)
    Password     k7Rm-2Qx9-PaLw</pre>
           Open that admin page on this computer.</li>
-        <li>If you used your public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this computer. The admin page isn't on those ports, so it stays private.</li>
+        <li>If you used your public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this computer. The admin page isn't on those ports, so it stays private. Docker Desktop may hide players' real addresses from the server, so friends in other homes might still fail to connect ("Failed to connect with opponent"); if that happens, use <a href="#faq-far">Tailscale</a> or a cloud server.</li>
         <li>Playing on this same PC? Download the mod from the admin page like your friends do and put it next to <code>PES2021.exe</code> (the server-computer card only appears with the Linux installer).</li>
       </ol>
       <p>Later, in that same folder: update with <code>docker compose -f docker-compose.bridge.yml pull</code> and then <code>docker compose -f docker-compose.bridge.yml up -d</code> (players, results and friends' files are kept). Stop and remove it with <code>docker compose -f docker-compose.bridge.yml down</code>; deleting the <code>server-data</code> folder as well removes players, results and the server's identity, so old mod files stop working.</p>
     </details>
     <details class="q">
       <summary>Will our accounts and results survive a restart?</summary>
-      <p>Yes. Player names, results and the server's identity stay on the host's disk through restarts, reboots and updates, and friends' mod files keep working. The only thing that needs a fresh file is the host's internet address changing (unless the server has a <a href="#share">web name</a>); on most home connections that's rare, and the server notices within 10 minutes.</p>
+      <p>Yes. Player names, results and the server's identity stay on the host's disk through restarts, reboots and updates, and friends' mod files keep working. The only thing that needs a fresh file is the host's internet address changing (unless the server has a <a href="#share">web name</a>); on most home connections that's rare, and the server notices within 10 minutes (when <code>PUBLIC_IP</code> isn't set).</p>
     </details>
     <h3 class="faqh">About the project</h3>
     <details class="q">
