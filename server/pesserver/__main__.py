@@ -31,6 +31,9 @@ async def run(a):
     from . import netsetup
     data_dir = _os.path.dirname(_os.path.abspath(a.db))
     svc.admin_password = netsetup.admin_password(data_dir)
+    from . import identity
+    identity.init(data_dir)
+    logging.info("server identity %s", identity.public_hex())
     # inside the container, not the data volume: a stale copy must never be shown by install.sh
     banner_file = _os.environ.get("PESSERVER_BANNER_FILE", "/tmp/pesserver-banner.txt")
     try:
@@ -59,6 +62,7 @@ async def run(a):
         await asyncio.sleep(0.5)
     netsetup.STATE["ready"] = True
     show_banner()
+    identity.start_publisher()
     stop = asyncio.Event()
     import signal
     for sig in (signal.SIGTERM, signal.SIGINT):

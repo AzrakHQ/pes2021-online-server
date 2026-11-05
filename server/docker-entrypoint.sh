@@ -21,6 +21,7 @@ if [ ! -f "$CERTS/ca.crt" ] || ! openssl x509 -in "$CERTS/ca.crt" -noout -ext na
   if [ -f "$CERTS/ca.crt" ]; then
     echo "[entrypoint] replacing the old certificate authority with a narrower one (players: run the join line again)"
     mv "$CERTS/ca.crt" "$CERTS/ca.crt.old"
+    date +%s > /tmp/pesserver-ca-replaced   # the startup banner tells the host players must rejoin
   fi
   echo "[entrypoint] creating the server certificate authority"
   openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/CN=PES2021 Private Server CA" \

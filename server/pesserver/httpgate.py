@@ -19,11 +19,14 @@ def make_handler(service, stun_host, stun_port, gate_port):
             log.info("HTTP %s %s hdr=%s body=%r", method, path, headers, body[:300])
             route = path.split("?", 1)[0].rstrip("/").lower()
             status = "200 OK"
+            extra = b""
             if route == "/admin" or route.startswith("/admin/api/"):
                 status, out, ctype = await _admin(service, method, route, headers, body)
             elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
                                              "/leave.ps1", "/install-ca-proton.py", "/banner"):
                 out, ctype = _web(service, route, headers, writer)
+            elif method == "GET" and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
+                status, out, ctype, extra = _mod(service, route, headers, writer, path)
             elif path.startswith("/status"):
                 from . import pesmatch
                 out = json.dumps({"id": server_id(), "online": len(service.online),
@@ -73,7 +76,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
             else:
                 out = b"ok"; ctype = "text/plain"
             writer.write(b"HTTP/1.1 " + status.encode() + b"\r\nCache-Control: no-store\r\nContent-Type: " + ctype.encode() +
-                         b"\r\nContent-Length: " + str(len(out)).encode() + b"\r\nConnection: close\r\n\r\n" + out)
+                         b"\r\nContent-Length: " + str(len(out)).encode() + b"\r\n" + extra + b"Connection: close\r\n\r\n" + out)
             await writer.drain()
         except Exception as e:  # noqa
             peer = writer.get_extra_info("peername"); tls = writer.get_extra_info("ssl_object")
@@ -118,8 +121,7 @@ async def _admin(service, method, route, headers, body):
         main = st.get("url") or "http://" + netsetup.game_addrs()[-1]
         snap["server"] = {"url": st.get("url"), "main": main, "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
-                          "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
-                          "join_windows": f"irm {main}/join | iex", "join_linux": f"curl -fsSL {main}/join | bash"}
+                          "cgnat": st["cgnat"], "upnp_error": st["upnp_error"]}
         return "200 OK", json.dumps(snap).encode(), "application/json"
     if route == "/admin/api/kick" and method == "POST":
         try:
@@ -139,13 +141,7 @@ def _web(service, route, headers, writer):
     """Player-facing pages: '/' (instructions), '/join' and '/leave' (setup script for the caller's
     OS, picked from the User-Agent: PowerShell -> .ps1, curl/wget -> bash, browser -> the page)."""
     from . import netsetup
-    host = headers.get("host", "").strip()
-    if not host:
-        from types import SimpleNamespace
-        conn = SimpleNamespace(peer_ip=(writer.get_extra_info("peername") or ("",))[0],
-                               local_ip=(writer.get_extra_info("sockname") or ("",))[0])
-        host = netsetup.advertised_addr(service, conn)
-    server = host.rsplit(":", 1)[0] if host.count(":") == 1 else host
+    host, server, scheme, addrs = _origin(service, headers, writer)
     if route == "/banner":
         return (netsetup.banner(color=False) if netsetup.STATE["ready"] else "starting").encode(), "text/plain; charset=utf-8"
     if route == "/install-ca-proton.py":
@@ -158,14 +154,54 @@ def _web(service, route, headers, writer):
     else:
         name, ctype = "index.html", "text/html; charset=utf-8"
     text = open(os.path.join(WEB, name), encoding="utf-8").read()
-    scheme = "https" if headers.get("x-forwarded-proto") == "https" or host.endswith(".trycloudflare.com") else "http"
-    addrs = netsetup.game_addrs()
-    if netsetup._ip(server):                  # reached by IP: that address works for this player
-        addrs = [server] + [a for a in addrs if a != server]
     text = (text.replace("@@SERVER@@", server).replace("@@BASE@@", f"{scheme}://{host}")
                 .replace("@@ADDRS@@", " ".join(addrs)).replace("@@SID@@", server_id())
                 .replace("@@UNINSTALL@@", "1" if "/leave" in route else "0"))
     return text.encode(), ctype
+
+
+def _origin(service, headers, writer):
+    """How this player reached us: (host[:port], host, scheme, game addresses best first)."""
+    from . import netsetup
+    host = headers.get("host", "").strip()
+    if not host:
+        from types import SimpleNamespace
+        conn = SimpleNamespace(peer_ip=(writer.get_extra_info("peername") or ("",))[0],
+                               local_ip=(writer.get_extra_info("sockname") or ("",))[0])
+        host = netsetup.advertised_addr(service, conn)
+    server = host.rsplit(":", 1)[0] if host.count(":") == 1 else host
+    scheme = "https" if headers.get("x-forwarded-proto") == "https" or host.endswith(".trycloudflare.com") else "http"
+    addrs = netsetup.game_addrs()
+    if netsetup._ip(server):                  # reached by IP: that address works for this player
+        addrs = [server] + [a for a in addrs if a != server]
+    return host, server, scheme, addrs
+
+
+MOD_DLL = os.environ.get("PESSERVER_MOD_DLL", "/app/mod/dinput8.dll")
+
+
+def _mod(service, route, headers, writer, path=""):
+    """The mod's endpoints. /mod/note: where this server is now (signed). /mod/hello?n=<nonce>: proof
+    that this address is this server (signed). /mod/dinput8.dll: the mod, with this server's identity
+    and addresses written in, for the host to send to friends.
+    Returns (status, body, content type, extra header bytes)."""
+    from urllib.parse import parse_qs, urlsplit
+    from . import identity, netsetup
+    host, server, scheme, addrs = _origin(service, headers, writer)
+    if route == "/mod/note":
+        return "200 OK", identity.current_note().encode(), "text/plain; charset=utf-8", b""
+    if route == "/mod/hello":
+        nonce = parse_qs(urlsplit(path).query).get("n", [""])[0]
+        try:
+            return "200 OK", identity.hello(nonce).encode(), "text/plain; charset=utf-8", b""
+        except ValueError:
+            return "400 Bad Request", b"bad nonce", "text/plain", b""
+    if not os.path.isfile(MOD_DLL):
+        return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
+    url = netsetup.STATE.get("url") or (f"{scheme}://{host}" if not netsetup._ip(server) else "")
+    settings = identity.mod_settings(os.environ.get("SERVER_NAME", "PES 2021 server"), url, netsetup.game_addrs())
+    body = identity.pack_mod(open(MOD_DLL, "rb").read(), settings)
+    return "200 OK", body, "application/octet-stream", b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
 
 
 async def serve_tls(service, host, port, certfile, keyfile, stun_host="127.0.0.1", stun_port=3478, gate_port=10000):

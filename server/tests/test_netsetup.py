@@ -36,19 +36,21 @@ def test_igd_description_and_ssdp_parsing():
     assert netsetup.parse_ssdp_location(b"HTTP/1.1 200 OK\r\nLOCATION: http://h/d.xml\r\n\r\n") == "http://h/d.xml"
 
 
-def test_banner(monkeypatch):
+def test_banner(monkeypatch, tmp_path):
     monkeypatch.setitem(netsetup.STATE, "mapped", ["80/tcp"])
     monkeypatch.setitem(netsetup.STATE, "url", None)
     b = netsetup.banner("pw-1", color=False)
-    assert "irm http://203.0.113.7/join | iex" in b and "use http://192.168.1.50 instead" in b and "pw-1" in b
+    assert "Admin page   http://203.0.113.7/admin" in b and "pw-1" in b
+    assert "join" not in b and "irm " not in b                     # friends get the mod, not commands
     monkeypatch.setitem(netsetup.STATE, "url", "https://brave-tiger.trycloudflare.com")
     b = netsetup.banner(color=False)
-    assert "curl -fsSL https://brave-tiger.trycloudflare.com/join | bash" in b
-    assert "https://brave-tiger.trycloudflare.com/admin" in b and "Password" not in b
-    assert "irm http://203.0.113.7/join | iex" in b and "keep working" in b   # survives a tunnel change
-    monkeypatch.setitem(netsetup.STATE, "mapped", [])
-    assert "keep working" not in netsetup.banner(color=False)                # ports closed: no IP line
+    assert "https://brave-tiger.trycloudflare.com/admin" in b and "http://192.168.1.50/admin" in b
+    assert "Password" not in b and "download the one file" in b
     assert netsetup.game_addrs() == ["192.168.1.50", "203.0.113.7"]
+    assert "certificate" not in b
+    flag = tmp_path / "ca-replaced"; flag.write_text("1")
+    monkeypatch.setenv("PESSERVER_CA_REPLACED", str(flag))
+    assert "New server certificate" in netsetup.banner(color=False)
 
 
 def test_join_pages_follow_user_agent_and_host(tmp_path):
@@ -69,7 +71,7 @@ def test_join_pages_follow_user_agent_and_host(tmp_path):
             sh = await get(port, "/leave", "curl/8.5.0")
             assert sh.startswith("#!/bin/bash") and 'SERVER="pes.example"' in sh and "UNINSTALL=1" in sh
             page = await get(port, "/", "Mozilla/5.0 Firefox/130")
-            assert "<html" in page and "irm http://pes.example:%d/join | iex" % port in page
+            assert "<html" in page and 'href="/mod/dinput8.dll"' in page and "irm " not in page
             assert (await get(port, "/install-ca-proton.py", "curl/8")).startswith("#!/usr/bin/env python3")
         finally:
             srv.close()
@@ -229,3 +231,56 @@ def test_proton_ca_remove_all_needs_no_server(tmp_path, monkeypatch):
     assert (pfx / "system.reg").read_text().count("Root\\\\Certificates") == 2
     monkeypatch.setattr(sys, "argv", ["x", "--remove-all", str(pfx)]); m.main()
     assert (pfx / "system.reg").read_text().strip() == original.strip()
+
+
+def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
+    import base64
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    from pesserver import identity
+    identity.init(str(tmp_path))
+    pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(identity.public_hex()))
+    assert (tmp_path / "identity.key").stat().st_mode & 0o777 == 0o600
+    identity.init(str(tmp_path))                                        # same key after a restart
+    assert Ed25519PublicKey.from_public_bytes(bytes.fromhex(identity.public_hex())) is not None
+
+    def check(text):
+        sig, body = text.split("\n", 1)
+        pub.verify(base64.b64decode(sig), body.encode())               # raises if forged
+        return body
+
+    marker = identity.EMBED_MARKER
+    dll = tmp_path / "dinput8.dll"
+    dll.write_bytes(b"MZ..head.." + marker + b"\0" * (identity.EMBED_SIZE - len(marker)) + b"..tail")
+    monkeypatch.setattr(httpgate, "MOD_DLL", str(dll))
+    monkeypatch.setitem(netsetup.STATE, "url", "https://brave-tiger.trycloudflare.com")
+
+    async def get(port, path, host="brave-tiger.trycloudflare.com"):
+        r, w = await asyncio.open_connection("127.0.0.1", port)
+        w.write(f"GET {path} HTTP/1.1\r\nHost: {host}\r\nX-Forwarded-Proto: https\r\n\r\n".encode())
+        await w.drain(); data = await r.read(); w.close()
+        head, body = data.split(b"\r\n\r\n", 1)
+        return head.decode(), body
+
+    async def go():
+        srv = await httpgate.serve(Service(Accounts(str(tmp_path / "a.db"))), "127.0.0.1", 0)
+        port = srv.sockets[0].getsockname()[1]
+        try:
+            head, body = await get(port, "/mod/note")
+            lines = check(body.decode()).split("\n")
+            assert lines[0] == "PES2021ONLINE-NOTE 1" and lines[2] == "https://brave-tiger.trycloudflare.com"
+            assert lines[3:5] == ["192.168.1.50", "203.0.113.7"]
+            head, body = await get(port, "/mod/hello?n=00112233aabbccdd")
+            assert check(body.decode()) == f"PES2021ONLINE-HELLO 1\n{identity.public_hex()}\n00112233aabbccdd\n"
+            head, body = await get(port, "/mod/hello?n=not-hex")
+            assert "400" in head
+            head, body = await get(port, "/mod/dinput8.dll")
+            assert 'filename="dinput8.dll"' in head and len(body) == dll.stat().st_size
+            area = body[body.find(marker) + len(marker):][:identity.EMBED_SIZE - len(marker)].rstrip(b"\0").decode()
+            assert f"key={identity.public_hex()}" in area and "url=https://brave-tiger.trycloudflare.com" in area
+            assert "addrs=192.168.1.50,203.0.113.7" in area and body.endswith(b"..tail")
+            monkeypatch.setattr(httpgate, "MOD_DLL", str(tmp_path / "missing.dll"))
+            head, body = await get(port, "/mod/dinput8.dll")
+            assert "404" in head
+        finally:
+            srv.close()
+    asyncio.run(go())

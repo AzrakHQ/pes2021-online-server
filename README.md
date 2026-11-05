@@ -1,9 +1,9 @@
 # Play PES 2021 Online Again
 
-<p align="center"><img src="docs/hero.svg" alt="Host your own PES 2021 server with one command; friends join with one line; the match runs player to player" width="100%"></p>
+<p align="center"><img src="docs/hero.svg" alt="Host your own PES 2021 server with one command; friends get one file; the match runs player to player" width="100%"></p>
 
 Konami shut down the PES 2021 servers. Run your own and play **online Quick Match** with your friends.
-Free, no accounts, and the game isn't modified.
+Free, no accounts.
 
 You need **PES 2021 on Steam** (v1.01.00). The host needs a **Linux** computer that stays on while you play.
 
@@ -15,50 +15,40 @@ Paste this in a terminal:
 curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh
 ```
 
-When it finishes, you get:
-- **your server's web address**, like `https://brave-tiger-moon.trycloudflare.com`;
-- **the line to send your friends**, which works for friends at home and far away;
-- **your admin page and password**, which show who's online, live scores, results and a league table.
+It prints your **admin page** and its **password**.
 
-## 2. Players: join (once)
+## 2. Host: send your friends the mod
 
-- **Windows:** open **PowerShell**, paste the join line, and click **Yes** when asked.
-  ```
-  irm https://your-server-address/join | iex
-  ```
-- **Linux / Steam Deck:** start the game once, close it, then paste in a terminal:
-  ```
-  curl -fsSL https://your-server-address/join | bash
-  ```
-  **Game not in Steam's usual folder?** If you get *"PES 2021's Proton prefix was not found"*, your game
-  runs in its own Proton/Wine prefix (Lutris, Bottles, a custom launcher, or a Steam library the script
-  can't see). Close the game and tell the line where that prefix is: the folder that contains
-  `system.reg`, put right before `bash`:
-  ```
-  curl -fsSL https://your-server-address/join | PES_PREFIX=/path/to/your/pfx bash
-  ```
-  It asks for your sudo password, adds the Konami names to `/etc/hosts` and trusts the server only
-  inside that prefix. Use the same `PES_PREFIX=…` before `bash` when you undo.
-- **Windows, game installed anywhere:** nothing extra. The join line changes the system-wide hosts
-  file and certificate store, so it works wherever the game is.
+Open the admin page and click **Download the mod**. You get one file, `dinput8.dll`. Send it to each
+friend on Discord, WhatsApp or Telegram (email usually blocks this kind of file).
 
-## 3. Play
+It already knows your server, and keeps working after your server restarts. Playing on the same PC?
+Use the same file yourself.
 
-**eFootball → Quick Match → pick a team → Go to Matchmaking.** When two players are searching, they
-get matched.
+## 3. Friends: drop it in and play
+
+1. Put `dinput8.dll` in the game folder: in Steam, right-click **PES 2021** → **Manage** → **Browse local files**.
+2. **Steam Deck / Linux only:** PES 2021 → **Properties** → **Launch options**, paste:
+   ```
+   WINEDLLOVERRIDES="dinput8=n,b" %command%
+   ```
+3. Start the game → **eFootball → Quick Match → Go to Matchmaking**. When two players are searching,
+   they get matched.
+
+The mod needs no administrator rights and changes nothing on your PC or in the game's files. **Undo:**
+delete the file.
 
 ## Problems?
 
 | Problem | Fix |
 |---|---|
-| Friend can't connect / "Failed to connect with opponent" | Everyone installs [Tailscale](https://tailscale.com). The host runs the install line again with `PUBLIC_IP=<host's Tailscale IP>` before `sh`, then everyone runs their join line again |
-| "Router ports are closed" | Turn on **UPnP** in your router settings and run the install again |
-| "Unable to connect to the server" | Run the join line again |
-| Undo on a player's PC | Run the join line with `leave` instead of `join` |
+| A friend can't connect | The host's server must be running. The mod writes what it tried to `pes2021-online.log` in the game folder |
+| "Router ports are closed" on the host | Turn on **UPnP** in your router settings and run the install again, or forward the ports it lists |
+| "Failed to connect with opponent" | The two PCs can't reach each other directly. Everyone installs [Tailscale](https://tailscale.com); the host runs the install line again with `PUBLIC_IP=<host's Tailscale IP>` before `sh` |
+| Play on another server | Get that server's file and replace yours, or hold **Shift** while the game starts and paste its address |
 
-Server commands: `sudo docker logs pesserver` (shows the address and password again) · `sudo docker restart pesserver` ·
-`sudo docker stop pesserver` (stop). To update, run the install line again.
-The web address changes when the server restarts. Friends who already joined don't need to do anything.
+Server commands: `sudo docker logs pesserver` (shows the admin page and password again) ·
+`sudo docker stop pesserver` · `sudo docker start pesserver`. To update, run the install line again.
 
 <details id="hosting-from-windows-or-mac"><summary><b>Hosting from Windows or Mac</b></summary>
 
@@ -76,13 +66,19 @@ docker compose -f docker-compose.bridge.yml up -d
 docker compose -f docker-compose.bridge.yml logs
 ```
 With a public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this PC (players in
-your own home may then need "NAT loopback" on the router). Not yet tested, including playing on the
-same Windows PC that hosts.
+your own home may then need "NAT loopback" on the router). Not yet tested.
+</details>
+
+<details><summary><b>Set up earlier with a join line?</b></summary>
+
+The old join lines still work. To switch to the mod, run the undo line once, then use the file:
+Windows `irm https://mohamedalirashad.github.io/pes2021-private-server/leave.ps1 | iex`,
+Linux `curl -fsSL https://mohamedalirashad.github.io/pes2021-private-server/leave.sh | bash`.
 </details>
 
 ---
 
 **Website:** [mohamedalirashad.github.io/pes2021-private-server](https://mohamedalirashad.github.io/pes2021-private-server/):
-how to play, and how PES 2021's online mode works, in plain words.
-Developers: see also [`server/README.md`](server/README.md).
+how PES 2021's online mode works, in plain words.
+Developers: [`server/README.md`](server/README.md), the mod's source is in [`server/mod/`](server/mod/).
 Fan preservation project, not affiliated with Konami.

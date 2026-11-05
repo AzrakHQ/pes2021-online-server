@@ -4,7 +4,8 @@
 #   curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh
 #
 # Installs Docker if it is missing, starts the server (it restarts by itself after a reboot), opens the
-# router's ports with UPnP and prints the one-line command players run. Run it again to update.
+# router's ports with UPnP and prints the admin page (where the host downloads the mod for friends).
+# Run it again to update.
 # Optional env: PUBLIC_IP=<addr> (pin the address given to players), UPNP=0 (don't touch the router),
 #               PES_IMAGE=<image> (default: the published image).
 set -eu
@@ -12,8 +13,8 @@ IMAGE="${PES_IMAGE:-ghcr.io/mohamedalirashad/pes2021-private-server:latest}"
 bold() { printf '\033[1m%s\033[0m\n' "$*"; }
 
 if [ "$(uname -s)" != Linux ]; then
-  echo "This installer is for Linux. On Windows or macOS, install Docker Desktop and follow"
-  echo "https://github.com/MohamedAliRashad/pes2021-private-server#hosting-from-windows-or-mac"
+  echo "This installer is for Linux. On Windows or macOS, use Docker Desktop:"
+  echo "https://mohamedalirashad.github.io/pes2021-private-server/#faq-winhost"
   exit 1
 fi
 SUDO=""; [ "$(id -u)" = 0 ] || SUDO="sudo"
@@ -54,19 +55,4 @@ until out="$($DOCKER exec pesserver cat /tmp/pesserver-banner.txt 2>/dev/null)" 
   if [ "$i" -gt 90 ]; then echo "The server did not start. See: $DOCKER logs pesserver"; exit 1; fi
   sleep 1
 done
-printf '%s\n' "$out"
-printf '   \033[2mStatus: %s logs -f pesserver   ·   Stop: %s stop pesserver   ·   Update: run this again\033[0m\n\n' "$DOCKER" "$DOCKER"
-
-# Playing on this PC too? Offer to set up the local game (needs a terminal to answer).
-for d in "$HOME/.steam/steam" "$HOME/.local/share/Steam"; do
-  if [ -d "$d/steamapps/compatdata/1259970/pfx" ] && [ -r /dev/tty ]; then
-    printf "PES 2021 is installed on this PC. Set it up to play on this server too? [Y/n] "
-    read -r ans < /dev/tty || ans=n
-    case "$ans" in
-      [nN]*) ;;
-      *) lan="$(ip -4 route get 1.1.1.1 2>/dev/null | sed -n 's/.* src \([0-9.]*\).*/\1/p')"
-         curl -fsSL "http://${lan:-127.0.0.1}/join" | bash ;;
-    esac
-    break
-  fi
-done
+printf '%s\n\n' "$out"

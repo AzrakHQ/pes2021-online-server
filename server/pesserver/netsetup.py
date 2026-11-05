@@ -315,25 +315,14 @@ def banner(password=None, color=True):
     main = url or f"http://{pinned or wan or lan}"
     line = D("  " + "─" * 66)
     out = ["", line, f"   ⚽  {B('PES 2021 SERVER')}" + " " * 39 + G("● ONLINE"), line, "",
-           f"   {B('Your server')}    {C(main)}", "",
-           f"   {B('Send this to your friends')} {D('(they run it once)')}",
-           f"     Windows       {C(f'irm {main}/join | iex')}",
-           f"     Linux / Deck  {C(f'curl -fsSL {main}/join | bash')}"]
-    if not url and not pinned and wan and wan != lan:
-        out.append(D(f"     Same house?   use http://{lan} instead"))
-    stable = pinned or (wan if STATE["mapped"] else None)
-    if url and stable:
-        # The tunnel name changes on every restart; the IP lines keep working while the IP stays the same.
-        out += [D("     The web address changes when the server restarts. These keep working:"),
-                D(f"     Windows       irm http://{stable}/join | iex"),
-                D(f"     Linux / Deck  curl -fsSL http://{stable}/join | bash")]
-    out += ["", f"   {B('Admin page')}     {C(main + '/admin')}" + (D(f"   (or http://{lan}/admin)") if url else "")]
+           f"   {B('Admin page')}   {C(main + '/admin')}"]
+    if url:
+        out.append(D(f"                (on this network also http://{lan}/admin)"))
     if password:
-        out.append(f"   {B('Password')}       {Y(password)}")
-    net = [f"LAN {lan}"] + ([f"Internet {wan}"] if wan else []) + ([f"fixed {pinned}"] if pinned else [])
-    if STATE["mapped"]:
-        net.append(G("router ports open ✓"))
-    out += ["", f"   {B('Network')}        " + D(" · ").join(net)]
+        out.append(f"   {B('Password')}     {Y(password)}")
+    out += ["", D("   Open it to download the one file your friends need."), ""]
+    if os.path.exists(os.environ.get("PESSERVER_CA_REPLACED", "/tmp/pesserver-ca-replaced")):
+        out.append(Y("   !  New server certificate: players set up with the old join line run it once more (mod users: nothing to do)."))
     if STATE["cgnat"]:
         out.append(Y("   !  Your internet provider shares one public IP (CGNAT): friends outside your house\n"
                      "      can't connect. Use Tailscale (see the README) or a cloud server."))
