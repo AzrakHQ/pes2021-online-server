@@ -20,6 +20,9 @@ def _st(svc):
                 id INTEGER PRIMARY KEY, room INTEGER, started REAL, ended REAL,
                 home_pid INTEGER, away_pid INTEGER, home_name TEXT, away_name TEXT,
                 home_score INTEGER, away_score INTEGER, reason TEXT)""")
+            db.execute("CREATE TABLE IF NOT EXISTS pes_feed(id INTEGER PRIMARY KEY, t REAL, kind TEXT, text TEXT)")
+            rows = db.execute("SELECT t, kind, text FROM pes_feed ORDER BY id DESC LIMIT 200").fetchall()
+        svc.pes_events["feed"].extend({"t": t, "kind": k, "text": x} for t, k, x in rows)
     return svc.pes_events
 
 
@@ -32,7 +35,17 @@ def name_of(svc, pid):
 
 
 def feed(svc, text, kind="info"):
-    _st(svc)["feed"].appendleft({"t": time.time(), "kind": kind, "text": text})
+    """An activity line for the admin page; kept in SQLite (last 500) so it survives restarts."""
+    item = {"t": time.time(), "kind": kind, "text": text}
+    _st(svc)["feed"].appendleft(item)
+    try:
+        db = svc.accounts.db
+        with svc.accounts.lock, db:
+            cur = db.execute("INSERT INTO pes_feed(t, kind, text) VALUES(?,?,?)", (item["t"], kind, text))
+            if cur.lastrowid % 50 == 0:
+                db.execute("DELETE FROM pes_feed WHERE id <= ?", (cur.lastrowid - 500,))
+    except Exception:  # noqa: BLE001
+        log.exception("saving an activity line")
 
 
 def _room_of(svc, pid):

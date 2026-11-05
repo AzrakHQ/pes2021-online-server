@@ -390,3 +390,12 @@ def test_password_limit_groups_ipv6_by_64():
     k = httpgate._rl_key
     assert k("2001:db8:1:2::1") == k("2001:db8:1:2:ffff::9") != k("2001:db8:1:3::1")
     assert k("192.168.1.5") == "192.168.1.5" and k("::ffff:192.168.1.5") == "192.168.1.5"
+
+
+def test_activity_feed_survives_a_restart(tmp_path):
+    from pesserver import events
+    db = str(tmp_path / "a.db")
+    svc = Service(Accounts(db))
+    events.feed(svc, "Someone downloaded the mod", "web")
+    again = Service(Accounts(db))                                       # a new process on the same data
+    assert events._st(again)["feed"][0]["text"] == "Someone downloaded the mod"

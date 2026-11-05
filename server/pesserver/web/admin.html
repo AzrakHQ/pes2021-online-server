@@ -109,9 +109,10 @@
   @media (max-width: 420px) { .what code { white-space:normal; overflow-wrap:anywhere; } }
   .game .msg { grid-column:1 / -1; font-size:14px; }
   .game .msg:empty { display:none; }
-  .game.skipped .where, .game.skipped .st { opacity:.75; }
+  .game.skipped .where b { opacity:.8; }
   .invite.compact .dl { max-width:420px; } .invite.compact .linkrow { max-width:640px; }
   .stuck { overflow-wrap:anywhere; }
+  @media (max-width: 360px) { #live .match .side { font-size:13px; } #live .score { font-size:18px; } #live .match { gap:6px; padding:8px; } }
   header.top a.pill { min-height:28px; } @media (pointer: coarse) { header.top a.pill { min-height:36px; } }
   .act .skipbtn { flex-basis:100%; text-align:right; font-size:13px; padding:2px; }
   @media (max-width: 600px) { .act .skipbtn { flex-basis:auto; } }
@@ -134,7 +135,7 @@
   .cols { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:16px; }
   @media (min-width: 801px) { .hide-md { display:none; } }
   #board.board-quiet .cols { grid-template-columns:minmax(0,1fr); }
-  #board.board-quiet .col:first-child { display:none; }
+  @media (min-width: 801px) { #board.board-quiet .col:first-child { display:none; } }
   .col { min-width:0; }
   @media (max-width: 800px) {
     .tiles { grid-template-columns:repeat(2,1fr); }
@@ -496,7 +497,7 @@ function render(d) {
     $("fsteps").open = !est; text("inv-h", est ? "Invite more friends" : "Invite your friends"); }
   const r = reachInfo(s);
   $("reach").hidden = false; $("reach").className = "pill " + (r.neutral ? "neutral" : r.ok ? "" : "warn"); put("reach", `${r.neutral ? "" : r.ok ? I.ok : I.warn}<span class="rt">${esc(r.short)}</span>${I.down}`); $("reach").title = r.short + ": network details";
-  put("inv-reach", !r.ok || (!(d.played_total > 0 || d.players.length >= 2) && !r.neutral) ? r.long : "");
+  put("inv-reach", !r.ok ? r.long : "");
 
   const joinedOnly = !d.online.length && !d.live.length && !d.played_total && d.players.length > 0;
   const quiet = (!d.online.length && !d.live.length && !d.played_total && !d.players.length) || joinedOnly;
@@ -548,7 +549,7 @@ function render(d) {
 
   put("online", d.online.length ? `<div class="tablewrap"><table><caption class="sr">Players online now</caption>
     <thead><tr><th scope="col">Player</th><th scope="col" class="hide-xs">Status</th><th scope="col" class="hide-sm hide-md">Connection</th><th scope="col" class="num hide-sm hide-md">Online for</th><th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
-    d.online.map(p => `<tr><td class="name">${nm(p.name)}<small class="show-xs">${esc(p.status)} · ${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since)}</small></td><td class="hide-xs"><span class="nw">${pending(d, p.name) ? "Getting ready" : esc(p.status)}</span>${opponent(d, p.name) || pending(d, p.name) ? ` vs ${nm(opponent(d, p.name) || pending(d, p.name))}` : ""}<small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
+    d.online.map(p => `<tr><td class="name">${nm(p.name)}<small class="show-xs">${statusOf(d, p)} · ${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td><td class="hide-xs">${statusOf(d, p)}<small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
       <td class="hide-sm hide-md muted conn">${where(p.ip)}<small>${esc(p.ip)}</small></td><td class="num muted hide-sm hide-md">${dur(now - p.since)}</td>
       <td class="num act"><button class="danger" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></td></tr>`).join("") +
     `</tbody></table></div><p class="note">Kick disconnects someone now; they can reconnect. There's no ban yet: anyone who has the mod file or your server's address can join.</p>`
@@ -665,7 +666,7 @@ function gameRow(g) {
   if (!ready && skipped(g)) info = `<span class="muted small">Skipped in this browser.</span> <button type="button" class="linkbtn" data-unskip="${esc(g.path)}" data-key="unskip-${esc(g.id)}" aria-label="Set up ${esc(name)} after all">Set it up after all</button>`;
   else if (!ready) skipb = `<button type="button" class="linkbtn skipbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}" aria-label="Skip ${esc(name)}: I don't play on this copy">Skip this copy</button>`;
   const msg = rowMsg[g.id] ? rowMsg[g.id].html : "";
-  const retry = failed ? `<button type="button" class="${rowMsg[g.id].act === "remove" ? "" : "primary"}" data-game="${esc(g.id)}" data-act="${rowMsg[g.id].act}" data-key="retry-${esc(g.id)}" data-retry="1" aria-label="Try again: ${esc(name)}">Try again</button>` : "";
+  const retry = failed ? `<button type="button" class="${rowMsg[g.id].act === "remove" ? "" : "primary"}" data-game="${esc(g.id)}" data-act="${rowMsg[g.id].act}" data-key="retry-${esc(g.id)}" data-retry="1" aria-label="Try again: ${esc(name)}">${rowMsg[g.id].act === "remove" ? "Try removing again" : "Try installing again"}</button>` : "";
   return `<div class="game${!ready && skipped(g) ? " skipped" : ""}"><div class="where"><b>${esc(name)}</b>
       <code class="parent" title="${esc(g.path)}">${esc(String(g.path).replace(/^\/home\/[^/]+/, "~"))}</code><div class="st">${st}</div></div>
     <div class="act">${failed ? retry : btn}${skipb}${tail}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
@@ -712,7 +713,7 @@ async function loadGames(force, focusMsg, focusKey) {
     if (counts[l] < 2) { g.label = l; return; }
     if (/Steam/.test(l)) {
       const lib = libraryOf(g.path), sameLib = gs.filter(x => /\/steamapps\//.test(x.path) && libraryOf(x.path) === lib).length > 1;
-      g.label = `PES 2021 (Steam${libs.length > 1 ? `, library ${libs.indexOf(lib) + 1}` : ""}${sameLib ? `, ${folder(g)}` : ""})`;
+      g.label = `PES 2021 (Steam${libs.length > 1 ? `, library ${libs.indexOf(lib) + 1}` : ""}${sameLib && !/^efootball pes 2021( season update)?$/i.test(folder(g)) ? `, ${folder(g)}` : ""})`;
     } else g.label = l.replace(/\)$/, `, copy ${seen[l] = (seen[l] || 0) + 1})`);
   });
   const keep = g => rowMsg[g.id] || justMarked.has(g.path);
@@ -738,7 +739,8 @@ function doneMsg(act, ng) {
     return {html: `<span class="ok">Mod copied.</span> One more step: add the launch option above, then click "I've added it".`, state: stateOf(ng), until: Date.now() + 30000};
   }
   return act === "remove"
-    ? {html: `<span class="muted">Removed.</span>`, state: stateOf(ng), until: Date.now() + 8000}
+    ? (() => { try { localStorage.removeItem("pes-optdone:" + ng.path); } catch (e) {}
+        return {html: ng.prefix ? `<span class="muted">Removed.</span>` : `<span class="muted">Removed.</span> You can also delete the launch option; it does nothing without the mod.`, state: stateOf(ng), until: Date.now() + 12000}; })()
     : {html: `<span class="ok">Installed.</span> Start PES 2021 on this computer, then eFootball → Quick Match.`, state: stateOf(ng), until: Date.now() + 20000};
 }
 async function gameAction(btn) {
@@ -815,11 +817,12 @@ document.addEventListener("click", async e => {
     try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(ct.dataset.copytext); ok = true; } } catch (_) {}
     if (!ok) { const ta = document.createElement("textarea"); ta.value = ct.dataset.copytext; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
       document.body.appendChild(ta); ta.select(); try { ok = document.execCommand("copy"); } catch (_) {} ta.remove(); ct.focus(); }
+    if (!ct.dataset.label) ct.dataset.label = ct.textContent;
     const code = ct.parentElement && ct.parentElement.querySelector("code");
     if (!ok && code) { const r = document.createRange(); r.selectNodeContents(code); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
     ct.textContent = ok ? "Copied ✓" : code ? "Selected" : "Copy failed";
     $("copy-live").textContent = ok ? (ct.dataset.copied || "Copied") : code ? "Selected. Press Ctrl+C to copy" : "Copy failed";
-    setTimeout(() => { ct.textContent = "Copy"; }, 2000); return;
+    setTimeout(() => { ct.textContent = ct.dataset.label || "Copy"; }, 2000); return;
   }
   const more = e.target.closest("[data-more]");
   if (more) {
@@ -873,7 +876,7 @@ document.addEventListener("click", async e => {
 $("lf").onsubmit = async e => {
   e.preventDefault();
   const password = $("pw").value.trim();
-  if (!password) { $("err").className = ""; $("err").textContent = "Type the admin password."; $("pw").setAttribute("aria-invalid", "true"); $("pw").focus(); return; }
+  if (!password) { $("err").className = ""; $("err").textContent = "Type the admin password."; $("pw").setAttribute("aria-invalid", "true"); $("pw").setAttribute("aria-describedby", "err"); $("pw").focus(); return; }
   $("signin").disabled = true; $("signin").textContent = "Checking…"; $("err").textContent = "";
   try {
     const r = await fetch("/admin/api/login", {method: "POST", signal: AbortSignal.timeout(8000),
@@ -894,6 +897,7 @@ $("lf").onsubmit = async e => {
   } catch (err) {
     $("signin").disabled = false; $("signin").textContent = "Sign in"; $("err").className = "";
     $("err").textContent = err.name === "TimeoutError" || err instanceof TypeError ? "Can't reach the server. Is it running?" : err.message;
+    $("pw").setAttribute("aria-describedby", "err");
     if (err.wrong) { $("pw").setAttribute("aria-invalid", "true"); $("pw").focus(); $("pw").select(); }
     else { $("pw").removeAttribute("aria-invalid"); $("signin").focus(); }
   }
@@ -907,7 +911,7 @@ $("logout-all").onclick = async () => {
 $("dl").addEventListener("click", () => { $("dl-done").textContent = "Your download should start. Then attach dinput8.dll to a Discord, WhatsApp or Telegram message."; });
 $("showpw").onclick = () => { const on = $("pw").type === "password"; $("pw").type = on ? "text" : "password";
   $("showpw").innerHTML = (on ? "Hide" : "Show") + '<span class="sr"> password</span>'; };
-$("pw").addEventListener("input", () => { $("pw").removeAttribute("aria-invalid"); if (!$("err").dataset.keep) $("err").textContent = ""; });
+$("pw").addEventListener("input", () => { $("pw").removeAttribute("aria-invalid"); $("pw").removeAttribute("aria-describedby"); if (!$("err").dataset.keep) $("err").textContent = ""; });
 fetch("/admin/api/info").then(r => r.json()).then(i => {
   if (i.docker_desktop) { dockerDesktop = true; put("cmds", cmdsHtml()); }
   if (i.docker_desktop) $("forgot").innerHTML = "Forgot it? On this computer, open a terminal and run <code>docker logs pesserver</code>.";
@@ -926,6 +930,10 @@ $("logout").onclick = async () => {
   showLogin(ok ? "Signed out here." : "Signed out in this browser. The server couldn't be reached, so this sign-in may still work on other devices until it expires. Sign in again later and use 'Sign out on all devices' if you're worried.");
 };
 
+function statusOf(d, p) {
+  const vs = opponent(d, p.name) || pending(d, p.name);
+  return `<span class="nw">${pending(d, p.name) ? "Getting ready" : esc(p.status)}</span>${vs ? ` vs ${nm(vs)}` : ""}`;
+}
 function pending(d, name) {
   const m = d.live.find(m => !m.kickoff && m.phase !== "Full time" && (m.home_name === name || m.away_name === name));
   return m ? (m.home_name === name ? m.away_name : m.home_name) : "";
