@@ -338,7 +338,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
         <a class="btn primary" href="#play">Start playing</a>
         <a class="btn ghost" href="#inside">How it works</a>
       </div>
-      <p class="roles"><a href="#host">I'm hosting →</a><a href="#join">A friend sent me a file →</a></p>
+      <p class="roles"><a href="#host">I'm hosting →</a><a href="#join">A friend sent me a file →</a><a href="protocol.html">The technical write-up →</a></p>
       <a class="pill-status" href="#status"><i aria-hidden="true"></i>Early access: proven on Linux · testers wanted for Windows, Steam Deck and two separate PCs</a>
       <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or cheap server</b> to host (Windows/Mac hosting should work through Docker Desktop, untested).</p>
     </div>
@@ -459,12 +459,12 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-ud">#!/<wbr>bin/<wbr>sh
 curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 ADMIN_PASSWORD='choose-a-long-password' sh</pre><button class="copy" data-copy="c-cloud-ud" type="button">Copy</button></div>
                   On DigitalOcean, for example: Create → Droplets → <b>Ubuntu 24.04</b> → the cheapest Basic plan → Advanced options → <b>Add initialization scripts</b> (menu names may differ a little).</li>
-                <li>If the provider has a firewall for the server, allow <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b>. On Oracle Cloud, also run the two <code>iptables</code> lines in <a href="#help">Help → For hosts</a>.</li>
+                <li>If the provider has a firewall for the server, allow <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b>. On Oracle Cloud, also run the two <code>iptables</code> lines in <a href="#hosthelp">Help → For hosts</a>.</li>
                 <li>About 5 minutes after it starts, open <b>http://&lt;the server's IP&gt;/admin</b>, sign in with the password you chose, and download the mod for your friends. The admin page isn't encrypted, so don't sign in from public Wi-Fi.</li>
               </ol>
-              <details class="inline-steps"><summary>No start-up script box?</summary><p>No user-data box? Open its web console (or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
+              <details class="inline-steps"><summary>No start-up script box?</summary><p>Open its web console (or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.</p>
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-q">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud-q" type="button">Copy</button></div>
-                  It looks up the server's public address and lets you open the admin page from home. The admin page isn't encrypted, so don't sign in from public Wi-Fi. <a href="#faq-cloud">More about cloud hosting</a>.</p></details></details></li>
+                  <p>When it finishes (about 5 minutes) it prints your admin page and a password: write the password down, it's the one you sign in with. The admin page isn't encrypted, so don't sign in from public Wi-Fi. <a href="#faq-cloud">More about cloud hosting</a>.</p></details></details></li>
             <li><details><summary><b>Windows or Mac only, want it free:</b> Docker Desktop on one PC, about 20 minutes (untested)</summary>
               <ol class="inline-steps">
                 <li>Install <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> and start it.</li>
@@ -494,7 +494,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
           <details class="changes">
             <summary>What the installer does</summary>
             <ul>
-              <li>Prefer to read it first? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/install.sh">View install.sh</a> (about 100 lines).</li>
+              <li>Prefer to read it first? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/install.sh">View install.sh</a> (about 110 lines).</li>
               <li>Installs Docker if it's missing, using Docker's official script from get.docker.com (it runs as administrator).</li>
               <li>Starts the server in a container that restarts after reboots until you stop it. It uses about 50 MB of memory.</li>
               <li>Opens 6 ports on your router (UPnP) so friends outside your home can reach you. They close when the server stops; after a power cut they usually expire on their own within 2 hours (on routers that only allow permanent openings, remove them in the router's settings).</li>
@@ -512,7 +512,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
           <div class="step-num" aria-hidden="true">2</div>
           <h3>The host sends friends one file</h3>
           <p class="small muted">Open your admin page, sign in with the password, and click <b>Download the mod for friends</b>. You get one small file, <code>dinput8.dll</code>, made for your server.</p>
-          <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> (or <b>Friends use</b> and your address, if you set a fixed one) means friends outside your home should be able to connect. If it says <b>Home network only</b>, only friends on your Wi-Fi can join; for friends elsewhere, or if it warns about router ports or CGNAT, see <a href="#help">Help → For hosts</a>.</p>
+          <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> (or <b>Friends use</b> and your address, if you set a fixed one) means friends outside your home should be able to connect. If it says <b>Home network only</b>, only friends on your Wi-Fi can join; for friends elsewhere, or if it warns about router ports or CGNAT, see <a href="#hosthelp">Help → For hosts</a>.</p>
           <p class="small muted">Send it to each friend on <b>Discord, WhatsApp or Telegram</b>. Email usually blocks this kind of file. Or copy the link under the button (your server's address) and send that: it opens a page where friends download the file themselves.</p>
           <p class="small muted"><b>First test:</b> have one friend start the game. They appear under <b>Online now</b> on your admin page within a minute.</p>
         </div>
@@ -583,7 +583,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
           <tr><td>"Unable to connect to the server" when going online</td><td>The host's server must be running. If the log says <i>not found</i>, the server is off or unreachable: the host checks it's up and its router ports are open. If the host's internet address changed, they send a fresh file from the admin page.</td></tr>
-          <tr><td>The browser or Windows says the file may be harmful, or blocks it</td><td>Chrome and Edge warn about every <code>.dll</code> download. Choose <b>Keep</b> (Chrome: ⋮ → Keep; Edge: … → Keep → Keep anyway). Copies sent on Discord, WhatsApp or Telegram are the same file.</td></tr>
+          <tr><td>The browser or Windows says the file may be harmful, or blocks it</td><td>Chrome and Edge warn about every <code>.dll</code> download. Choose <b>Keep</b> (Chrome: ⋮ → Keep; Edge: … → Keep → Keep anyway). Discord, WhatsApp and Telegram may show a similar warning; it's the same file, keep it.</td></tr>
           <tr><td>Can't find the game folder, or there's no "Browse local files"</td><td>In the Steam <b>Library</b>, right-click PES 2021 → <b>Manage</b> → <b>Browse local files</b>. It's usually <code>C:\Program Files (x86)\Steam\steamapps\common\eFootball PES 2021 SEASON UPDATE</code>; on a Steam Deck, <code>/home/deck/.steam/steam/steamapps/common/…</code>.</td></tr>
           <tr><td>No <code>pes2021-online.log</code> appears in the game folder</td><td>Look in <code>%TEMP%</code> too: the mod writes there if the game folder is read-only. If there's no log anywhere, the mod didn't load. Windows hides file endings, so the file should show as <code>dinput8</code> with type <i>Application extension</i>, not <code>dinput8.dll.txt</code>. Check that <code>dinput8.dll</code> is next to <code>PES2021.exe</code> (not in a subfolder, not renamed to <code>dinput8 (1).dll</code>). On Steam Deck / Linux, check the launch option.</td></tr>
           <tr><td>The file disappeared, or antivirus warns about it</td><td>The mod isn't code-signed (a certificate costs money this free project doesn't have), and it hooks the game's network functions, which some antivirus tools treat as suspicious. Restore it and allow it if it came from your host, and check its SHA-256 against the one on the host's page. The source and the build recipe (<code>server/mod</code>, built inside the Docker image) are public.</td></tr>
@@ -597,14 +597,14 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       </table>
     </details>
     <h3 class="sr" id="help-hosts">For hosts</h3>
-    <details class="card helpgrp" open aria-labelledby="help-hosts">
+    <details class="card helpgrp" id="hosthelp" open aria-labelledby="help-hosts">
       <summary><span class="hg">For hosts</span></summary>
       <table class="help"><caption class="sr">Help for hosts</caption>
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
           <tr><td>The installer says "The server did not start"</td><td>Run <code>sudo docker logs pesserver</code> to see why. Usually another program already uses port 80, 443, 8080 or 10000: check with <code>sudo ss -ltnp | grep -E ':(80|443|8080|10000) '</code>, stop that program, then run the install line again.</td></tr>
           <tr><td>"Docker is installed but not running"</td><td>Run <code>sudo systemctl start docker</code>, then run the install line again.</td></tr>
-          <tr><td>"Could not build the server image"</td><td>Building needs downloads from GitHub, Docker Hub and Python's package site. Check the internet connection and run the install line again.</td></tr>
+          <tr><td>"Could not build the server image"</td><td>Building needs downloads from GitHub, Docker Hub, Debian's package servers and Python's package site. Check the internet connection and run the install line again.</td></tr>
           <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server installed with the plain line this is normal: open the 6 ports in the provider's firewall, or run the cloud line from step 1 instead.</td></tr>
           <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
           <tr><td>On an Oracle Cloud server, nobody can connect although the ports are open in its web firewall</td><td>Oracle's Ubuntu images also block ports inside the server. Run <code>sudo iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT</code> and <code>sudo iptables -I INPUT -p udp -m multiport --dports 3478,7600 -j ACCEPT</code>, then <code>sudo netfilter-persistent save</code> so it survives a reboot.</td></tr>
@@ -688,7 +688,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       <ul>
         <li>Show the admin page and password again: <code>sudo docker logs pesserver</code></li>
         <li>Restart: <code>sudo docker restart pesserver</code> · Stop: <code>sudo docker stop pesserver</code> (this also closes the router ports it opened)</li>
-        <li>Update to the latest version: run the install line again. It keeps the settings you gave the first time (<code>PUBLIC_IP</code>, <code>ADMIN_REMOTE</code>); to clear one, give it empty, for example <code>… | ADMIN_REMOTE= sh</code>. Players, results and your server's identity are kept, so friends' files keep working.</li>
+        <li>Update to the latest version: run the install line again. It keeps the settings you gave the first time (<code>PUBLIC_IP</code>, <code>ADMIN_REMOTE</code>, <code>ADMIN_PASSWORD</code>, <code>UPNP</code>); to clear one, give it empty, for example <code>… | ADMIN_REMOTE= sh</code>. Players, results and your server's identity are kept, so friends' files keep working.</li>
         <li>Remove everything: first click <b>Uninstall</b> on the admin page's server-computer card (if you used it), then <code>sudo docker stop pesserver &amp;&amp; sudo docker rm pesserver; sudo docker volume rm pesserver-data; sudo docker rmi ghcr.io/mohamedalirashad/pes2021-private-server</code> (deletes players and results, and the server's identity, so old mod files stop working; Docker itself stays installed).</li>
       </ul>
       <p>If your user is in the <code>docker</code> group you can leave out <code>sudo</code>.</p>
@@ -707,7 +707,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       <p>A cloud server is a good choice if nobody has a Linux PC, your home router can't open ports, or your provider uses CGNAT. Its address never changes and it's on all the time. This should work but hasn't been tested yet; please <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues/new?template=test-report.md">report how it goes</a>.</p>
       <ol>
         <li>Create a small Linux server with any cloud provider. The cheapest size is plenty (1 CPU, 1 GB of memory), usually about $4–6 a month, and some providers have free tiers. Pick <b>Ubuntu 24.04</b> (64-bit); Intel/AMD and ARM images are both published (ARM still needs testers).</li>
-        <li>If the provider has a firewall for the server (often called "security group" or "firewall rules"), allow incoming <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b> from anywhere. On Oracle Cloud, also run the two <code>iptables</code> lines in <a href="#help">Help → For hosts</a>.</li>
+        <li>If the provider has a firewall for the server (often called "security group" or "firewall rules"), allow incoming <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b> from anywhere. On Oracle Cloud, also run the two <code>iptables</code> lines in <a href="#hosthelp">Help → For hosts</a>.</li>
         <li>Easiest: paste this into the server's start-up script box (<b>User data</b> / <b>Cloud config</b> / <b>Initialization script</b>) while creating it, with your own password at the end, then skip to step 5:
           <div class="cmd" style="margin-top:8px"><pre id="c-cloud-ud2">#!/<wbr>bin/<wbr>sh
 curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 ADMIN_PASSWORD='choose-a-long-password' sh</pre><button class="copy" data-copy="c-cloud-ud2" type="button">Copy</button></div>
@@ -1036,9 +1036,10 @@ answer with a 16-byte key
   lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
   if (/Windows|Macintosh/.test(navigator.userAgent)) { const d = document.querySelector(".pick details"); if (d) d.open = true; }   // Windows/Mac visitors: show the cloud path
   if (innerWidth <= 600) document.querySelectorAll("details.helpgrp").forEach(d => d.open = false);   // phones: start folded
-  const openTarget = () => { const d = document.getElementById(location.hash.slice(1)); if (d && d.tagName === "DETAILS") d.open = true; };
+  const detailsOf = t => t && (t.tagName === "DETAILS" ? t : t.closest("details"));
+  const openTarget = () => { const d = detailsOf(document.getElementById(location.hash.slice(1))); if (d) d.open = true; };
   addEventListener("hashchange", openTarget); openTarget();
-  document.addEventListener("click", e => { const a = e.target.closest('a[href^="#"]'); const d = a && document.getElementById(a.hash.slice(1)); if (d && d.tagName === "DETAILS") d.open = true; });
+  document.addEventListener("click", e => { const a = e.target.closest('a[href^="#"]'); const d = a && detailsOf(document.getElementById(a.hash.slice(1))); if (d) d.open = true; });
 </script>
 </body>
 </html>

@@ -5,7 +5,7 @@
 #
 # Installs Docker if it is missing, starts the server (it restarts by itself after a reboot), opens the
 # router's ports with UPnP and prints the admin page (where the host downloads the mod for friends).
-# Run it again to update (it keeps PUBLIC_IP, ADMIN_REMOTE and UPNP from the previous run).
+# Run it again to update (it keeps PUBLIC_IP, ADMIN_REMOTE, ADMIN_PASSWORD and UPNP from the previous run).
 # Optional env: PUBLIC_IP=<addr> (pin the address given to players), UPNP=0 (don't touch the router),
 #               ADMIN_REMOTE=1 (admin page from any network, e.g. a cloud server; it isn't encrypted),
 #               ADMIN_PASSWORD=<pw> (choose the admin password instead of a generated one),
