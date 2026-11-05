@@ -273,7 +273,7 @@ details.changes ul { font-size: 14px; padding-left: 18px; color: var(--muted); }
 @media (max-width: 640px) { .help, .help tbody, .help tr, .help td { display: block; width: auto !important; } .help thead { display: none; } .help tr { border-bottom: 1px solid var(--line); padding: 8px 0; } .help td { border: 0; padding: 4px 0; } }
 details.q { border-bottom: 1px solid var(--line); padding: 4px 0; }
 details.helpgrp { margin-bottom: 16px; } details.helpgrp > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-details.helpgrp > summary h3 { margin: 0; } details.helpgrp > summary::after { content: "+"; color: var(--brand); font-size: 22px; } details.helpgrp[open] > summary { margin-bottom: 8px; }
+details.helpgrp > summary .hg { margin: 0; font-size: 1.17em; font-weight: 700; } details.helpgrp > summary::after { content: "+"; color: var(--brand); font-size: 22px; } details.helpgrp[open] > summary { margin-bottom: 8px; }
 .faqh { margin: 34px 0 4px; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); }
 .faqh:first-of-type { margin-top: 22px; }
 details.q summary { cursor: pointer; font-weight: 700; font-size: 18px; padding: 14px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
@@ -409,7 +409,37 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
   </div>
 </section>
 
-<section id="play" class="alt">
+<section id="server" class="alt">
+  <div class="wrap">
+    <p class="kicker">For the host: what you get</p>
+    <h2>Your server does the boring parts</h2>
+    <p class="intro">No accounts to create, no web services to sign up for, and in most homes no router settings to dig through.</p>
+    <div class="grid3">
+      <div class="card">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></div>
+        <h3>One file per friend</h3>
+        <p class="small muted">The admin page hands you the mod with your server built in. Friends drop it in the game folder; there's nothing to type and nothing to install.</p>
+      </div>
+      <div class="card">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="12" width="18" height="8" rx="2"/><path d="M7 16h.01M11 16h.01M15 12V8M19 12V6M8.5 7.5a5 5 0 0 1 7 0M6 5a8.5 8.5 0 0 1 12 0"/></svg></div>
+        <h3>Opens its own ports</h3>
+        <p class="small muted">Most home routers have a feature called <b>UPnP</b> that lets programs open the ports (doors to the internet) they need. The server uses it, and tells you in plain words if it couldn't, or if your provider uses <b>CGNAT</b> (one public address shared by many customers), which blocks visitors.</p>
+      </div>
+      <div class="card">
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h3M8 17h6"/></svg></div>
+        <h3>An admin page</h3>
+        <p class="small muted">Password-protected: the mod download, one-click install on your own PC, who's online, matches in progress and their stage, final scores, a league table, and a kick button.</p>
+      </div>
+    </div>
+    <figure class="shot">
+      <a class="light" href="admin-light.webp"><img src="admin-light.webp" width="1474" height="1434" loading="lazy" alt="The admin page once friends are playing: a compact Invite more friends card with the mod download, players online with who they're playing, a live match in the second half, an activity feed and the network card."></a>
+      <a class="dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1474" height="1434" loading="lazy" alt="The admin page in dark mode once friends are playing: a compact Invite more friends card with the mod download, players online with who they're playing, a live match in the second half, an activity feed and the network card."></a>
+      <figcaption>The real admin page, filled with made-up demo players and scores. Tap to open it full size.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="play">
   <div class="wrap">
     <p class="kicker">Get playing</p>
     <h2>Three steps, about five minutes on Linux</h2>
@@ -429,17 +459,17 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
                 <li>Open its web console (or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-q">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud-q" type="button">Copy</button></div>
                   It looks up the server's public address and lets you open the admin page from home. The admin page isn't encrypted, so don't sign in from public Wi-Fi. <a href="#faq-cloud">More about cloud hosting</a>.</li>
-                <li>Open the admin page address it prints (it's your server's public address) and download the mod for your friends. Keep the install line: running it again updates the server and keeps these settings.</li>
+                <li>You should now see <b>Admin page http://&lt;address&gt;/admin</b> and a <b>Password</b>. Open that address (it's your server's public address), sign in, and download the mod for your friends. Keep the install line: running it again updates the server and keeps these settings.</li>
               </ol></details></li>
             <li><details><summary><b>Windows or Mac only, want it free:</b> Docker Desktop on one PC, about 20 minutes (untested)</summary>
               <ol class="inline-steps">
                 <li>Install <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> and start it.</li>
                 <li>Download <a href="https://github.com/MohamedAliRashad/pes2021-private-server/archive/refs/heads/main.zip">this project as a ZIP</a> and unzip it. Windows makes a folder inside a folder: use the one that contains <code>docker-compose.bridge.yml</code>.</li>
-                <li>In that folder, create a file named <code>.env</code> with the address players will use (<code>PUBLIC_IP=…</code>; the full steps show a command for it, because Notepad would add .txt).</li>
+                <li>Open a terminal in that folder (Windows: right-click it → <b>Open in Terminal</b>; Mac: right-click → <b>New Terminal at Folder</b>) and save the address players will use, for example your PC's home address. Windows: <code>Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii</code> · Mac: <code>echo PUBLIC_IP=192.168.1.50 &gt; .env</code> (<a href="#faq-winhost">which address to use</a>).</li>
                 <li>Run <code>docker compose -f docker-compose.bridge.yml up -d</code> there.</li>
-                <li>Open <code>http://localhost:8090/admin</code> on that PC; the password is in <code>docker compose -f docker-compose.bridge.yml logs</code>.</li>
+                <li>Run <code>docker compose -f docker-compose.bridge.yml logs</code>: you should see <b>Admin page http://localhost:8090/admin</b> and a <b>Password</b>. Open that page on this PC, sign in, and you're at step 2.</li>
               </ol>
-              <p class="inline-steps"><a href="#faq-winhost">Full steps with the exact commands</a> (which address to use, port forwarding, playing on the same PC).</p></details></li>
+              <p class="inline-steps">Friends in other homes, or playing on this same PC? See <a href="#faq-winhost">the full steps</a>.</p></details></li>
           </ul>
           <p class="small muted"><b>On a Linux PC:</b> open a terminal (on Ubuntu press <b>Ctrl+Alt+T</b>, or search "Terminal" in the app menu), paste the command and press Enter. It may ask for your password (sudo); nothing shows while you type it, that's normal. It installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
         </div>
@@ -463,7 +493,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
               <li>Prefer to read it first? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/install.sh">View install.sh</a> (about 100 lines).</li>
               <li>Installs Docker if it's missing, using Docker's official script from get.docker.com (it runs as administrator).</li>
               <li>Starts the server in a container that restarts after reboots until you stop it. It uses about 50 MB of memory.</li>
-              <li>Opens 6 ports on your router (UPnP) so friends outside your home can reach you. They close when the server stops, and expire on their own within 2 hours if it never stops cleanly (power cut).</li>
+              <li>Opens 6 ports on your router (UPnP) so friends outside your home can reach you. They close when the server stops; after a power cut they usually expire on their own within 2 hours (on routers that only allow permanent openings, remove them in the router's settings).</li>
               <li>If PES 2021 is installed on this computer, gives the server (a root container with host networking) read and write access to <b>only those game folders</b> and their Proton prefix (the game's Windows drive; only its registry file is changed, and a backup copy, <code>user.reg.pes2021-backup</code>, is kept next to it), so the admin page can install the mod for you in one click.</li>
               <li>The admin page is plain HTTP and opens only from your home network (and Tailscale). On a cloud server whose network card has the public IP, it's reachable from anywhere automatically; on others you switch remote access on yourself, see <a href="#faq-cloud">cloud hosting</a>.</li>
               <li>While your router ports are open, your server's address is public: anyone who has it can open your friends' page, download the mod and join. There's no ban yet; <b>Kick</b> on the admin page disconnects someone, but they can come back.</li>
@@ -506,7 +536,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <div class="step-num" aria-hidden="true">3</div>
           <h3>Friends drop it in and play</h3>
           <ol class="small how">
-            <li>In Steam, right-click <b>PES 2021</b> → <b>Manage</b> → <b>Browse local files</b>, and put <code>dinput8.dll</code> in that folder, next to <code>PES2021.exe</code>. Already a <code>dinput8.dll</code> there from another mod? Move it somewhere safe first: only one file with that name can load.</li>
+            <li>In Steam, right-click <b>PES 2021</b> → <b>Manage</b> → <b>Browse local files</b>, and put <code>dinput8.dll</code> in that folder, next to <code>PES2021.exe</code> (your browser saved it in <b>Downloads</b>: drag it from there, or right-click → Cut, then Paste). Already a <code>dinput8.dll</code> there from another mod? Move it somewhere safe first: only one file with that name can load.</li>
             <li><b>Steam Deck / Linux only:</b> right-click PES 2021 → <b>Properties</b> → <b>Launch options</b>, and paste this line. On a Steam Deck, switch to Desktop Mode first to download the file (for example from Discord in the browser).
               <div class="cmd" style="margin-top:8px"><pre id="c-launch">WINEDLLOVERRIDES="dinput8=n,b" %command%</pre><button class="copy" data-copy="c-launch" type="button">Copy</button></div></li>
             <li>Start PES 2021. The first time, pick your region, accept the terms and choose a player name.</li>
@@ -537,43 +567,14 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
   </div>
 </section>
 
-<section id="server">
-  <div class="wrap">
-    <p class="kicker">For the host: what you get</p>
-    <h2>Your server does the boring parts</h2>
-    <p class="intro">No accounts to create, no web services to sign up for, and in most homes no router settings to dig through.</p>
-    <div class="grid3">
-      <div class="card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></div>
-        <h3>One file per friend</h3>
-        <p class="small muted">The admin page hands you the mod with your server built in. Friends drop it in the game folder; there's nothing to type and nothing to install.</p>
-      </div>
-      <div class="card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="12" width="18" height="8" rx="2"/><path d="M7 16h.01M11 16h.01M15 12V8M19 12V6M8.5 7.5a5 5 0 0 1 7 0M6 5a8.5 8.5 0 0 1 12 0"/></svg></div>
-        <h3>Opens its own ports</h3>
-        <p class="small muted">Most home routers have a feature called <b>UPnP</b> that lets programs open the ports (doors to the internet) they need. The server uses it, and tells you in plain words if it couldn't, or if your provider uses <b>CGNAT</b> (one public address shared by many customers), which blocks visitors.</p>
-      </div>
-      <div class="card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h3M8 17h6"/></svg></div>
-        <h3>An admin page</h3>
-        <p class="small muted">Password-protected: the mod download, one-click install on your own PC, who's online, matches in progress and their stage, final scores, a league table, and a kick button.</p>
-      </div>
-    </div>
-    <figure class="shot">
-      <a class="light" href="admin-light.webp"><img src="admin-light.webp" width="1474" height="1434" loading="lazy" alt="The admin page once friends are playing: a compact Invite more friends card with the mod download, players online with who they're playing, a live match in the second half, an activity feed and the network card."></a>
-      <a class="dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1474" height="1434" loading="lazy" alt="The admin page in dark mode once friends are playing: a compact Invite more friends card with the mod download, players online with who they're playing, a live match in the second half, an activity feed and the network card."></a>
-      <figcaption>The real admin page, filled with made-up demo players and scores. Tap to open it full size.</figcaption>
-    </figure>
-  </div>
-</section>
-
 <section id="help" class="alt">
   <div class="wrap">
     <p class="kicker">Help</p>
     <h2>Something went wrong?</h2>
-    <p class="intro">Find what you see. For a friend's problem, the mod's log, <code>pes2021-online.log</code> in their game folder, usually says why.</p>
-    <details class="card helpgrp" open>
-      <summary><h3>For friends (players)</h3></summary>
+    <p class="intro">Find what you see. For a friend's problem, the mod's log, <code>pes2021-online.log</code> in their game folder, usually says why. Curious how it all works underneath? Read the <a href="protocol.html">technical write-up</a>.</p>
+    <h3 class="sr" id="help-players">For friends (players)</h3>
+    <details class="card helpgrp" open aria-labelledby="help-players">
+      <summary><span class="hg">For friends (players)</span></summary>
       <table class="help"><caption class="sr">Help for players</caption>
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
@@ -591,14 +592,15 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
         </tbody>
       </table>
     </details>
-    <details class="card helpgrp" open>
-      <summary><h3>For hosts</h3></summary>
+    <h3 class="sr" id="help-hosts">For hosts</h3>
+    <details class="card helpgrp" open aria-labelledby="help-hosts">
+      <summary><span class="hg">For hosts</span></summary>
       <table class="help"><caption class="sr">Help for hosts</caption>
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
           <tr><td>The installer says "The server did not start"</td><td>Run <code>sudo docker logs pesserver</code> to see why. Usually another program already uses port 80, 443, 8080 or 10000: check with <code>sudo ss -ltnp | grep -E ':(80|443|8080|10000) '</code>, stop that program, then run the install line again.</td></tr>
           <tr><td>"Docker is installed but not running"</td><td>Run <code>sudo systemctl start docker</code>, then run the install line again.</td></tr>
-          <tr><td>"Could not build the server image"</td><td>The download from GitHub failed. Check the internet connection and run the install line again.</td></tr>
+          <tr><td>"Could not build the server image"</td><td>Building needs downloads from GitHub, Docker Hub and Python's package site. Check the internet connection and run the install line again.</td></tr>
           <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server installed with the plain line this is normal: open the 6 ports in the provider's firewall, or run the cloud line from step 1 instead.</td></tr>
           <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
           <tr><td>On an Oracle Cloud server, nobody can connect although the ports are open in its web firewall</td><td>Oracle's Ubuntu images also block ports inside the server. Run <code>sudo iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT</code> and <code>sudo iptables -I INPUT -p udp -m multiport --dports 3478,7600 -j ACCEPT</code>, then <code>sudo netfilter-persistent save</code> so it survives a reboot.</td></tr>
@@ -615,7 +617,8 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
   <div class="wrap">
     <p class="kicker">Questions</p>
     <h2>Good to know</h2>
-    <h3 class="faqh">For players</h3>
+    <p class="faqjump small">Jump to: <a href="#faq-players">For players</a> · <a href="#faq-hosts">For hosts</a> · <a href="#faq-about">About the project</a></p>
+    <h3 class="faqh" id="faq-players">For players</h3>
     <details class="q">
       <summary>Does this modify or crack the game?</summary>
       <p>No. The game's own files stay exactly as Steam installed them; the mod is one extra file next to them, and deleting it puts everything back. Nothing here cracks the game or touches its copy protection, and this project doesn't host or share any game files. You need your own copy of PES 2021 on Steam.</p>
@@ -650,6 +653,10 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       </ul>
       <p>The server stores your player name, Steam ID and match results, sees your IP address, and keeps a log of the game's messages on the host's disk. Like any peer-to-peer game, your opponent's PC connects straight to yours during a match, so it sees your IP address too.</p>
     </details>
+    <details class="q" id="faq-build">
+      <summary>Can I check the mod is really built from the public code?</summary>
+      <p>Mostly, yes. The build is reproducible: <code>server/mod/build.sh</code> with the compiler from <code>server/Dockerfile</code> makes a byte-identical <code>dinput8.dll</code> every time (no build date is stamped in), as long as the compiler version is the same. A server's copy differs from that build only in its 2 KB settings area (the server's key, name and addresses). Every server publishes the exact file's SHA-256 and its key at <code>http://&lt;server&gt;/status</code>, on its friends' page and on the admin page. Comparing a server's file to your own build byte by byte, outside the settings area, shows nothing else was changed.</p>
+    </details>
     <details class="q" id="faq-undo">
       <summary>How do I undo it?</summary>
       <p>Delete <code>dinput8.dll</code> from the game folder (and <code>pes2021-online.ini</code> / <code>.log</code> if you like), and on Steam Deck / Linux remove the launch option. If the mod was installed from the admin page on the server computer, click <b>Uninstall</b> there instead. Nothing else was changed.</p>
@@ -671,7 +678,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       <div class="cmd"><span class="label">Replace 100.x.y.z with the host's Tailscale address</span><pre id="c-ts">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=100.<wbr>x.<wbr>y.<wbr>z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
       <p>A built-in relay that removes this step is on the to-do list.</p>
     </details>
-    <h3 class="faqh">For hosts</h3>
+    <h3 class="faqh" id="faq-hosts">For hosts</h3>
     <details class="q" id="faq-host">
       <summary>How do I see the password again, stop or update the server?</summary>
       <ul>
@@ -728,7 +735,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       <summary>Will our accounts and results survive a restart?</summary>
       <p>Yes. Player names, results and the server's identity stay on the host's disk through restarts, reboots and updates, and friends' mod files keep working. The only thing that needs a fresh file is the host's internet address changing (unless the server has a <a href="#share">web name</a>); on most home connections that's rare, and the server notices within 10 minutes (when <code>PUBLIC_IP</code> isn't set).</p>
     </details>
-    <h3 class="faqh">About the project</h3>
+    <h3 class="faqh" id="faq-about">About the project</h3>
     <details class="q">
       <summary>Does it cost anything?</summary>
       <p>No. The software and the admin page are free, with no accounts or paid services. The installer downloads from GitHub and Docker, and the server asks a free what-is-my-IP service for its public address. The host just needs a computer that's on while you play.</p>

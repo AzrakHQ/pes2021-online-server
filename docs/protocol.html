@@ -80,7 +80,7 @@ th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertic
 th{color:var(--muted);font-weight:600;font-size:13px}
 .tw{overflow-x:auto;position:relative}
 .tw.scrolls::before{content:"Scroll sideways to see the whole table →";display:block;position:sticky;left:0;font-size:13px;color:var(--muted);margin-bottom:6px}
-.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.02em;padding:1px 7px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.02em;padding:1px 7px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
 .t-ok{color:var(--ok)} .t-static{color:var(--static)} .t-inf{color:var(--inf)} .t-unk{color:var(--unk)}
 .legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0 0}
 .legend .pair{display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
@@ -114,14 +114,15 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </div></header>
 <main id="main" tabindex="-1">
 <h1>Technical write-up: how PES 2021 talks to its servers</h1>
-<p class="sub">The full reverse-engineered network protocol of eFootball PES 2021 (1.01.00, Steam), as implemented by this project's server. Last update: <b>2026-11-05</b>.</p>
+<p class="sub">The network protocol of eFootball PES 2021 (1.01.00, Steam), reverse-engineered as far as login, the network test and Quick Match need it, as implemented by this project's server. Last update: <b>2026-11-05</b>.</p>
 <div class="plain"><b>In plain words:</b> the game connects to a "gate" server on TCP port 10000 and exchanges small messages written in MessagePack, each compressed, encrypted with Blowfish and sealed with a checksum. A few extra requests go over HTTP and HTTPS, and a STUN check measures your network. Matches themselves run directly between the two players. The <a href="./#inside">main page tells the story</a>; this page has the details for developers: byte layouts, keys, every command and the code addresses they were found at.</div>
 
 <div class="legend">
   <span class="pair"><span class="tag t-ok">LIVE</span><span class="sub" style="margin:0">verified against the real client</span></span>
   <span class="pair"><span class="tag t-static">STATIC</span><span class="sub" style="margin:0">read from disassembly</span></span>
   <span class="pair"><span class="tag t-inf">INFERRED</span><span class="sub" style="margin:0">reasoned / prior art</span></span>
-  <span class="pair"><span class="tag t-unk">UNKNOWN</span><span class="sub" style="margin:0">open</span></span>
+  <span class="pair"><span class="tag t-unk">UNKNOWN</span><span class="sub" style="margin:0">not understood yet</span></span>
+  <span class="pair"><span class="tag t-unk">OPEN</span><span class="sub" style="margin:0">not built yet</span></span>
 </div>
 
 <nav class="toc" id="contents" aria-label="Sections">
