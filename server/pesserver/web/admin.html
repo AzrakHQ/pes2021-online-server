@@ -107,6 +107,10 @@
   @media (max-width: 420px) { .what code { white-space:normal; overflow-wrap:anywhere; } }
   .game .msg { grid-column:1 / -1; font-size:14px; }
   .game .msg:empty { display:none; }
+  .game.skipped .where, .game.skipped .st { opacity:.75; }
+  .invite.compact .dl { max-width:420px; } .invite.compact .linkrow { max-width:640px; }
+  .stuck { overflow-wrap:anywhere; }
+  header.top a.pill { min-height:28px; } @media (pointer: coarse) { header.top a.pill { min-height:36px; } }
   .act .skipbtn { flex-basis:100%; text-align:right; font-size:13px; padding:2px; }
   @media (max-width: 600px) { .act .skipbtn { flex-basis:auto; } }
   @media (max-width: 800px) { #c-live { order:1; } #c-online { order:2; } #c-results { order:4; } #c-feed { order:5; } #c-net { order:6; } #board.netbad #c-net { order:3; } }
@@ -148,7 +152,7 @@
   table { width:100%; border-collapse:collapse; font-size:14px; }
   caption { text-align:left; }
   th { text-align:left; color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
-  td { padding:8px; border-bottom:1px solid var(--line); overflow-wrap:anywhere; }
+  td { padding:8px; border-bottom:1px solid var(--line); overflow-wrap:break-word; }
   tr:last-child td { border-bottom:0; }
   td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
   td.name { font-weight:600; min-width:10em; max-width:20em; overflow-wrap:break-word; word-break:normal; }
@@ -182,7 +186,7 @@
   .feed li.day { padding:0; border:0; }
   .feed li:not(.day) { display:flex; gap:10px; padding:6px 0; border-bottom:1px solid var(--line); font-size:14px; }
   .feed li time { flex:none; min-width:64px; }
-  .feed li > span { min-width:0; overflow-wrap:anywhere; }
+  .feed li > span { min-width:0; overflow-wrap:break-word; }
   .feed .ico { flex:none; width:18px; text-align:center; color:var(--muted); }
   .feed .ico svg { width:14px; height:14px; vertical-align:-2px; }
   .k-goal { font-weight:600; } .k-result { color:var(--accent); font-weight:600; } .k-warn { color:var(--warn); }
@@ -195,7 +199,7 @@
   .note { overflow-wrap:anywhere; }
   summary { min-height:24px; padding:3px 0; }
   #pw[aria-invalid="true"] { border-color:var(--live); border-width:2px; } #pw[aria-invalid="true"]:focus-visible { outline-color:var(--live); }
-  #err a:focus-visible { outline-offset:4px; }
+  #err a:focus-visible { outline-offset:2px; border-radius:4px; } #err a { padding:0 2px; } #err.blocked { color:var(--fg); }
   #feed h3.day { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:10px 0 2px; }
   .conn-sm { display:none; white-space:normal; overflow-wrap:anywhere; } @media (min-width: 421px) { .conn-sm { display:block; } }
   .finished { font-size:14px; color:var(--muted); margin:4px 0 0; }
@@ -436,7 +440,7 @@ function setDown(on) {
   $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").textContent; $("dl").textContent = "Waiting for the server…";
   const downHtml = lastOkAt
     ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? Start the server with <code>${startCmd()}</code>. This page keeps trying.`
-    : `<b>The server's game service isn't answering.</b> Restart it on the server computer with <code>${dockerDesktop ? "docker" : "sudo docker"} restart pesserver</code>. This page keeps trying.`;
+    : `<b>The server isn't answering yet.</b> If this lasts, restart it on the server computer with <code>${dockerDesktop ? "docker" : "sudo docker"} restart pesserver</code>. This page keeps trying.`;
   $("down").hidden = false; requestAnimationFrame(() => { $("down").innerHTML = downHtml; });   // shown first, so the alert is read
 }
 
@@ -519,7 +523,7 @@ function render(d) {
 
   const phaseLabel = m => m.phase === "Full time" ? `<span class="pill neutral">Full time</span>`
     : m.kickoff ? `<span class="pill live"><span class="dot"></span>${esc(m.phase)}</span> <span class="muted">&nbsp;kicked off ${ago(m.kickoff, now)}</span>`
-    : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}</span>${now - (m.started || now) > 300 ? `<span class="stuck small">Stuck? ${esc(m.home_name)} and ${esc(m.away_name)} can leave and search again.</span>` : ""}`;
+    : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}</span>${now - (m.started || now) > 300 ? `<span class="stuck small">Stuck? ${nm(m.home_name)} and ${nm(m.away_name)} can leave and search again.</span>` : ""}`;
   const going = d.live.filter(m => m.phase !== "Full time"), done = d.live.filter(m => m.phase === "Full time");
   const fin = done.length ? `<p class="finished">Just finished: ${done.map(m => `${esc(m.home_name)} ${m.home_score}–${m.away_score} ${esc(m.away_name)}`).join(" · ")}</p>` : "";
   put("live", going.length ? `<ul class="list-plain" aria-label="Live matches">` + going.map(m => `
@@ -533,7 +537,7 @@ function render(d) {
 
   put("online", d.online.length ? `<div class="tablewrap"><table><caption class="sr">Players online now</caption>
     <thead><tr><th scope="col">Player</th><th scope="col" class="hide-xs">Status</th><th scope="col" class="hide-sm hide-md">Connection</th><th scope="col" class="num hide-sm hide-md">Online for</th><th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
-    d.online.map(p => `<tr><td class="name">${nm(p.name)}<small class="show-xs">${esc(p.status)} · ${where(p.ip)} · ${dur(now - p.since)}</small></td><td class="hide-xs"><span class="nw">${esc(p.status)}</span>${opponent(d, p.name) ? ` vs ${esc(opponent(d, p.name))}` : ""}<small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
+    d.online.map(p => `<tr><td class="name">${nm(p.name)}<small class="show-xs">${esc(p.status)} · ${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since)}</small></td><td class="hide-xs"><span class="nw">${esc(p.status)}</span>${opponent(d, p.name) ? ` vs ${nm(opponent(d, p.name))}` : ""}<small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
       <td class="hide-sm hide-md muted conn">${where(p.ip)}<small>${esc(p.ip)}</small></td><td class="num muted hide-sm hide-md">${dur(now - p.since)}</td>
       <td class="num act"><button class="danger" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></td></tr>`).join("") +
     `</tbody></table></div><p class="note">Kick disconnects someone now; they can reconnect. There's no ban yet: anyone who has the mod file or your server's address can join.</p>`
@@ -561,7 +565,7 @@ function render(d) {
   for (const f of items) {
     const day = dayLabel(f.t);
     if (!groups.length || groups[groups.length - 1].day !== day) groups.push({day, rows: []});
-    groups[groups.length - 1].rows.push(`<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${hm.format(new Date(f.t * 1000))}</time><span class="ico" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="k-${f.kind}">${esc(f.text)}</span></li>`);
+    groups[groups.length - 1].rows.push(`<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${hm.format(new Date(f.t * 1000))}</time><span class="ico" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="k-${f.kind}">${nm(f.text)}</span></li>`);
   }
   put("feed", d.feed.length ? groups.map(g => `<h3 class="day">${g.day}</h3><ul class="feed">${g.rows.join("")}</ul>`).join("") +
     (d.feed.length > nFeed ? `<button type="button" class="more linkbtn" data-key="more-feed" data-more="feed">${feedAll ? "Show less" : "Show older activity"}</button>` : "")
@@ -572,7 +576,7 @@ function render(d) {
   const ranked = [...played].sort((a, b) => pts(b) - pts(a) || gd(b) - gd(a) || a.played - b.played || a.name.localeCompare(b.name));
   put("league", (ranked.length ? `<div class="tablewrap"><table><caption class="sr">League table</caption>
     <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col" class="num"><abbr title="Played">P</abbr></th><th scope="col" class="num hide-xs"><abbr title="Won">W</abbr></th><th scope="col" class="num hide-xs"><abbr title="Drawn">D</abbr></th><th scope="col" class="num hide-xs"><abbr title="Lost">L</abbr></th><th scope="col" class="num hide-sm"><abbr title="Goal difference">GD</abbr></th><th scope="col" class="num"><abbr title="Points">Pts</abbr></th><th scope="col" class="num hide-sm">Last sign-in</th></tr></thead><tbody>` +
-    ranked.map((p, i) => `<tr><td class="muted">${i + 1}</td><td class="name">${esc(p.name)}</td>
+    ranked.map((p, i) => `<tr><td class="muted">${i + 1}</td><td class="name">${nm(p.name)}<small class="show-xs">${p.won}-${p.drawn}-${p.lost} · GD ${gd(p) > 0 ? "+" : ""}${gd(p)}</small></td>
       <td class="num">${p.played}</td><td class="num hide-xs">${p.won}</td><td class="num hide-xs">${p.drawn}</td><td class="num hide-xs">${p.lost}</td>
       <td class="num hide-sm">${gd(p) > 0 ? "+" : ""}${gd(p)}</td><td class="num"><b>${pts(p)}</b></td>
       <td class="num hide-sm">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span>` : p.last_login ? `<span class="muted">${ago(p.last_login, now)}</span>` : "–"}</td></tr>`).join("") + `</tbody></table></div>`
@@ -604,13 +608,14 @@ function label(path) {
   const generic = /^((efootball )?pes ?2021( season update)?|files|bin|game|games|data)$/i;
   let k = q.length - 1;
   while (k > 0 && generic.test(q[k])) k--;
-  const n = q[k] && !generic.test(q[k]) && !/^(home|opt|mnt)$/.test(q[k]) ? q[k] : "";
+  if (k > 0 && q[k - 1] === "home") k = -1;      // /home/<user>: that's a person, not a folder name
+  const n = k >= 0 && q[k] && !generic.test(q[k]) && !/^(home|opt|mnt)$/.test(q[k]) ? q[k] : "";
   return n ? `PES 2021 (${n})` : "PES 2021 (other folder)";
 }
 const stateOf = g => g.mod + "/" + g.override;
 function gameRow(g) {
   const name = g.label || label(g.path);
-  let st, btn = "", info = "";
+  let st, btn = "", info = "", tail = "";
   const b = (cls, act, text) => `<button type="button" class="${cls}" data-game="${esc(g.id)}" data-act="${act}" data-key="game-${esc(g.id)}-${act}" aria-label="${text}: ${esc(name)}">${text}</button>`;
   const what = `<div class="what">Copies <code>dinput8.dll</code> into the game folder and tells PES to load it (keeps a backup of your settings).</div>`;
   const whatFinish = `<div class="what">The mod is in place. This tells PES to load it (a small settings change; a backup is kept).</div>`;
@@ -634,8 +639,9 @@ function gameRow(g) {
     } else {
       st = steam
         ? `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, add this Steam launch option. In Steam: PES 2021 → Properties → Launch options, paste <code>${esc(opt)}</code> ${copyBtn}</div>`
-        : `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, start PES with this environment variable set (in Lutris: Configure → System options → Environment variables): <code>${esc(opt)}</code> ${copyBtn}</div>`;
-      btn = `<button type="button" class="primary" data-optdone="${esc(g.path)}" data-key="lo-done-${esc(g.id)}" aria-label="I've added it: launch option for ${esc(name)}">I've added it</button> ${b("danger", "remove", "Uninstall")}`;
+        : `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, ${/\/lutris\//i.test(g.path) ? "in Lutris open Configure → System options → Environment variables and add" : /\/heroic\//i.test(g.path) ? "in Heroic open Settings → Advanced → Environment variables and add" : "start PES 2021 with this environment variable set (put it before the command you use to start it)"}: <code>${esc(opt)}</code> ${copyBtn}</div>`;
+      btn = `<button type="button" class="primary" data-optdone="${esc(g.path)}" data-key="lo-done-${esc(g.id)}" aria-label="I've added it: launch option for ${esc(name)}">I've added it</button>`;
+      tail = b("linkbtn skipbtn", "remove", "Uninstall");
       st += `<div class="what">The server can't see launch options, so click "I've added it" once it's in.</div>`;
     }
   } else {
@@ -643,12 +649,14 @@ function gameRow(g) {
   }
   const ready = g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g)));
   let skipb = "";
+  if (!ready && skipped(g)) { st = `<span class="pill neutral tag">Skipped</span>` + st.replace(/^<span class="pill[^>]*>.*?<\/span>/, ""); btn = btn.replace(/class="primary/g, 'class="'); }
   if (!ready && skipped(g)) info = `<span class="muted small">Skipped in this browser.</span> <button type="button" class="linkbtn" data-unskip="${esc(g.path)}" data-key="unskip-${esc(g.id)}" aria-label="Set up ${esc(name)} after all">Set it up after all</button>`;
   else if (!ready) skipb = `<button type="button" class="linkbtn skipbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}" aria-label="Skip ${esc(name)}: I don't play on this copy">Skip this copy</button>`;
   const msg = rowMsg[g.id] ? rowMsg[g.id].html : "";
-  return `<div class="game"><div class="where"><b>${esc(name)}</b>
+  const retry = failed ? `<button type="button" data-game="${esc(g.id)}" data-act="${rowMsg[g.id].act}" data-key="retry-${esc(g.id)}" data-retry="1" aria-label="Try again: ${esc(name)}">Try again</button>` : "";
+  return `<div class="game${!ready && skipped(g) ? " skipped" : ""}"><div class="where"><b>${esc(name)}</b>
       <code class="parent" title="${esc(g.path)}">${esc(String(g.path).replace(/^\/home\/[^/]+/, "~"))}</code><div class="st">${st}</div></div>
-    <div class="act">${failed ? "" : btn}${skipb}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
+    <div class="act">${failed ? retry : btn}${skipb}${tail}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
 }
 function libraryOf(path) {
   const p = String(path).split("/").filter(Boolean), i = p.indexOf("steamapps");
@@ -745,8 +753,8 @@ async function gameAction(btn) {
       : e.message === "failed" ? "That didn't work. Close the game and try again." : e.message;
     const needsInstall = /install command/.test(text);
     $("pc-live").textContent = text;
-    msg = {html: `<span class="err">${esc(text)}</span>${needsInstall ? ` <a href="#install-cmd">Show the install command</a>` : ""} <button type="button" data-game="${esc(id)}" data-act="${act}" data-key="retry-${esc(id)}" data-retry="1" aria-label="Try again: ${esc(g ? g.label || label(g.path) : "")}">Try again</button>`,
-           state: g ? stateOf(g) : "", until: Date.now() + 120000, error: true};
+    msg = {html: `<span class="err">${esc(text)}</span>${needsInstall ? ` <a href="#install-cmd">Show the install command</a>` : ""}`,
+           state: g ? stateOf(g) : "", until: Date.now() + 120000, error: true, act};
   }
   rowMsg[id] = msg;
   loadGames(true, id);
@@ -783,10 +791,12 @@ document.addEventListener("click", async e => {
   if (ct) {
     let ok = false;
     try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(ct.dataset.copytext); ok = true; } } catch (_) {}
-    if (!ok) { const ta = document.createElement("textarea"); ta.value = ct.dataset.copytext; ta.style.position = "fixed"; ta.style.opacity = "0";
+    if (!ok) { const ta = document.createElement("textarea"); ta.value = ct.dataset.copytext; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
       document.body.appendChild(ta); ta.select(); try { ok = document.execCommand("copy"); } catch (_) {} ta.remove(); ct.focus(); }
-    ct.textContent = ok ? "Copied ✓" : "Copy failed";
-    $("copy-live").textContent = ok ? (ct.dataset.copied || "Copied") : "Copy failed";
+    const code = ct.parentElement && ct.parentElement.querySelector("code");
+    if (!ok && code) { const r = document.createRange(); r.selectNodeContents(code); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+    ct.textContent = ok ? "Copied ✓" : code ? "Selected" : "Copy failed";
+    $("copy-live").textContent = ok ? (ct.dataset.copied || "Copied") : code ? "Selected. Press Ctrl+C to copy" : "Copy failed";
     setTimeout(() => { ct.textContent = "Copy"; }, 2000); return;
   }
   const more = e.target.closest("[data-more]");
@@ -841,7 +851,7 @@ document.addEventListener("click", async e => {
 $("lf").onsubmit = async e => {
   e.preventDefault();
   const password = $("pw").value.trim();
-  if (!password) { $("err").className = ""; $("err").textContent = "Type the admin password."; $("pw").focus(); return; }
+  if (!password) { $("err").className = ""; $("err").textContent = "Type the admin password."; $("pw").setAttribute("aria-invalid", "true"); $("pw").focus(); return; }
   $("signin").disabled = true; $("signin").textContent = "Checking…"; $("err").textContent = "";
   try {
     const r = await fetch("/admin/api/login", {method: "POST", signal: AbortSignal.timeout(8000),
@@ -881,7 +891,7 @@ fetch("/admin/api/info").then(r => r.json()).then(i => {
   if (i.docker_desktop) $("forgot").innerHTML = "Forgot it? On this computer, open a terminal and run <code>docker logs pesserver</code>.";
   if (i.host_ok === false) {
     const where = i.lan ? `<a href="http://${i.lan}/admin">http://${i.lan}/admin</a>` : "the server's address (for example http://192.168.x.x/admin)";
-    $("err").innerHTML = `For safety, the admin page only opens by its number address. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
+    $("err").innerHTML = `For safety, the admin page only opens by the server's IP address. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
     $("lf").before($("err")); $("err").classList.add("blocked"); $("lf").hidden = true; $("forgot").hidden = true; $("lsub").hidden = true; ($("err").querySelector("a") || $("err")).focus();
     $("signin").disabled = true;
   }
