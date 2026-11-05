@@ -103,7 +103,7 @@ def status():
         dll = _dll_state(os.path.join(g["dir"], "dinput8.dll"))
         override = _override_set(os.path.join(g["prefix"], "user.reg")) if g["prefix"] else None
         out.append({"id": g["id"], "path": g["host_dir"], "mod": dll, "override": override,
-                    "prefix": g["host_prefix"] if g["prefix"] else None})
+                    "prefix": (g["host_prefix"] or g["prefix"]) if g["prefix"] else None})
     return out
 
 
