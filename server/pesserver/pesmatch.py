@@ -129,6 +129,7 @@ def cancel_matching(svc, sess, req):
     st = _state(svc)
     st["queue"] = [(p, s) for p, s in st["queue"] if p != _pid(sess)]
     st["watch"].pop(_pid(sess), None)
+    _forget_mismatch(st, _pid(sess))
     log.info("MATCH cancel pid %s", _pid(sess))
     return {"result": NOERR}
 
@@ -162,11 +163,88 @@ def _username(svc, pid):
     return r[0] if r else ""
 
 
+# ---- game-data check: only pair games that will pass the P2P revision check ----------------------
+# After connecting, the two games compare revision and param_check_sum (MultiplayCmdRevisionCheck,
+# verdict 0x141001190); a mismatch ends the match with "DATAPACK error" (MXNV533). param_check_sum is
+# the CHECK_CHEAT sum over the player database: stat edits, transfers and live-update data change it,
+# cosmetic option-file content doesn't (notes/re/functions/menus.md). So keep such players apart.
+@cmd("CMD_JOIN_ONLINE_MODE")
+def join_online_mode(svc, sess, req):
+    if sess is not None:
+        sess.pes_versions = {k: str(req.get(k, "")) for k in
+                             ("patch_version", "dlc_version", "livedata_version", "extradata_version")}
+    return {"result": NOERR}
+
+
+@cmd("CMD_CHECK_CHEAT")
+def check_cheat(svc, sess, req):
+    # Only `result` is read; any error blocks online entry (CCWR450/455), so always NOERR.
+    if sess is not None:
+        sess.pes_sums = {"param": str(req.get("param_check_sum", "")), "entry": str(req.get("entry_check_sum", ""))}
+    return {"result": NOERR}
+
+
+@cmd("CMD_SEND_TAMPER_DATA")
+def send_tamper_data(svc, sess, req):
+    # The game's own report that player stats changed in memory after login (e.g. a trainer).
+    from . import events
+    pid = _pid(sess)
+    log.warning("TAMPER report pid %s: %s", pid, {k: v for k, v in req.items() if not k.startswith("_")})
+    if pid is not None:
+        events.feed(svc, f"{events.name_of(svc, pid)}'s game reported edited player data during play", "warn")
+    return {"result": NOERR}
+
+
+def _game_data(sess):
+    """What must be equal for two games to play: the player-database sum and the game versions.
+    None for a game that never sent them (it is paired with anyone, as before)."""
+    sums, ver = getattr(sess, "pes_sums", None), getattr(sess, "pes_versions", None)
+    if not sums or not sums.get("param"):
+        return None
+    ver = ver or {}
+    return (sums["param"], ver.get("patch_version", ""), ver.get("dlc_version", ""))
+
+
+def _compatible(sa, sb):
+    da, db = _game_data(sa), _game_data(sb)
+    return da is None or db is None or da == db
+
+
+def _note_mismatch(svc, a, b):
+    """Tell the host once per waiting pair why two searching players aren't matched."""
+    from . import events
+    st = _state(svc)
+    key = frozenset((a, b))
+    if key in st.setdefault("mismatch_told", set()):
+        return
+    st["mismatch_told"].add(key)
+    log.info("MATCH skip %s vs %s: different game data", a, b)
+    events.feed(svc, f"{events.name_of(svc, a)} and {events.name_of(svc, b)} can't play each other: their games "
+                     "have different player data (patch, live update or edited stats)", "warn")
+
+
+def _forget_mismatch(st, *pids):
+    st["mismatch_told"] = {k for k in st.get("mismatch_told", set()) if not k & set(pids)}
+
+
+def _next_pair(svc):
+    """The longest-waiting pair whose games can play each other, as queue indexes; None if none."""
+    q = _state(svc)["queue"]
+    for i in range(len(q)):
+        for j in range(i + 1, len(q)):
+            if _compatible(q[i][1], q[j][1]):
+                return i, j
+            _note_mismatch(svc, q[i][0], q[j][0])
+    return None
+
+
 def _try_pair(svc):
     st = _state(svc)
-    while len(st["queue"]) >= 2:
-        (a, sa), (b, sb) = st["queue"][0], st["queue"][1]
-        st["queue"] = st["queue"][2:]
+    while (ij := _next_pair(svc)) is not None:
+        i, j = ij
+        (a, sa), (b, sb) = st["queue"][i], st["queue"][j]
+        st["queue"] = [x for k, x in enumerate(st["queue"]) if k not in (i, j)]
+        _forget_mismatch(st, a, b)
         room = st["next_room"]; st["next_room"] += 1
         st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time()}
         log.info("MATCH FOUND room %d: owner %s vs %s", room, a, b)

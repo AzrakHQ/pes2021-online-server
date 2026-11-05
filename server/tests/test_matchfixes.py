@@ -95,3 +95,53 @@ def test_message_too_long_for_one_frame_is_refused(svc):
         title = "".join(rnd.choice("ابتثجحخدذرزسشصضطظعغفقكلمنهوي") for _ in range(60))
         announce.set_news(svc, title, arabic)                          # 1056 bytes encoded, limit 1024
     assert announce.snapshot(svc)["news"]["body"] == "a" * 600         # the old message stays
+
+
+# ---- pairing only games that pass the P2P revision check (DATAPACK error otherwise) ---------------
+REC_PARAM = "25D6DFBB091E75D525E090F993DBAE73"            # the sum every recorded session sent
+
+
+def _searching(svc, pid, param=REC_PARAM, patch="1.01.00", send_sums=True):
+    svc.accounts.db.execute("INSERT OR IGNORE INTO pes_players(pid, username, name, created) VALUES(?,?,?,0)",
+                            (pid, f"u{pid}", f"P{pid}"))
+    s = SimpleNamespace(pes_pid=pid, peer_ip="192.168.1.5")
+    svc.online[pid] = s
+    pescmds._dispatch(svc, s, "CMD_JOIN_ONLINE_MODE", {"online_mode": "QUICK", "patch_version": patch,
+                                                     "dlc_version": "1.00", "livedata_version": "0"})
+    if send_sums:
+        r = pescmds._dispatch(svc, s, "CMD_CHECK_CHEAT", {"param_check_sum": param, "entry_check_sum": "1E21"})
+        assert r == {"result": "NOERR"}                     # any error would block online entry (CCWR450)
+    pescmds._dispatch(svc, s, "CMD_START_MATCHING", {"rqid": 1})
+    return s
+
+
+def _rooms(svc):
+    return [r["members"] for r in pesmatch._state(svc)["rooms"].values()]
+
+
+def test_players_with_different_player_data_are_not_paired(svc, monkeypatch):
+    monkeypatch.setattr(pesmatch, "_send_later", lambda *a: None)
+    _searching(svc, 1)
+    _searching(svc, 2, param="0" * 32)                      # edited stats / other live update
+    _searching(svc, 2, param="0" * 32)                      # searching again: the host is told only once
+    assert _rooms(svc) == []
+    warns = [e["text"] for e in events.snapshot(svc)["feed"] if "can't play each other" in e["text"]]
+    assert len(warns) == 1 and "P1" in warns[0] and "P2" in warns[0]
+    _searching(svc, 3)                                      # same data as player 1, arrived later
+    assert _rooms(svc) == [[1, 3]]
+    assert [p for p, _ in pesmatch._state(svc)["queue"]] == [2]
+
+
+def test_different_patch_is_not_paired_and_unknown_data_pairs_with_anyone(svc, monkeypatch):
+    monkeypatch.setattr(pesmatch, "_send_later", lambda *a: None)
+    _searching(svc, 1)
+    _searching(svc, 2, patch="1.00.00")
+    assert _rooms(svc) == []
+    _searching(svc, 3, send_sums=False)                     # a mode that skips CHECK_CHEAT: as before
+    assert _rooms(svc) == [[1, 3]]
+
+
+def test_tamper_report_reaches_the_admin_feed(svc):
+    s = _searching(svc, 1)
+    assert pescmds._dispatch(svc, s, "CMD_SEND_TAMPER_DATA", {"pid": 1, "data": "Doping:123"}) == {"result": "NOERR"}
+    assert any("edited player data" in e["text"] for e in events.snapshot(svc)["feed"])
