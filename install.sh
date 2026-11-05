@@ -28,11 +28,19 @@ docker info >/dev/null 2>&1 || DOCKER="$SUDO docker"
 
 bold "Starting the PES 2021 server..."
 REPO="https://github.com/MohamedAliRashad/pes2021-private-server.git#main:server"
-if ! $DOCKER pull -q "$IMAGE" >/dev/null 2>&1; then
+pulled=0
+for try in 1 2 3; do
+  if err="$($DOCKER pull -q "$IMAGE" 2>&1)"; then pulled=1; break; fi
+  if [ "$try" -lt 3 ]; then echo "Download failed, retrying..."; sleep 3; fi
+done
+if [ "$pulled" = 0 ]; then
   if [ -n "${PES_IMAGE:-}" ] && $DOCKER image inspect "$IMAGE" >/dev/null 2>&1; then
     :   # a local image given explicitly
+  elif $DOCKER image inspect "$IMAGE" >/dev/null 2>&1; then
+    echo "Could not download the latest version ($(printf '%s' "$err" | tail -n 1)); using the copy already on this computer."
   else
-    echo "Building the server from source (one time, about a minute)..."
+    echo "Could not download the server ($(printf '%s' "$err" | tail -n 1))."
+    echo "Building it from source instead (one time, about a minute)..."
     $DOCKER build -q -t "$IMAGE" "$REPO" >/dev/null || { echo "Could not build the server image."; exit 1; }
   fi
 fi
