@@ -287,8 +287,8 @@ def banner(password=None, color=True):
     line = D("  " + "─" * 66)
     out = ["", line, f"   ⚽  {B('PES 2021 SERVER')}" + " " * 39 + G("● ONLINE"), line, "",
            f"   {B('Admin page')}   {C(f'http://{here}/admin')}"]
-    if wan and wan != here:
-        out.append(D(f"                from outside this network: http://{wan}/admin"))
+    if wan and wan != here and os.environ.get("ADMIN_REMOTE") == "1":
+        out.append(D(f"                from anywhere: http://{wan}/admin"))
     if password:
         out.append(f"   {B('Password')}     {Y(password)}")
     out += ["", D("   Open it to download the one file your friends need."), ""]

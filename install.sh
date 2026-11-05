@@ -7,6 +7,7 @@
 # router's ports with UPnP and prints the admin page (where the host downloads the mod for friends).
 # Run it again to update.
 # Optional env: PUBLIC_IP=<addr> (pin the address given to players), UPNP=0 (don't touch the router),
+#               ADMIN_REMOTE=1 (admin page from any network, e.g. a cloud server; it isn't encrypted),
 #               PES_IMAGE=<image> (default: the published image).
 set -eu
 IMAGE="${PES_IMAGE:-ghcr.io/mohamedalirashad/pes2021-private-server:latest}"
@@ -80,7 +81,8 @@ rm -f "$GAMES_LIST"
 
 $DOCKER rm -f pesserver >/dev/null 2>&1 || true
 $DOCKER run -d --name pesserver --network host --restart unless-stopped \
-  -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -v pesserver-data:/data "$@" "$IMAGE" >/dev/null
+  -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -e ADMIN_REMOTE="${ADMIN_REMOTE:-}" \
+  -v pesserver-data:/data "$@" "$IMAGE" >/dev/null
 
 i=0
 until out="$($DOCKER exec pesserver cat /tmp/pesserver-banner.txt 2>/dev/null)" && [ -n "$out" ]; do

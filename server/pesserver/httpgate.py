@@ -16,12 +16,15 @@ def make_handler(service, stun_host, stun_port, gate_port):
             body = b""
             if int(headers.get("content-length", 0)):
                 body = await reader.readexactly(min(int(headers["content-length"]), 1 << 16))
-            log.info("HTTP %s %s hdr=%s body=%r", method, path, headers, body[:300])
+            log.info("HTTP %s %s hdr=%s body=%r", method, path,
+                     {k: ("<hidden>" if k == "authorization" else v) for k, v in headers.items()},
+                     b"<hidden>" if path.startswith("/admin") else body[:300])
             route = path.split("?", 1)[0].rstrip("/").lower()
             status = "200 OK"
             extra = b""
             if route == "/admin" or route.startswith("/admin/api/"):
-                status, out, ctype = await _admin(service, method, route, headers, body)
+                peer = (writer.get_extra_info("peername") or ("",))[0]
+                status, out, ctype = await _admin(service, method, route, headers, body, peer)
             elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
                                              "/leave.ps1", "/install-ca-proton.py", "/banner"):
                 out, ctype = _web(service, route, headers, writer)
@@ -104,15 +107,58 @@ def server_id():
     return _SID[0]
 
 
-async def _admin(service, method, route, headers, body):
+_FAILED = {}                                  # client IP -> times of recent wrong passwords
+
+
+def admin_allowed(peer):
+    """The admin page opens only from the server's own networks: home/LAN (private ranges),
+    Tailscale (100.64.0.0/10), this machine. ADMIN_REMOTE=1 allows it from anywhere (cloud servers
+    behind NAT); a machine whose own address is public (a cloud server) allows it automatically."""
+    import ipaddress
+    from . import netsetup
+    if os.environ.get("ADMIN_REMOTE") == "1":
+        return True
+    try:
+        ip = ipaddress.ip_address(peer.split("%")[0])
+        if ip.version == 6 and ip.ipv4_mapped:
+            ip = ip.ipv4_mapped
+    except ValueError:
+        return False
+    if not ip.is_global:                      # home/LAN, Tailscale's 100.64.0.0/10, loopback, link-local
+        return True
+    lan = netsetup.STATE.get("lan")
+    try:
+        return bool(lan) and ipaddress.ip_address(lan).is_global
+    except ValueError:
+        return False
+
+
+ADMIN_BLOCKED = b"""<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>PES 2021 Admin</title><body style="font:16px/1.6 system-ui,sans-serif;max-width:560px;margin:60px auto;padding:0 16px">
+<h1>Admin page: home network only</h1><p>For safety, the admin page only opens from the server's own network
+(and Tailscale). Open it from a device on the same Wi-Fi as the server, using the address the server printed.</p>
+<p>Hosting on a cloud server? Run the install line with <code>ADMIN_REMOTE=1</code> before <code>sh</code>.</p></body>"""
+
+
+async def _admin(service, method, route, headers, body, peer=""):
     """Admin page (/admin) and its JSON API, protected by the admin password."""
-    import hmac
+    import hmac, time as _time
     from . import events, netsetup
+    if not admin_allowed(peer):
+        if route == "/admin":
+            return "403 Forbidden", ADMIN_BLOCKED, "text/html; charset=utf-8"
+        return "403 Forbidden", b'{"error":"home network only"}', "application/json"
     if route == "/admin":
         return "200 OK", open(os.path.join(WEB, "admin.html"), "rb").read(), "text/html; charset=utf-8"
+    now = _time.time()
+    recent = [t for t in _FAILED.get(peer, []) if now - t < 60]
+    _FAILED[peer] = recent
+    if len(recent) >= 5:
+        return "429 Too Many Requests", b'{"error":"too many wrong passwords; wait a minute"}', "application/json"
     pw = getattr(service, "admin_password", None)
     given = headers.get("authorization", "")[7:] if headers.get("authorization", "").startswith("Bearer ") else ""
     if not pw or not hmac.compare_digest(given.encode(), pw.encode()):
+        recent.append(now)
         await asyncio.sleep(1)                # slow down password guessing
         return "401 Unauthorized", b'{"error":"wrong password"}', "application/json"
     if route == "/admin/api/state":
@@ -138,9 +184,14 @@ async def _admin(service, method, route, headers, body):
             else:
                 result = gamesetup.remove(gid)
         except LookupError:
-            return "404 Not Found", b'{"error":"game not found"}', "application/json"
-        except (PermissionError, OSError) as e:
-            return "409 Conflict", json.dumps({"error": str(e)}).encode(), "application/json"
+            return "404 Not Found", b'{"error":"That game folder is gone. Run the install command again to look for PES 2021."}', "application/json"
+        except PermissionError as e:
+            msg = str(e) if "dinput8.dll" in str(e) and "Errno" not in str(e) else \
+                "Couldn't write to the game folder. Close the game and try again."
+            return "409 Conflict", json.dumps({"error": msg}).encode(), "application/json"
+        except OSError:
+            log.exception("installing the mod")
+            return "409 Conflict", b'{"error":"Couldn\'t write to the game folder. Close the game and try again."}', "application/json"
         return "200 OK", json.dumps(result).encode(), "application/json"
     if route == "/admin/api/kick" and method == "POST":
         try:

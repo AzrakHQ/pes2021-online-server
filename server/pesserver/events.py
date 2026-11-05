@@ -146,19 +146,25 @@ def snapshot(svc):
     results = [dict(zip(("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason"), r))
                for r in db.execute("SELECT id, started, ended, home_name, away_name, home_score, away_score, reason"
                                    " FROM pes_matches ORDER BY id DESC LIMIT 50")]
+    played_total = db.execute("SELECT COUNT(*) FROM pes_matches").fetchone()[0]
     players = []
     try:
         rows = db.execute("SELECT pid, name, username, created, last_login FROM pes_players ORDER BY last_login DESC").fetchall()
     except Exception:  # noqa: BLE001
         rows = []
     for pid, name, username, created, last in rows:
-        w = d = l = 0
+        w = d = l = gf = ga = 0
         for hp, ap, hs, as_ in db.execute("SELECT home_pid, away_pid, home_score, away_score FROM pes_matches"
                                           " WHERE home_pid=? OR away_pid=?", (pid, pid)):
             mine, theirs = (hs, as_) if hp == pid else (as_, hs)
+            if mine is None or theirs is None:
+                continue
             w, d, l = w + (mine > theirs), d + (mine == theirs), l + (mine < theirs)
+            gf, ga = gf + mine, ga + theirs
         players.append({"pid": pid, "name": name or f"Player {pid}", "created": created, "last_login": last,
-                        "online": pid in svc.online, "played": w + d + l, "won": w, "drawn": d, "lost": l})
+                        "online": pid in svc.online, "played": w + d + l, "won": w, "drawn": d, "lost": l,
+                        "gf": gf, "ga": ga})
     live = [{k: v for k, v in lv.items() if k not in ("left", "saved")} for lv in st["live"].values()]
     return {"now": now, "uptime": now - st["started"], "online": online, "searching": len(queued),
-            "live": live, "results": results, "players": players, "feed": list(st["feed"])[:60]}
+            "live": live, "results": results, "played_total": played_total, "players": players,
+            "feed": list(st["feed"])[:60]}

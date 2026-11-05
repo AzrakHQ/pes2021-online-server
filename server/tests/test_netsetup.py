@@ -39,7 +39,10 @@ def test_igd_description_and_ssdp_parsing():
 def test_banner(monkeypatch, tmp_path):
     monkeypatch.setitem(netsetup.STATE, "mapped", ["80/tcp"])
     b = netsetup.banner("pw-1", color=False)
-    assert "Admin page   http://192.168.1.50/admin" in b and "from outside this network: http://203.0.113.7/admin" in b
+    assert "Admin page   http://192.168.1.50/admin" in b and "203.0.113.7" not in b
+    monkeypatch.setenv("ADMIN_REMOTE", "1")
+    assert "from anywhere: http://203.0.113.7/admin" in netsetup.banner(color=False)
+    monkeypatch.delenv("ADMIN_REMOTE")
     assert "pw-1" in b and "download the one file" in b
     assert "join" not in b and "irm " not in b and "trycloudflare" not in b
     assert "Password" not in netsetup.banner(color=False)
@@ -279,3 +282,16 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
         finally:
             srv.close()
     asyncio.run(go())
+
+
+def test_admin_only_from_own_networks(monkeypatch):
+    monkeypatch.delenv("ADMIN_REMOTE", raising=False)
+    for ok in ("127.0.0.1", "192.168.1.20", "10.0.0.5", "172.17.0.1", "100.101.1.2", "::1", "::ffff:192.168.1.9", "fd00::1"):
+        assert httpgate.admin_allowed(ok), ok
+    for bad in ("8.8.8.8", "156.204.152.194", "2001:4860::1", "", "nonsense"):
+        assert not httpgate.admin_allowed(bad), bad
+    monkeypatch.setenv("ADMIN_REMOTE", "1")
+    assert httpgate.admin_allowed("8.8.8.8")
+    monkeypatch.delenv("ADMIN_REMOTE")
+    monkeypatch.setitem(netsetup.STATE, "lan", "8.8.4.4")       # a cloud server with a public address
+    assert httpgate.admin_allowed("8.8.8.8")
