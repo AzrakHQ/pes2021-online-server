@@ -4,6 +4,7 @@
 - The "dual route" SOFTWARE directive is **required, not optional**. After allocating, Turn::Impl needs the relay's SOFTWARE to be `HOST:PORT,<text>,0`, otherwise it restarts the session every second. With it, the game opens a second leg over DTLS/UDP and only publishes its relay address once that works. (Live test, livetests.md.)
 - The coturn run's instant disconnect was **not** caused by mobility: our relay granted mobility and the game still disconnected until the SOFTWARE directive was sent.
 - Settled live: REQUESTED-TRANSPORT is UDP (0x11); the client sends MOBILITY-TICKET and SOFTWARE "ktc-0.0.0"; a failing TURN path does not break the match.
+- Second leg tested live (livetests.md): DTLS 1.2, cookie exchange, ECDHE-ECDSA-AES256-GCM-SHA384, our TURN certificate accepted; the client then repeats ~67-byte encrypted records (presumably TURN over DTLS).
 - The multiplay parameters come from the server (`GET_SERVER_ENV.proto_opt` JSON), not a game data file (nettune.md).
 
 

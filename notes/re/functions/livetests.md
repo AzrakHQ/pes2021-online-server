@@ -34,6 +34,21 @@ instrumented at runtime from a scratch launcher (no repo code changed). Tags: [l
     the next match starts.
 - **What a working relay needs:** keep the TLS listener and also serve **TURN over DTLS on UDP** at the directive's
   port. The game then moves to that leg and publishes its relay address. Not yet built.
+- **Second leg, tested with a stock DTLS server** (openssl s_server -dtls on the directive's UDP port, our relay's
+  TURN certificate; second session 2026-11-05):
+  - The game completes a **DTLS 1.2** handshake: ClientHello, the HelloVerifyRequest cookie exchange, our
+    certificate, ECDHE key exchange, Finished.
+  - Negotiated cipher: **ECDHE-ECDSA-AES256-GCM-SHA384**, the same as the TLS leg. Groups offered: x25519,
+    secp256r1, secp521r1, secp384r1.
+  - The certificate from GET_TURN_SERVER_LIST is accepted for this leg too.
+  - Afterwards the client sends application-data records (type 0x17, epoch 1, increasing sequence numbers) of
+    91 bytes each, about 67 bytes of plaintext. They are resent repeatedly while nothing answers (155 in a few
+    minutes).
+  - The stock server does not show the decrypted content. Its size is close to the 64-byte Allocate the client
+    sends on the TLS leg, so this is presumably TURN over DTLS [inferred].
+  - **Relay next step:** a DTLS 1.2 endpoint on the directive's UDP port, with the TURN certificate and cookie
+    exchange, that answers the TURN messages inside (the same handling as the TLS leg). Decoding the first
+    plaintext record will confirm the protocol.
 
 ## Reconnect and outages
 - **Server outage during a match** (about 7 s): both games sent **CMD_RECONNECT** `{pid, platform "PC",
