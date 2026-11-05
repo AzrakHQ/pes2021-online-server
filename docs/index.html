@@ -66,7 +66,7 @@ code, pre { font-family: var(--mono); }
 .theme svg { width: 18px; height: 18px; }
 @media (max-width: 640px) { .logo span { display: none; } .nav ul { gap: 12px; } .nav ul a { font-size: 14px; } .nav .wrap { gap: 10px; } }
 @media (max-width: 460px) { .nav .gh { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 13px; } }
-@media (max-width: 380px) { .nav ul { gap: 8px; overflow-x: auto; scrollbar-width: none; min-width: 0; } .nav ul::-webkit-scrollbar { display: none; } .logo { flex: none; } .nav .wrap { gap: 8px; padding: 0 14px; } }
+@media (max-width: 380px) { .logo { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 12.5px; } .nav .wrap { gap: 8px; padding: 0 12px; } }
 
 /* hero */
 .hero { background: radial-gradient(1200px 500px at 80% -10%, rgba(60,207,142,.25), transparent 60%), linear-gradient(160deg, var(--pitch1), var(--pitch2)); color: #fff; position: relative; overflow: hidden; }
@@ -76,6 +76,9 @@ code, pre { font-family: var(--mono); }
 .hero h1 { font-size: clamp(38px, 6vw, 62px); line-height: 1.04; margin: 0 0 18px; letter-spacing: -.025em; }
 .hero p.lead { font-size: 20px; color: #d3ece0; margin: 0 0 26px; max-width: 34em; }
 .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+.roles { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; font-size: 15px; }
+.roles a { color: #bfe0d1; font-weight: 600; }
+.roles a:hover { color: #fff; }
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; border: 2px solid transparent; }
 .btn.primary { background: var(--accent); color: #04241a; }
 .btn.primary:hover { background: #63dea6; color: #04241a; }
@@ -255,7 +258,7 @@ details.q { border-bottom: 1px solid var(--line); padding: 4px 0; }
 details.q summary { cursor: pointer; font-weight: 700; font-size: 18px; padding: 14px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
 summary::-webkit-details-marker { display: none; }
 details.q summary::after, details.changes summary::after { content: "+"; color: var(--brand); font-size: 22px; line-height: 1; }
-details.changes summary { list-style: none; display: flex; justify-content: space-between; cursor: pointer; font-weight: 700; }
+details.changes summary { list-style: none; display: flex; justify-content: space-between; gap: 16px; cursor: pointer; font-weight: 700; }
 details[open] > summary::after { content: "–"; }
 details.q p, details.q ul, details.q ol { margin: 0 0 16px; color: var(--muted); max-width: 48em; }
 details.q .cmd { max-width: 48em; margin-bottom: 16px; }
@@ -295,13 +298,14 @@ footer a { color: var(--muted); }
 <header class="hero" id="top">
   <div class="wrap">
     <div>
-      <span class="eyebrow">Free · Open source (MIT) · No admin rights</span>
+      <span class="eyebrow">Free · Open source (MIT) · No admin rights for players</span>
       <h1>PES 2021 is back online.</h1>
       <p class="lead">Konami switched off the online servers for eFootball PES 2021, and every online mode went dark with them. This project brings online Quick Match back: one friend runs a small server, everyone else gets one small file, and you play real online matches again.</p>
       <div class="ctas">
         <a class="btn primary" href="#play">Start playing</a>
         <a class="btn ghost" href="#inside">How it works</a>
       </div>
+      <p class="roles"><a href="#host">I'm hosting →</a><a href="#join">A friend sent me a file →</a></p>
       <a class="pill-status" href="#status"><i aria-hidden="true"></i>Early access: proven on Linux · testers wanted for Windows, Steam Deck and two separate PCs</a>
       <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or cheap server</b> to host (Windows/Mac hosting should work through Docker Desktop, untested).</p>
       <ul class="facts">
@@ -394,7 +398,7 @@ footer a { color: var(--muted); }
             <li><b>All on Windows, want it easy:</b> a small <a href="#faq-cloud">cloud server</a>, about $5 a month, about 10 minutes.</li>
             <li><b>All on Windows, want it free:</b> <a href="#faq-winhost">Docker Desktop</a> on one PC, about 20 minutes.</li>
           </ul>
-          <p class="small muted">Any 64-bit Linux works: your gaming PC, a laptop, a Raspberry Pi with 64-bit Raspberry Pi OS, or a cloud server. Ubuntu, Debian and Fedora need nothing else; on Arch, SteamOS or Bazzite, install Docker with your package manager first. Open a terminal, paste the command and press Enter.</p>
+          <p class="small muted">Any 64-bit Linux works: your gaming PC, a laptop, a Raspberry Pi with 64-bit Raspberry Pi OS, or a cloud server. Ubuntu, Debian and Fedora need nothing else (if the terminal says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first); on Arch or Bazzite, install Docker with your package manager first and the installer starts it. A Steam Deck isn't a good host: its system is read-only. Open a terminal, paste the command and press Enter.</p>
           <p class="small muted">It asks for your password (sudo), installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
         </div>
         <div>
@@ -410,7 +414,8 @@ footer a { color: var(--muted); }
               <li>Installs Docker if it's missing, using Docker's official script from get.docker.com (it runs as administrator).</li>
               <li>Starts the server in a container that restarts after reboots until you stop it. It uses about 50 MB of memory.</li>
               <li>Opens 6 ports on your router (UPnP) so friends outside your home can reach you.</li>
-              <li>If PES 2021 is installed on this computer, lets the server see <b>only those game folders</b>, so the admin page can install the mod for you in one click.</li>
+              <li>If PES 2021 is installed on this computer, lets the server read and write <b>only those game folders</b> (and their Wine settings), so the admin page can install the mod for you in one click.</li>
+              <li>The admin page is plain HTTP and opens only from your home network (and Tailscale). On a cloud server you switch remote access on yourself, see <a href="#faq-cloud">cloud hosting</a>.</li>
               <li>Keeps players, results and a message log in a Docker volume. <a href="#faq-host">Stop or remove it</a> any time.</li>
             </ul>
           </details>
@@ -423,7 +428,7 @@ footer a { color: var(--muted); }
           <div class="step-num" aria-hidden="true">2</div>
           <h3>The host sends friends one file</h3>
           <p class="small muted">Open your admin page, sign in with the password, and click <b>Download the mod for friends</b>. You get one small file, <code>dinput8.dll</code>, made for your server.</p>
-          <p class="small muted">Send it to each friend on <b>Discord, WhatsApp or Telegram</b>. Email usually blocks this kind of file.</p>
+          <p class="small muted">Send it to each friend on <b>Discord, WhatsApp or Telegram</b>. Email usually blocks this kind of file. Or copy the link under the button (your server's address) and send that: it opens a page where friends download the file themselves.</p>
           <p class="small muted"><b>Playing on the same PC?</b> If the installer found PES 2021 on it, the admin page has a <b>This PC</b> card: close the game and click <b>Install mod</b>.</p>
         </div>
         <div>
@@ -455,7 +460,7 @@ footer a { color: var(--muted); }
           <h3>Friends drop it in and play</h3>
           <ol class="small how">
             <li>In Steam, right-click <b>PES 2021</b> → <b>Manage</b> → <b>Browse local files</b>, and put <code>dinput8.dll</code> in that folder, next to <code>PES2021.exe</code>.</li>
-            <li><b>Steam Deck / Linux only:</b> right-click PES 2021 → <b>Properties</b> → <b>Launch options</b>, and paste the line on the right.</li>
+            <li><b>Steam Deck / Linux only:</b> right-click PES 2021 → <b>Properties</b> → <b>Launch options</b>, and paste the launch-option line shown with this step. On a Steam Deck, switch to Desktop Mode first to download the file (for example from Discord in the browser).</li>
             <li>Start PES 2021. The first time, pick your region, accept the terms and choose a player name.</li>
             <li>Go to <b>eFootball → Quick Match</b>, pick a team and press <b>Go to Matchmaking</b>. When two players are searching, the server pairs them: press <b>Proceed</b>, then both press <b>Kick Off</b>.</li>
           </ol>
@@ -516,7 +521,7 @@ footer a { color: var(--muted); }
 
 <section id="help" class="alt">
   <div class="wrap">
-    <p class="kicker">Troubleshooting</p>
+    <p class="kicker">Help</p>
     <h2>Something went wrong?</h2>
     <p class="intro">Find what you see. For a friend's problem, the mod's log, <code>pes2021-online.log</code> in their game folder, usually says why.</p>
     <div class="card">
@@ -537,7 +542,7 @@ footer a { color: var(--muted); }
         </tbody>
       </table>
     </div>
-    <p class="note">Still stuck? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Open an issue</a> with what you see, the friend's <code>pes2021-online.log</code>, and the output of <code>docker logs pesserver</code>.</p>
+    <p class="note">Still stuck? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Open an issue</a> with what you see, the friend's <code>pes2021-online.log</code>, and the output of <code>sudo docker logs pesserver</code>.</p>
   </div>
 </section>
 
@@ -567,7 +572,7 @@ footer a { color: var(--muted); }
     </details>
     <details class="q" id="faq-trust">
       <summary>Should I trust a mod file my friend sends?</summary>
-      <p>Only from friends you trust, like any program. The file your host downloads from their own admin page is the official build with their server's details written in. It can only make your game talk to their server, and it can't be redirected elsewhere: a server that doesn't hold their secret key is refused.</p>
+      <p>Only from friends you trust, like any program. The safest copy is one you download yourself from your host's own link (their server's address), rather than a copy forwarded by someone else. The file their server hands out is the official build with their server's details written in. It can only make your game talk to their server, and it can't be redirected elsewhere: a server that doesn't hold their secret key is refused.</p>
       <p>The server stores your player name, Steam ID and match results, sees your IP address, and keeps a log of the game's messages on the host's disk. Like any peer-to-peer game, your opponent's PC connects straight to yours during a match, so it sees your IP address too.</p>
     </details>
     <details class="q" id="faq-undo">
@@ -598,13 +603,13 @@ footer a { color: var(--muted); }
         <li>Show the admin page and password again: <code>sudo docker logs pesserver</code></li>
         <li>Restart: <code>sudo docker restart pesserver</code> · Stop: <code>sudo docker stop pesserver</code> (this also closes the router ports it opened)</li>
         <li>Update to the latest version: run the install line again. Players, results and your server's identity are kept, so friends' files keep working.</li>
-        <li>Remove everything: <code>sudo docker rm -f pesserver; sudo docker volume rm pesserver-data; sudo docker rmi ghcr.io/mohamedalirashad/pes2021-private-server</code> (deletes players and results, and the server's identity, so old mod files stop working; Docker itself stays installed).</li>
+        <li>Remove everything: first click <b>Uninstall</b> on the admin page's This PC card (if you used it), then <code>sudo docker rm -f pesserver; sudo docker volume rm pesserver-data; sudo docker rmi ghcr.io/mohamedalirashad/pes2021-private-server</code> (deletes players and results, and the server's identity, so old mod files stop working; Docker itself stays installed).</li>
       </ul>
       <p>If your user is in the <code>docker</code> group you can leave out <code>sudo</code>.</p>
     </details>
     <details class="q" id="faq-thispc">
       <summary>How does "This PC" install the mod for me?</summary>
-      <p>When you run the install line, it looks for PES 2021 in your Steam libraries and in <code>~/Games</code>, and lets the server see only those game folders and their Wine settings. <b>Install mod</b> puts your server's <code>dinput8.dll</code> next to <code>PES2021.exe</code> and, on Linux, sets Wine to load it for PES 2021 only, so you don't need the launch option. Close the game first. It never replaces another mod's <code>dinput8.dll</code>, keeps a backup of Wine's settings, and <b>Remove</b> undoes it.</p>
+      <p>When you run the install line, it looks for PES 2021 in your Steam libraries and in <code>~/Games</code>, and lets the server see only those game folders and their Wine settings. <b>Install mod</b> puts your server's <code>dinput8.dll</code> next to <code>PES2021.exe</code> and, on Linux, sets Wine to load it for PES 2021 only, so you don't need the launch option. Close the game first. It never replaces another mod's <code>dinput8.dll</code>, keeps a backup of Wine's settings, and <b>Uninstall</b> undoes it.</p>
     </details>
     <details class="q" id="faq-cloud">
       <summary>How do I run it on a cloud server?</summary>
@@ -612,9 +617,11 @@ footer a { color: var(--muted); }
       <ol>
         <li>Create a small Linux server with any cloud provider. The cheapest size is plenty (1 CPU, 1 GB of memory), usually about $4–6 a month, and some providers have free tiers. Pick <b>Ubuntu 24.04</b> (64-bit); Intel/AMD and ARM both work.</li>
         <li>In the provider's firewall (often called "security group" or "firewall rules"), allow incoming <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b> from anywhere.</li>
-        <li>Open the server's terminal (the provider's web console, or SSH), paste the install line from <a href="#host">step 1</a> and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.</li>
+        <li>Open the server's terminal (the provider's web console, or SSH) and paste this version of the install line, which lets you open the admin page from your home over the internet. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
+          <div class="cmd" style="margin-top:8px"><pre id="c-cloud">curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud" type="button">Copy</button></div>
+          The admin page isn't encrypted, so its password crosses the internet in the clear: keep the generated password, and don't sign in from public Wi-Fi.</li>
         <li>The banner may say "Router ports are closed": on a cloud server that's normal, because there's no home router. The ports you opened in step 2 are what count.</li>
-        <li>Open the admin page at the server's internet address (the banner shows it) and download the mod for your friends.</li>
+        <li>Open the admin page at the banner's "from anywhere" address and download the mod for your friends.</li>
       </ol>
       <p>The match itself still runs directly between the two players' PCs, so a cloud server doesn't fix "Failed to connect with opponent". It does keep login and matchmaking reachable for everyone.</p>
     </details>
@@ -637,7 +644,7 @@ footer a { color: var(--muted); }
     <h3 class="faqh">About the project</h3>
     <details class="q">
       <summary>Does it cost anything?</summary>
-      <p>No. The software and the admin page are free, and nothing depends on an outside service. The host just needs a computer that's on while you play.</p>
+      <p>No. The software and the admin page are free, with no accounts or paid services. The installer downloads from GitHub and Docker, and the server asks a free what-is-my-IP service for its public address. The host just needs a computer that's on while you play.</p>
     </details>
     <details class="q">
       <summary>Is this legal? Is it affiliated with Konami?</summary>
@@ -854,7 +861,7 @@ answer with a 16-byte key
         <p>The mod does the same two jobs from inside the game instead. PES 2021, like most PC games, loads a file named <code>dinput8.dll</code> from its own folder when it starts. Ours passes the game's controller requests straight on to Windows, and while the game runs it answers the game's "where is Konami?" with your friend's server, and accepts that server for the network test. Close the game and it's gone; delete the file and nothing is left.</p>
         <p>One more problem: home servers restart and their addresses change. So each server has a permanent <b>identity</b>, a secret key it never shares, and every copy of the mod carries the matching public half. Before connecting anywhere, the mod sends a random challenge and only accepts an address that answers with the right signature:</p>
         <div class="flow" role="img" aria-label="The mod sends a random challenge to an address; your friend's server signs it with its secret key; the mod checks the signature and connects. A different server can't sign it, so it is refused."><span>mod: "prove it: 7f3a…"</span><b class="a" aria-hidden="true">→</b><span>server signs it with its secret key</span><b class="a" aria-hidden="true">→</b><span class="k">signature matches: connect</span></div>
-        <p class="fun"><b>What it buys:</b> the file keeps working after restarts, a stranger at your friend's old address can't take over, and a forged "the server moved" note is ignored. We tested all three with the real game.</p>
+        <p class="fun"><b>What it buys:</b> the file keeps working after restarts, a stranger at your friend's old address can't take over (it can't sign the challenge), and a forged "the server moved" note is ignored. With the real game we tested the restart with a dead link and a wrong address, and the forged note; the stranger case relies on the same signature check.</p>
       </div>
     </article>
 

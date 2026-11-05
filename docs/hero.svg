@@ -36,7 +36,7 @@
   </g>
 
   <!-- headline -->
-  <text x="72" y="92" class="sans" font-size="17" font-weight="700" letter-spacing="3" fill="#8fe3bd">PRIVATE SERVER · FREE · NO ADMIN RIGHTS</text>
+  <text x="72" y="92" class="sans" font-size="17" font-weight="700" letter-spacing="3" fill="#8fe3bd">PRIVATE SERVER · FREE · NO ADMIN RIGHTS FOR PLAYERS</text>
   <text x="72" y="152" class="sans" font-size="54" font-weight="800" fill="#ffffff">PES 2021 is back online</text>
   <text x="72" y="194" class="sans" font-size="23" fill="#cfe9dc">Host your own server with one command. Friends get one small file. Then just play.</text>
 
@@ -98,7 +98,7 @@
       <rect y="48" width="70" height="18" rx="5" fill="#ffffff"/><circle cx="58" cy="57" r="4" fill="#3ccf8e"/>
     </g>
     <text x="150" y="122" class="sans" font-size="24" font-weight="800" fill="#ffffff" text-anchor="middle">Your server</text>
-    <text x="150" y="148" class="sans" font-size="15" fill="#cfe9dc" text-anchor="middle">Linux or Docker Desktop · free web link</text>
+    <text x="150" y="148" class="sans" font-size="15" fill="#cfe9dc" text-anchor="middle">Linux or Docker Desktop · one command</text>
     <text x="150" y="176" class="sans" font-size="15" fill="#8fe3bd" text-anchor="middle">admin page · results · league table</text>
   </g>
 </svg>

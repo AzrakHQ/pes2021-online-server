@@ -91,7 +91,7 @@ svg .ar{stroke:var(--accent);stroke-width:1.8;fill:none}
 .bytes div{border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--panel);font-size:12px;text-align:center;min-width:64px}
 .bytes div small{display:block;color:var(--muted)}
 nav.toc{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;margin:14px 0 0}
-nav.toc a{color:var(--accent);text-decoration:none}
+nav.toc a{color:var(--accent);text-decoration:none;display:inline-block;padding:4px 0}
 .log li{margin:4px 0}
 .theme{flex:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer}
 code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
@@ -132,10 +132,10 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <div class="stat"><b>Payload</b><span class="t-ok">✔ MessagePack commands</span></div>
   <div class="stat"><b>Gate → Account → Menu login</b><span class="t-ok">✔ full chain, player created &amp; persisted</span></div>
   <div class="stat"><b>Session key</b><span class="t-ok">✔ base64 key in SET_CURRENTPLAYER, learned live</span></div>
-  <div class="stat"><b>NAT test (eFootball modes)</b><span class="t-ok">✔ STUN + GateInfo.php over trusted TLS</span></div>
+  <div class="stat"><b>NAT test (eFootball modes)</b><span class="t-ok">✔ STUN + GateInfo.php over HTTPS (the mod accepts the server's certificate for the 4 NTL names)</span></div>
   <div class="stat"><b>Matchmaking + P2P</b><span class="t-ok">✔ paired, peers connected, both in the online Match Menu</span></div>
   <div class="stat"><b>Online match</b><span class="t-ok">✔ kick-off, both halves, half-time, fouls/cards, clocks in sync</span></div>
-  <div class="stat"><b>Deployment</b><span class="t-ok">✔ one Docker container, private CA generated on first start</span></div>
+  <div class="stat"><b>Deployment</b><span class="t-ok">✔ one Docker container; server identity key created on first start</span></div>
 </div>
 
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
@@ -147,11 +147,11 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <text x="120" y="164" text-anchor="middle" class="muted" font-size="13">Proton 10 · Fox Engine</text>
   <text x="120" y="184" text-anchor="middle" class="muted" font-size="13">fox::ncl NclMio</text>
   <text x="120" y="204" text-anchor="middle" class="muted" font-size="13">client 1.01.00</text>
-  <rect class="box" x="270" y="125" width="150" height="80" rx="10"/>
+  <rect class="box" x="245" y="125" width="200" height="80" rx="10"/>
   <text x="345" y="155" text-anchor="middle" font-weight="700">the mod</text>
-  <text x="345" y="175" text-anchor="middle" class="muted" font-size="12">dinput8.dll in the game</text>
+  <text x="345" y="175" text-anchor="middle" class="muted" font-size="12">dinput8.dll inside the game</text>
   <text x="345" y="192" text-anchor="middle" class="muted" font-size="12">6 Konami names → server</text>
-  <path class="ar" d="M220 165 H270"/>
+  <path class="ar" d="M220 165 H245"/>
   <rect class="hl" x="500" y="20" width="420" height="70" rx="10"/>
   <text x="520" y="48" font-weight="700">Gate  tcp/10000</text>
   <text x="520" y="70" class="muted" font-size="13">pes21-x64-gate.cs.konami.net · NclMio msgpack commands</text>
@@ -164,10 +164,10 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <rect class="box" x="500" y="260" width="420" height="55" rx="10" stroke-dasharray="5 4"/>
   <text x="520" y="284" font-weight="700">Peer ↔ peer match traffic</text>
   <text x="520" y="302" class="muted" font-size="13">direct UDP between the two games · never touches the server</text>
-  <path class="ar" d="M420 150 C460 150 460 55 500 55"/>
-  <path class="ar" d="M420 160 H500"/>
-  <path class="ar" d="M420 172 C460 172 460 220 500 220"/>
-  <path class="ln" d="M420 185 C460 185 460 287 500 287" stroke-dasharray="5 4"/>
+  <path class="ar" d="M445 150 C475 150 470 55 500 55"/>
+  <path class="ar" d="M445 160 H500"/>
+  <path class="ar" d="M445 172 C475 172 470 220 500 220"/>
+  <path class="ln" d="M120 220 C120 290 330 287 500 287" stroke-dasharray="5 4"/>
 </svg>
 <p class="sub" style="margin:6px 0 0">Official servers are offline (NXDOMAIN). The DRM-wrapped exe is never patched; everything is redirected at the resolver.</p>
 </div>
