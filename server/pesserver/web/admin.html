@@ -921,6 +921,7 @@ fetch("/admin/api/info").then(r => r.json()).then(i => {
     $("lf").before($("err")); $("err").classList.add("blocked"); $("lf").hidden = true; $("forgot").hidden = true; $("lsub").hidden = true; ($("err").querySelector("a") || $("err")).focus();
     $("signin").disabled = true;
   }
+  if (i.password_replaced) $("forgot").innerHTML = "This server was started with the website's example password (or one under 10 characters), so it made its own. See it on the server with <code>sudo docker logs pesserver</code>.";
   if (i.remote) { $("login-remote").hidden = false; $("remember-row").hidden = true; $("remember").checked = false; }
 }).catch(() => {});
 $("logout").onclick = async () => {

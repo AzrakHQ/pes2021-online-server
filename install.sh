@@ -11,6 +11,7 @@
 #               ADMIN_PASSWORD=<pw> (choose the admin password instead of a generated one),
 #               PES_IMAGE=<image> (default: the published image).
 set -eu
+HOME="${HOME:-/root}"                      # cloud start-up scripts may run without it
 IMAGE="${PES_IMAGE:-ghcr.io/mohamedalirashad/pes2021-private-server:latest}"
 bold() { printf '\033[1m%s\033[0m\n' "$*"; }
 

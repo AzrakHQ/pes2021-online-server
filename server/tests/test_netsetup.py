@@ -209,8 +209,8 @@ def test_admin_password_is_created_once(tmp_path, monkeypatch):
     monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
     pw = netsetup.admin_password(str(tmp_path))
     assert len(pw) == 14 and netsetup.admin_password(str(tmp_path)) == pw
-    monkeypatch.setenv("ADMIN_PASSWORD", "mine")
-    assert netsetup.admin_password(str(tmp_path)) == "mine"
+    monkeypatch.setenv("ADMIN_PASSWORD", "mine-long-enough")
+    assert netsetup.admin_password(str(tmp_path)) == "mine-long-enough"
 
 
 def test_abandoned_pairing_is_not_left_live(tmp_path):
@@ -379,7 +379,7 @@ def test_admin_rebinding_and_csp(tmp_path):
         port = srv.sockets[0].getsockname()[1]
         try:
             code, out = await _http(port, "GET", "/admin/api/info")
-            assert code == 200 and {k: v for k, v in json.loads(out).items() if k != "lan"} == {"remote": False, "host_ok": True, "docker_desktop": False}
+            assert code == 200 and {k: v for k, v in json.loads(out).items() if k not in ("lan", "password_replaced")} == {"remote": False, "host_ok": True, "docker_desktop": False}
         finally:
             srv.close()
     import json
@@ -399,3 +399,14 @@ def test_activity_feed_survives_a_restart(tmp_path):
     events.feed(svc, "Someone downloaded the mod", "web")
     again = Service(Accounts(db))                                       # a new process on the same data
     assert events._st(again)["feed"][0]["text"] == "Someone downloaded the mod"
+
+
+def test_example_admin_password_is_refused(tmp_path, monkeypatch):
+    monkeypatch.setattr(netsetup, "PASSWORD_IGNORED", [])
+    monkeypatch.setenv("ADMIN_PASSWORD", "choose-a-long-password")
+    pw = netsetup.admin_password(str(tmp_path))
+    assert pw != "choose-a-long-password" and netsetup.PASSWORD_IGNORED
+    monkeypatch.setenv("ADMIN_PASSWORD", "short")
+    assert netsetup.admin_password(str(tmp_path)) == pw                 # the generated one, kept
+    monkeypatch.setenv("ADMIN_PASSWORD", "a-real-long-password")
+    assert netsetup.admin_password(str(tmp_path)) == "a-real-long-password"

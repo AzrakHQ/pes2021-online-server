@@ -267,7 +267,8 @@ async def _admin(service, method, route, headers, body, peer=""):
     if route == "/admin/api/info":            # public: lets the sign-in page warn before a password is typed
         return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8"), "host_ok": bool(host_ok(headers)),
                                      "docker_desktop": bool(os.environ.get("ADMIN_PORT")),
-                                     "lan": (netsetup.STATE.get("lan") or "") if admin_allowed(peer) else ""}).encode(), "application/json"
+                                     "lan": (netsetup.STATE.get("lan") or "") if admin_allowed(peer) else "",
+                                     "password_replaced": bool(netsetup.PASSWORD_IGNORED)}).encode(), "application/json"
     if route.startswith("/admin/api/") and not host_ok(headers):
         return "403 Forbidden", b'{"error":"open the admin page by its address"}', "application/json"
     if not admin_allowed(peer):

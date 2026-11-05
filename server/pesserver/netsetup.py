@@ -258,9 +258,18 @@ def game_addrs():
     return out
 
 
+EXAMPLE_PASSWORDS = {"choose-a-long-password"}
+PASSWORD_IGNORED = []                           # non-empty when ADMIN_PASSWORD was refused
+
+
 def admin_password(data_dir):
-    """ADMIN_PASSWORD, or a random one created once in <data>/admin_password."""
+    """ADMIN_PASSWORD, or a random one created once in <data>/admin_password. The website's example
+    value and anything under 10 characters are refused (the admin page may face the internet)."""
     pw = os.environ.get("ADMIN_PASSWORD")
+    if pw and (pw in EXAMPLE_PASSWORDS or len(pw) < 10):
+        log.warning("ADMIN_PASSWORD is the example or shorter than 10 characters; using a generated password")
+        PASSWORD_IGNORED.append(True)
+        pw = None
     if pw:
         return pw
     path = os.path.join(data_dir, "admin_password")
@@ -295,6 +304,8 @@ def banner(password=None, color=True):
     if password:
         out.append(f"   {B('Password')}     {Y(password)}")
     out += ["", D("   Open it to download the one file your friends need."), ""]
+    if PASSWORD_IGNORED:
+        out.append(Y("   !  ADMIN_PASSWORD was the example or too short, so this generated password is used instead."))
     if os.path.exists(os.environ.get("PESSERVER_CA_REPLACED", "/tmp/pesserver-ca-replaced")):
         out.append(Y("   !  New server certificate: players set up with the old join line run it once more (mod users: nothing to do)."))
     if STATE["cgnat"]:
