@@ -119,9 +119,9 @@ class NclCodec(Codec):
     def offer_keys(self, candidates):
         self.candidates = [(lbl, k) for lbl, k in candidates if 8 <= len(k) <= 56]
 
-    async def read(self, reader):
+    async def _read_frame(self, reader, first=False):
         from .protocol import _read_or_none
-        hdr = await _read_or_none(reader, 24)
+        hdr = await (_read_or_none(reader, 24) if first else reader.readexactly(24))
         if hdr is None:
             return None
         _rawlog(hdr)
@@ -136,10 +136,55 @@ class NclCodec(Codec):
             raise ProtocolError(f"bad md5 (kind 0x{kind:04x} len {blen})")
         if kind & 0x1000:
             raise ProtocolError(f"enhanced-tier (AES) kind 0x{kind:04x} not supported yet")
+        return kind, seq, body
+
+    async def _read_rest(self, reader, plain, kind, seq):
+        """A message bigger than one frame (body <= 0x410) continues in the next frames. Their exact
+        layout isn't known yet, so accept the first of two layouts that yields a whole message:
+        A) the next bodies continue the plaintext; B) each next body carries its own 9-byte header."""
+        dlen = struct.unpack(">I", plain[:4])[0]
+        if dlen > 1 << 20:
+            raise ProtocolError(f"data_len {dlen} too large")
+        a = b = plain
+        parts = []
+        while len(parts) < 1100:
+            k2, s2, body2 = await self._read_frame(reader)
+            p2 = bf_decrypt(body2, self.key)
+            parts.append(f"0x{k2:04x}/{s2}/{len(body2)}")
+            a += p2
+            b += p2[9:] if len(p2) >= 9 else p2
+            for name, buf in (("A", a), ("B", b)):
+                end = 9 + dlen
+                # complete, and nothing after the data but the < 8 bytes of zero padding
+                if end <= len(buf) < end + 8 and not buf[end:].strip(b"\0"):
+                    try:
+                        obj, comp = unpack_plain(buf)
+                    except Exception:
+                        continue
+                    log.warning("MULTI-FRAME message (layout %s): first 0x%04x/%d/%d + %s", name, kind, seq,
+                                len(plain), ", ".join(parts))
+                    return obj, comp
+            if len(a) >= 9 + dlen + MAX_BODY:
+                break
+        raise ProtocolError(f"multi-frame message (data_len {dlen}) did not decode after {len(parts)} "
+                            f"more frames: {', '.join(parts[:8])}")
+
+    async def read(self, reader):
+        got = await self._read_frame(reader, first=True)
+        if got is None:
+            return None
+        kind, seq, body = got
+        plain = bf_decrypt(body, self.key)
         try:
-            obj, comp = unpack_plain(bf_decrypt(body, self.key))
+            obj, comp = unpack_plain(plain)
         except Exception as first:
-            for lbl, k in self.candidates:
+            dlen, orig, cflag = struct.unpack(">IIB", plain[:9])
+            if len(plain) - 9 < dlen <= 1 << 20 and cflag in (0, 1) and 0 < orig <= 1 << 24:
+                # a sane header announcing more data than this frame holds: the message continues
+                obj, comp = await self._read_rest(reader, plain, kind, seq)
+            else:
+                obj = None
+            for lbl, k in ([] if obj is not None else self.candidates):
                 try:
                     obj, comp = unpack_plain(bf_decrypt(body, k))
                 except Exception:
@@ -148,8 +193,9 @@ class NclCodec(Codec):
                 self.key, self.candidates = k, []
                 break
             else:
-                raise ProtocolError(f"undecodable body with current key and {len(self.candidates)} "
-                                    f"candidates: {first}")
+                if obj is None:
+                    raise ProtocolError(f"undecodable body with current key and {len(self.candidates)} "
+                                        f"candidates: {first}")
         msgid = str(obj.get("msgid", "?"))
         rqid = int(obj.get("rqid", 0) or 0)
         log.info("RX kind=0x%04x seq=%d %s %s", kind, seq, msgid,

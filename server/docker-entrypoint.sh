@@ -13,27 +13,29 @@ JOIN_PORT="${JOIN_PORT:-80}"
 CERTS=/data/certs
 mkdir -p "$CERTS"
 
-# The CA is name-constrained to konami.net: players trust it, but it cannot vouch for any other
-# website. A CA from an older version (no constraint) is replaced; players then rerun the join line.
-if [ ! -f "$CERTS/ca.crt" ] || ! openssl x509 -in "$CERTS/ca.crt" -noout -ext nameConstraints 2>/dev/null | grep -q konami.net; then
+# The CA is name-constrained to the game's four NTL hostnames (the only HTTPS names the game uses):
+# players trust it, but it cannot vouch for any other website, Konami's real sites included. A CA from
+# an older version (no or broader constraint) is replaced; players then rerun the join line.
+NTL="ntl.service.konami.net ntleu.service.konami.net ntlus.service.konami.net ntljp.service.konami.net"
+if [ ! -f "$CERTS/ca.crt" ] || ! openssl x509 -in "$CERTS/ca.crt" -noout -ext nameConstraints 2>/dev/null | grep -q "DNS:ntljp.service.konami.net"; then
   if [ -f "$CERTS/ca.crt" ]; then
-    echo "[entrypoint] replacing the old certificate authority with a konami.net-only one (players: run the join line again)"
+    echo "[entrypoint] replacing the old certificate authority with a narrower one (players: run the join line again)"
     mv "$CERTS/ca.crt" "$CERTS/ca.crt.old"
   fi
   echo "[entrypoint] creating the server certificate authority"
   openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/CN=PES2021 Private Server CA" \
     -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign" \
-    -addext "nameConstraints=critical,permitted;DNS:konami.net,excluded;IP:0.0.0.0/0.0.0.0,excluded;IP:0:0:0:0:0:0:0:0/0:0:0:0:0:0:0:0" \
+    -addext "nameConstraints=critical,permitted;DNS:ntl.service.konami.net,permitted;DNS:ntleu.service.konami.net,permitted;DNS:ntlus.service.konami.net,permitted;DNS:ntljp.service.konami.net,excluded;IP:0.0.0.0/0.0.0.0,excluded;IP:0:0:0:0:0:0:0:0/0:0:0:0:0:0:0:0" \
     -keyout "$CERTS/ca.key" -out "$CERTS/ca.crt" 2>/dev/null
   rm -f "$CERTS/server.crt"
 fi
-# The server certificate covers the Konami hostnames only (no IP addresses).
+# The server certificate covers the four NTL hostnames only (no wildcards, no IP addresses).
 if [ ! -f "$CERTS/server.crt" ]; then
   echo "[entrypoint] issuing the server certificate"
   openssl req -newkey rsa:2048 -nodes -subj "/CN=ntl.service.konami.net" \
     -keyout "$CERTS/server.key" -out "$CERTS/server.csr" 2>/dev/null
   cat > "$CERTS/leaf.ext" <<EOF
-subjectAltName=DNS:ntl.service.konami.net,DNS:*.service.konami.net,DNS:*.cs.konami.net,DNS:*.konami.net
+subjectAltName=DNS:ntl.service.konami.net,DNS:ntleu.service.konami.net,DNS:ntlus.service.konami.net,DNS:ntljp.service.konami.net
 basicConstraints=CA:FALSE
 keyUsage=digitalSignature,keyEncipherment
 extendedKeyUsage=serverAuth
