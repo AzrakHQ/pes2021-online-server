@@ -111,11 +111,33 @@ instrumented at runtime from a scratch launcher (no repo code changed). Tags: [l
   - with `pname.psn_user_id` as an object (as in WATCH_MATCHING): within 1.5 s;
   - with it as an empty list (as the parser types it): the list is accepted, but the game still exits about 2 s
     later, before CMD_ENTRY_GAME;
-  - sending the list once instead of twice changes nothing.
+  - sending the list once instead of twice changed nothing *in that run* (it was before the room-list fix below,
+    so the game failed for another reason; see the bisection at the end of this section).
   - Code reading (roomcrash.md): after creating a room the game looks for **its own pid in the room list** (filled
     only from REQWATCHL_ROOMLIST, not from the player list), so the server must push the owner's room into the room
     list before or with the player list. In this parser `pname.psn_user_id` is a nested blob `{account_id,
     online_id, is_valid_cache}`; an empty list is read as garbage memory.
   - **Re-test with both fixes (20:12): the game still exits**, now about 0.2 s after the player list (0.27 s with an
-    empty-map blob, about 1.85 s with the list form). Cause still open; the next step is a full Wine log with the
-    process exit code.
+    empty-map blob, about 1.85 s with the list form). *Superseded by the bisection below.*
+- **Bisection (20:48–21:20): the exit came from a second copy of the player list.** Our test handler answered
+  REQWATCHL_ROOMPLAYERLIST_NTL with the list **and** pushed the same list (RELOAD, rqid 0) 50 ms later. The game
+  exits about 0.2 s after that push. Rounds (own room pushed into the room list first in all of them):
+  - R1, reply + push, player entry cut to `{pid, is_owner, side}`: still exits, so no single field is to blame.
+  - R2, bare `NOERR` reply, no list, no push: no exit. The game sends `CMD_LEAVE_ROOM {error_code "VZLN_0002"}`
+    (room creation failed, it found no player list).
+  - R3, **reply only** (no push), entry `{pid, is_owner, side}`: the game sends **CMD_ENTRY_GAME {entry FALSE,
+    side HOME}** within 0.12 s and shows the room screen "[001]Room <name>".
+  - R4, reply only with the full entry (`pid, room_player_id, room_entry_no, game_entry_no, pname` blob with the
+    nested `psn_user_id` blob, `lang, is_owner, side, is_quality_bad, has_guest, host_addr, reflexive_addr,
+    relayed_addr, ntl_nat_type`): works the same (ENTRY_GAME, room screen, WATCH_ENTRY_GAME accepted).
+  - **Rule: answer the owner's REQWATCHL_ROOMPLAYERLIST_NTL request with the list, and do not push the list
+    again right away.** Pushes are for later changes (a second player joins, ENTRY_GAME, leave). Why the extra
+    copy ends the process is not known yet.
+- **Second player's room list (still open):** copy 2 (pid 2) opened the Match Room List while copy 1's room
+  existed. Our REQWATCHL_ROOMLIST reply was `RELOAD, list_num 1` with the same room entry copy 1 had accepted
+  (`room_id 1, status WAITING, gamer [blob{pid 1, is_room_owner YES, side HOME, …}], owner_pname` blob with the
+  nested `psn_user_id` blob, `max_players 2, room_user_count 1, vs_com PL_VS_PL, owner_lang en, …`). The screen
+  still showed **"Number of rooms 0"**. Something in the entry hides it or fails to parse; code reading is under
+  way.
+- **Do not send `owner_pname.psn_user_id` as an empty msgpack list:** a room-list RELOAD in that form, pushed to
+  both copies, ended **both** game processes within 0.25 s (same unchecked nested unpack as in roomcrash.md).

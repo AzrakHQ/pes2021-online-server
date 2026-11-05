@@ -1,6 +1,6 @@
 # Room crash after CREATEJOIN: partial static analysis (incomplete)
 
-> **Live re-test (2026-11-05, 20:12):** with both fixes applied (own room pushed into the room list 50 ms after CREATEJOIN_ROOM, before the player list; `pname.psn_user_id` as a blob `{account_id, online_id, is_valid_cache}`; no `guest_info`), the game **still exits**, about 0.2 s after the player list. ENTRY_GAME is never sent. So the room-list-first rule and the blob format are requirements, but something else in the player-list entry (or right after it) still ends the process. Still open.
+> **Solved live (2026-11-05, 21:08):** the exit came from our test server pushing a **second copy of the player list** 50 ms after replying to REQWATCHL_ROOMPLAYERLIST_NTL. With the list sent only as the reply (and the own room pushed into the room list first, `pname.psn_user_id` as a nested blob), the owner sends CMD_ENTRY_GAME and shows the room screen. The two requirements below still hold. The bisection is in livetests.md. Why a duplicate list ends the process is not known (the 20:12 re-test that "still exits" had the push enabled).
 
 
 Tags: [static] read at the address, [log] our server logs, [inferred].
