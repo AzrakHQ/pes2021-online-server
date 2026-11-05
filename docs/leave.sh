@@ -1,0 +1,11 @@
+#!/bin/bash
+# PES 2021 Online - undo the join line on Linux / Steam Deck, without needing the server.
+#   curl -fsSL https://mohamedalirashad.github.io/pes2021-private-server/leave.sh | bash
+# Removes the /etc/hosts lines (sudo) and every PES2021 server certificate from the game's Proton prefix.
+# Close the game first. Optional: PES_PREFIX=/path/to/pfx
+set -euo pipefail
+TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+curl -fsS https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/server/pesserver/web/install-ca-proton.py -o "$TMP/ca.py"
+python3 "$TMP/ca.py" --remove-all ${PES_PREFIX:+"$PES_PREFIX"}
+sudo sed -i "/# pes2021-private-server/d" /etc/hosts
+echo "Done. PES 2021 is back to normal on this PC."

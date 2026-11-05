@@ -6,6 +6,10 @@
 <title>PES 2021 Online: technical write-up</title>
 <script>try { var t = localStorage.getItem("pes-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
 <meta name="color-scheme" content="light dark">
+<meta name="description" content="The reverse-engineered network protocol of eFootball PES 2021: frame format, encryption, login, NAT test, matchmaking and match flow, as implemented by the PES 2021 Online private server.">
+<meta property="og:title" content="How PES 2021 talks to its servers">
+<meta property="og:image" content="https://mohamedalirashad.github.io/pes2021-private-server/og.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230c4a37'/%3E%3Cpolygon points='16,9 22.7,13.9 20.1,21.8 11.9,21.8 9.3,13.9' fill='%23fff'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -31,6 +35,10 @@ a{color:var(--accent);text-underline-offset:3px}
 :focus-visible{outline:3px solid #3ccf8e;outline-offset:2px;border-radius:4px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .panel{overflow-x:auto} .panel svg{min-width:620px}
+@media (max-width:660px){.panel:has(svg)::before{content:"Scroll sideways to see the whole diagram →";display:block;font-size:13px;color:var(--muted);margin-bottom:6px}}
+footer.site-foot{border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+footer.site-foot .in{max-width:1080px;margin:0 auto;padding:28px 16px 48px;display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
+footer.site-foot a{color:var(--muted)}
 .site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .site .in{max-width:1080px;margin:0 auto;padding:0 16px;height:60px;display:flex;align-items:center;gap:16px}
 .site .logo{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--ink);text-decoration:none;white-space:nowrap}
@@ -82,7 +90,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <body>
 <header class="site"><div class="in">
   <a class="logo" href="./" aria-label="PES 2021 Online, main page"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0c4a37"/><polygon points="16,9 22.7,13.9 20.1,21.8 11.9,21.8 9.3,13.9" fill="#fff"/></svg><span>PES 2021 Online</span></a>
-  <ul><li><a href="./#play">Play</a></li><li><a href="./#inside">How it works</a></li><li><a href="./#help">Help</a></li><li><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a></li></ul>
+  <ul><li><a href="./#play">Play</a></li><li><a href="./#inside">How it works</a></li><li><a href="./#help">Help</a></li><li><a href="./#faq">FAQ</a></li><li><a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a></li></ul>
   <button class="theme" id="theme" type="button" aria-label="Switch between light and dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
 </div></header>
 <main>
@@ -98,11 +106,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </div>
 
 <nav class="toc" aria-label="Sections">
-  <a href="#status">Status</a><a href="#topology">Topology</a><a href="#stack">Layer stack</a>
-  <a href="#exchange">Gate exchange</a><a href="#login">Login</a><a href="#rules">Encoding rules</a><a href="#nat">NAT test</a><a href="#tooling">Tooling</a><a href="#frames">Wire format</a><a href="#crypto">Crypto</a>
-  <a href="#cmds">Commands</a><a href="#mmlive">Matchmaking</a><a href="#match">Match</a><a href="#errors">Error codes</a><a href="#deploy">Deployment</a><a href="#dlcp">Not the gate: dlcp</a>
-  <a href="#server">Our server</a><a href="#method">How we found it</a><a href="#rva">Key addresses</a>
-  <a href="#open">Open questions</a><a href="#log">Changelog</a>
+  <a href="#status">Status</a><a href="#topology">Topology</a><a href="#stack">Layer stack</a><a href="#exchange">Gate exchange</a><a href="#login">Login</a><a href="#rules">Encoding rules</a><a href="#frames">Wire format</a><a href="#crypto">Crypto</a><a href="#cmds">Commands</a><a href="#nat">NAT test</a><a href="#mm2">Matchmaking protocol</a><a href="#mmlive">Matchmaking live</a><a href="#match">Match live</a><a href="#errors">Error codes</a><a href="#deploy">Deployment</a><a href="#dlcp">Not the gate: dlcp</a><a href="#server">Our server</a><a href="#tooling">How it was tested</a><a href="#method">How we found it</a><a href="#rva">Key addresses</a><a href="#open">Open questions</a><a href="#log">Changelog</a>
 </nav>
 
 <h2 id="status">Status</h2>
@@ -162,7 +166,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
     <text x="40" y="275" font-weight="700">NclMio frame</text><text x="220" y="275" class="muted">XOR 5b9f2e64 ( kind | len | seq | md5 | body )</text>
     <text x="900" y="275" text-anchor="end" font-size="12" font-weight="700" fill="var(--ok)">LIVE</text>
     <rect class="hl" x="20" y="196" width="920" height="44" rx="8"/>
-    <text x="40" y="223" font-weight="700">Body cipher</text><text x="220" y="223" class="muted">Blowfish-ECB, 56-byte static key (easy tier) · AES-256 (enhanced tier)</text>
+    <text x="40" y="223" font-weight="700">Body cipher</text><text x="220" y="223" class="muted">Blowfish-ECB, 56-byte static key (easy tier, seen live) · AES-256 enhanced tier (code only, never seen)</text>
     <text x="900" y="223" text-anchor="end" font-size="12" font-weight="700" fill="var(--ok)">LIVE</text>
     <rect class="hl" x="20" y="144" width="920" height="44" rx="8"/>
     <text x="40" y="171" font-weight="700">Envelope</text><text x="220" y="171" class="muted">u32 data_len | u32 original_size | u8 zlib | data | pad to 8</text>
@@ -342,8 +346,6 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <li><b>Docker bridge vs. the NAT test</b>: the client's STUN socket is bound to the network interface (Wine maps <code>IP_UNICAST_IF</code> to <code>SO_BINDTODEVICE</code>). A game on the <i>same Linux PC</i> as a bridged container therefore never reaches it: the DNAT'd packet must go out via docker0, but the socket is pinned to the NIC. Verified with a device-bound test socket (no reply on the bridge, reply with host networking). Remote players are unaffected. <span class="tag t-ok">LIVE</span></li>
   <li>What the join scripts do: hosts-file entries for <code>pes21-x64-gate.cs.konami.net</code>, <code>pes21-x64-stun.cs.konami.net</code>, <code>ntl / ntleu / ntlus / ntljp.service.konami.net</code>, and trust the server CA (Windows: <code>Import-Certificate</code> into <code>Cert:\LocalMachine\Root</code>; Linux: the game's Proton prefix only). The CA carries a critical <code>nameConstraints</code> extension (permitted <code>DNS:konami.net</code>, all IPs excluded), so it cannot vouch for any other site. No change to the game files.</li>
 </ol></div>
-</ol>
-</div>
 
 <h2 id="dlcp">Not the gate: kps::dlcp</h2>
 <p>Real, statically mapped, but not used on the gate connection. Most likely the peer-to-peer match link. Quick Match doesn't need it: matches work without the server touching this link.</p>
@@ -368,7 +370,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <p>Run: <code>docker compose up</code>, or <code>python3 -m pesserver serve</code> (ncl is the default codec). Every request is logged decoded (<code>RX … CMD_…</code>).</p>
 
 <h2 id="tooling">How it was tested</h2>
-<p class="sub">Every finding marked LIVE was checked against the unmodified game (Steam, 1.01.00, run with Proton on Linux). A recorded log of real client requests is replayed through the server's handlers offline and each reply is validated against the reply formats extracted from the game (<code>server/tests</code>). End-to-end runs drove two game clients through login, the network test, matchmaking and complete 90-minute matches. The local test harness itself is not part of the published repo.</p>
+<p class="sub">Every finding marked LIVE was checked against the game's original 1.01.00 executable, run directly under Proton on Linux (a run started through the Steam client is still pending). A recorded log of real client requests is replayed through the server's handlers offline and each reply is validated against the reply formats extracted from the game (<code>server/tests</code>). End-to-end runs drove two game clients through login, the network test, matchmaking and complete 90-minute matches. The local test harness itself is not part of the published repo.</p>
 
 <h2 id="method">How we found it</h2>
 <ol>
@@ -419,10 +421,18 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <li><b>2026-11-04</b> — Prior art mined (Nikow5 PES 1.07.02, MGSV/MGO3 emulators).</li>
 </ul>
 </main>
+<footer class="site-foot"><div class="in">
+  <p style="margin:0;max-width:42em">PES 2021 Online is an independent fan preservation project. No game files are included or distributed: every player needs their own copy of PES 2021. Not affiliated with Konami; PES and eFootball are trademarks of Konami. Code under the <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/LICENSE">MIT license</a>.</p>
+  <span><a href="./">Main page</a> · <a href="./#faq">FAQ</a> · <a href="https://github.com/MohamedAliRashad/pes2021-private-server">GitHub</a> · <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Report a problem</a></span>
+</div></footer>
 <script>
 (function(){
   var b=document.getElementById('theme'), r=document.documentElement;
   try{var s=localStorage.getItem('pes-theme'); if(s) r.setAttribute('data-theme',s);}catch(e){}
+  var sun=b.innerHTML, moon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
+  function sync(){var c=r.getAttribute('data-theme');var d=c?c==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;b.innerHTML=d?sun:moon;b.setAttribute('aria-pressed',String(d));b.setAttribute('aria-label','Dark theme');}
+  sync();
+  b.addEventListener('click',function(){setTimeout(sync,0);});
   b.addEventListener('click',function(){
     var cur=r.getAttribute('data-theme');
     var dark=cur?cur==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;

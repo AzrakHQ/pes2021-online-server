@@ -8,6 +8,7 @@ HKLM\\Software\\Microsoft\\SystemCertificates\\Root\\Certificates\\<SHA1> "Blob"
 prefix's system.reg (no Wine/Proton needed). Nothing outside the prefix is touched.
 
 usage: install-ca-proton.py [--remove] --ca ca.crt [PREFIX]
+       install-ca-proton.py --remove-all [PREFIX]     (remove every PES2021 server CA; no ca.crt needed)
   PREFIX defaults to Steam's prefix for PES 2021 (compatdata/1259970/pfx in any Steam library).
 Close the game first: Wine rewrites system.reg when it exits.
 """
@@ -86,16 +87,30 @@ def game_running():
 
 def main():
     args = sys.argv[1:]
-    remove = "--remove" in args
-    if "--ca" not in args:
+    remove_all = "--remove-all" in args
+    remove = "--remove" in args or remove_all
+    if "--ca" not in args and not remove_all:
         sys.exit(__doc__)
-    i = args.index("--ca"); ca = args[i + 1]; del args[i:i + 2]
-    prefixes = [os.path.abspath(os.path.expanduser(a)) for a in args if a != "--remove"] or [find_prefix()]
+    ca = None
+    if "--ca" in args:
+        i = args.index("--ca"); ca = args[i + 1]; del args[i:i + 2]
+    prefixes = [os.path.abspath(os.path.expanduser(a)) for a in args if a not in ("--remove", "--remove-all")] or [find_prefix()]
     if prefixes == [None]:
         sys.exit("PES 2021's Proton prefix was not found. Start the game once from Steam, close it, and run "
                  "this again (or set PES_PREFIX=/path/to/compatdata/1259970/pfx).")
     if game_running():
         sys.exit("PES 2021 is running. Close the game, then run this again.")
+    if remove_all:
+        for pfx in prefixes:
+            reg = os.path.join(pfx, "system.reg")
+            if not os.path.isfile(reg):
+                sys.exit(f"not a Wine prefix (no system.reg): {pfx}")
+            text = open(reg, encoding="utf-8", errors="surrogateescape").read()
+            with open(reg + ".pes-tmp", "w", encoding="utf-8", errors="surrogateescape") as f:
+                f.write(strip_ours(text))
+            os.replace(reg + ".pes-tmp", reg)
+            print(f"removed every PES2021 server certificate from {pfx}")
+        return
     der = ssl.PEM_cert_to_DER_cert(open(ca).read())
     thumb = hashlib.sha1(der).hexdigest().upper()
     blob = struct.pack("<III", 32, 1, len(der)) + der

@@ -45,19 +45,26 @@ get matched.
 | "Unable to connect to the server" | Run the join line again |
 | Undo on a player's PC | Run the join line with `leave` instead of `join` |
 
-Server commands: `docker logs pesserver` (shows the address and password again) · `docker restart pesserver` ·
-`docker rm -f pesserver` (stop). To update, run the install line again.
+Server commands: `sudo docker logs pesserver` (shows the address and password again) · `sudo docker restart pesserver` ·
+`sudo docker stop pesserver` (stop). To update, run the install line again.
 The web address changes when the server restarts. Friends who already joined don't need to do anything.
 
 <details id="hosting-from-windows-or-mac"><summary><b>Hosting from Windows or Mac</b></summary>
 
-Install [Docker Desktop](https://www.docker.com/products/docker-desktop/), download this repo
-(**Code → Download ZIP**), and in that folder run (use your PC's IP from `ipconfig`):
+Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and start it. Download this
+repo (**Code → Download ZIP**) and unzip it. In that folder, create a file named `.env` containing one
+line with your PC's address (find it with `ipconfig`, "IPv4 Address"):
 ```
-echo PUBLIC_IP=192.168.1.50 > .env
+PUBLIC_IP=192.168.1.50
+```
+(In PowerShell: `Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii`.) Then, in a terminal in
+that folder:
+```
 docker compose -f docker-compose.bridge.yml up -d
+docker compose -f docker-compose.bridge.yml logs
 ```
-For friends outside your house, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router.
+For friends outside your house, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to
+this PC. Not yet tested: playing on the same Windows PC that hosts.
 </details>
 
 ---

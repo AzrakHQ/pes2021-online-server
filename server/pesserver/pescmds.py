@@ -111,7 +111,7 @@ def disconnect(svc, sess, req):
 
 @cmd("CMD_AUTH_STEAM")
 def auth_steam(svc, sess, req):
-    # HTTP form: msgid, rqid, urltype=AUTH_STEAM, ticket (absent with the Steam emulator), steamid,
+    # HTTP form: msgid, rqid, urltype=AUTH_STEAM, ticket (may be absent), steamid,
     # package_type. We trust the local client; register the steamid on first sight.
     sid = str(req.get("steamid", ""))
     log.info("AUTH_STEAM steamid=%s package_type=%s ticket=%s", sid, req.get("package_type"),

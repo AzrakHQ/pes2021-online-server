@@ -15,10 +15,9 @@ ntleu.service.konami.net ntlus.service.konami.net ntljp.service.konami.net"
 command -v python3 >/dev/null || { echo "python3 is required"; exit 1; }
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 curl -fsS "$BASE/install-ca-proton.py" -o "$TMP/ca.py"
-curl -fsS "$BASE/ca.crt" -o "$TMP/ca.crt"
 
 if [ "$UNINSTALL" = 1 ]; then
-  python3 "$TMP/ca.py" --remove --ca "$TMP/ca.crt" ${PES_PREFIX:+"$PES_PREFIX"}
+  python3 "$TMP/ca.py" --remove-all ${PES_PREFIX:+"$PES_PREFIX"}
   [ "${PES_SKIP_HOSTS:-0}" = 1 ] || sudo sed -i "/$MARK/d" /etc/hosts
   echo "Done. PES 2021 no longer uses $SERVER."
   exit 0
@@ -33,6 +32,7 @@ for a in $ADDRS; do
 done
 [ -n "$IP" ] || IP="${ADDRS##* }"
 
+curl -fsS "$BASE/ca.crt" -o "$TMP/ca.crt"
 python3 "$TMP/ca.py" --ca "$TMP/ca.crt" ${PES_PREFIX:+"$PES_PREFIX"}
 if [ "${PES_SKIP_HOSTS:-0}" != 1 ]; then
   echo "Pointing the game's Konami hostnames at $IP (sudo may ask for your password)..."

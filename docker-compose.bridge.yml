@@ -1,5 +1,6 @@
 # For Docker Desktop (Windows / macOS), where host networking doesn't reach the LAN.
-#   echo PUBLIC_IP=192.168.1.50 > .env       (the address players use: your LAN / VPN / public IP)
+#   .env file with one line: PUBLIC_IP=192.168.1.50   (the address players use: your LAN / VPN / public IP)
+#   PowerShell: Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii   (plain echo > writes UTF-16)
 #   docker compose -f docker-compose.bridge.yml up -d
 # Forward these ports on your router yourself for internet play (UPnP can't work from inside a VM).
 services:

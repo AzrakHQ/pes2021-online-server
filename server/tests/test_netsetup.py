@@ -200,3 +200,29 @@ def test_abandoned_pairing_is_not_left_live(tmp_path):
     events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
     live = events.snapshot(svc)["live"]
     assert [m["room"] for m in live] == [2] and live[0]["phase"] == "1st half"
+
+
+def test_proton_ca_remove_all_needs_no_server(tmp_path, monkeypatch):
+    """The standalone leave.sh removes every PES2021 CA without the server's ca.crt."""
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+    import datetime
+    name = x509.Name([x509.NameAttribute(x509.oid.NameOID.COMMON_NAME, "PES2021 Private Server CA")])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    pfx = tmp_path / "pfx"; pfx.mkdir()
+    original = "WINE REGISTRY Version 2\n\n[Software\\\\A] 1\n\"x\"=dword:00000001\n"
+    (pfx / "system.reg").write_text(original)
+    m = _ca_module(); monkeypatch.setattr(m, "game_running", lambda: False)
+    for serial in (1, 2):                                   # two different servers joined over time
+        k = ec.generate_private_key(ec.SECP256R1())
+        c = (x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(k.public_key())
+             .serial_number(serial).not_valid_before(now).not_valid_after(now + datetime.timedelta(days=1))
+             .sign(k, hashes.SHA256()))
+        ca = tmp_path / f"ca{serial}.crt"; ca.write_bytes(c.public_bytes(serialization.Encoding.PEM))
+        text = (pfx / "system.reg").read_text()
+        (pfx / "system.reg").write_text(text.rstrip("\n") + "\n\n" + m.reg_block(c.fingerprint(hashes.SHA1()).hex().upper(),
+                                        __import__("struct").pack("<III", 32, 1, len(c.public_bytes(serialization.Encoding.DER))) + c.public_bytes(serialization.Encoding.DER)))
+    assert (pfx / "system.reg").read_text().count("Root\\\\Certificates") == 2
+    monkeypatch.setattr(sys, "argv", ["x", "--remove-all", str(pfx)]); m.main()
+    assert (pfx / "system.reg").read_text().strip() == original.strip()
