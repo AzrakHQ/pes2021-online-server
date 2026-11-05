@@ -48,7 +48,9 @@
   body.stale #stats, body.stale #board { filter:grayscale(.6); }
   body.stale #uptime { display:inline !important; }
   @media (max-width: 480px) { body.stale #uptime { display:none !important; } }
-  #reach { display:inline-block; max-width:min(34ch, 70vw); overflow:hidden; text-overflow:ellipsis; }
+  #reach { max-width:min(36ch, 70vw); } #reach .rt { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  .i { width:1em; height:1em; vertical-align:-.15em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+  @media (max-width: 480px) { header.top .pill { font-size:12px; padding:2px 8px; } #reach { max-width:calc(100vw - 170px); } }
   .banner.down b { color:var(--live); }
   @media (max-width: 480px) { .banner.down { position:static; } }
   .stuck { display:block; margin-top:4px; }
@@ -88,11 +90,12 @@
   #fsteps > summary { font-size:15px; font-weight:700; }
   #fsteps[open] > summary { margin-bottom:8px; }
   .invite.compact .intro-p, .invite.compact .onefile { display:none; }
+  .invite.compact { grid-template-columns:minmax(0,1fr); gap:12px; }
 
   /* this PC */
   details.pcready > summary { cursor:pointer; font-weight:600; color:var(--accent); }
   details.pcready[open] > summary { margin-bottom:6px; }
-  .game { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 16px; align-items:center; padding:12px 0; border-top:1px solid var(--line); }
+  .game { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 16px; align-items:start; padding:12px 0; border-top:1px solid var(--line); }
   .games > .game:first-child { border-top:0; }
   .game .where b { font-size:15px; overflow-wrap:anywhere; }
   .game .where .parent { display:block; margin-top:2px; font-size:12px; color:var(--muted); background:none; padding:0; user-select:all; }
@@ -100,7 +103,7 @@
   .pc-intro { font-size:14px; margin:0 0 4px; }
   .pc-sub { font-size:14px; color:var(--muted); margin:-6px 0 8px; }
   .game .st { font-size:14px; margin-top:2px; }
-  .game .act { justify-self:end; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
+  .game .act { justify-self:end; padding-top:2px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
   .what code { display:inline-block; max-width:100%; white-space:nowrap; overflow-x:auto; vertical-align:bottom; }
   @media (max-width: 420px) { .what code { white-space:normal; overflow-wrap:anywhere; } }
   .game .msg { grid-column:1 / -1; font-size:14px; }
@@ -234,6 +237,7 @@
     <h1><span aria-hidden="true">⚽ </span>PES 2021 Server</h1>
     <span class="pill neutral" id="status"><span class="dot"></span><span id="status-t">Connecting…</span></span><span class="sr" id="status-live" aria-live="polite"></span>
     <a class="pill neutral" id="reach" href="#h-net" hidden></a>
+    <a class="pill warn" id="pcpill" href="#pc-h" hidden></a>
     <span class="muted small" id="uptime"></span>
     <span class="grow"></span>
     <span class="muted small" id="until"></span>
@@ -241,14 +245,14 @@
   </header>
 
   <div id="down" class="banner down" role="alert" hidden></div>
-  <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours.</details></div>
+  <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours. To turn it off, run the install command again without <code>ADMIN_REMOTE=1</code>.</details></div>
 
   <section class="card invite" aria-labelledby="inv-h">
     <div>
       <h2 id="inv-h" tabindex="-1">Invite your friends</h2>
       <div class="reach" id="inv-reach" style="margin:0 0 10px"></div>
       <p class="intro-p">Send each friend this one file, once. It already knows your server and keeps working after restarts.</p>
-      <a class="dl" id="dl" href="/mod/dinput8.dll" download="dinput8.dll"><span aria-hidden="true">⬇ </span>Download the mod for friends</a>
+      <a class="dl" id="dl" href="/mod/dinput8.dll" download="dinput8.dll"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"/></svg> Download the mod for friends</a>
       <p class="small" id="dl-done" aria-live="polite" style="margin:8px 0 0"></p>
       <p class="small muted onefile" style="margin:8px 0 0">One file, <code>dinput8.dll</code>. Send it on Discord, WhatsApp or Telegram; email usually blocks this kind of file.</p>
       <div class="small" style="margin-top:14px"><b>Or send this link.</b> It opens a page with the download and these same steps<span id="jp-note"></span>:</div>
@@ -257,7 +261,7 @@
       <details class="keycheck"><summary>Check a friend got your exact file</summary>
         Ask your friend to run <code>Get-FileHash .\dinput8.dll</code> in the game folder (Linux: <code>sha256sum dinput8.dll</code>). The result should be:
         <code id="ssha" style="display:block;margin:6px 0;letter-spacing:.04em">…</code>
-        That proves the file is exactly the one your server hands out. The mod's log line <code id="skey">key …</code> shows which server it connects to.</details>
+        That proves the file is exactly the one your server hands out. In the mod's log file (<code>pes2021-online.log</code>), the line <code id="skey">key …</code> shows which server it connects to.</details>
     </div>
     <div class="friend"><details id="fsteps" open><summary>What your friend does</summary>
       <ol>
@@ -271,7 +275,7 @@
 
   <section class="card" id="thispc" aria-labelledby="pc-h" hidden>
     <h2 id="pc-h" tabindex="-1">The server computer</h2>
-    <p class="pc-sub">Want to play on this computer too? Set up its copy of PES 2021 here.</p>
+    <p class="pc-sub" id="pcsub">Want to play on this computer too? Set up its copy of PES 2021 here.</p>
     <div id="games"></div>
     <span class="sr" id="pc-live" aria-live="polite"></span>
   </section>
@@ -317,7 +321,10 @@ const store = {
 };
 let token = store.get(), timer = null, gamesTimer = null, failures = 0, inflight = false, downSince = 0, lastOkAt = 0;
 let showAllResults = false, feedAll = false, last = null, lastGames = [], dockerDesktop = false;
-let compactState = null, backUntil = 0;
+let compactState = null, backUntil = 0, gamesRetry = false;
+const I = {ok: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>',
+  warn: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l6.5 11.5h-13zM8 6.5v3M8 11.8v.2"/></svg>',
+  down: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg>'};
 const DC = "docker compose -f docker-compose.bridge.yml";
 const INSTALL = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh";
 function cmdsHtml() {
@@ -425,11 +432,11 @@ function setDown(on) {
 }
 
 function reachInfo(s) {
-  const bad = {ok: false, short: "Home network only", long: `<span class="warn">⚠ <b>Only friends on your Wi-Fi can join right now.</b></span> <a href="#h-net">Fix this <span aria-hidden="true">↓</span></a>`};
-  if (s.pinned && isTs(s.pinned)) return {ok: true, short: "Tailscale friends can connect", long: `<span class="ok">✓ Friends on your Tailscale network can connect.</span>`};
+  const bad = {ok: false, short: "Home network only", long: `<span class="warn">${I.warn} <b>Only friends on your Wi-Fi can join right now.</b></span> <a href="#h-net">Fix this ${I.down}</a>`};
+  if (s.pinned && isTs(s.pinned)) return {ok: true, short: "Tailscale friends can connect", long: `<span class="ok">${I.ok} Friends on your Tailscale network can connect.</span>`};
   if (s.cgnat) return bad;
-  if (s.pinned) return {ok: true, short: "Friends use " + s.pinned, long: `<span class="ok">✓ Friends connect to ${esc(s.pinned)} (your fixed address).</span>`};
-  if (s.ports_open.length) return {ok: true, short: "Router ports open", long: `<span class="ok">✓ Router ports are open: friends outside your home should be able to join.</span>`};
+  if (s.pinned) return {ok: true, neutral: true, short: "Friends use " + s.pinned, long: `<span class="muted">Friends' mod uses your fixed address <b>${esc(s.pinned)}</b>.</span>`};
+  if (s.ports_open.length) return {ok: true, short: "Router ports open", long: `<span class="ok">${I.ok} Router ports are open: friends outside your home should be able to join.</span>`};
   if (s.wan) return bad;
   return {ok: true, neutral: true, short: "Home network only", long: `<span class="muted">Friends on your Wi-Fi can connect. Want friends elsewhere? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale</a>.</span>`};
 }
@@ -463,15 +470,17 @@ function render(d) {
   // once friends are playing, the invite card shrinks to the download and the link
   const est = d.played_total > 0 || d.players.length >= 2;
   if (est !== compactState) { compactState = est; document.querySelector(".invite").classList.toggle("compact", est);
-    $("fsteps").open = !(est && innerWidth <= 800); text("inv-h", est ? "Invite more friends" : "Invite your friends"); }
+    $("fsteps").open = !est; text("inv-h", est ? "Invite more friends" : "Invite your friends"); }
   const r = reachInfo(s);
-  $("reach").hidden = false; $("reach").className = "pill " + (r.neutral ? "neutral" : r.ok ? "" : "warn"); text("reach", (r.neutral ? "" : r.ok ? "✓ " : "⚠ ") + r.short + " ↓"); $("reach").title = r.short + ": network details";
+  $("reach").hidden = false; $("reach").className = "pill " + (r.neutral ? "neutral" : r.ok ? "" : "warn"); put("reach", `${r.neutral ? "" : r.ok ? I.ok : I.warn}<span class="rt">${esc(r.short)}</span>${I.down}`); $("reach").title = r.short + ": network details";
   put("inv-reach", r.long);
 
   const joinedOnly = !d.online.length && !d.live.length && !d.played_total && d.players.length > 0;
   const quiet = (!d.online.length && !d.live.length && !d.played_total && !d.players.length) || joinedOnly;
   // setup first while nobody has joined; once friends play, monitoring comes first
-  const first = quiet || pcNeeds();
+  const first = quiet || (pcNeeds() > 0 && !d.played_total), pn = pcNeeds();
+  $("pcpill").hidden = first || !pn || $("thispc").hidden;
+  if (!$("pcpill").hidden) put("pcpill", `${I.warn} This PC: ${pn} ${pn === 1 ? "copy" : "copies"} not set up ${I.down}`);
   const pc = $("thispc"), anchor = first ? $("stats") : $("board").nextElementSibling;
   if (first ? pc.nextElementSibling !== $("stats") : pc.previousElementSibling !== $("board")) pc.parentNode.insertBefore(pc, anchor);
   $("board").classList.toggle("board-quiet", quiet); $("board").hidden = false;
@@ -508,7 +517,7 @@ function render(d) {
 
   put("online", d.online.length ? `<div class="tablewrap"><table><caption class="sr">Players online now</caption>
     <thead><tr><th scope="col">Player</th><th scope="col" class="hide-xs">Status</th><th scope="col" class="hide-sm hide-md">Connection</th><th scope="col" class="num hide-sm hide-md">Online for</th><th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
-    d.online.map(p => `<tr><td class="name">${esc(p.name)}<small class="show-xs">${esc(p.status)} · ${where(p.ip)}</small></td><td class="hide-xs"><span class="nw">${esc(p.status)}</span><small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
+    d.online.map(p => `<tr><td class="name">${esc(p.name)}<small class="show-xs">${esc(p.status)} · ${where(p.ip)} · ${dur(now - p.since)}</small></td><td class="hide-xs"><span class="nw">${esc(p.status)}</span><small class="conn-sm muted">${where(p.ip)} · ${esc(p.ip)} · ${dur(now - p.since).replace(/ /g, "\u00a0")}</small></td>
       <td class="hide-sm hide-md muted conn">${where(p.ip)}<small>${esc(p.ip)}</small></td><td class="num muted hide-sm hide-md">${dur(now - p.since)}</td>
       <td class="num act"><button class="danger" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></td></tr>`).join("") +
     `</tbody></table></div><p class="note">Kick disconnects someone now; they can reconnect. There's no ban yet: anyone who has the mod file or your server's address can join.</p>`
@@ -522,7 +531,7 @@ function render(d) {
         <span class="h ${hw ? "win" : ""}">${esc(r.home_name)}${hw ? '<span class="sr"> won</span>' : ""}</span><span class="s">${r.home_score}–${r.away_score}</span>
         <span class="a ${aw ? "win" : ""}">${esc(r.away_name)}${aw ? '<span class="sr"> won</span>' : ""}${r.reason ? ` <span class="pill neutral tag">abandoned</span>` : ""}</span></li>`;
     }).join("") + `</ul>` +
-    (d.results.length > nRes ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">${showAllResults ? "Show fewer" : d.results.length < d.played_total ? `Show last ${d.results.length} results` : `Show all ${d.results.length} results`}</button>` : "")
+    (d.results.length > nRes ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">${showAllResults ? "Show fewer" : d.results.length < d.played_total ? `Show last ${d.results.length} results (older ones aren't kept)` : `Show all ${d.results.length} results`}</button>` : "")
     : `<p class="empty">Finished matches will be listed here.</p>`);
 
   const svg = d => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
@@ -546,22 +555,23 @@ function render(d) {
   const played = d.players.filter(p => p.played), idle = d.players.filter(p => !p.played);
   const ranked = [...played].sort((a, b) => pts(b) - pts(a) || gd(b) - gd(a) || a.played - b.played || a.name.localeCompare(b.name));
   put("league", (ranked.length ? `<div class="tablewrap"><table><caption class="sr">League table</caption>
-    <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col" class="num"><abbr title="Played">P</abbr></th><th scope="col" class="num hide-xs"><abbr title="Won">W</abbr></th><th scope="col" class="num hide-xs"><abbr title="Drawn">D</abbr></th><th scope="col" class="num hide-xs"><abbr title="Lost">L</abbr></th><th scope="col" class="num hide-sm"><abbr title="Goal difference">GD</abbr></th><th scope="col" class="num"><abbr title="Points">Pts</abbr></th><th scope="col" class="num hide-sm">Last seen</th></tr></thead><tbody>` +
+    <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col" class="num"><abbr title="Played">P</abbr></th><th scope="col" class="num hide-xs"><abbr title="Won">W</abbr></th><th scope="col" class="num hide-xs"><abbr title="Drawn">D</abbr></th><th scope="col" class="num hide-xs"><abbr title="Lost">L</abbr></th><th scope="col" class="num hide-sm"><abbr title="Goal difference">GD</abbr></th><th scope="col" class="num"><abbr title="Points">Pts</abbr></th><th scope="col" class="num hide-sm">Last sign-in</th></tr></thead><tbody>` +
     ranked.map((p, i) => `<tr><td class="muted">${i + 1}</td><td class="name">${esc(p.name)}</td>
       <td class="num">${p.played}</td><td class="num hide-xs">${p.won}</td><td class="num hide-xs">${p.drawn}</td><td class="num hide-xs">${p.lost}</td>
       <td class="num hide-sm">${gd(p) > 0 ? "+" : ""}${gd(p)}</td><td class="num"><b>${pts(p)}</b></td>
       <td class="num hide-sm">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span>` : p.last_login ? `<span class="muted">${ago(p.last_login, now)}</span>` : "–"}</td></tr>`).join("") + `</tbody></table></div>`
     : `<p class="empty">The table fills in after the first finished match.</p>`) +
-    (idle.length ? `<p class="note">Not played yet: ${idle.map(p => esc(p.name)).join(", ")}</p>` : ""));
+    (idle.length ? `<p class="note">Not played yet: ${idle.map(p => esc(p.name)).join(", ")}</p>` : "") +
+    (ranked.length && d.results.some(r => r.reason) ? `<p class="note">Abandoned matches count with the score when they ended.</p>` : ""));
 }
 
 function netHtml(s) {
   const out = [`<div>Home network address <b>${esc(s.lan)}</b></div>`];
   if (s.wan) out.push(`<div>${s.cgnat ? "Shared internet address (CGNAT)" : "Internet address"} <b>${esc(s.wan)}</b></div>`);
-  if (s.cgnat && !(s.pinned && isTs(s.pinned))) out.push(`<div class="warn"><b>⚠ Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free) to fix it.</a></div>`);
-  else if (s.pinned) out.push(`<div class="ok">✓ Friends connect to ${esc(s.pinned)} (your fixed address)</div>`);
-  else if (s.ports_open.length) out.push(`<div class="ok">✓ Router ports open (UPnP)</div><div class="small muted">While they're open, your server's address is public: anyone who has it can download the mod and join. Share it only with friends.</div><div class="small muted">Friends in your home: if the link doesn't open for them, use <code>http://${esc(s.lan)}</code>.</div>`);
-  else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>⚠ Friends outside your home can't connect yet.</b> ${dockerDesktop ? `On your router, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to this computer.` : `Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then run <a href="#install-cmd">the install command</a> again. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.`}</div>
+  if (s.cgnat && !(s.pinned && isTs(s.pinned))) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free) to fix it.</a></div>`);
+  else if (s.pinned) out.push(`<div>Friends' mod uses your fixed address <b>${esc(s.pinned)}</b>.${where(s.pinned) === "Internet" ? ` Make sure your router forwards TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to this computer.` : ""}</div>`);
+  else if (s.ports_open.length) out.push(`<div class="ok">${I.ok} Router ports open (UPnP)</div><div class="small muted">While they're open, your server's address is public: anyone who has it can download the mod and join. Share it only with friends.</div><div class="small muted">Friends in your home: if the link doesn't open for them, use <code>http://${esc(s.lan)}</code>.</div>`);
+  else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't connect yet.</b> ${dockerDesktop ? `On your router, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to this computer. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.` : `Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then run <a href="#install-cmd">the install command</a> again. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.`}</div>
     <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to ${esc(s.lan)}.</details>`);
   if (!s.wan && !s.pinned && !s.ports_open.length && !s.cgnat) out.push(`<div class="muted">Friends on your Wi-Fi can connect. Want friends elsewhere? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale</a>.</div>`);
   return out.join("");
@@ -580,7 +590,7 @@ function gameRow(g) {
   let st, btn = "", info = "";
   const b = (cls, act, text) => `<button type="button" class="${cls}" data-game="${esc(g.id)}" data-act="${act}" data-key="game-${esc(g.id)}-${act}" aria-label="${text}: ${esc(name)}">${text}</button>`;
   const what = `<div class="what">Copies <code>dinput8.dll</code> into the game folder and tells PES to load it (keeps a backup of your settings).</div>`;
-  const whatFinish = `<div class="what">The mod is in place. This adds one Wine setting so PES loads it (your settings are backed up).</div>`;
+  const whatFinish = `<div class="what">The mod is in place. This tells PES to load it (a small settings change; a backup is kept).</div>`;
   const steam = /\/steamapps\//.test(g.path);
   const failed = rowMsg[g.id] && rowMsg[g.id].error;
   if (g.mod === "foreign") {
@@ -596,21 +606,24 @@ function gameRow(g) {
     const opt = steam ? `WINEDLLOVERRIDES="dinput8=n,b" %command%` : `WINEDLLOVERRIDES=dinput8=n,b`;
     const copyBtn = `<button type="button" class="small" data-copytext="${esc(opt)}" data-copied="Launch option copied" data-key="lo-copy-${esc(g.id)}" aria-label="Copy launch option for ${esc(name)}">Copy</button>`;
     if (doneOption(g)) {
-      st = `<span class="ok">✓ Ready to play</span><div class="what">You added the launch option. <button type="button" class="linkbtn" data-optundo="${esc(g.path)}" data-key="lo-undo-${esc(g.id)}">Undo</button></div>`;
-      btn = b("danger small", "remove", "Uninstall");
+      st = `<span class="ok">${I.ok} Ready to play</span><div class="what">You added the launch option. <button type="button" class="linkbtn" data-optundo="${esc(g.path)}" data-key="lo-undo-${esc(g.id)}">Undo</button> <span class="muted">(saved in this browser)</span></div>`;
+      btn = b("danger", "remove", "Uninstall");
     } else {
       st = steam
         ? `<span class="muted">Mod installed. To finish, add this Steam launch option:</span><div class="what">In Steam: PES 2021 → Properties → Launch options, paste <code>${esc(opt)}</code> ${copyBtn}</div>`
         : `<span class="muted">Mod installed. To finish, add this setting in your launcher:</span><div class="what">In Lutris or your launcher, add the environment variable <code>${esc(opt)}</code> ${copyBtn}</div>`;
-      btn = `<button type="button" class="primary small" data-optdone="${esc(g.path)}" data-key="lo-done-${esc(g.id)}" aria-label="I've added it: launch option for ${esc(name)}">I've added it</button> ${b("danger small", "remove", "Uninstall")}`;
+      btn = `<button type="button" class="primary" data-optdone="${esc(g.path)}" data-key="lo-done-${esc(g.id)}" aria-label="I've added it: launch option for ${esc(name)}">I've added it</button> ${b("danger", "remove", "Uninstall")}`;
       info = `<span class="muted small">The server can't see launch options, so confirm here once you've added it.</span>`;
     }
   } else {
-    st = `<span class="ok">✓ Ready to play</span>`; btn = b("danger small", "remove", "Uninstall");
+    st = `<span class="ok">${I.ok} Ready to play</span>`; btn = b("danger", "remove", "Uninstall");
   }
+  const ready = g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g)));
+  if (!ready && skipped(g)) info = `<span class="muted small">Skipped in this browser.</span> <button type="button" class="linkbtn" data-unskip="${esc(g.path)}" data-key="unskip-${esc(g.id)}">Set it up after all</button>`;
+  else if (!ready) info += `${info ? " " : ""}<button type="button" class="linkbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}">Not now: I don't play on this copy</button>`;
   const msg = rowMsg[g.id] ? rowMsg[g.id].html : "";
   return `<div class="game"><div class="where"><b>${esc(name)}</b>
-      <code class="parent">${esc(g.path)}</code><div class="st">${st}</div></div>
+      <code class="parent" title="${esc(g.path)}">${esc(String(g.path).replace(/^\/home\/[^/]+/, "~"))}</code><div class="st">${st}</div></div>
     <div class="act">${failed ? "" : btn}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
 }
 function libraryOf(path) {
@@ -618,8 +631,9 @@ function libraryOf(path) {
   return "/" + (i > 0 ? p.slice(0, i) : p.slice(0, -2)).join("/");
 }
 const justMarked = new Set();
+function skipped(g) { try { return localStorage.getItem("pes-pc-skip:" + g.path) === "1"; } catch (e) { return false; } }
 function pcNeeds() {
-  return lastGames.some(g => g.mod === "none" || g.mod === "other-server" || (g.mod === "ours" && (g.override === false || (g.override === null && !doneOption(g)))));
+  return lastGames.filter(g => !skipped(g) && !(g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g))))).length;
 }
 const andList = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
 function doneOption(g) { try { return localStorage.getItem("pes-optdone:" + g.path) === "1"; } catch (e) { return false; } }
@@ -628,29 +642,31 @@ async function loadGames(force, focusMsg, focusKey) {
   try { gs = await api("/admin/api/games"); } catch (e) {
     if (e.status === 401) return signedOut();
     if (!$("thispc").hidden) put("games", `<p class="empty">Couldn't check this PC's games right now. This page will try again.</p>`);
+    else if (!gamesRetry) { gamesRetry = true; setTimeout(() => loadGames(), 3000); }   // first load failed: don't wait 15 s
     return;
   }
   lastGames = gs;
-  if (last) render(last);                        // a copy that needs setup moves up right away
   for (const id in rowMsg) {                     // a message belongs to the state it was about
     const g = gs.find(x => x.id === id);
     if (!g || rowMsg[id].state !== stateOf(g) || Date.now() > rowMsg[id].until) delete rowMsg[id];
   }
   $("thispc").hidden = !gs.length;
+  if (last) render(last);                        // card order and the header pill follow right away
   if (!gs.length) return;
   const okNow = g => g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g)));
-  const need = gs.filter(g => !okNow(g)).length;
+  const need = gs.filter(g => !okNow(g) && !skipped(g)).length, okCnt = gs.filter(okNow).length;
+  $("pcsub").hidden = need === 0;
   const actionable = gs.filter(g => g.mod === "none" || g.mod === "other-server" || (g.mod === "ours" && g.override === false)).length;
-  const isReady = g => okNow(g) && !rowMsg[g.id] && !justMarked.has(g.path);
+  const isReady = g => (okNow(g) || skipped(g)) && !rowMsg[g.id] && !justMarked.has(g.path);
   const todo = gs.filter(g => !isReady(g)), done = gs.filter(isReady);
   const counts = {};
   gs.forEach(g => { counts[label(g.path)] = (counts[label(g.path)] || 0) + 1; });
   gs.forEach(g => { g.label = counts[label(g.path)] > 1 ? label(g.path).replace(/\)$/, " · " + libraryOf(g.path) + ")") : label(g.path); });
   const rows = need && done.length >= 1
-    ? `<div class="games">${todo.map(gameRow).join("")}</div><details class="pcready" style="margin-top:8px"><summary>✓ ${done.length} other ${done.length === 1 ? "copy is" : "copies are"} ready</summary><div class="games">${done.map(gameRow).join("")}</div></details>`
+    ? `<div class="games">${todo.map(gameRow).join("")}</div><details class="pcready" style="margin-top:8px"><summary>${I.ok} ${done.length} other ${done.length === 1 ? "copy is" : "copies are"} ${done.some(skipped) ? "ready or skipped" : "ready"}</summary><div class="games">${done.map(gameRow).join("")}</div></details>`
     : `<div class="games">${gs.map(gameRow).join("")}</div>`;
   const html = need === 0 && !Object.keys(rowMsg).length
-    ? `<details class="pcready"><summary>✓ PES 2021 on this PC is ready to play (${gs.length} ${gs.length === 1 ? "copy" : "copies"})</summary>${rows}</details>`
+    ? `<details class="pcready"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this PC is ready to play (${gs.length} ${gs.length === 1 ? "copy" : "copies"})` : `PES 2021 on this PC: ${okCnt} ready, ${gs.length - okCnt} skipped`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
         : `${gs.length > 1 ? `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup. ` : ""}${actionable ? `Close PES 2021, then click the button next to ${actionable === 1 ? "it" : "each copy"}.` : need === 1 ? "Follow the step below." : "Follow the step under each copy below."}`}</p>${rows}`;
   put("games", html, force);
@@ -675,6 +691,7 @@ async function gameAction(btn) {
   btn.setAttribute("aria-busy", "true"); btn.setAttribute("aria-disabled", "true");
   delete rowMsg[id];
   const box = $("games").querySelector(`[data-key="msg-${CSS.escape(id)}"]`);
+  if (box && box.contains(document.activeElement)) box.focus();
   if (box) box.innerHTML = `<span class="muted">Working…</span>`;
   btn.textContent = act === "remove" ? "Removing…" : "Installing…";
   let msg;
@@ -755,6 +772,13 @@ document.addEventListener("click", async e => {
     } else $("pc-live").textContent = "Checked again.";
     return;
   }
+  const sk = e.target.closest("[data-skip]");
+  if (sk) { try { localStorage.setItem("pes-pc-skip:" + sk.dataset.skip, "1"); } catch (_) {}
+    $("pc-live").textContent = "Skipped. You can set it up later from the list of other copies."; await loadGames(true); return $("pc-h").focus(); }
+  const us = e.target.closest("[data-unskip]");
+  if (us) { try { localStorage.removeItem("pes-pc-skip:" + us.dataset.unskip); } catch (_) {}
+    const g = lastGames.find(x => x.path === us.dataset.unskip); $("pc-live").textContent = "Shown again.";
+    return loadGames(true, null, g && "skip-" + g.id); }
   const od = e.target.closest("[data-optdone]");
   if (od) { try { localStorage.setItem("pes-optdone:" + od.dataset.optdone, "1"); } catch (_) {} justMarked.add(od.dataset.optdone);
     $("pc-live").textContent = "Marked as ready"; const g = lastGames.find(x => x.path === od.dataset.optdone); return loadGames(true, null, g && "lo-undo-" + g.id); }
@@ -823,6 +847,7 @@ fetch("/admin/api/info").then(r => r.json()).then(i => {
   if (i.host_ok === false) {
     const where = i.lan ? `<a href="http://${i.lan}/admin">http://${i.lan}/admin</a>` : "the server's address (for example http://192.168.x.x/admin)";
     $("err").innerHTML = `This page was opened by a web name, which the admin page doesn't accept. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
+    $("lf").hidden = true; $("forgot").hidden = true; ($("err").querySelector("a") || $("err")).focus();
     $("signin").disabled = true;
   }
   if (i.remote) { $("login-remote").hidden = false; $("remember-row").hidden = true; $("remember").checked = false; }
