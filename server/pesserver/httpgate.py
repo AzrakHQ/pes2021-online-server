@@ -118,8 +118,8 @@ async def _admin(service, method, route, headers, body):
     if route == "/admin/api/state":
         snap = events.snapshot(service)
         st = netsetup.STATE
-        main = st.get("url") or "http://" + netsetup.game_addrs()[-1]
-        snap["server"] = {"url": st.get("url"), "main": main, "lan": st["lan"], "wan": st["wan"],
+        main = "http://" + netsetup.game_addrs()[-1]
+        snap["server"] = {"main": main, "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"]}
         return "200 OK", json.dumps(snap).encode(), "application/json"
@@ -170,7 +170,7 @@ def _origin(service, headers, writer):
                                local_ip=(writer.get_extra_info("sockname") or ("",))[0])
         host = netsetup.advertised_addr(service, conn)
     server = host.rsplit(":", 1)[0] if host.count(":") == 1 else host
-    scheme = "https" if headers.get("x-forwarded-proto") == "https" or host.endswith(".trycloudflare.com") else "http"
+    scheme = "https" if headers.get("x-forwarded-proto") == "https" else "http"
     addrs = netsetup.game_addrs()
     if netsetup._ip(server):                  # reached by IP: that address works for this player
         addrs = [server] + [a for a in addrs if a != server]
@@ -198,7 +198,7 @@ def _mod(service, route, headers, writer, path=""):
             return "400 Bad Request", b"bad nonce", "text/plain", b""
     if not os.path.isfile(MOD_DLL):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
-    url = netsetup.STATE.get("url") or (f"{scheme}://{host}" if not netsetup._ip(server) else "")
+    url = f"{scheme}://{host}" if not netsetup._ip(server) else ""   # a name (e.g. dynamic DNS) outlives IP changes
     settings = identity.mod_settings(os.environ.get("SERVER_NAME", "PES 2021 server"), url, netsetup.game_addrs())
     body = identity.pack_mod(open(MOD_DLL, "rb").read(), settings)
     return "200 OK", body, "application/octet-stream", b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'

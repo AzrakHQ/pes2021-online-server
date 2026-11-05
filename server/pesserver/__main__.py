@@ -41,7 +41,7 @@ async def run(a):
     except OSError:
         pass
 
-    def show_banner(_url=None):
+    def show_banner():
         if not netsetup.STATE["ready"]:
             return
         print(netsetup.banner(svc.admin_password), flush=True)
@@ -49,17 +49,10 @@ async def run(a):
             f.write(netsetup.banner(svc.admin_password))
         _os.chmod(banner_file, 0o600)
 
-    tunnel = None
-    if _os.environ.get("TUNNEL", "1") != "0":
-        tunnel = asyncio.create_task(netsetup.run_tunnel(a.http_port, on_url=show_banner))
     if a.auto_net:
         await asyncio.to_thread(netsetup.setup, use_upnp=_os.environ.get("UPNP", "1") != "0")
     else:
         netsetup.STATE["lan"] = netsetup.lan_ip()
-    for _ in range(40):                        # give the tunnel a moment to get its address
-        if tunnel is None or netsetup.STATE.get("url") or netsetup.STATE.get("url_error") or tunnel.done():
-            break
-        await asyncio.sleep(0.5)
     netsetup.STATE["ready"] = True
     show_banner()
     identity.start_publisher()

@@ -198,7 +198,6 @@ async function refresh() {
   const s = d.server;
   $("jp").textContent = s.main;
   const net = [];
-  if (s.url) net.push(`<span>Web address <b>${esc(s.url)}</b></span>`);
   net.push(`<span>LAN <b>${esc(s.lan)}</b></span>`);
   if (s.wan) net.push(`<span>Internet <b>${esc(s.wan)}</b></span>`);
   if (s.pinned) net.push(`<span>Fixed address <b>${esc(s.pinned)}</b></span>`);

@@ -38,14 +38,11 @@ def test_igd_description_and_ssdp_parsing():
 
 def test_banner(monkeypatch, tmp_path):
     monkeypatch.setitem(netsetup.STATE, "mapped", ["80/tcp"])
-    monkeypatch.setitem(netsetup.STATE, "url", None)
     b = netsetup.banner("pw-1", color=False)
-    assert "Admin page   http://203.0.113.7/admin" in b and "pw-1" in b
-    assert "join" not in b and "irm " not in b                     # friends get the mod, not commands
-    monkeypatch.setitem(netsetup.STATE, "url", "https://brave-tiger.trycloudflare.com")
-    b = netsetup.banner(color=False)
-    assert "https://brave-tiger.trycloudflare.com/admin" in b and "http://192.168.1.50/admin" in b
-    assert "Password" not in b and "download the one file" in b
+    assert "Admin page   http://192.168.1.50/admin" in b and "from outside this network: http://203.0.113.7/admin" in b
+    assert "pw-1" in b and "download the one file" in b
+    assert "join" not in b and "irm " not in b and "trycloudflare" not in b
+    assert "Password" not in netsetup.banner(color=False)
     assert netsetup.game_addrs() == ["192.168.1.50", "203.0.113.7"]
     assert "certificate" not in b
     flag = tmp_path / "ca-replaced"; flag.write_text("1")
@@ -252,9 +249,7 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
     dll = tmp_path / "dinput8.dll"
     dll.write_bytes(b"MZ..head.." + marker + b"\0" * (identity.EMBED_SIZE - len(marker)) + b"..tail")
     monkeypatch.setattr(httpgate, "MOD_DLL", str(dll))
-    monkeypatch.setitem(netsetup.STATE, "url", "https://brave-tiger.trycloudflare.com")
-
-    async def get(port, path, host="brave-tiger.trycloudflare.com"):
+    async def get(port, path, host="pes.example.org"):
         r, w = await asyncio.open_connection("127.0.0.1", port)
         w.write(f"GET {path} HTTP/1.1\r\nHost: {host}\r\nX-Forwarded-Proto: https\r\n\r\n".encode())
         await w.drain(); data = await r.read(); w.close()
@@ -267,7 +262,7 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
         try:
             head, body = await get(port, "/mod/note")
             lines = check(body.decode()).split("\n")
-            assert lines[0] == "PES2021ONLINE-NOTE 1" and lines[2] == "https://brave-tiger.trycloudflare.com"
+            assert lines[0] == "PES2021ONLINE-NOTE 1" and lines[2] == "-"
             assert lines[3:5] == ["192.168.1.50", "203.0.113.7"]
             head, body = await get(port, "/mod/hello?n=00112233aabbccdd")
             assert check(body.decode()) == f"PES2021ONLINE-HELLO 1\n{identity.public_hex()}\n00112233aabbccdd\n"
@@ -276,7 +271,7 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
             head, body = await get(port, "/mod/dinput8.dll")
             assert 'filename="dinput8.dll"' in head and len(body) == dll.stat().st_size
             area = body[body.find(marker) + len(marker):][:identity.EMBED_SIZE - len(marker)].rstrip(b"\0").decode()
-            assert f"key={identity.public_hex()}" in area and "url=https://brave-tiger.trycloudflare.com" in area
+            assert f"key={identity.public_hex()}" in area and "url=https://pes.example.org" in area
             assert "addrs=192.168.1.50,203.0.113.7" in area and body.endswith(b"..tail")
             monkeypatch.setattr(httpgate, "MOD_DLL", str(tmp_path / "missing.dll"))
             head, body = await get(port, "/mod/dinput8.dll")

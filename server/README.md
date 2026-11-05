@@ -40,7 +40,6 @@ Environment variables:
 | `PESSERVER_HTTP_PORT` | port used in URL lists (default 8080) |
 | `PESSERVER_RXLOG` | path of a JSONL log of every decoded message (optional) |
 | `UPNP` | `0` = don't open router ports |
-| `TUNNEL` | `0` = no free `trycloudflare.com` web address (needs `cloudflared`, included in the image) |
 | `ADMIN_PASSWORD` | fixed admin password (default: random, saved in `<data>/admin_password`) |
 | `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
 
@@ -53,7 +52,7 @@ Environment variables:
 | `pesserver/pesmatch.py` | Quick Match queue and pairing, `CMD_WATCH_MATCHING` push, game relay info, peer notice relay |
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |
-| `pesserver/netsetup.py` | address detection, UPnP port mapping, Cloudflare quick tunnel, per-client advertised address, startup banner |
+| `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner |
 | `pesserver/events.py` | live activity for the admin page: online players, match phases and scores, saved results |
 | `pesserver/web/` | player page, `join.ps1` / `join.sh` (served with the server address filled in), Proton CA installer |
 | `pesserver/schemas.json` | response schemas of ~400 commands, extracted from the client (`notes/re/extract_schemas.py`) |

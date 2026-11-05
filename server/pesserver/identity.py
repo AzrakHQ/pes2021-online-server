@@ -69,7 +69,7 @@ def hello(nonce):
 
 def current_note():
     from . import netsetup
-    return note(netsetup.STATE.get("url"), netsetup.game_addrs())
+    return note(None, netsetup.game_addrs())
 
 
 # ------------------------------------------------------------------------------- address book
@@ -103,7 +103,7 @@ def start_publisher(every=60, refresh=24 * 3600):
         last, last_ok = None, 0.0
         while True:
             if netsetup.STATE.get("ready"):
-                where = (netsetup.STATE.get("url"), tuple(netsetup.game_addrs()))
+                where = tuple(netsetup.game_addrs())
                 if where != last or time.time() - last_ok > refresh:
                     if publish_once():
                         log.info("address book: published %s", where)

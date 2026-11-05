@@ -57,7 +57,7 @@ typedef struct {
     char keyhex[65];              /* server identity ("" = none) */
     unsigned char key[32];
     char name[128];
-    char url[512];                /* web address, e.g. https://x.trycloudflare.com */
+    char url[512];                /* web address, if the host has a name for the server (optional) */
     char addrs[MAXADDR][64];      /* game addresses, best first */
     int naddrs;
     char book[512];               /* address book base URL */
@@ -537,7 +537,7 @@ static void show_dialog(void)
     MultiByteToWideChar(CP_UTF8, 0, g_srv.url, -1, cur, 600);
     child(L"STATIC", L"Play on another server: paste its address.", 0, 16, 14, 488, 20, -1);
     g_edit = child(L"EDIT", cur, WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL, 16, 38, 488, 26, 101);
-    child(L"STATIC", L"For example brave-tiger-moon-river.trycloudflare.com or an IP address. "
+    child(L"STATIC", L"For example 203.0.113.7 (your host's internet address) or its name. "
                      L"Close this box to keep your current server.", 0, 16, 72, 488, 36, -1);
     g_status = child(L"STATIC", L"", 0, 16, 112, 488, 40, 102);
     g_ok = child(L"BUTTON", L"Switch server", WS_TABSTOP | BS_DEFPUSHBUTTON, 252, 164, 132, 32, IDOK);

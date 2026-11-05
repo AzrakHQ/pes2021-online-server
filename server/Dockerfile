@@ -11,14 +11,6 @@ FROM python:3.12-slim
 RUN pip install --no-cache-dir msgpack==1.1.0 cryptography==44.0.1 \
  && apt-get update && apt-get install -y --no-install-recommends openssl \
  && rm -rf /var/lib/apt/lists/*
-# cloudflared (Cloudflare's official client) gives the server a free https://<words>.trycloudflare.com
-# address for its web pages. TUNNEL=0 turns it off.
-ARG CLOUDFLARED_VERSION=2025.8.1
-RUN arch="$(dpkg --print-architecture)" && python3 -c "import urllib.request,sys; \
-urllib.request.urlretrieve(sys.argv[1], '/usr/local/bin/cloudflared')" \
- "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-${arch}" \
- && chmod +x /usr/local/bin/cloudflared && cloudflared --version
-
 WORKDIR /app
 COPY pesserver /app/pesserver
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh

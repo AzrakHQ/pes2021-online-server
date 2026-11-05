@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 log = logging.getLogger("pesserver.net")
 
-STATE = {"ready": False, "url": None, "lan": None, "wan": None, "upnp": None, "upnp_error": None, "cgnat": False, "mapped": []}
+STATE = {"ready": False, "lan": None, "wan": None, "upnp": None, "upnp_error": None, "cgnat": False, "mapped": []}
 
 # The ports the game (and the /join page) need from the outside.
 PORTS = [(80, "TCP"), (443, "TCP"), (8080, "TCP"), (10000, "TCP"), (3478, "UDP"), (7600, "UDP")]
@@ -245,35 +245,6 @@ def teardown():
             pass
 
 
-# ---- public web address (Cloudflare quick tunnel) ------------------------------------------------
-async def run_tunnel(port, on_url=None):
-    """Keep a free Cloudflare quick tunnel (https://<words>.trycloudflare.com -> http://127.0.0.1:port)
-    running. No account needed. The URL changes when the tunnel restarts."""
-    import asyncio, shutil
-    exe = shutil.which("cloudflared")
-    if not exe:
-        STATE["url_error"] = "cloudflared not installed"
-        return
-    while True:
-        try:
-            proc = await asyncio.create_subprocess_exec(
-                exe, "tunnel", "--no-autoupdate", "--url", f"http://127.0.0.1:{port}",
-                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
-            async for line in proc.stderr:
-                m = re.search(rb"https://[a-z0-9-]+\.trycloudflare\.com", line)
-                if m and STATE.get("url") != m.group(0).decode():
-                    STATE["url"] = m.group(0).decode()
-                    log.info("public web address: %s", STATE["url"])
-                    if on_url:
-                        on_url(STATE["url"])
-            await proc.wait()
-            log.warning("tunnel exited (rc=%s); restarting in 30 s", proc.returncode)
-        except Exception as e:  # noqa: BLE001
-            log.warning("tunnel: %s", e)
-        STATE["url"] = None
-        await asyncio.sleep(30)
-
-
 def game_addrs():
     """Addresses the game can use to reach this server, best first (the join scripts pick the first
     one that answers /status with our server id)."""
@@ -310,14 +281,14 @@ def banner(password=None, color=True):
     c = (lambda code, t: f"\033[{code}m{t}\033[0m") if color else (lambda code, t: t)
     B, D, G, C, Y = (lambda t: c("1", t)), (lambda t: c("2", t)), (lambda t: c("1;32", t)), \
                     (lambda t: c("1;36", t)), (lambda t: c("1;33", t))
-    lan, wan, url = STATE["lan"] or lan_ip(), STATE["wan"], STATE.get("url")
+    lan, wan = STATE["lan"] or lan_ip(), STATE["wan"]
     pinned = os.environ.get("PESSERVER_PUBLIC_ADDR")
-    main = url or f"http://{pinned or wan or lan}"
+    here = pinned or lan
     line = D("  " + "─" * 66)
     out = ["", line, f"   ⚽  {B('PES 2021 SERVER')}" + " " * 39 + G("● ONLINE"), line, "",
-           f"   {B('Admin page')}   {C(main + '/admin')}"]
-    if url:
-        out.append(D(f"                (on this network also http://{lan}/admin)"))
+           f"   {B('Admin page')}   {C(f'http://{here}/admin')}"]
+    if wan and wan != here:
+        out.append(D(f"                from outside this network: http://{wan}/admin"))
     if password:
         out.append(f"   {B('Password')}     {Y(password)}")
     out += ["", D("   Open it to download the one file your friends need."), ""]
