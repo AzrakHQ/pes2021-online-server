@@ -72,6 +72,10 @@ def test_join_pages_follow_user_agent_and_host(tmp_path):
             assert sh.startswith("#!/bin/bash") and 'SERVER="pes.example"' in sh and "UNINSTALL=1" in sh
             page = await get(port, "/", "Mozilla/5.0 Firefox/130")
             assert "<html" in page and 'href="/mod/dinput8.dll"' in page and "irm " not in page
+            r2, w2 = await asyncio.open_connection("127.0.0.1", port)     # the friends' page is hash-pinned too
+            w2.write(f"GET / HTTP/1.1\r\nHost: pes.example:{port}\r\nUser-Agent: Mozilla/5.0\r\n\r\n".encode()); await w2.drain()
+            head, body = (await r2.read()).decode().split("\r\n\r\n", 1); w2.close()
+            assert "script-src 'sha256-" in head and httpgate.page_csp(body) in head and "X-Frame-Options: DENY" in head
             assert (await get(port, "/install-ca-proton.py", "curl/8")).startswith("#!/usr/bin/env python3")
         finally:
             srv.close()

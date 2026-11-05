@@ -42,6 +42,9 @@ def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False)
             elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
                                              "/leave.ps1", "/install-ca-proton.py", "/banner"):
                 out, ctype = _web(service, route, headers, writer)
+                if ctype.startswith("text/html"):       # the friends' page shares an origin with the admin page
+                    extra = (b"Content-Security-Policy: " + page_csp(out.decode()).encode() + b"\r\n"
+                             b"X-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
             elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
                 if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200"):
@@ -218,15 +221,18 @@ ADMIN_BLOCKED = b"""<!doctype html><meta charset=utf-8><meta name=viewport conte
 <p>Hosting on a cloud server? Run the install line with <code>ADMIN_REMOTE=1</code> before <code>sh</code>.</p></body>"""
 
 
-def admin_csp():
-    """Only the admin page's own inline script may run (hash-pinned); no other origins."""
+def page_csp(html):
+    """Only the page's own inline scripts may run (hash-pinned); no other origins."""
     import base64, hashlib, re as _re
+    hashes = " ".join("'sha256-%s'" % base64.b64encode(hashlib.sha256(m.encode()).digest()).decode()
+                      for m in _re.findall(r"<script>(.*?)</script>", html, _re.S))
+    return (f"default-src 'none'; script-src {hashes or chr(39) + 'none' + chr(39)}; style-src 'unsafe-inline'; "
+            "connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
+
+
+def admin_csp():
     if not _CSP:
-        html = open(os.path.join(WEB, "admin.html"), encoding="utf-8").read()
-        hashes = " ".join("'sha256-%s'" % base64.b64encode(hashlib.sha256(m.encode()).digest()).decode()
-                          for m in _re.findall(r"<script>(.*?)</script>", html, _re.S))
-        _CSP.append(f"default-src 'none'; script-src {hashes}; style-src 'unsafe-inline'; connect-src 'self'; "
-                    "img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
+        _CSP.append(page_csp(open(os.path.join(WEB, "admin.html"), encoding="utf-8").read()))
     return _CSP[0]
 
 
