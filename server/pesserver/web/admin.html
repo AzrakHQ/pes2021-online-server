@@ -270,6 +270,7 @@
   </header>
 
   <div id="down" class="banner down" role="alert" hidden></div>
+  <div id="update" class="banner remote" hidden></div>
   <div id="remote" class="banner remote" hidden><b>Remote admin is on:</b> this page is reachable from the internet without encryption. <details style="display:inline"><summary style="display:inline;cursor:pointer;text-decoration:underline">Why this matters</summary> Your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours. <span id="remote-off">To turn it off, run this on the server: <span class="linkrow"><code>curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh</code><button type="button" class="small" data-copytext="curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | ADMIN_REMOTE= sh" data-copied="Command copied">Copy</button></span></span><span id="remote-public" hidden>It is on because this computer's own address is public, so it can't be switched off here; prefer Tailscale and sign in only from trusted networks.</span></details></div>
 
   <section class="card invite" aria-labelledby="inv-h">
@@ -365,7 +366,7 @@ const store = {
   clear() { try { ["pes-admin", "pes-admin-token", "pes-admin-until"].forEach(k => { localStorage.removeItem(k); sessionStorage.removeItem(k); }); } catch (e) {} },
 };
 let token = store.get(), timer = null, gamesTimer = null, failures = 0, inflight = false, downSince = 0, lastOkAt = 0;
-let showAllResults = false, feedAll = false, last = null, lastGames = [], dockerDesktop = false;
+let showAllResults = false, feedAll = false, last = null, lastGames = [], dockerDesktop = false, program = false, platform = "", dataDir = "";
 let untilText = "";
 const meta = () => text("until", untilText ? ($("uptime").textContent ? " · signed in until " : "Signed in until ") + untilText : "");
 let compactState = null, backUntil = 0, gamesRetry = false;
@@ -374,6 +375,10 @@ const I = {ok: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M
   down: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg>'};
 const DC = "docker compose -f docker-compose.bridge.yml";
 const INSTALL = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh";
+const RUN_SH = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh";
+const RUN_PS = "irm https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.ps1 | iex";
+const runCmd = () => platform === "win32" ? RUN_PS : RUN_SH;     // how the program starts (and updates)
+const copyRow = (t, what) => `<div class="linkrow"><code>${esc(t)}</code><button type="button" class="small" data-copytext="${esc(t)}" data-copied="${what} copied">Copy</button></div>`;
 function cmdsHtml() {
   const copy = (t, what) => `<div class="linkrow"><code>${esc(t)}</code><button type="button" class="small" data-copytext="${esc(t)}" data-copied="${what} copied">Copy</button></div>`;
   return dockerDesktop
@@ -381,12 +386,18 @@ function cmdsHtml() {
         <li>Stop: <code>docker stop pesserver</code> · Start: <code>docker start pesserver</code></li>
         <li id="install-cmd">Update or repair, in the project folder (players, results and friends' mod files keep working):${copy(DC + " pull; " + DC + " up -d", "Update command")}
           <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-winhost">Hosting from Windows or Mac</a></li>`
+    : program
+    ? `<li>The server runs in a window on the server computer: its address and password are shown there. Stop it with <b>Ctrl+C</b> or by closing the window.</li>
+        <li id="install-cmd">Start it again, always with the newest version (players, results and friends' mod files keep working)${platform === "win32" ? ", in PowerShell" : ", in a terminal"}:${copy(runCmd(), "Start command")}</li>
+        ${dataDir ? `<li>Players, results and the detailed log (server.log) are in <code>${esc(dataDir)}</code></li>` : ""}
+        <li>Want it always on, starting by itself after a reboot? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-host">Use an always-on server</a>.</li>`
     : `<li>Show the admin address and password again: <code>sudo docker logs pesserver</code></li>
         <li>Stop: <code>sudo docker stop pesserver</code> · Start: <code>sudo docker start pesserver</code></li>
         <li id="install-cmd">The install command (run it again to update or repair; players, results and friends' mod files keep working):${copy(INSTALL, "Install command")}</li>`;
 }
 const isTs = a => /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(a || "") || String(a || "").toLowerCase().startsWith("fd7a:115c:a1e0:");
-const startCmd = () => dockerDesktop ? "docker start pesserver" : "sudo docker start pesserver";
+const restartHint = () => program ? `start the server again (was its window closed?): <code>${esc(runCmd())}</code>.`
+  : `restart the server: <code>${dockerDesktop ? "docker" : "sudo docker"} restart pesserver</code>.`;
 const nm = n => esc(n).replace(/(_|\.(?!\d))/g, "$1<wbr>");   // long handles break at _ and .
 const shown = {}, rowMsg = {}, dlHTML = document.getElementById("dl").innerHTML;
 
@@ -486,8 +497,8 @@ function setDown(on) {
   document.querySelectorAll("[data-kick], #thispc button").forEach(b => b.setAttribute("aria-disabled", "true"));
   $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").textContent; $("dl").textContent = "Waiting for the server…";
   const downHtml = lastOkAt
-    ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? If it is, restart the server: <code>${dockerDesktop ? "docker" : "sudo docker"} restart pesserver</code>. This page keeps trying.`
-    : `<b>The server isn't answering yet.</b> If this lasts, restart it on the server computer with <code>${dockerDesktop ? "docker" : "sudo docker"} restart pesserver</code>. This page keeps trying.`;
+    ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? If it is, ${restartHint()} This page keeps trying.`
+    : `<b>The server isn't answering yet.</b> If this lasts, ${restartHint()} This page keeps trying.`;
   $("down").hidden = false; requestAnimationFrame(() => { $("down").innerHTML = downHtml; });   // shown first, so the alert is read
 }
 
@@ -528,9 +539,18 @@ function renderMsg(a) {
 function render(d) {
   const now = d.now, s = d.server;
   renderMsg(d.announce);
-  text("uptime", "Running for " + dur(d.uptime)); meta();
+  text("uptime", (s && s.version ? "Version " + s.version + " · " : "") + "Running for " + dur(d.uptime)); meta();
   text("jp", s.main); $("jp").title = s.main; $("jp").classList.toggle("long", s.main.length > 40); $("jp").classList.remove("waiting"); $("copy").disabled = false;
-  dockerDesktop = !!s.docker_desktop;
+  dockerDesktop = !!s.docker_desktop; program = !!s.program; platform = s.platform || ""; dataDir = s.data_dir || "";
+  const upd = $("update"), updKey = s.update ? s.update + (dockerDesktop ? "d" : program ? "p" : "b") : "";
+  if (upd.dataset.k !== updKey) {           // only redraw on change, so a Copy click isn't lost
+    upd.dataset.k = updKey; upd.hidden = !s.update;
+    if (s.update) upd.innerHTML = `<b>A newer server version is out</b> (${esc(s.update)}; this one is ${esc(s.version)}). ` +
+      (dockerDesktop ? `In the project folder, run:<div class="linkrow"><code>${esc(DC + " pull; " + DC + " up -d")}</code><button type="button" class="small" data-copytext="${esc(DC + " pull; " + DC + " up -d")}" data-copied="Update command copied">Copy</button></div>`
+       : program ? "Close the server's window, then start it again with:" + copyRow(runCmd(), "Start command")
+       : "On the server, run the install command again:" + copyRow(INSTALL, "Install command")) +
+      `<span class="small">Players, results and friends' mod files keep working.</span>`;
+  }
   if (s.key) text("skey", "key " + s.key.replace(" ", ""));
   if (s.mod_sha256) $("copy-sha").dataset.copytext = s.mod_sha256;
   if (s.mod_sha256) text("ssha", s.mod_sha256.toUpperCase().match(/.{1,8}/g).join(" "));
@@ -655,8 +675,8 @@ function netHtml(s) {
   if (s.wan) out.push(`<div>${s.cgnat ? "Shared internet address (CGNAT)" : "Internet address"} <b>${esc(s.wan)}</b></div>`);
   if (s.cgnat && !(s.pinned && isTs(s.pinned))) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free) to fix it.</a></div>`);
   else if (s.pinned) out.push(`<div>Friends' mod uses your ${isTs(s.pinned) ? "Tailscale" : "fixed"} address <b>${esc(s.pinned)}</b>.${isTs(s.pinned) ? " Friends must join your Tailscale network." : ""}${where(s.pinned) === "Internet" ? ` Make sure TCP 80, 443, 8080, 10000 and UDP 3478, 7600 reach this computer (forwarded by your router, or allowed in your cloud provider's firewall).` : ""}</div>`);
-  else if (s.ports_open.length) out.push(`<div class="ok">${I.ok} Router ports open (UPnP)</div><div class="small muted">While they're open, your server's address is public: anyone who has it can download the mod and join. Share it only with friends.</div><div class="small muted">Friends in your home: if the link doesn't open for them, use <code>http://${esc(s.lan)}</code>.</div>`);
-  else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't connect yet.</b> ${dockerDesktop ? `On your router, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to this computer. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.` : `Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then run <a href="#install-cmd">the install command</a> again. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.`}</div>
+  else if (s.ports_open.length) out.push(`<div class="ok">${I.ok} Router ports open (UPnP)</div><div class="small muted">While they're open, your server's address is public: anyone who has it can download the mod and join. Share it only with friends.</div><div class="small muted">Friends in your home: if the link doesn't open for them, use <code>${esc(s.lan_url || "http://" + s.lan)}</code>.</div>`);
+  else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't connect yet.</b> ${dockerDesktop ? `On your router, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to this computer. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.` : `Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then ${program ? "start the server again" : `run <a href="#install-cmd">the install command</a> again`}. Can't change router settings? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free)</a> instead.`}</div>
     <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to ${esc(s.lan)}.</details>`);
   if (s.pinned && s.wan && !isTs(s.pinned) && /^[\d.]+$/.test(s.pinned) && s.pinned !== s.wan) out.push(`<div class="small muted">Your fixed address (${esc(s.pinned)}) is different from this network's internet address (${esc(s.wan)}). If friends can't connect, check PUBLIC_IP.</div>`);
   if (!s.wan && !s.pinned && !s.ports_open.length && !s.cgnat) out.push(`<div class="muted">Friends on your Wi-Fi can connect. Want friends elsewhere? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale</a>.</div>`);
@@ -1002,13 +1022,14 @@ $("pw").addEventListener("input", () => { $("pw").removeAttribute("aria-invalid"
 fetch("/admin/api/info").then(r => r.json()).then(i => {
   if (i.docker_desktop) { dockerDesktop = true; put("cmds", cmdsHtml()); }
   if (i.docker_desktop) $("forgot").innerHTML = "Forgot it? On this computer, open a terminal and run <code>docker logs pesserver</code>.";
+  if (i.program) { program = true; $("forgot").innerHTML = "Forgot it? It's shown in the server's window on the server computer."; }
   if (i.host_ok === false) {
-    const where = i.lan ? `<a href="http://${esc(i.lan)}/admin">http://${esc(i.lan)}/admin</a>` : "the server's address (for example http://192.168.x.x/admin)";
+    const where = i.admin_url && i.lan ? `<a href="${esc(i.admin_url)}">${esc(i.admin_url)}</a>` : "the server's address (for example http://192.168.x.x/admin)";
     $("err").innerHTML = `For safety, the admin page only opens by the server's address, not a web name. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
     $("lf").before($("err")); $("err").classList.add("blocked"); $("lf").hidden = true; $("forgot").hidden = true; $("lsub").hidden = true; ($("err").querySelector("a") || $("err")).focus();
     $("signin").disabled = true;
   }
-  if (i.password_replaced) $("forgot").innerHTML = "This server was started with the website's example password (or one under 10 characters), so it made its own. See it on the server with <code>" + (i.docker_desktop ? "" : "sudo ") + "docker logs pesserver</code>.";
+  if (i.password_replaced) $("forgot").innerHTML = "This server was started with the website's example password (or one under 10 characters), so it made its own. " + (i.program ? "It's shown in the server's window." : "See it on the server with <code>" + (i.docker_desktop ? "" : "sudo ") + "docker logs pesserver</code>.");
   if (i.remote) { $("login-remote").hidden = false; $("remember-row").hidden = true; $("remember").checked = false; }
 }).catch(() => {});
 $("logout").onclick = async () => {

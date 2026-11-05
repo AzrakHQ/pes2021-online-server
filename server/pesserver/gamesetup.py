@@ -1,8 +1,9 @@
 """Install the mod into PES 2021 copies on the host's own machine, from the admin page.
 
-install.sh looks for PES2021.exe on the host (Steam libraries, ~/Games) and mounts only those game
-folders into the container at /games/<n>, plus each copy's Wine prefix at /prefixes/<n> when it finds
-one. PES_GAME_<n> / PES_PREFIX_<n> carry the host paths, for display.
+Docker: install.sh looks for PES2021.exe on the host (Steam libraries, ~/Games) and mounts only those
+game folders into the container at /games/<n>, plus each copy's Wine prefix at /prefixes/<n> when it
+finds one. PES_GAME_<n> / PES_PREFIX_<n> carry the host paths, for display.
+The downloadable program (pesserver host) does the same search itself: use_local_games().
 
 Installing writes dinput8.dll (packed with this server's identity) next to PES2021.exe and, on
 Linux, tells Wine to load it for PES2021.exe only:
@@ -11,7 +12,7 @@ in the prefix's user.reg, the same per-program setting Proton uses for its own o
 replaces the Steam launch option. Wine rewrites user.reg when the game exits, so the game must be
 closed while installing. A dinput8.dll that isn't ours (another mod) is never overwritten.
 """
-import os, time
+import os, re, sys, time
 
 from . import identity
 
@@ -21,7 +22,100 @@ SECTION = "[Software\\\\Wine\\\\AppDefaults\\\\PES2021.exe\\\\DllOverrides]"
 LINE = '"dinput8"="native,builtin"'
 
 
+LOCAL = None           # the downloadable program: [(dir, prefix or None)] found on this computer
+
+
+def _steam_roots():
+    if sys.platform == "win32":
+        roots = []
+        try:
+            import winreg
+            for hive, key in ((winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam"),
+                              (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam")):
+                try:
+                    with winreg.OpenKey(hive, key) as k:
+                        for name in ("SteamPath", "InstallPath"):
+                            try:
+                                roots.append(winreg.QueryValueEx(k, name)[0])
+                            except OSError:
+                                pass
+                except OSError:
+                    pass
+        except ImportError:
+            pass
+        roots.append(os.path.join(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"), "Steam"))
+        return roots
+    h = os.path.expanduser("~")
+    return [os.path.join(h, ".steam/steam"), os.path.join(h, ".local/share/Steam"),
+            os.path.join(h, ".var/app/com.valvesoftware.Steam/.local/share/Steam")]
+
+
+def _prefix_for(d):
+    """The Wine prefix PES 2021 runs in (Linux): Steam's compatdata, or a pfx next to the game."""
+    if sys.platform == "win32":
+        return None
+    m = d.replace("\\", "/").split("/steamapps/common/")
+    if len(m) > 1:
+        p = os.path.join(m[0], "steamapps/compatdata/1259970/pfx")
+        if os.path.isfile(os.path.join(p, "user.reg")):
+            return p
+    for c in (os.path.join(d, "../proton/pfx"), os.path.join(d, "../pfx")):
+        if os.path.isfile(os.path.join(c, "user.reg")):
+            return os.path.realpath(c)
+    return None
+
+
+def find_local_games():
+    found = []
+    libs = []
+    for root in _steam_roots():
+        vdf = os.path.join(root, "steamapps", "libraryfolders.vdf")
+        if not os.path.isfile(vdf):
+            continue
+        libs.append(root)
+        try:
+            text = open(vdf, encoding="utf-8", errors="replace").read()
+        except OSError:
+            continue
+        libs += [m.replace("\\\\", "\\") for m in re.findall(r'^\s*"path"\s*"(.*)"\s*$', text, re.M)]
+    for lib in libs:
+        common = os.path.join(lib, "steamapps", "common")
+        try:
+            names = os.listdir(common)
+        except OSError:
+            continue
+        for n in names:
+            if os.path.isfile(os.path.join(common, n, "PES2021.exe")):
+                found.append(os.path.join(common, n))
+    games = os.path.expanduser("~/Games")
+    if sys.platform != "win32" and os.path.isdir(games):
+        for top, dirs, files in os.walk(games):
+            depth = top[len(games):].count(os.sep)
+            dirs[:] = [x for x in dirs if x != "pfx" and depth < 5]
+            if "PES2021.exe" in files:
+                found.append(top)
+    out, seen = [], set()
+    for d in sorted(found):
+        real = os.path.realpath(d)
+        key = os.path.normcase(real)
+        if key not in seen:
+            seen.add(key)
+            out.append((real, _prefix_for(real)))
+    return out
+
+
+def use_local_games():
+    global LOCAL
+    try:
+        LOCAL = find_local_games()
+    except Exception:  # noqa: BLE001  (never stop the server over this)
+        LOCAL = []
+
+
 def _games():
+    if LOCAL is not None:
+        return [{"id": str(i + 1), "dir": d, "host_dir": d, "prefix": p, "host_prefix": p}
+                for i, (d, p) in enumerate(LOCAL)]
     out = []
     try:
         names = sorted(os.listdir(GAMES_ROOT), key=lambda n: (len(n), n))
@@ -93,7 +187,7 @@ def _write_as(path, text, st):
         f.write(text)
     try:
         os.chown(path, st.st_uid, st.st_gid)
-    except OSError:
+    except (OSError, AttributeError):             # AttributeError: Windows has no chown
         pass
 
 
@@ -120,7 +214,7 @@ def install(gid, dll_bytes):
     st = os.stat(g["dir"])
     try:
         os.chown(tmp, st.st_uid, st.st_gid)
-    except OSError:
+    except (OSError, AttributeError):
         pass
     os.replace(tmp, path)
     if g["prefix"]:

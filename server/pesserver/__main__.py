@@ -1,4 +1,11 @@
-import argparse, asyncio, logging, sys
+"""pesserver command line.
+
+  pesserver host              the downloadable program (also what it does with no arguments): runs in this
+                              window, data in the user's folder, finds PES 2021 on this computer
+  pesserver serve ...         the Docker image (docker-entrypoint.sh) and development
+  pesserver adduser NAME PW   add an account by hand
+"""
+import argparse, asyncio, logging, os, sys
 from . import gate, httpgate, stun
 from .accounts import Accounts, AccountError
 from .protocol import JsonCodec
@@ -8,39 +15,87 @@ from .ncl import NclCodec
 CODECS = {'ncl': NclCodec, 'json': JsonCodec, 'capture': CaptureCodec}
 from .service import Service
 
+log = logging.getLogger("pesserver")
+
+
+def default_data_dir():
+    """Where the downloadable program keeps players, results, certificates and the server identity."""
+    if sys.platform == "win32":
+        return os.path.join(os.environ.get("LOCALAPPDATA") or os.path.expanduser("~"), "PES2021 Server")
+    if sys.platform == "darwin":
+        return os.path.expanduser("~/Library/Application Support/PES2021 Server")
+    return os.path.join(os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "pes2021-server")
+
+
+def bundled(*parts):
+    """A file packed into the program (PyInstaller) or, from a checkout, next to the package."""
+    base = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, *parts)
+
+
+async def _optional(what, port, coro):
+    """Ports below 1024 need administrator rights on Linux: the server works without them, with less."""
+    try:
+        return await coro
+    except OSError as e:
+        log.info("%s not on port %d (%s)", what, port, e)
+        return None
+
 
 async def run(a):
     svc = Service(Accounts(a.db), public_ip=a.public_ip, allow_register=not a.no_register)
-    servers = [await gate.serve(svc, CODECS[a.codec], a.host, a.gate_port),
-               await httpgate.serve(svc, a.host, a.http_port, a.public_ip or "127.0.0.1", a.stun_port, a.gate_port)]
-    import os as _os
-    cert = _os.path.join(_os.path.dirname(_os.path.abspath(a.db)), "certs")
-    if _os.path.exists(_os.path.join(cert, "server.crt")):
-        servers.append(await httpgate.serve_tls(svc, a.host, a.https_port, _os.path.join(cert, "server.crt"),
-                                                _os.path.join(cert, "server.key"), a.public_ip or "127.0.0.1",
-                                                a.stun_port, a.gate_port))
-        logging.info("https tcp/%d", a.https_port)
+    from . import certs, netsetup
+    data_dir = os.path.dirname(os.path.abspath(a.db))
+    tls = None
+    if a.cmd == "host" or os.path.exists(os.path.join(data_dir, "certs", "server.crt")) or os.environ.get("PESSERVER_MAKE_CERTS") == "1":
+        tls = certs.ensure(os.path.join(data_dir, "certs"))
+    # 8080 speaks both HTTP and HTTPS: the mod sends the game's network test here (no admin rights needed)
+    try:
+        servers = [await gate.serve(svc, CODECS[a.codec], a.host, a.gate_port),
+                   await httpgate.serve(svc, a.host, a.http_port, a.public_ip or "127.0.0.1", a.stun_port, a.gate_port, tls=tls)]
+    except OSError as e:
+        if a.cmd != "host":
+            raise
+        sys.exit(f"\n   The server can't start: port {a.gate_port} or {a.http_port} is already in use.\n"
+                 "   Is another PES 2021 server running on this computer? Close its window, or stop the\n"
+                 "   always-on one with: sudo docker stop pesserver\n")
+    if not tls:
+        netsetup.skip_port(443)
+    if tls and a.https_port:        # 443: players set up with the /join line, and mods from before 2026-11
+        s = await _optional("HTTPS for join-line players", a.https_port,
+                            httpgate.serve_tls(svc, a.host, a.https_port, *tls, a.public_ip or "127.0.0.1",
+                                               a.stun_port, a.gate_port))
+        if s:
+            servers.append(s)
+            log.info("https tcp/%d", a.https_port)
+        else:
+            netsetup.skip_port(a.https_port)
+            netsetup.NOTES.append("Port 443 is not available, so only players with the mod can join (the join line needs it)."
+                                  + (" Run the server with sudo to allow it." if sys.platform.startswith("linux") else ""))
     if a.join_port and a.join_port != a.http_port:      # short URLs for players: http://server/join
-        try:
-            servers.append(await httpgate.serve(svc, a.host, a.join_port))
-        except OSError as e:
-            logging.warning("join page not on port %d (%s); use :%d instead", a.join_port, e, a.http_port)
-    if _os.environ.get("ADMIN_PORT"):                 # Docker Desktop: admin page on a local-only port
-        servers.append(await httpgate.serve(svc, a.host, int(_os.environ["ADMIN_PORT"]), admin_listener=True))
+        s = await _optional("join page", a.join_port, httpgate.serve(svc, a.host, a.join_port))
+        if s:
+            servers.append(s)
+            netsetup.WEB_PORT = a.join_port
+        else:
+            netsetup.skip_port(a.join_port)
+            netsetup.WEB_PORT = a.http_port
+    else:
+        netsetup.WEB_PORT = a.http_port
+    if os.environ.get("ADMIN_PORT"):                  # Docker Desktop: admin page on a local-only port
+        servers.append(await httpgate.serve(svc, a.host, int(os.environ["ADMIN_PORT"]), admin_listener=True))
     st = await stun.serve(a.stun_host or a.host, a.stun_port)
-    await stun.serve_relay(a.stun_host or a.host, int(_os.environ.get("PESSERVER_RELAY_PORT", "7600")))
+    await stun.serve_relay(a.stun_host or a.host, int(os.environ.get("PESSERVER_RELAY_PORT", "7600")))
     logging.info("gate tcp/%d  http tcp/%d  stun udp/%d", a.gate_port, a.http_port, a.stun_port)
-    from . import netsetup
-    data_dir = _os.path.dirname(_os.path.abspath(a.db))
     svc.admin_password = netsetup.admin_password(data_dir)
     svc.data_dir = data_dir
     from . import identity
     identity.init(data_dir)
     logging.info("server identity %s", identity.public_hex())
-    # inside the container, not the data volume: a stale copy must never be shown by install.sh
-    banner_file = _os.environ.get("PESSERVER_BANNER_FILE", "/tmp/pesserver-banner.txt")
+    # Docker: inside the container, not the data volume (a stale copy must never be shown by install.sh)
+    banner_file = os.environ.get("PESSERVER_BANNER_FILE", "/tmp/pesserver-banner.txt")
     try:
-        _os.unlink(banner_file)
+        os.unlink(banner_file)
     except OSError:
         pass
 
@@ -48,25 +103,43 @@ async def run(a):
         if not netsetup.STATE["ready"]:
             return
         print(netsetup.banner(svc.admin_password), flush=True)
-        with open(banner_file, "w") as f:      # read by install.sh (has the admin password: local only)
-            f.write(netsetup.banner(svc.admin_password))
-        _os.chmod(banner_file, 0o600)
+        try:
+            with open(banner_file, "w", encoding="utf-8") as f:   # read by install.sh (has the admin password: local only)
+                f.write(netsetup.banner(svc.admin_password))
+            os.chmod(banner_file, 0o600)
+        except OSError:
+            pass
 
     if a.auto_net:
-        await asyncio.to_thread(netsetup.setup, use_upnp=_os.environ.get("UPNP", "1") != "0")
+        await asyncio.to_thread(netsetup.setup, use_upnp=os.environ.get("UPNP", "1") != "0")
     else:
         netsetup.STATE["lan"] = netsetup.lan_ip()
     netsetup.STATE["ready"] = True
     show_banner()
     identity.start_publisher()
+    from . import events, updates
+    updates.start(lambda v: events.feed(svc, f"A newer server version is out ({v}): "
+                                             + ("close this window and start the server again to update" if a.cmd == "host"
+                                                else "run the install command again to update"), "warn"))
+    if os.environ.get("PES_CONSOLE") == "1":
+        print("   Keep this window open while you play. Press Ctrl+C to stop the server.\n", flush=True)
     stop = asyncio.Event()
     import signal
-    for sig in (signal.SIGTERM, signal.SIGINT):
-        asyncio.get_running_loop().add_signal_handler(sig, stop.set)
+    loop = asyncio.get_running_loop()
+    for name in ("SIGTERM", "SIGINT", "SIGHUP", "SIGBREAK"):   # SIGHUP: window closed; SIGBREAK: Windows Ctrl+Break
+        sig = getattr(signal, name, None)
+        if sig is None:
+            continue
+        try:
+            loop.add_signal_handler(sig, stop.set)
+        except (NotImplementedError, RuntimeError):            # Windows event loop: plain handler
+            signal.signal(sig, lambda *_: loop.call_soon_threadsafe(stop.set))
     try:
         await stop.wait()
     finally:
         logging.info("shutting down")
+        if os.environ.get("PES_CONSOLE") == "1":
+            print("\n   Stopping the server...", flush=True)
         if a.auto_net:
             await asyncio.to_thread(netsetup.teardown)
         st.close()
@@ -74,10 +147,42 @@ async def run(a):
             s.close()
 
 
+def _host_setup(a):
+    """The downloadable program: everything the Docker entrypoint sets, for this computer."""
+    os.makedirs(a.data, exist_ok=True)
+    a.db = os.path.join(a.data, "pesserver.db")
+    a.host, a.codec, a.no_register, a.stun_host = "0.0.0.0", "ncl", False, None
+    a.public_ip = os.environ.get("PUBLIC_IP") or None
+    a.auto_net = not a.public_ip
+    env = os.environ
+    env.setdefault("PES_CONSOLE", "1")
+    env["PES_PROGRAM"] = "1"
+    env["PESSERVER_HTTP_PORT"] = str(a.http_port)
+    env["PESSERVER_GATE_PORT"] = str(a.gate_port)
+    env["PESSERVER_CERTS"] = os.path.join(a.data, "certs")
+    env.setdefault("PESSERVER_BANNER_FILE", os.path.join(a.data, "banner.txt"))
+    if a.public_ip:
+        env["PESSERVER_PUBLIC_ADDR"] = a.public_ip
+    from . import gamesetup
+    httpgate.MOD_DLL = env.get("PESSERVER_MOD_DLL") or bundled("mod", "dinput8.dll")
+    gamesetup.use_local_games()
+    if sys.platform == "win32":
+        os.system("")                     # turn on colours in the Windows console
+        try:
+            os.system("title PES 2021 Server")
+        except Exception:  # noqa: BLE001
+            pass
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main():
     p = argparse.ArgumentParser(prog="pesserver")
     p.add_argument("--db", default="pesserver.db")
-    sub = p.add_subparsers(dest="cmd", required=True)
+    sub = p.add_subparsers(dest="cmd")
     s = sub.add_parser("serve")
     s.add_argument("--host", default="127.0.0.1")
     s.add_argument("--public-ip"); s.add_argument("--no-register", action="store_true")
@@ -90,16 +195,45 @@ def main():
     s.add_argument("--join-port", type=int, default=0, help="also serve the player pages on this port (80)")
     s.add_argument("--auto-net", action="store_true",
                    help="detect LAN/public addresses and open router ports with UPnP")
+    h = sub.add_parser("host", help="run the server for players on this computer (the default)")
+    h.add_argument("--data", default=default_data_dir(), help="where players and results are kept")
+    for flag, port in (("--gate-port", 10000), ("--http-port", 8080), ("--https-port", 443), ("--join-port", 80),
+                       ("--stun-port", 3478)):
+        h.add_argument(flag, type=int, default=int(os.environ.get("PES_" + flag[2:].upper().replace("-", "_"), port)))
     u = sub.add_parser("adduser"); u.add_argument("name"); u.add_argument("password"); u.add_argument("--steam-id")
-    a = p.parse_args()
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
+    argv = sys.argv[1:]
+    if not argv or (argv[0].startswith("-") and argv[0] not in ("-h", "--help", "--db")):
+        argv = ["host"] + argv                # the program's own options, e.g. --data DIR
+    a = p.parse_args(argv)
+    if a.cmd is None:
+        p.error("choose a command: host, serve or adduser")
+    if a.cmd == "host":
+        _host_setup(a)
+    fmt = "%(asctime)s %(name)s %(message)s"
+    if os.environ.get("PES_CONSOLE") == "1" and a.cmd in ("serve", "host"):
+        # In a window: it shows the banner and the activity feed; the detailed log goes to a file
+        # next to the database (warnings show in the window too).
+        from logging.handlers import RotatingFileHandler
+        f = RotatingFileHandler(os.path.join(os.path.dirname(os.path.abspath(a.db)), "server.log"),
+                                maxBytes=10 << 20, backupCount=2, encoding="utf-8")
+        f.setFormatter(logging.Formatter(fmt))
+        c = logging.StreamHandler()
+        c.setLevel(logging.WARNING)
+        c.setFormatter(logging.Formatter("   %(message)s"))
+        logging.basicConfig(level=logging.INFO, handlers=[f, c])
+    else:
+        logging.basicConfig(level=logging.INFO, format=fmt)
     if a.cmd == "adduser":
         try:
             print("created user id", Accounts(a.db).register(a.name, a.password, a.steam_id))
         except AccountError as e:
             sys.exit(f"error: {e}")
     else:
-        asyncio.run(run(a))
+        try:
+            asyncio.run(run(a))
+        except KeyboardInterrupt:
+            pass
 
 
-main()
+if __name__ == "__main__":
+    main()

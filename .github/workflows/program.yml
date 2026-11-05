@@ -1,0 +1,77 @@
+# Builds the downloadable server program (no Docker) for Linux, Windows and macOS and publishes it as the
+# repository's latest release, which run.sh / run.ps1 download:
+#   https://github.com/<owner>/pes2021-private-server/releases/latest/download/pes2021-server-<platform>
+name: program
+on:
+  push:
+    branches: [main]
+    paths: ["server/**", ".github/workflows/program.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: program
+  cancel-in-progress: true
+jobs:
+  mod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -q && sudo apt-get install -y -q gcc-mingw-w64-x86-64 && sh server/mod/build.sh dinput8.dll
+      - uses: actions/upload-artifact@v4
+        with: { name: mod, path: server/mod/dinput8.dll }
+
+  build:
+    needs: mod
+    strategy:
+      fail-fast: false
+      matrix:
+        include:          # Linux builds on the oldest supported Ubuntu, so they run on older distros too
+          - { os: ubuntu-22.04, file: pes2021-server-linux-x64 }
+          - { os: ubuntu-22.04-arm, file: pes2021-server-linux-arm64 }
+          - { os: windows-latest, file: pes2021-server-windows-x64 }
+          - { os: macos-latest, file: pes2021-server-macos-arm64 }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run: { shell: bash }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/download-artifact@v4
+        with: { name: mod, path: server/mod }
+      - run: pip install pyinstaller==6.22.3 msgpack==1.1.0 cryptography==44.0.1
+      - name: Version stamp
+        run: |
+          v="$(git log -1 --format=%cd --date=format:%Y-%m-%d) ($(git rev-parse --short=7 HEAD))"
+          printf 'VERSION = "%s"\nCOMMIT = "%s"\n' "$v" "$GITHUB_SHA" > server/pesserver/_build.py
+          echo "$v" > version.txt
+      - run: sh server/packaging/build.sh ${{ matrix.file }}
+      - name: Smoke test
+        run: |
+          exe=server/dist/${{ matrix.file }}; [ -f "$exe.exe" ] && exe="$exe.exe"
+          python server/packaging/smoke.py "$exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.file }}
+          path: |
+            server/dist/${{ matrix.file }}*
+            version.txt
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: out, merge-multiple: true }
+      - name: Publish as the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          cd out && ls -l
+          v="$(cat version.txt)"
+          gh release delete program -R "$REPO" --yes --cleanup-tag 2>/dev/null || true
+          gh release create program -R "$REPO" --target "$GITHUB_SHA" --latest --title "PES 2021 server $v" \
+            --notes "The server as one program, no Docker needed. Start it with the line on the website (it always downloads this newest version), or download the file for your computer and run it. Windows: pes2021-server-windows-x64.exe." \
+            pes2021-server-* version.txt

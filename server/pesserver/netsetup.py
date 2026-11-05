@@ -15,6 +15,18 @@ STATE = {"ready": False, "lan": None, "wan": None, "upnp": None, "upnp_error": N
 
 # The ports the game (and the /join page) need from the outside.
 PORTS = [(80, "TCP"), (443, "TCP"), (8080, "TCP"), (10000, "TCP"), (3478, "UDP"), (7600, "UDP")]
+WEB_PORT = 80          # where the player pages and the admin page are; 8080 when port 80 isn't available
+NOTES = []             # extra warnings for the banner (e.g. a port the server couldn't open)
+
+
+def web_url(addr):
+    return f"http://{addr}" + ("" if WEB_PORT == 80 else f":{WEB_PORT}")
+
+
+def skip_port(port):
+    """The server isn't listening there (no rights for a low port): don't ask the router for it."""
+    global PORTS
+    PORTS = [(p, proto) for p, proto in PORTS if p != port]
 
 
 def _ip(s):
@@ -294,19 +306,24 @@ def banner(password=None, color=True):
     pinned = os.environ.get("PESSERVER_PUBLIC_ADDR")
     here = pinned or lan
     line = D("  " + "─" * 66)
-    admin = f"http://localhost:{os.environ['ADMIN_PORT']}/admin" if os.environ.get("ADMIN_PORT") else f"http://{here}/admin"
-    out = ["", line, f"   ⚽  {B('PES 2021 SERVER')}" + " " * 39 + G("● ONLINE"), line, "",
+    admin = f"http://localhost:{os.environ['ADMIN_PORT']}/admin" if os.environ.get("ADMIN_PORT") else web_url(here) + "/admin"
+    from . import VERSION
+    out = ["", line, f"   ⚽  {B('PES 2021 SERVER')}" + " " * 39 + G("● ONLINE"),
+           D(f"       version {VERSION}"), line, "",
            f"   {B('Admin page')}   {C(admin)}"]
     if os.environ.get("ADMIN_PORT"):
         out.append(D("                (on this computer only)"))
     elif wan and wan != here and os.environ.get("ADMIN_REMOTE") == "1":
-        out.append(D(f"                from anywhere: http://{wan}/admin"))
+        out.append(D(f"                from anywhere: {web_url(wan)}/admin"))
     if password:
         out.append(f"   {B('Password')}     {Y(password)}")
     out += ["", D("   Open it to download the one file your friends need."), ""]
     if PASSWORD_IGNORED:
         out.append(Y("   !  ADMIN_PASSWORD was the example or too short, so this generated password is used instead."))
-    if os.path.exists(os.environ.get("PESSERVER_CA_REPLACED", "/tmp/pesserver-ca-replaced")):
+    from . import certs
+    for note in NOTES:
+        out.append(Y("   !  " + note))
+    if certs.CA_REPLACED:
         out.append(Y("   !  New server certificate: players set up with the old join line run it once more (mod users: nothing to do)."))
     if STATE["cgnat"]:
         out.append(Y("   !  Your internet provider shares one public IP (CGNAT): friends outside your house\n"

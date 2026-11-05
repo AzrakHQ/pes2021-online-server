@@ -1,15 +1,17 @@
 #!/bin/sh
-# PES 2021 private server: one-command install for a Linux host (PC, home server, VPS, Raspberry Pi).
+# PES 2021 private server, always on: one-command install for a Linux server (VPS, home server, Raspberry Pi).
+# (Hosting from your own PC while you play? Use the program instead, no Docker: run.sh / run.ps1.)
 #
 #   curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh
 #
-# Installs Docker if it is missing, starts the server (it restarts by itself after a reboot), opens the
-# router's ports with UPnP and prints the admin page (where the host downloads the mod for friends).
-# Run it again to update (it keeps PUBLIC_IP, ADMIN_REMOTE, ADMIN_PASSWORD and UPNP from the previous run).
+# Installs Docker if it is missing, starts the server in the background (it restarts by itself after a
+# reboot), opens the router's ports with UPnP and prints the admin page (where the host downloads the mod
+# for friends). Run it again to update: it says which version you had and which you have now.
+# It keeps PUBLIC_IP, ADMIN_REMOTE, ADMIN_PASSWORD and UPNP from the previous run.
 # Optional env: PUBLIC_IP=<addr> (pin the address given to players), UPNP=0 (don't touch the router),
 #               ADMIN_REMOTE=1 (admin page from any network, e.g. a cloud server; it isn't encrypted),
 #               ADMIN_PASSWORD=<pw> (choose the admin password instead of a generated one),
-#               PES_IMAGE=<image> (default: the published image).
+#               PES_IMAGE=<image> (default: the published image), UPDATE_CHECK=0 (no "newer version" notice).
 set -eu
 HOME="${HOME:-/root}"                      # cloud start-up scripts may run without it
 IMAGE="${PES_IMAGE:-ghcr.io/mohamedalirashad/pes2021-private-server:latest}"
@@ -35,6 +37,11 @@ if ! $DOCKER info >/dev/null 2>&1; then          # installed but not running (e.
   $DOCKER info >/dev/null 2>&1 || { echo "Docker is installed but not running. Start it (sudo systemctl start docker) and run this again."; exit 1; }
 fi
 
+# The version this computer runs now (empty on a first install), to say what an update changed.
+ver_of() { $DOCKER inspect --type "$1" -f '{{range .Config.Env}}{{println .}}{{end}}' "$2" 2>/dev/null | sed -n 's/^PESSERVER_VERSION=//p' | head -n 1; }
+OLD_VER="$(ver_of container pesserver)"
+HAD=0; $DOCKER inspect --type container pesserver >/dev/null 2>&1 && HAD=1
+
 bold "Starting the PES 2021 server..."
 REPO="https://github.com/MohamedAliRashad/pes2021-private-server.git#main:server"
 pulled=0
@@ -53,7 +60,8 @@ if [ "$pulled" = 0 ]; then
   else
     echo "Could not download the server ($(printf '%s' "$err" | tail -n 1))."
     echo "Building it from source instead (one time, about a minute)..."
-    $DOCKER build -q -t "$IMAGE" "$REPO" >/dev/null || { echo "Could not build the server image."; exit 1; }
+    $DOCKER build -q --build-arg PES_VERSION="built from source $(date +%Y-%m-%d)" -t "$IMAGE" "$REPO" >/dev/null \
+      || { echo "Could not build the server image."; exit 1; }
   fi
 fi
 # PES 2021 on this computer? Share only those game folders (and their Wine prefixes) with the
@@ -99,10 +107,11 @@ if $DOCKER inspect pesserver >/dev/null 2>&1; then
   if [ -z "${UPNP+x}" ]; then UPNP="$(prev UPNP)"; [ "${UPNP:-1}" != 1 ] && kept="$kept UPNP=$UPNP"; fi
   [ -n "$kept" ] && echo "Keeping your earlier settings:$kept (to clear one, run the install line with it empty, e.g. PUBLIC_IP=)"
 fi
+NEW_VER="$(ver_of image "$IMAGE")"
 $DOCKER rm -f pesserver >/dev/null 2>&1 || true
 $DOCKER run -d --name pesserver --network host --restart unless-stopped \
   -e PUBLIC_IP="${PUBLIC_IP:-}" -e UPNP="${UPNP:-1}" -e ADMIN_REMOTE="${ADMIN_REMOTE:-}" -e ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
-  -v pesserver-data:/data "$@" "$IMAGE" >/dev/null
+  -e UPDATE_CHECK="${UPDATE_CHECK:-1}" -v pesserver-data:/data "$@" "$IMAGE" >/dev/null
 
 i=0
 until out="$($DOCKER exec pesserver cat /tmp/pesserver-banner.txt 2>/dev/null)" && [ -n "$out" ]; do
@@ -111,5 +120,10 @@ until out="$($DOCKER exec pesserver cat /tmp/pesserver-banner.txt 2>/dev/null)" 
   sleep 1
 done
 printf '%s\n' "$out"
+if [ "$HAD" = 0 ]; then bold "   Version $NEW_VER"
+elif [ -z "$OLD_VER" ]; then bold "   Updated to version $NEW_VER."
+elif [ "$OLD_VER" = "$NEW_VER" ]; then bold "   You have the newest version ($NEW_VER)."
+else bold "   Updated: $OLD_VER  ->  $NEW_VER"; fi
 [ "$n" -gt 0 ] && printf '   PES 2021 found on this computer: install the mod from the admin page (The server computer).\n'
+printf '   Running in the background (starts by itself after a reboot). Run the install line again to update.\n'
 echo

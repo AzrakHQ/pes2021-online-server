@@ -31,9 +31,17 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=tag
             type=sha
+      - id: ver                  # e.g. "2026-11-05 (729c491)", or the tag name for a v* release
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = tag ]; then v="${GITHUB_REF_NAME}"
+          else v="$(git log -1 --format=%cd --date=format:%Y-%m-%d) ($(git rev-parse --short=7 HEAD))"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
           context: server
+          build-args: |
+            PES_VERSION=${{ steps.ver.outputs.version }}
+            PES_COMMIT=${{ github.sha }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

@@ -647,10 +647,13 @@ static void ntl_del(HINTERNET h) { for (int i = 0; i < MAXH; i++) if (g_ntl[i] =
 
 static HINTERNET WINAPI hk_WinHttpConnect(HINTERNET s, LPCWSTR name, INTERNET_PORT port, DWORD r)
 {
-    HINTERNET c = o_WinHttpConnect(s, name, port, r);
-    if (c && is_ntl_w(name) && server_ip()) {
+    /* The network test is HTTPS on 443. The server also speaks HTTPS on 8080 (it tells the two apart by
+       the first byte), and 8080 needs no administrator rights on the server computer. */
+    int ntl = is_ntl_w(name) && server_ip();
+    HINTERNET c = o_WinHttpConnect(s, name, ntl && port == 443 ? 8080 : port, r);
+    if (c && ntl) {
         EnterCriticalSection(&g_lock); ntl_add(c); LeaveCriticalSection(&g_lock);
-        logf_("network test connection to %ls:%u", name, port);
+        logf_("network test connection to %ls:%u (server port %u)", name, port, port == 443 ? 8080 : port);
     }
     return c;
 }

@@ -48,9 +48,14 @@ def test_banner(monkeypatch, tmp_path):
     assert "Password" not in netsetup.banner(color=False)
     assert netsetup.game_addrs() == ["192.168.1.50", "203.0.113.7"]
     assert "certificate" not in b
-    flag = tmp_path / "ca-replaced"; flag.write_text("1")
-    monkeypatch.setenv("PESSERVER_CA_REPLACED", str(flag))
+    from pesserver import certs
+    monkeypatch.setattr(certs, "CA_REPLACED", True)
     assert "New server certificate" in netsetup.banner(color=False)
+    # no rights for port 80 (Linux, no sudo): the pages move to 8080 and the banner says so
+    monkeypatch.setattr(netsetup, "WEB_PORT", 8080)
+    monkeypatch.setattr(netsetup, "NOTES", ["Port 443 is not available"])
+    b = netsetup.banner(color=False)
+    assert "http://192.168.1.50:8080/admin" in b and "Port 443 is not available" in b
 
 
 def test_join_pages_follow_user_agent_and_host(tmp_path):
@@ -383,7 +388,7 @@ def test_admin_rebinding_and_csp(tmp_path):
         port = srv.sockets[0].getsockname()[1]
         try:
             code, out = await _http(port, "GET", "/admin/api/info")
-            assert code == 200 and {k: v for k, v in json.loads(out).items() if k not in ("lan", "password_replaced")} == {"remote": False, "host_ok": True, "docker_desktop": False}
+            assert code == 200 and {k: v for k, v in json.loads(out).items() if k not in ("lan", "admin_url", "password_replaced")} == {"remote": False, "host_ok": True, "docker_desktop": False, "program": False}
         finally:
             srv.close()
     import json

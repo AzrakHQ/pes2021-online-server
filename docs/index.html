@@ -341,7 +341,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       </div>
       <p class="roles"><a href="#host">I'm hosting →</a><a href="#join">A friend sent me a file →</a><a href="protocol.html">The technical write-up →</a></p>
       <a class="pill-status" href="#status"><i aria-hidden="true"></i>Early access: proven on Linux · testers wanted for Windows, Steam Deck and two separate PCs</a>
-      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC</b> to host (a cloud server, or Windows/Mac with Docker Desktop, should work but is untested).</p>
+      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one PC to host</b>: Windows, Linux or Steam Deck, no extra software (or a small cloud server).</p>
     </div>
     <svg class="hero-art" viewBox="0 0 520 400" role="img" aria-labelledby="art-t">
       <title id="art-t">Two players connect to your server for login and matchmaking; the match itself runs directly between the two players.</title>
@@ -444,7 +444,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
 <section id="play">
   <div class="wrap">
     <p class="kicker">Get playing</p>
-    <h2>Three steps, about five minutes on Linux</h2>
+    <h2>Three steps, about five minutes</h2>
     <p class="intro">Every player needs their own copy of PES 2021 on Steam (version 1.01.00, the final update). One person hosts; everyone else gets one small file.</p>
     <div class="steps">
       <div class="card step" id="host">
@@ -453,8 +453,8 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <h3>The host starts the server</h3>
           <p class="small" style="margin:0 0 8px"><b>Who should host?</b></p>
           <ul class="pick small">
-            <li><b>Someone has a Linux PC</b> that stays on while you play: one command, about 2 minutes. It's right here.</li>
-            <li><details><summary><b>Windows or Mac only, want it easy:</b> a small cloud server, about $5 a month, about 10 minutes (untested)</summary>
+            <li><b>Someone's PC</b> (Windows, Linux or Steam Deck) that stays on while you play: one line, about a minute, nothing to install. It's right here.</li>
+            <li><details><summary><b>No PC that stays on, or friends far away:</b> a small cloud server, about $5 a month, about 10 minutes (untested)</summary>
               <ol class="inline-steps">
                 <li>Create the cheapest <b>Ubuntu 24.04</b> server at any cloud provider. While creating it, find the box for a start-up script (<b>User data</b>, <b>Cloud config</b> or <b>Initialization script</b>), paste this:
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-ud">#!/<wbr>bin/<wbr>sh
@@ -472,43 +472,37 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
               <details class="inline-steps"><summary>No start-up script box?</summary><p>Open its web console (or SSH). The web console asks you to log in: user <code>root</code> (on Ubuntu images often <code>ubuntu</code>) with the password the provider showed or emailed when you created the server. If you chose an SSH key instead, use the provider's "reset root password" button first. Then paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.</p>
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-q">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=$(curl -fsS https://<wbr>api.<wbr>ipify.<wbr>org) ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud-q" type="button">Copy</button></div>
                   <p>When it finishes (about 5 minutes) it prints your admin page and a password: write the password down, it's the one you sign in with. The admin page isn't encrypted, so don't sign in from public Wi-Fi. <a href="#faq-cloud">More about cloud hosting</a>.</p></details></details></li>
-            <li><details><summary><b>Windows or Mac only, want it free:</b> Docker Desktop on one PC, about 20 minutes (untested)</summary>
-              <ol class="inline-steps">
-                <li>Install <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> and start it.</li>
-                <li>Download <a href="https://github.com/MohamedAliRashad/pes2021-private-server/archive/refs/heads/main.zip">this project as a ZIP</a> and unzip it. Windows makes a folder inside a folder: use the one that contains <code>docker-compose.bridge.yml</code>.</li>
-                <li>Open a terminal in that folder (Windows: right-click it → <b>Open in Terminal</b>; Mac: right-click → <b>New Terminal at Folder</b>) and save the address players will use, for example your PC's home address (<a href="#faq-winhost">which address to use</a>; change 192.168.1.50 to it):<div class="cmd" style="margin-top:6px"><span class="label">Windows</span><pre id="c-dd-win">Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii</pre><button class="copy" data-copy="c-dd-win" type="button">Copy</button></div><div class="cmd" style="margin-top:6px"><span class="label">Mac</span><pre id="c-dd-mac">echo PUBLIC_IP=192.168.1.50 &gt; .env</pre><button class="copy" data-copy="c-dd-mac" type="button">Copy</button></div></li>
-                <li>Start it:<div class="cmd" style="margin-top:6px"><span class="label">Same terminal</span><pre id="c-dd-up">docker compose -f docker-compose.bridge.yml up -d</pre><button class="copy" data-copy="c-dd-up" type="button">Copy</button></div></li>
-                <li>Show the address and password:<div class="cmd" style="margin-top:6px"><span class="label">Same terminal</span><pre id="c-dd-logs">docker compose -f docker-compose.bridge.yml logs</pre><button class="copy" data-copy="c-dd-logs" type="button">Copy</button></div> You should see <b style="overflow-wrap:anywhere">Admin page http://localhost:8090/admin</b> and a <b>Password</b>. Open that page on this PC, sign in, and you're at step 2.</li>
-              </ol>
-              <p class="inline-steps">Friends in other homes, or playing on this same PC? See <a href="#faq-winhost">the full steps</a>.</p></details></li>
+            <li><details><summary><b>An always-on Linux box</b> (home server, Raspberry Pi): runs in the background and starts by itself after a reboot</summary>
+              <p class="inline-steps">Paste this in its terminal. It installs Docker if it's missing and shows the admin page and password; run it again to update.</p>
+              <div class="cmd inline-steps"><pre id="c-always">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | sh</pre><button class="copy" data-copy="c-always" type="button">Copy</button></div></details></li>
           </ul>
-          <p class="small muted"><b>On a Linux PC:</b> open a terminal (on Ubuntu press <b>Ctrl+Alt+T</b>, or search "Terminal" in the app menu), paste the command and press Enter. It may ask for your password (sudo); nothing shows while you type it, that's normal. It installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
+          <p class="small muted"><b>Windows:</b> open the Start menu, type <b>PowerShell</b>, press Enter, paste the Windows line and press Enter. <b>Linux:</b> open a terminal (on Ubuntu <b>Ctrl+Alt+T</b>) and paste the Linux line. <b>Steam Deck:</b> switch to Desktop Mode, open <b>Konsole</b> and paste the Linux line.</p>
+          <p class="small muted">It downloads the server (about 30 MB, no administrator rights needed) and shows <b>your admin page</b> and <b>its password</b>. Keep that window open while you play; <b>Ctrl+C</b> or closing it stops the server. Next time, paste the same line: it always starts the newest version.</p>
         </div>
         <div>
-          <div class="cmd"><span class="label">Linux terminal</span><pre id="c-host">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
+          <div class="cmd"><span class="label">Windows PowerShell</span><pre id="c-host-win">irm https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>ps1 | iex</pre><button class="copy" data-copy="c-host-win" type="button">Copy</button></div>
+          <div class="cmd"><span class="label">Linux, Steam Deck, Mac terminal</span><pre id="c-host">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
           <div class="banner-mock" role="img" aria-label="Example of what the host sees when the server is ready: the admin page address and its password.">
             <div class="bm-title">⚽ PES 2021 SERVER <span>● ONLINE</span></div>
             <div><span class="bm-k">Admin page</span>http://192.168.1.50/admin</div>
             <div><span class="bm-k">Password</span>k7Rm-2Qx9-PaLw</div>
           </div>
           <ul class="small muted linuxes">
-            <li><b>Ubuntu, Debian:</b> just paste the command. (If it says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first.)</li>
-            <li><b>Fedora:</b> paste the command, then open the ports in Fedora's firewall, which blocks some of them by default: <code>sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code></li>
-            <li><b>Arch:</b> run <code>sudo pacman -S docker</code> first; the installer starts it.</li>
-            <li><b>Steam Deck, SteamOS, Bazzite:</b> can't host (read-only system); join as a friend instead.</li>
-            <li>Tested on a desktop Linux PC. A Raspberry Pi (64-bit Raspberry Pi OS) or a cloud server should work but still need testers.</li>
+            <li><b>Windows:</b> the first time, Windows asks whether to let the server through its firewall: click <b>Allow</b>. New, needs testers.</li>
+            <li><b>Linux:</b> on Linux the admin page is at <code>http://&lt;address&gt;:8080/admin</code> (the window shows it). If it says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first. <b>Fedora</b> also needs its firewall opened: <code>sudo firewall-cmd --permanent --add-port={8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code></li>
+            <li><b>Steam Deck, Mac (Apple silicon):</b> new, needs testers.</li>
+            <li>Tested on a desktop Linux PC. Players who use the mod need nothing else; the older "join line" setup without the mod needs the server started with administrator rights on Linux (or the always-on install).</li>
           </ul>
           <details class="changes">
-            <summary>What the installer does</summary>
+            <summary>What the line does</summary>
             <ul>
-              <li>Prefer to read it first? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/install.sh">View install.sh</a> (about 110 lines).</li>
-              <li>Installs Docker if it's missing, using Docker's official script from get.docker.com (it runs as administrator).</li>
-              <li>Starts the server in a container that restarts after reboots until you stop it. It uses about 50 MB of memory.</li>
-              <li>Opens 6 ports on your router (UPnP) so friends outside your home can reach you. They close when the server stops; after a power cut they usually expire on their own within 2 hours (on routers that only allow permanent openings, remove them in the router's settings).</li>
-              <li>If PES 2021 is installed on this computer, gives the server (a root container with host networking) read and write access to <b>only those game folders</b> and their Proton prefix (the game's Windows drive; only its registry file is changed, and a backup copy, <code>user.reg.pes2021-backup</code>, is kept next to it), so the admin page can install the mod for you in one click.</li>
-              <li>The admin page is plain HTTP and opens only from your home network (and Tailscale). On any computer whose own network address is public (most cloud servers), it's reachable from anywhere automatically; on others you switch remote access on yourself, see <a href="#faq-cloud">cloud hosting</a>.</li>
+              <li>Prefer to read it first? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/run.ps1">run.ps1</a> (Windows) and <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/run.sh">run.sh</a> (Linux, Mac) are about 40 lines each.</li>
+              <li>Downloads the server program from this project's <a href="https://github.com/MohamedAliRashad/pes2021-private-server/releases/latest">latest release</a> (built by GitHub from the public code), only when there's a newer one, and runs it in that window as your own user: no administrator rights, nothing installed system-wide. It uses about 50 MB of memory.</li>
+              <li>Keeps the program, players, results and its log in one folder: <code>%LOCALAPPDATA%\PES2021 Server</code> on Windows, <code>~/.local/share/pes2021-server</code> on Linux. Delete that folder to remove everything.</li>
+              <li>Opens ports on your router (UPnP) so friends outside your home can reach you, and closes them when the server stops; after a power cut they usually expire on their own within 2 hours.</li>
+              <li>If PES 2021 is installed on this computer, the admin page can put the mod in for you with one click. On Linux it also sets the Wine option in the game's Proton prefix (only its registry file is changed, and a backup copy, <code>user.reg.pes2021-backup</code>, is kept next to it).</li>
+              <li>The admin page is plain HTTP and opens only from your home network (and Tailscale).</li>
               <li>While your router ports are open, your server's address is public: anyone who has it can open your friends' page, download the mod and join. There's no ban yet; <b>Kick</b> on the admin page disconnects someone, but they can come back.</li>
-              <li>Keeps players, results and a message log in a Docker volume. <a href="#faq-host">Stop or remove it</a> any time.</li>
             </ul>
           </details>
         </div>
@@ -614,6 +608,8 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       <table class="help"><caption class="sr">Help for hosts</caption>
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
+          <tr><td>The window says "The server can't start: port … is already in use"</td><td>Another server is already running on this computer: close its window, or stop the always-on one with <code>sudo docker stop pesserver</code>. Then paste the line again.</td></tr>
+          <tr><td>Windows says "Windows protected your PC"</td><td>That happens if you downloaded the .exe with a browser (the program isn't signed). Click <b>More info → Run anyway</b>, or use the PowerShell line instead.</td></tr>
           <tr><td>The installer says "The server did not start"</td><td>Run <code>sudo docker logs pesserver</code> to see why. Usually another program already uses port 80, 443, 8080 or 10000: check with <code>sudo ss -ltnp | grep -E ':(80|443|8080|10000) '</code>, stop that program, then run the install line again.</td></tr>
           <tr><td>"Docker is installed but not running"</td><td>Run <code>sudo systemctl start docker</code>, then run the install line again.</td></tr>
           <tr><td>"Could not build the server image"</td><td>Building needs downloads from GitHub, Docker Hub, Debian's package servers and Python's package site. Check the internet connection and run the install line again.</td></tr>
@@ -689,18 +685,20 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
       <p>Probably, but it's not tested yet: so far everything was tested on one home network. The server opens the host's router ports automatically; the match itself then needs the two players' PCs to reach each other directly. If they can't ("Failed to connect with opponent"), put everyone on one private network with <a href="https://tailscale.com">Tailscale</a>, a free app for small groups (this workaround is untested too):</p>
       <ul>
         <li>Everyone installs Tailscale and joins the host's network.</li>
-        <li>The host runs the install line again with their Tailscale address (shown in the Tailscale app), then downloads a fresh mod file for friends:</li>
+        <li>The host stops the server and starts it again with their Tailscale address (shown in the Tailscale app), then downloads a fresh mod file for friends:</li>
       </ul>
-      <div class="cmd"><span class="label">Replace 100.x.y.z with the host's Tailscale address</span><pre id="c-ts">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | PUBLIC_IP=100.<wbr>x.<wbr>y.<wbr>z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
+      <div class="cmd"><span class="label">Windows PowerShell: replace 100.x.y.z with the host's Tailscale address</span><pre id="c-ts-win">$env:PUBLIC_IP="100.<wbr>x.<wbr>y.<wbr>z"; irm https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>ps1 | iex</pre><button class="copy" data-copy="c-ts-win" type="button">Copy</button></div>
+      <div class="cmd"><span class="label">Linux, Steam Deck, Mac</span><pre id="c-ts">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>sh | PUBLIC_IP=100.<wbr>x.<wbr>y.<wbr>z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
+      <p class="small">Always-on server (Docker)? Run its install line with <code>PUBLIC_IP=100.x.y.z</code> before <code>sh</code> instead.</p>
       <p>A built-in relay that removes this step is on the to-do list.</p>
     </details>
     <h3 class="faqh" id="faq-hosts">For hosts</h3>
     <details class="q" id="faq-host">
       <summary>How do I see the password again, stop or update the server?</summary>
       <ul>
-        <li>Show the admin page and password again: <code>sudo docker logs pesserver</code></li>
-        <li>Restart: <code>sudo docker restart pesserver</code> · Stop: <code>sudo docker stop pesserver</code> (this also closes the router ports it opened)</li>
-        <li>Update to the latest version: run the install line again. It keeps the settings you gave the first time (<code>PUBLIC_IP</code>, <code>ADMIN_REMOTE</code>, <code>ADMIN_PASSWORD</code>, <code>UPNP</code>); to clear one, give it empty, for example <code>… | ADMIN_REMOTE= sh</code>. Players, results and your server's identity are kept, so friends' files keep working.</li>
+        <li><b>Started with the one line (your PC):</b> the address and password are in the server's window. <b>Ctrl+C</b> or closing the window stops it (and closes the router ports it opened). Paste the same line to start it again: it updates itself first, and players, results and friends' mod files are kept. The admin page also tells you when a newer version is out.</li>
+        <li><b>Always-on server (Docker):</b> show the admin page and password again with <code>sudo docker logs pesserver</code> · Restart: <code>sudo docker restart pesserver</code> · Stop: <code>sudo docker stop pesserver</code></li>
+        <li>Update the always-on server: run its install line again (it shows the version you had and the one you have now). It keeps the settings you gave the first time (<code>PUBLIC_IP</code>, <code>ADMIN_REMOTE</code>, <code>ADMIN_PASSWORD</code>, <code>UPNP</code>); to clear one, give it empty, for example <code>… | ADMIN_REMOTE= sh</code>. Players, results and your server's identity are kept, so friends' files keep working.</li>
         <li>Remove everything: first click <b>Uninstall</b> on the admin page's server-computer card (if you used it), then <code>sudo docker stop pesserver &amp;&amp; sudo docker rm pesserver; sudo docker volume rm pesserver-data; sudo docker rmi ghcr.io/mohamedalirashad/pes2021-private-server</code> (deletes players and results, and the server's identity, so old mod files stop working; Docker itself stays installed).</li>
       </ul>
       <p>If your user is in the <code>docker</code> group you can leave out <code>sudo</code>.</p>
@@ -738,7 +736,7 @@ curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRasha
     </details>
     <details class="q" id="faq-winhost">
       <summary>Can I host from Windows or a Mac?</summary>
-      <p>It should work with Docker Desktop and a few more steps, but we haven't tested it yet, including playing on the same Windows PC that hosts:</p>
+      <p>Yes: use the <a href="#host">one line in step 1</a>, no Docker needed (new, needs testers). The older way, with Docker Desktop, still works and is below:</p>
       <ol>
         <li>Install <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> and start it. On Windows it needs WSL 2 (the installer offers to set it up) and virtualization turned on in the BIOS.</li>
         <li>Download the project (<a href="https://github.com/MohamedAliRashad/pes2021-private-server/archive/refs/heads/main.zip">ZIP</a>) and unzip it. Windows' Extract All makes a folder inside a folder: open the one that contains <code>docker-compose.bridge.yml</code>.</li>

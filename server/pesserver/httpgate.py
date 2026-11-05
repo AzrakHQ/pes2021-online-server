@@ -1,7 +1,7 @@
 """HTTP side of the server: the game's web API (form-urlencoded POST with msgid=CMD_… → raw msgpack
 reply), the NTL GateInfo.php text reply used by the network test, and /ca.crt for players.
 Every request is logged in full (method, path, headers, body)."""
-import asyncio, json, logging, os
+import asyncio, sys, json, logging, os
 
 log = logging.getLogger("pesserver.http")
 
@@ -268,6 +268,8 @@ async def _admin(service, method, route, headers, body, peer=""):
         return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8"), "host_ok": bool(host_ok(headers)),
                                      "docker_desktop": bool(os.environ.get("ADMIN_PORT")),
                                      "lan": (netsetup.STATE.get("lan") or "") if admin_allowed(peer) else "",
+                                     "admin_url": netsetup.web_url(netsetup.STATE.get("lan") or "") + "/admin" if admin_allowed(peer) else "",
+                                     "program": os.environ.get("PES_PROGRAM") == "1",
                                      "password_replaced": bool(netsetup.PASSWORD_IGNORED)}).encode(), "application/json"
     if route.startswith("/admin/api/") and not host_ok(headers):
         return "403 Forbidden", b'{"error":"open the admin page by its address"}', "application/json"
@@ -320,8 +322,11 @@ async def _admin(service, method, route, headers, body, peer=""):
         pinned = os.environ.get("PESSERVER_PUBLIC_ADDR") or ""
         reachable = bool(st["mapped"] or pinned) and (not st["cgnat"] or _tailscale(pinned))
         addrs = netsetup.game_addrs()
-        main = "http://" + (addrs[-1] if reachable else addrs[0])     # a link that works for someone
-        snap["server"] = {"main": main, "lan": st["lan"], "wan": st["wan"],
+        main = netsetup.web_url(addrs[-1] if reachable else addrs[0])   # a link that works for someone
+        from . import VERSION, updates
+        snap["server"] = {"main": main, "version": VERSION, "update": updates.STATE["latest"],
+                          "program": os.environ.get("PES_PROGRAM") == "1", "platform": sys.platform,
+                          "data_dir": getattr(service, "data_dir", ""), "lan_url": netsetup.web_url(st["lan"] or ""), "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
                           "remote_admin": admin_allowed("8.8.8.8"), "remote_env": os.environ.get("ADMIN_REMOTE") == "1",
@@ -565,7 +570,7 @@ def mod_bytes(url=""):
 
 
 async def serve_tls(service, host, port, certfile, keyfile, stun_host="127.0.0.1", stun_port=3478, gate_port=10000):
-    """Same handler over TLS (the client's port-443 traffic is remapped here by netshim)."""
+    """Same handler over TLS on its own port (443: players set up with the /join line, and older mods)."""
     import ssl
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ctx.load_cert_chain(certfile, keyfile)
@@ -582,5 +587,69 @@ async def serve_tls(service, host, port, certfile, keyfile, stun_host="127.0.0.1
 
 
 async def serve(service, host="0.0.0.0", port=8080, stun_host="127.0.0.1", stun_port=3478, gate_port=10000,
-                admin_listener=False):
-    return await asyncio.start_server(make_handler(service, stun_host, stun_port, gate_port, admin_listener), host, port)
+                admin_listener=False, tls=None):
+    handler = make_handler(service, stun_host, stun_port, gate_port, admin_listener)
+    if not tls:
+        return await asyncio.start_server(handler, host, port)
+    return await _serve_mux(handler, host, port, tls)
+
+
+class _MuxServer:
+    def __init__(self, sock, task):
+        self.sock, self.task = sock, task
+
+    def close(self):
+        self.task.cancel()
+        self.sock.close()
+
+
+async def _serve_mux(handler, host, port, tls):
+    """Plain HTTP and HTTPS on one port: a connection whose first byte is a TLS handshake (0x16) gets TLS.
+    The mod sends the game's network test (normally HTTPS on 443) here, so the server needs no port
+    below 1024 and no administrator rights. tls = (certfile, keyfile)."""
+    import socket, ssl
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ctx.load_cert_chain(*tls)
+    loop = asyncio.get_running_loop()
+    sock = socket.create_server((host, port), family=socket.AF_INET6 if ":" in host else socket.AF_INET, backlog=128)
+    sock.setblocking(False)
+
+    def peek(conn):                           # in a thread: works on every event loop (Windows too)
+        conn.settimeout(15)
+        try:
+            return conn.recv(1, socket.MSG_PEEK)
+        except OSError:
+            return b""
+        finally:
+            conn.setblocking(False)
+
+    async def one(conn):
+        try:
+            first = await asyncio.to_thread(peek, conn)
+            if not first:
+                conn.close()
+                return
+            reader = asyncio.StreamReader(limit=2 ** 16)
+            proto = asyncio.StreamReaderProtocol(reader, handler)
+            await loop.connect_accepted_socket(lambda: proto, conn, ssl=ctx if first == b"\x16" else None,
+                                               ssl_handshake_timeout=10 if first == b"\x16" else None)
+        except Exception as e:  # noqa: BLE001  (bad handshake, client gone)
+            log.info("connection on :%d dropped: %r", port, e)
+            conn.close()
+
+    pending = set()
+
+    async def accept_loop():
+        while True:
+            try:
+                conn, _ = await loop.sock_accept(sock)
+            except asyncio.CancelledError:
+                raise
+            except OSError as e:
+                log.info("accept on :%d: %s", port, e)
+                await asyncio.sleep(0.1)
+                continue
+            t = asyncio.create_task(one(conn))
+            pending.add(t); t.add_done_callback(pending.discard)   # keep a reference until it's done
+
+    return _MuxServer(sock, asyncio.create_task(accept_loop()))

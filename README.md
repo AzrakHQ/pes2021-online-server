@@ -5,17 +5,29 @@
 Konami shut down the PES 2021 servers. Run your own and play **online Quick Match** with your friends.
 Free, no accounts.
 
-You need **PES 2021 on Steam** (v1.01.00). The host needs a **Linux** computer that stays on while you play.
+You need **PES 2021 on Steam** (v1.01.00). The host needs a PC that stays on while you play: **Windows, Linux or
+Steam Deck**, nothing else to install.
 
 ## 1. Host: start the server
 
-Paste this in a terminal:
+**Windows** (Start menu → PowerShell):
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh
+```powershell
+irm https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.ps1 | iex
 ```
 
-It prints your **admin page** and its **password**.
+**Linux, Steam Deck, Mac** (terminal):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh
+```
+
+It downloads the server (one program, about 30 MB, no admin rights) and prints your **admin page** and its
+**password**. Keep the window open while you play: **Ctrl+C** or closing it stops the server. Paste the same line
+next time: it always starts the newest version.
+
+**Always-on server** (VPS, home server, Raspberry Pi; starts by itself after a reboot, uses Docker):
+`curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh`
 
 ## 2. Host: send your friends the mod
 
@@ -47,17 +59,18 @@ delete the file.
 |---|---|
 | A friend can't connect | The host's server must be running. The mod writes what it tried to `pes2021-online.log` in the game folder |
 | "Router ports are closed" on the host | Turn on **UPnP** in your router settings and run the install again, or forward the ports it lists |
-| "Failed to connect with opponent" | The two PCs can't reach each other directly. Everyone installs [Tailscale](https://tailscale.com); the host runs the install line again with `PUBLIC_IP=<host's Tailscale IP>` before `sh` |
+| "Failed to connect with opponent" | The two PCs can't reach each other directly. Everyone installs [Tailscale](https://tailscale.com); the host starts the server again with `PUBLIC_IP=<host's Tailscale IP>` before `sh` (PowerShell: `$env:PUBLIC_IP="…";` before `irm`) |
 | Play on another server | Get that server's file and replace yours, or hold **Shift** while the game starts and paste its address |
 
 **New players** need nothing from you: the first time someone with your mod goes online (eFootball →
 Quick Match), the game asks for a region and a player name, and your server saves that player, tied to
 their Steam account. They appear on the admin page.
 
-Server commands: `sudo docker logs pesserver` (shows the admin page and password again) ·
-`sudo docker stop pesserver` · `sudo docker start pesserver`. To update, run the install line again.
+Updating: paste your start line again (the admin page also tells you when a newer version is out). Always-on
+server: `sudo docker logs pesserver` (shows the admin page and password again) · `sudo docker stop pesserver` ·
+`sudo docker start pesserver`; run its install line again to update.
 
-<details id="hosting-from-windows-or-mac"><summary><b>Hosting from Windows or Mac</b></summary>
+<details id="hosting-from-windows-or-mac"><summary><b>Hosting from Windows or Mac with Docker Desktop</b> (older way; the one line above needs no Docker)</summary>
 
 Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and start it. Download this
 repo (**Code → Download ZIP**) and unzip it. In that folder, create a file named `.env` containing one
