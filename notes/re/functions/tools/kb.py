@@ -6,6 +6,7 @@
   python kb.py fn <va>               dump whole function (by .pdata bounds)
   python kb.py callers <va>          functions that call / reference va
   python kb.py refs <va>             instructions that reference va (rip-relative or call/jmp)
+  python kb.py disp <0xoff> [w]      instructions using struct offset 0xoff (w = writes only)
 """
 import os, re, struct, sys
 import numpy as np
@@ -56,8 +57,75 @@ def raw_xrefs(target):
 pe.xrefs = raw_xrefs  # make pe.xref_insns use the cache
 
 
+_DEC = {}
+
+
+def _decoded(start, end):
+    """Linear decode of one .pdata chunk (cached), so instruction boundaries are always right."""
+    key = (start, end)
+    if key not in _DEC:
+        if len(_DEC) > 4000:
+            _DEC.clear()
+        _DEC[key] = list(pe.md.disasm(pe.rd(start, end - start), start))
+    return _DEC[key]
+
+
+def _insn_at(va):
+    b = pe.func_bounds(va)
+    if not b:
+        return None
+    for ins in _decoded(*b):
+        if ins.address <= va < ins.address + ins.size:
+            return ins
+    return None
+
+
 def refs(target):
-    return pe.xref_insns(target)
+    """(insn_va, function_start, text) for every instruction that references target rip-relatively or by
+    call/jmp. Decodes from the chunk start (the old pe.xref_insns backed up a few bytes and could misalign)."""
+    out, seen = [], set()
+    for p in raw_xrefs(target):
+        ins = _insn_at(p)
+        if ins is None or ins.address in seen:
+            continue
+        ok = False
+        for op in ins.operands:
+            if op.type == pe.X86_OP_MEM and ins.reg_name(op.mem.base) == "rip" and ins.address + ins.size + op.mem.disp == target:
+                ok = True
+            if op.type == pe.X86_OP_IMM and op.imm == target and ins.mnemonic.startswith(("call", "j")):
+                ok = True
+        if ok:
+            seen.add(ins.address)
+            out.append((ins.address, kb_func_start(ins.address), pe.fmt(ins)))
+    return out
+
+
+def kb_func_start(va):
+    """Start of the whole function (root of chained .pdata chunks)."""
+    b = pe.func_bounds(va)
+    if not b:
+        return None
+    r = _roots()
+    return pe.BASE + r.get(b[0] - pe.BASE, b[0] - pe.BASE)
+
+
+def disp_uses(disp, writes_only=False):
+    """Instructions using memory displacement `disp` (struct field offsets like [rcx+0x5c4])."""
+    import re as _re
+    s, e = pe.sec_range(".trace")
+    o0, o1 = pe.va2off(s), pe.va2off(e - 1)
+    pat = _re.compile(_re.escape(struct.pack("<I", disp)))
+    hits, seen = [], set()
+    for m in pat.finditer(pe.data, o0, o1):
+        ins = _insn_at(pe.off2va(m.start()))
+        if ins is None or ins.address in seen:
+            continue
+        seen.add(ins.address)
+        if f"{disp:#x}]" in ins.op_str:
+            dst = ins.op_str.split(",")[0]
+            if not writes_only or ("[" in dst and ins.mnemonic not in ("cmp", "test", "lea")):
+                hits.append((ins.address, kb_func_start(ins.address), f"{ins.mnemonic} {ins.op_str}"))
+    return hits
 
 
 def callers(target):
@@ -255,6 +323,9 @@ def main():
     elif cmd == "callers":
         for fs, sites in callers(int(a[0], 16)).items():
             print(f"fn {fs and hex(fs)}: {[hex(s) for s in sites]}")
+    elif cmd == "disp":
+        for iva, fs, txt in disp_uses(int(a[0], 16), writes_only=len(a) > 1 and a[1] == "w"):
+            print(f"{fs and hex(fs)}  {iva:#x}: {txt}")
     elif cmd == "refs":
         for iva, fs, txt in refs(int(a[0], 16)):
             print(f"{fs and hex(fs)}  {txt}")

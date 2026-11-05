@@ -135,7 +135,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </div>
 
 <nav class="toc" id="contents" aria-label="Sections">
-  <a href="#changes">What changes for our server</a><a href="#net">Connecting the players</a><a href="#match">Match flow</a><a href="#results">Results &amp; divisions</a><a href="#rooms">Lobbies &amp; rooms</a><a href="#coop">Co-op &amp; spectating</a><a href="#menus">Fair play &amp; menus</a><a href="#wire">Transport layers</a><a href="#modes">Big modes</a><a href="#db">Game database</a><a href="#live">Live Update</a><a href="#nettune">Tuning the link</a><a href="#texts">What players see</a><a href="#errors">Error codes</a><a href="#catalog">All commands</a><a href="#method">How this was found</a>
+  <a href="#changes">What changes for our server</a><a href="#net">Connecting the players</a><a href="#match">Match flow</a><a href="#results">Results &amp; divisions</a><a href="#rooms">Lobbies &amp; rooms</a><a href="#coop">Co-op &amp; spectating</a><a href="#menus">Fair play &amp; menus</a><a href="#wire">Transport layers</a><a href="#modes">Big modes</a><a href="#binary">Inside the binary</a><a href="#db">Game database</a><a href="#live">Live Update</a><a href="#nettune">Tuning the link</a><a href="#texts">What players see</a><a href="#errors">Error codes</a><a href="#catalog">All commands</a><a href="#method">How this was found</a>
 </nav>
 
 <h2 id="changes">What changes for our server</h2>
@@ -680,6 +680,27 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 
 <h3>In-match sync messages (14)</h3>
 <p><code>TEAM_DATA_SYNC, USER_DATA_SYNC, BL_DATA_SYNC, SYNC_COMMENTARY, SELECT_SIDE, COMPLETE/UPDATE_TEAM_SELECT, CMD_ERR, CMD_LACK, CMD_SENDFAILED, LOST_GUEST, SET_GUEST, REVISION_CHECK</code> have no reply parser. They look like player-to-player multiplay commands carried inside the match session (MultiplayCmdTeamDataSync.cpp), not server commands. <span class="tag t-inf">INFERRED</span> <code>CMD_RECONNECT</code> is a real server command (see <a href="#match">match flow</a>).</p>
+<p class="totop"><a href="#contents">↑ Back to contents</a></p>
+
+<h2 id="binary">Inside the game binary</h2>
+<div class="plain"><b>In plain words:</b> the online code mapped on this page is a small part of the game. The rest (match engine, menus, offline modes, graphics) never matters to the server, because the games run the match themselves. This overview helps find code quickly if a feature ever needs it.</div>
+<ul>
+  <li><b>Size</b> (PES2021.exe 1.01.00): 37 MB of code in the <code>.trace</code> section, about <b>118,500 functions</b> (158,720 <code>.pdata</code> entries incl. chained chunks), <b>10,179 C++ classes</b> with RTTI, 9,188 with recorded base classes. A further 380 MB section, <code>.impdata</code>, looks packed or obfuscated and was not examined. Only 68 source-file paths survive, 33 of them online code, so the rest of the game has few debug strings. <span class="tag t-static">STATIC</span></li>
+  <li><b>Main areas</b> by class namespace:
+    <div class="tw"><table><thead><tr><th>Area</th><th>Classes</th><th>What it is</th></tr></thead><tbody>
+    <tr><td><code>fox::gr</code>, <code>fox::ph</code>, <code>fox::geo</code>, <code>fox::anim</code>, <code>fox::fx</code>, <code>fox::ncl</code> …</td><td>~2,100</td><td>Fox Engine: graphics, physics, geometry, animation, effects, the server-link codec</td></tr>
+    <tr><td><code>menu</code>, <code>menusystem</code>, <code>menuutility</code>, <code>flash</code></td><td>~1,400</td><td>menus and UI (416 classes derive from <code>menusystem::Window</code>)</td></tr>
+    <tr><td><code>commandautomake</code>, <code>command</code>, <code>onlinesystem</code>, <code>onlinemode</code>, <code>onlinelogin</code></td><td>~1,750</td><td>server commands and the online system (this page)</td></tr>
+    <tr><td><code>cobra::*</code></td><td>~840</td><td>Konami middleware: render, config, job graph, file I/O, NAT traversal</td></tr>
+    <tr><td><code>mode::offline</code></td><td>737</td><td>offline modes; about 205 Scenario judge/post-process pairs, likely Master League / Become a Legend story events</td></tr>
+    <tr><td><code>process</code>, <code>process::mail</code></td><td>~720</td><td>screen-flow steps (156 online ones) and an in-game mail/messages system</td></tr>
+    <tr><td><code>match</code>, <code>match::player</code>, <code>match::ai</code>, <code>match::anime</code>, <code>match::pad</code>, <code>match::camera</code>, <code>matchPlan</code></td><td>~600</td><td>the match engine: player control, AI, animation, controller input, camera, tactics</td></tr>
+    <tr><td><code>kps::*</code>, <code>ntl</code></td><td>~250</td><td>player-to-player network stack and NAT traversal (see <a href="#wire">transport layers</a>)</td></tr>
+    <tr><td><code>draw</code>, <code>sound</code>, <code>fixdemo</code>, <code>edit</code>, <code>savesystem</code>, <code>tmpdb</code>, <code>livedata</code></td><td>~300</td><td>rendering helpers, sound, cutscenes, Edit mode, saves, the in-memory database, live data</td></tr>
+    </tbody></table></div></li>
+  <li><b>Every server command also has a JSON form:</b> 401 classes derive from <code>fox::ncl::NclJsonMessageBase</code> / <code>NclJsonMessageResult</code>, next to the MessagePack parsers we use. That's the second parser on each reply class. The game accepts MessagePack, so it isn't needed. <span class="tag t-static">STATIC</span></li>
+  <li><b>Finding code:</b> <code>notes/re/functions/tools/classmap.py</code> rebuilds the full class list with base classes and vtables from the game exe. The <code>kb.py</code> commands find users of a string, address or struct offset (<code>str</code>, <code>refs</code>, <code>callers</code>, <code>disp</code>), summarise a command (<code>cmd</code>) and dump functions (<code>fn</code>).</li>
+</ul>
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 
 <h2 id="db">The game database: players, teams, rosters</h2>

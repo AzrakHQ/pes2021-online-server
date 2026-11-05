@@ -33,9 +33,12 @@ Tags in the reports: **[static]** read in code at the cited address, **[log]** s
 ## Tools (`tools/`, need `capstone` and `numpy`)
 - `pe.py` — PE sections, RTTI vtables, disassembly, function bounds (`PES_EXE` = path to PES2021.exe).
 - `kb.py` — `build` (cached xref index, ~10 s, ~1.3 GB peak, written to `tools/xref_cache/`),
-  `cmd CMD_X` (request keys, reply fields, users of the command), `fn`, `refs`, `callers`, `str`, `rtti`.
+  `cmd CMD_X` (request keys, reply fields, users of the command), `fn`, `refs`, `callers`, `str`, `rtti`,
+  `disp 0xOFF [w]` (instructions using a struct offset). References are decoded from the function start, so
+  instruction boundaries are always right.
 - `pesdb.py` (+ `cpk.py`) — reads the game database from the CPKs: `checksum`, `player <id>`, `team <id>`, `dump out.json`
   (`PES_GAME_DIR` = folder containing `game/`; no extra packages needed).
+- `classmap.py out.json` — every RTTI class with its base classes and vtables (~2 min).
 - `errtable.py out.json` — rebuilds `error_sites.json`. `catalog.py DIR` — rebuilds `commands.json`.
 
 `../extract_schemas.py` now also recognises keys compared with the `std::string == const char*` helper
