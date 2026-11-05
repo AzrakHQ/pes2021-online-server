@@ -98,9 +98,14 @@ def observe(svc, sess, msgid, req):
                 feed(svc, f"Kick-off: {lv['home_name']} vs {lv['away_name']}", "match")
             elif raw == "BREAK1":
                 feed(svc, f"Half-time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "match")
-    elif msgid == "CMD_ADD_GOAL" and side == "home":
-        scorer = str(req.get("side") or req.get("goal_side") or req.get("score_side") or "").upper()
-        if scorer in ("HOME", "AWAY"):
+    elif msgid == "CMD_ADD_SCORE":
+        # goals arrive as CMD_ADD_SCORE {goal_side, goal_player_pid, gtimer, ...} from BOTH games, with
+        # the same game clock; count each (gtimer, side) once. (There is no CMD_ADD_GOAL in the game.)
+        scorer = str(req.get("goal_side") or "").upper()
+        key = (req.get("gtimer"), scorer)
+        seen = lv.setdefault("goals_seen", [])
+        if scorer in ("HOME", "AWAY") and key not in seen:
+            seen.append(key)
             lv[scorer.lower() + "_score"] += 1
             feed(svc, f"GOAL! {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "goal")
     elif msgid == "CMD_SEND_GAME_RESULT":
@@ -177,7 +182,7 @@ def snapshot(svc):
         players.append({"pid": pid, "name": name or f"Player {pid}", "created": created, "last_login": last,
                         "online": pid in svc.online, "played": w + d + l, "won": w, "drawn": d, "lost": l,
                         "gf": gf, "ga": ga})
-    live = [{k: v for k, v in lv.items() if k not in ("left", "saved")} for lv in st["live"].values()]
+    live = [{k: v for k, v in lv.items() if k not in ("left", "saved", "goals_seen")} for lv in st["live"].values()]
     return {"now": now, "uptime": now - st["started"], "online": online, "searching": len(queued),
             "live": live, "results": results, "played_total": played_total, "players": players,
             "feed": list(st["feed"])[:60]}

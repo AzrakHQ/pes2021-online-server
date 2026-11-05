@@ -351,6 +351,8 @@ async def _admin(service, method, route, headers, body, peer=""):
                 announce.set_restart(service, minutes)
                 events.feed(service, f"Restart warning set for {minutes} minutes from now" if minutes
                             else "Restart warning cancelled", "info")
+        except announce.TooLong:
+            return "400 Bad Request", b'{"error":"too long"}', "application/json"
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"Write a title and a message."}', "application/json"
         return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"

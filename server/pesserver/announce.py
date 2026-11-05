@@ -80,14 +80,27 @@ def snapshot(svc):
                 "restart": r, "pending": len(st["personal"])}
 
 
+class TooLong(ValueError):
+    """The reply would need more than one frame; the game rejects frame bodies over 0x410 bytes and
+    our encoder doesn't split messages yet. Long non-Latin text (2-3 bytes a letter) can hit this."""
+
+
+def _check_size(reply):
+    from . import ncl
+    if len(ncl.bf_encrypt(ncl.pack_plain({"msgid": "CMD_GET_INFOBODY", "rqid": 99999, **reply}))) > ncl.MAX_BODY - 16:
+        raise TooLong("too long")
+
+
 def set_news(svc, title, body):
     title, body = clean(title, TITLE_MAX, lines=False), clean(body, BODY_MAX)
     now = int(time.time())
     with _lock:
         st = _load(svc)
         # a new id each time, so games treat an edited message as new
-        st["news"] = {"id": max(now % 2_000_000_000, (st["news"] or {}).get("id", 0) + 1),
-                      "title": title, "body": body, "date": now}
+        news = {"id": max(now % 2_000_000_000, (st["news"] or {}).get("id", 0) + 1),
+                "title": title, "body": body, "date": now}
+        _check_size(_body_reply(news))            # the biggest of the three replies
+        st["news"] = news
         st["seen"] = []
         _save(svc)
 
@@ -139,6 +152,10 @@ def info_body(svc, sess, req):
         n = _load(svc)["news"]
     if not n or req.get("announce_id") != n["id"]:
         return {"result": NOERR}
+    return _body_reply(n)
+
+
+def _body_reply(n):
     info = {"announce_basic_info": msgpack.packb(_basic(n)), "body": n["body"], "link_url": "",
             "direct_move": "NO", "use_template": "NO", "template_id": 0,
             "banner_file_info": msgpack.packb({"filename": "", "hash_str": ""}), "compe_name": "",

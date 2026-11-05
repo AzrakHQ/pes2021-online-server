@@ -161,7 +161,8 @@ def test_admin_api_needs_password_and_tracks_a_match(tmp_path):
     for s_ in (a, b):
         for ph in ("MATCHMENU", "1ST"):
             events.observe(svc, s_, "CMD_CHANGE_GAMEPHASE", {"phase": ph})
-    events.observe(svc, a, "CMD_ADD_GOAL", {"side": "AWAY"})
+    for s_ in (a, b):                     # both games report the same goal with the same clock
+        events.observe(svc, s_, "CMD_ADD_SCORE", {"goal_side": "AWAY", "goal_player_pid": 2, "gtimer": 2996})
     snap = events.snapshot(svc)
     assert snap["live"][0]["phase"] == "1st half" and snap["live"][0]["away_score"] == 1
     assert {p["status"] for p in snap["online"]} == {"In a match"}

@@ -34,6 +34,44 @@ def _pid(sess):
     return getattr(sess, "pes_pid", None)
 
 
+def _remote(sess):
+    """True when this game reaches the server from outside its home network (internet or Tailscale)."""
+    import ipaddress
+    try:
+        ip = ipaddress.ip_address(str(getattr(sess, "peer_ip", "") or "").split("%")[0])
+    except ValueError:
+        return False
+    ip = getattr(ip, "ipv4_mapped", None) or ip
+    return ip.is_global or ip in ipaddress.ip_network("100.64.0.0/10")
+
+
+def _visible_addr(svc, blob, viewer):
+    """A game on the server's own network gets its "public" (reflexive) address from our STUN server
+    over the LAN, so it reports its LAN IP (seen live: 192.168.1.100, or 127.0.0.1 on the server PC).
+    A friend in another home can't reach that. For such a viewer, put in the address the viewer itself
+    uses to reach the server: the host's public IP (or Tailscale IP), which shares the host's router.
+    The port is kept; home routers usually keep the source port for UDP."""
+    import base64, ipaddress
+    from .netsetup import advertised_addr
+    if viewer is None or not _remote(viewer):
+        return blob
+    try:
+        raw = blob.encode("utf-8", "surrogateescape") if isinstance(blob, str) else bytes(blob)
+        obj = msgpack.unpackb(raw, raw=False)
+        sa = base64.b64decode(obj["sa_data"])
+        if obj.get("address_family") != 1 or len(sa) < 8 or ipaddress.IPv4Address(sa[4:8]).is_global:
+            return blob
+        new_ip = ipaddress.IPv4Address(advertised_addr(svc, viewer))
+    except (ValueError, TypeError, KeyError, msgpack.ExtraData, msgpack.FormatError, msgpack.StackError):
+        return blob
+    if not new_ip.is_global and new_ip not in ipaddress.ip_network("100.64.0.0/10"):
+        return blob
+    obj["sa_data"] = base64.b64encode(sa[:4] + new_ip.packed + sa[8:]).decode()
+    out = msgpack.packb(obj, use_bin_type=True)
+    log.info("reflexive address %s -> %s for a remote opponent", ipaddress.IPv4Address(sa[4:8]), new_ip)
+    return out.decode("utf-8", "surrogateescape") if isinstance(blob, str) else out
+
+
 @cmd("CMD_SEND_IPANDPORT_NTL")
 def send_ipandport(svc, sess, req):
     st = _state(svc)
@@ -51,6 +89,8 @@ def get_ipandport(svc, sess, req):
     for k in ("host_addr", "reflexive_addr", "relayed_addr"):
         if k in info:
             out[k] = info[k]
+    if "reflexive_addr" in out and pid != _pid(sess):
+        out["reflexive_addr"] = _visible_addr(svc, out["reflexive_addr"], sess)
     return out
 
 
@@ -104,7 +144,7 @@ def watch_matching(svc, sess, req):
     return {"_defer": True}
 
 
-def _member(svc, pid, owner, order):
+def _member(svc, pid, owner, order, viewer=None):
     p = _player(svc, _username(svc, pid)) or {"pid": pid, "name": f"Player{pid}"}
     # side is what each client uses to decide which team data it owns and sends (HOME/AWAY);
     # without it both stay "unset" and the load fails with MMGC_0002 (no HOME team).
@@ -112,6 +152,8 @@ def _member(svc, pid, owner, order):
          "side": "HOME" if owner else "AWAY"}
     m.update({k: v for k, v in _state(svc)["ntl"].get(pid, {}).items()
               if k in ("host_addr", "reflexive_addr", "relayed_addr", "ntl_nat_type")})
+    if "reflexive_addr" in m and viewer is not None and _pid(viewer) != pid:
+        m["reflexive_addr"] = _visible_addr(svc, m["reflexive_addr"], viewer)
     return msgpack.packb(m, use_bin_type=True, unicode_errors="surrogateescape")
 
 
@@ -127,9 +169,10 @@ def _try_pair(svc):
         st["queue"] = st["queue"][2:]
         room = st["next_room"]; st["next_room"] += 1
         st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time()}
-        members = [_member(svc, a, True, 0), _member(svc, b, False, 1)]
         log.info("MATCH FOUND room %d: owner %s vs %s", room, a, b)
         for pid in (a, b):
+            viewer = sa if pid == a else sb
+            members = [_member(svc, a, True, 0, viewer), _member(svc, b, False, 1, viewer)]
             # matching_state is what OnReceive (0x141100d00) switches on: FINISH -> status 2 -> the
             # quick-match task (0x14111bea0) proceeds to gamerelay + P2P. Without it: 300 s timeout (EYRH763).
             reply = {"result": NOERR, "matching_state": "FINISH", "player_num": 2, "ping": 30,
@@ -168,7 +211,6 @@ def admin_push(svc, params):
     if not st["rooms"]:
         return {"error": "no room yet"}
     room_id = max(st["rooms"]); room = st["rooms"][room_id]
-    members = [_member(svc, p, p == room["owner"], i) for i, p in enumerate(room["members"])]
     kind = int(params.get("kind", "0x60"), 0); seq = int(params.get("seq", "1"), 0)
     msgid = params.get("msgid", "CMD_WATCH_MATCHING")
     extra = json.loads(params.get("extra", "{}"))
@@ -180,6 +222,7 @@ def admin_push(svc, params):
             continue
         rq = params.get("rqid", "0")
         rqid = int(getattr(sess, "pes_match_req", {}).get("rqid", 0)) if rq == "start" else int(rq, 0)
+        members = [_member(svc, p, p == room["owner"], i, sess) for i, p in enumerate(room["members"])]
         body = {"result": NOERR, "matching_state": "FINISH", "player_num": len(members), "ping": 30,
                 "member": members, **extra}
         _send_later(sess, msgid, rqid, kind, seq, body)
@@ -234,11 +277,21 @@ def _relay_notice(watch_msgid):
             pids = [pids]
         data = req.get("data", "")
         delivered = []
+        # The game's pid_list grows by one copy per match ([1], [1, 1], [1, 1, 1]... seen live);
+        # deliver once per player, in order, and never back to the sender.
+        targets = []
         for p in pids:
-            s = svc.online.get(int(p))
+            try:
+                p = int(p)
+            except (TypeError, ValueError):
+                continue
+            if p not in targets and p != _pid(sess):
+                targets.append(p)
+        for p in targets:
+            s = svc.online.get(p)
             if s is not None:
                 _send_later(s, watch_msgid, 0, 0x60, 1, {"result": NOERR, "data": data})
-                delivered.append(int(p))
+                delivered.append(p)
         log.info("NOTICE %s from pid %s -> %s data=%r (delivered %s)", watch_msgid, _pid(sess), pids, data, delivered)
         return {"result": NOERR}
     return handler
