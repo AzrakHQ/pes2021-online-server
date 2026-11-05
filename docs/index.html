@@ -66,7 +66,7 @@ code, pre { font-family: var(--mono); }
 .theme { border: 1px solid var(--line); background: var(--bg2); color: var(--fg); border-radius: 99px; width: 44px; height: 44px; cursor: pointer; display: grid; place-items: center; flex: none; }
 .theme svg { width: 18px; height: 18px; }
 @media (max-width: 640px) { .logo span { display: none; } .nav ul { gap: 12px; } .nav ul a { font-size: 14px; } .nav .wrap { gap: 10px; } }
-@media (max-width: 460px) { .nav .gh { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 13px; } }
+@media (max-width: 460px) { .nav .gh { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 13px; } .nav .wrap { padding: 0 12px; } .theme { width: 40px; height: 40px; } }
 @media (max-width: 380px) { .logo { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 12.5px; } .nav .wrap { gap: 8px; padding: 0 12px; } }
 
 /* hero */
@@ -266,6 +266,8 @@ details.changes ul { font-size: 14px; padding-left: 18px; color: var(--muted); }
 .help td:first-child { font-weight: 700; width: 38%; }
 @media (max-width: 640px) { .help, .help tbody, .help tr, .help td { display: block; width: auto !important; } .help thead { display: none; } .help tr { border-bottom: 1px solid var(--line); padding: 8px 0; } .help td { border: 0; padding: 4px 0; } }
 details.q { border-bottom: 1px solid var(--line); padding: 4px 0; }
+details.helpgrp { margin-bottom: 16px; } details.helpgrp > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+details.helpgrp > summary h3 { margin: 0; } details.helpgrp > summary::after { content: "+"; color: var(--brand); font-size: 22px; } details.helpgrp[open] > summary { margin-bottom: 8px; }
 .faqh { margin: 34px 0 4px; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); }
 .faqh:first-of-type { margin-top: 8px; }
 details.q summary { cursor: pointer; font-weight: 700; font-size: 18px; padding: 14px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
@@ -279,7 +281,9 @@ details.q .cmd { max-width: 48em; margin-bottom: 16px; }
 .next { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: center; }
 @media (max-width: 800px) { .next { grid-template-columns: 1fr; } }
 .totop { position: fixed; right: 16px; bottom: 16px; z-index: 30; background: var(--brand); color: var(--on-brand); border-radius: 99px; padding: 10px 16px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
-@media (max-width: 600px) { .totop { right: auto; left: 12px; bottom: 12px; padding: 8px 12px; font-size: 14px; } footer { padding-bottom: 72px; } }
+@media (max-width: 600px) { .totop { right: 10px; bottom: 10px; width: 44px; height: 44px; padding: 0; display: grid; place-items: center; font-size: 0; opacity: .85; }
+  .totop::before { content: "↑"; font-size: 20px; } footer { padding-bottom: 72px; }
+  .hook { flex-direction: column; align-items: flex-start; } }
 .totop:hover { color: var(--on-brand); filter: brightness(1.08); }
 dialog.lightbox { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
 dialog.lightbox::backdrop { background: rgba(0,0,0,.75); }
@@ -501,7 +505,7 @@ footer a { color: var(--muted); }
             <li>After Go to Matchmaking you see "Searching for an opponent…" until a second player searches too.</li>
             <li>Then the game shows the matched opponent and a <b>Proceed</b> button.</li>
           </ul>
-          <p class="warnline">Only use a mod file from a friend you trust: it's a program that runs inside your game. The safest copy is one your host downloaded from their own admin page.</p>
+          <p class="warnline">Only use a mod file from a friend you trust: it's a program that runs inside your game. Get the file straight from your host: they send it to you directly, or you download it from their link at home (not on public Wi-Fi). Avoid copies passed on by other people, and compare its SHA-256 with the one on your host's page.</p>
           <p class="note">Stuck? See <a href="#help">Help</a>. The mod writes what it did to <code>pes2021-online.log</code> in the game folder.</p>
         </div>
       </div>
@@ -532,8 +536,8 @@ footer a { color: var(--muted); }
       </div>
     </div>
     <figure class="shot">
-      <a class="light" href="admin-light.webp"><img src="admin-light.webp" width="1475" height="1434" loading="lazy" alt="The admin page: an Invite your friends card with the mod download, a server-computer card, players online, a live match in the second half, recent results and an activity feed."></a>
-      <a class="dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1475" height="1434" loading="lazy" alt="The admin page in dark mode: an Invite your friends card with the mod download, a server-computer card, players online, a live match in the second half, recent results and an activity feed."></a>
+      <a class="light" href="admin-light.webp"><img src="admin-light.webp" width="1475" height="1434" loading="lazy" alt="The admin page: an Invite your friends card with the mod download, players online, a live match in the second half, an activity feed and the network card."></a>
+      <a class="dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1475" height="1434" loading="lazy" alt="The admin page in dark mode: an Invite your friends card with the mod download, players online, a live match in the second half, an activity feed and the network card."></a>
       <figcaption>The real admin page, filled with made-up demo players and scores. Tap to open it full size.</figcaption>
     </figure>
   </div>
@@ -544,27 +548,39 @@ footer a { color: var(--muted); }
     <p class="kicker">Help</p>
     <h2>Something went wrong?</h2>
     <p class="intro">Find what you see. For a friend's problem, the mod's log, <code>pes2021-online.log</code> in their game folder, usually says why.</p>
-    <div class="card">
-      <table class="help">
+    <details class="card helpgrp" open>
+      <summary><h3>For friends (players)</h3></summary>
+      <table class="help"><caption class="sr">Help for players</caption>
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
-          <tr><td>The host's link doesn't open for a friend in the host's own home</td><td>Many home routers can't open their own internet address from inside. Use the file the host sends, or open <code>http://&lt;host's home address&gt;</code> (the admin page's Network card shows it).</td></tr>
           <tr><td>"Unable to connect to the server" when going online</td><td>The host's server must be running. If the log says <i>not found</i>, the server is off or unreachable: the host checks it's up and its router ports are open. If the host's internet address changed, they send a fresh file from the admin page.</td></tr>
           <tr><td>The browser or Windows says the file may be harmful, or blocks it</td><td>Chrome and Edge warn about every <code>.dll</code> download. Choose <b>Keep</b> (Chrome: ⋮ → Keep; Edge: … → Keep → Keep anyway). Copies sent on Discord, WhatsApp or Telegram are the same file.</td></tr>
           <tr><td>Can't find the game folder, or there's no "Browse local files"</td><td>In the Steam <b>Library</b>, right-click PES 2021 → <b>Manage</b> → <b>Browse local files</b>. It's usually <code>C:\Program Files (x86)\Steam\steamapps\common\eFootball PES 2021 SEASON UPDATE</code>; on a Steam Deck, <code>/home/deck/.steam/steam/steamapps/common/…</code>.</td></tr>
           <tr><td>No <code>pes2021-online.log</code> appears in the game folder</td><td>Look in <code>%TEMP%</code> too: the mod writes there if the game folder is read-only. If there's no log anywhere, the mod didn't load. Windows hides file endings, so the file should show as <code>dinput8</code> with type <i>Application extension</i>, not <code>dinput8.dll.txt</code>. Check that <code>dinput8.dll</code> is next to <code>PES2021.exe</code> (not in a subfolder, not renamed to <code>dinput8 (1).dll</code>). On Steam Deck / Linux, check the launch option.</td></tr>
           <tr><td>The file disappeared, or antivirus warns about it</td><td>The mod isn't code-signed (a certificate costs money this free project doesn't have), and it hooks the game's network functions, which some antivirus tools treat as suspicious. Restore it and allow it if it came from your host, and check its SHA-256 against the one on the host's page. The source and the build recipe (<code>server/mod</code>, built inside the Docker image) are public.</td></tr>
-          <tr><td>The network test fails, or eFootball modes stay locked</td><td>The host should check that ports 443 and 3478 are open (the banner and admin page say if they aren't).</td></tr>
+          <tr><td>The host's link doesn't open for a friend in the host's own home</td><td>Many home routers can't open their own internet address from inside. Use the file the host sends, or open <code>http://&lt;host's home address&gt;</code> (the admin page's Network card shows it).</td></tr>
+          <tr><td>The network test fails, or eFootball modes stay locked</td><td>The host checks that all 6 ports are open (UPnP, or forwarded by hand) and that the computer's own firewall allows them (see "nobody else can connect" under hosts). The banner warns if the router ports couldn't be opened.</td></tr>
           <tr><td>Matchmaking searches forever</td><td>Two players must be in eFootball → Quick Match and searching at the same time.</td></tr>
           <tr><td>"Failed to connect with opponent"</td><td>The two PCs can't reach each other directly. Try Tailscale (an untested workaround): see <a href="#faq-far">playing across the internet</a>.</td></tr>
-          <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server this message is normal: open the 6 ports in the provider's firewall instead.</td></tr>
-          <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
-          <tr><td>It works on the host's PC, but nobody else can connect</td><td>The host computer's own firewall is blocking the ports. On Ubuntu with ufw: <code>sudo ufw allow 80,443,8080,10000/tcp</code> and <code>sudo ufw allow 3478,7600/udp</code>. On a cloud server, also open them in the provider's firewall settings.</td></tr>
           <tr><td>Windows Firewall asks about PES 2021</td><td>Click <b>Allow</b>: matches run directly between the two players' PCs.</td></tr>
           <tr><td>The match ends with a "no operation" message</td><td>The game's own rule: a player didn't touch the controller for about 50 seconds.</td></tr>
         </tbody>
       </table>
-    </div>
+    </details>
+    <details class="card helpgrp" open>
+      <summary><h3>For hosts</h3></summary>
+      <table class="help"><caption class="sr">Help for hosts</caption>
+        <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
+        <tbody>
+          <tr><td>The installer says "The server did not start"</td><td>Run <code>sudo docker logs pesserver</code> to see why. Usually another program already uses port 80, 443, 8080 or 10000: check with <code>sudo ss -ltnp | grep -E ':(80|443|8080|10000) '</code>, stop that program, then run the install line again.</td></tr>
+          <tr><td>"Docker is installed but not running"</td><td>Run <code>sudo systemctl start docker</code>, then run the install line again.</td></tr>
+          <tr><td>"Could not build the server image"</td><td>The download from GitHub failed. Check the internet connection and run the install line again.</td></tr>
+          <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server this message is normal: open the 6 ports in the provider's firewall instead.</td></tr>
+          <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
+          <tr><td>It works on the host's PC, but nobody else can connect</td><td>The host computer's own firewall is blocking the ports. On Ubuntu with ufw: <code>sudo ufw allow 80,443,8080,10000/tcp</code> and <code>sudo ufw allow 3478,7600/udp</code>. On a cloud server, also open them in the provider's firewall settings.</td></tr>
+        </tbody>
+      </table>
+    </details>
     <p class="note">Still stuck? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Open an issue</a> with what you see, the friend's <code>pes2021-online.log</code>, and the output of <code>sudo docker logs pesserver</code>.</p>
   </div>
 </section>
@@ -595,7 +611,7 @@ footer a { color: var(--muted); }
     </details>
     <details class="q" id="faq-trust">
       <summary>Should I trust a mod file my friend sends?</summary>
-      <p>Only from friends you trust, like any program. The safest copy is one you download yourself from your host's own link (their server's address) at home, rather than a copy forwarded by someone else. To check a copy, compare its SHA-256 with the one on your host's download page or admin page: on Windows run <code>Get-FileHash .\dinput8.dll</code> in the game folder (Linux: <code>sha256sum dinput8.dll</code>). If they match, nobody changed the file. The server key (the first 16 characters after <code>key</code> in the first line of <code>pes2021-online.log</code>; the pages show them split by a space) only tells you which server the file connects to. That link isn't encrypted, so on public Wi-Fi prefer the copy your host sends you directly. The file their server hands out is the official build with their server's details written in. It can only make your game talk to their server, and it can't be redirected elsewhere (unless you switch servers yourself with Shift, see below): a server that doesn't hold their secret key is refused. The server writes only its key, name and addresses into a fixed 2 KB settings area of the file; the rest is identical to the public build in <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">server/mod</a>.</p>
+      <p>Only from friends you trust, like any program. Get the file straight from your host: they send it to you directly, or you download it from their link at home (not on public Wi-Fi; that link isn't encrypted). Avoid copies passed on by other people. To check a copy, compare its SHA-256 with the one on your host's download page or admin page: on Windows run <code>Get-FileHash .\dinput8.dll</code> in the game folder (Linux: <code>sha256sum dinput8.dll</code>). If they match, nobody changed the file. If they don't, ask your host to download it again: the hash changes when the server's address changes. The server key (the first 16 characters after <code>key</code> in the first line of <code>pes2021-online.log</code>; the pages show them split by a space) only tells you which server the file connects to. The file their server hands out is the official build with their server's details written in. It can only make your game talk to their server, and it can't be redirected elsewhere (unless you switch servers yourself with Shift, see below): a server that doesn't hold their secret key is refused. The server writes only its key, name, addresses and (if it has one) its web address into a fixed 2 KB settings area of the file; the rest is identical to the public build in <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">server/mod</a>.</p>
       <p>The server stores your player name, Steam ID and match results, sees your IP address, and keeps a log of the game's messages on the host's disk. Like any peer-to-peer game, your opponent's PC connects straight to yours during a match, so it sees your IP address too.</p>
     </details>
     <details class="q" id="faq-undo">
@@ -607,7 +623,7 @@ footer a { color: var(--muted); }
     </details>
     <details class="q" id="faq-switch">
       <summary>Can I play on more than one server?</summary>
-      <p>Yes. Replace the file with the one from another host. Or hold <b>Shift</b> while the game starts: a small box lets you paste another server's IP address, and the mod switches to it. A server you type there is trusted the first time it answers, so only type addresses you got from your host.</p>
+      <p>Yes. Replace the file with the one from another host. Or hold <b>Shift</b> while the game starts: a small box lets you paste another server's address (its IP or name), and the mod switches to it. A server you type there is trusted the first time it answers, so only type addresses you got from your host.</p>
     </details>
     <details class="q" id="faq-far">
       <summary>Can I play with friends in other cities or countries?</summary>
@@ -949,7 +965,7 @@ answer with a 16-byte key
   ["host", "share", "join", "server", "help", "faq", "inside", "status"].forEach(id => { const t = document.getElementById(id); if (t) io.observe(t); });
   const toTop = document.getElementById("totop");
   addEventListener("scroll", () => { toTop.hidden = scrollY < innerHeight * 1.5; }, {passive: true});
-  toTop.addEventListener("click", () => setTimeout(() => document.querySelector(".skip").focus({preventScroll: true}), 400));
+  toTop.addEventListener("click", () => setTimeout(() => document.getElementById("main").focus({preventScroll: true}), 400));
   const lb = document.getElementById("lightbox");
   document.querySelectorAll(".shot a").forEach(a => a.addEventListener("click", e => {
     if (!lb.showModal || innerWidth < 700) { a.target = "_blank"; return; }   // phones: open the image itself (zoomable)
@@ -960,6 +976,7 @@ answer with a 16-byte key
   }));
   document.getElementById("lb-close").addEventListener("click", () => lb.close());
   lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
+  if (innerWidth <= 600) document.querySelectorAll("details.helpgrp").forEach(d => d.open = false);   // phones: start folded
   const openTarget = () => { const d = document.getElementById(location.hash.slice(1)); if (d && d.tagName === "DETAILS") d.open = true; };
   addEventListener("hashchange", openTarget); openTarget();
   document.addEventListener("click", e => { const a = e.target.closest('a[href^="#"]'); const d = a && document.getElementById(a.hash.slice(1)); if (d && d.tagName === "DETAILS") d.open = true; });

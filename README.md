@@ -19,7 +19,7 @@ It prints your **admin page** and its **password**.
 
 ## 2. Host: send your friends the mod
 
-Open the admin page and click **Download the mod**. You get one file, `dinput8.dll`. Send it to each
+Open the admin page and click **Download the mod for friends**. You get one file, `dinput8.dll`. Send it to each
 friend on Discord, WhatsApp or Telegram (email usually blocks this kind of file).
 
 It already knows your server, and keeps working after your server restarts.
