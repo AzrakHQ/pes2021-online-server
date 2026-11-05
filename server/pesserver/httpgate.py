@@ -25,6 +25,8 @@ def make_handler(service, stun_host, stun_port, gate_port):
             if route == "/admin" or route.startswith("/admin/api/"):
                 peer = (writer.get_extra_info("peername") or ("",))[0]
                 status, out, ctype = await _admin(service, method, route, headers, body, peer)
+                extra = (b"X-Frame-Options: DENY\r\nContent-Security-Policy: frame-ancestors 'none'\r\n"
+                         b"Referrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
             elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
                                              "/leave.ps1", "/install-ca-proton.py", "/banner"):
                 out, ctype = _web(service, route, headers, writer)
@@ -210,6 +212,8 @@ async def _admin(service, method, route, headers, body, peer=""):
         return "200 OK", open(os.path.join(WEB, "admin.html"), "rb").read(), "text/html; charset=utf-8"
     now = _time.time()
     if route == "/admin/api/login" and method == "POST":
+        for ip in [ip for ip, ts in _FAILED.items() if not ts or now - ts[-1] > 60]:
+            del _FAILED[ip]                   # forget addresses with no recent failures
         recent = [t for t in _FAILED.get(peer, []) if now - t < 60]
         _FAILED[peer] = recent
         if len(recent) >= 5:
@@ -223,7 +227,8 @@ async def _admin(service, method, route, headers, body, peer=""):
             recent.append(now)
             await asyncio.sleep(1)            # slow down password guessing
             return "401 Unauthorized", b'{"error":"wrong password"}', "application/json"
-        token = _sessions(service).new(bool(req.get("remember")))
+        # with remote admin on, sessions travel over the plain internet: keep them short
+        token = _sessions(service).new(bool(req.get("remember")) and not admin_allowed("8.8.8.8"))
         return "200 OK", json.dumps({"token": token, "expires": _sessions(service).expires(token)}).encode(), "application/json"
     given = headers.get("authorization", "")[7:] if headers.get("authorization", "").startswith("Bearer ") else ""
     if not _sessions(service).valid(given):
@@ -237,11 +242,14 @@ async def _admin(service, method, route, headers, body, peer=""):
     if route == "/admin/api/state":
         snap = events.snapshot(service)
         st = netsetup.STATE
-        main = "http://" + netsetup.game_addrs()[-1]
+        reachable = bool(st["mapped"] or os.environ.get("PESSERVER_PUBLIC_ADDR")) and not st["cgnat"]
+        addrs = netsetup.game_addrs()
+        main = "http://" + (addrs[-1] if reachable else addrs[0])     # a link that works for someone
         snap["server"] = {"main": main, "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
-                          "remote_admin": admin_allowed("8.8.8.8")}
+                          "remote_admin": admin_allowed("8.8.8.8"), "link_home_only": not reachable,
+                          "sessions": len([1 for v in _sessions(service).s.values() if v > now])}
         return "200 OK", json.dumps(snap).encode(), "application/json"
     if route == "/admin/api/games":
         from . import gamesetup
@@ -342,7 +350,9 @@ def _mod(service, route, headers, writer, path=""):
             return "400 Bad Request", b"bad nonce", "text/plain", b""
     if not os.path.isfile(MOD_DLL):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
-    url = f"{scheme}://{host}" if not netsetup._ip(server) else ""   # a name (e.g. dynamic DNS) outlives IP changes
+    # a real DNS name (e.g. dynamic DNS) outlives IP changes; local-only names would break friends' files
+    local = server in ("localhost",) or "." not in server or server.endswith((".local", ".lan", ".home", ".internal"))
+    url = f"{scheme}://{host}" if not netsetup._ip(server) and not local else ""
     return "200 OK", mod_bytes(url), "application/octet-stream", b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
 
 

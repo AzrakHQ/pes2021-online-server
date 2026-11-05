@@ -8,7 +8,7 @@
 <style>
   :root { --bg:#f4f6f8; --fg:#14171c; --muted:#5a6371; --card:#fff; --line:#e1e5ea; --field:#7c8696; --accent:#0a7d4f; --accent2:#e8f6ef;
           --on-accent:#fff; --live:#c4320a; --on-live:#fff; --warn:#9a4a00; --warnbg:#fff6e5; --code:#eef1f4; --skel:#e8ebef; --shadow:0 1px 2px rgba(16,24,40,.06); }
-  @media (prefers-color-scheme: dark) { :root { --bg:#0d1014; --fg:#e7eaee; --muted:#a3adbc; --card:#161a20; --line:#2a313b; --field:#5b6574;
+  @media (prefers-color-scheme: dark) { :root { --bg:#0d1014; --fg:#e7eaee; --muted:#a3adbc; --card:#161a20; --line:#2a313b; --field:#6b7585;
           --accent:#3ccf8e; --accent2:#12261d; --on-accent:#04241a; --live:#ff7b6b; --on-live:#2a0a05; --warn:#f5b041; --warnbg:#2a2110;
           --code:#1e232b; --skel:#232a33; --shadow:none; } }
   * { box-sizing:border-box; }
@@ -18,6 +18,7 @@
   a { color:var(--accent); }
   :focus-visible { outline:3px solid var(--accent); outline-offset:2px; border-radius:6px; }
   [tabindex="-1"]:focus { outline:none; }
+  h2[tabindex="-1"]:focus { outline:2px solid var(--accent); outline-offset:4px; }
   .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   .muted { color:var(--muted); }
   .small { font-size:13px; }
@@ -41,7 +42,8 @@
 
   .banner { border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:14px; }
   .banner.down { border:2px solid var(--live); background:var(--card); position:sticky; top:8px; z-index:10; box-shadow:0 4px 14px rgba(0,0,0,.12); }
-  body.stale #stats, body.stale #board { opacity:.5; }
+  body.stale #stats, body.stale #board { opacity:.75; }
+  body.stale #thispc button { pointer-events:none; opacity:.6; }
   body.stale #uptime { display:inline !important; }
   .banner.down b { color:var(--live); }
   .banner.remote { background:var(--warnbg); color:var(--fg); border:1px solid var(--warn); }
@@ -55,7 +57,8 @@
   button.danger { color:var(--muted); }
   button.danger:hover, button.danger:focus-visible { border-color:var(--live); color:var(--live); }
   button:disabled { opacity:.6; cursor:progress; }
-  @media (pointer: coarse) { button { min-height:40px; } }
+  @media (pointer: coarse) { button, .linkbtn { min-height:40px; } }
+  button.small { padding:4px 10px; font-size:13px; }
 
   /* invite */
   .invite { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:28px; border:2px solid var(--accent); }
@@ -66,6 +69,8 @@
   .reach a { font-weight:600; }
   .linkrow { display:flex; gap:8px; align-items:stretch; margin-top:6px; }
   .linkrow code { flex:1; min-width:0; padding:9px 12px; user-select:all; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; overflow-wrap:normal; display:block; }
+  @media (max-width: 480px) { .linkrow code { white-space:normal; word-break:break-all; } }
+  .stalenote { display:none; } body.stale .stalenote { display:block; }
   .friend h3 { font-size:15px; margin:0 0 8px; }
   .friend ol { margin:0; padding-left:20px; font-size:14px; }
   .friend li { margin-bottom:7px; }
@@ -78,7 +83,7 @@
   .game { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 16px; align-items:center; padding:12px 0; border-top:1px solid var(--line); }
   .games > .game:first-child { border-top:0; }
   .game .where b { font-size:15px; overflow-wrap:anywhere; }
-  .game .where .parent { display:block; font-size:12px; color:var(--muted); overflow-wrap:anywhere; }
+  .game .where .parent { display:block; margin-top:2px; font-size:12px; color:var(--muted); background:none; padding:0; user-select:all; }
   .game .what { font-size:13px; color:var(--muted); }
   .game .st { font-size:14px; margin-top:2px; }
   .game .act { justify-self:end; }
@@ -97,13 +102,13 @@
   .quiet b { color:var(--fg); }
 
   .cols { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px; }
-  #board.quiet .cols { grid-template-columns:minmax(0,1fr); }
+  #board.board-quiet .cols { grid-template-columns:minmax(0,1fr); }
   .col { min-width:0; }
   @media (max-width: 800px) {
     .tiles { grid-template-columns:repeat(2,1fr); }
     .cols { display:flex; flex-direction:column; gap:0; }
     .col { display:contents; }
-    #c-live { order:1 } #c-online { order:2 } #c-feed { order:3 } #c-results { order:4 } #c-net { order:5 }
+    #c-live { order:1 } #c-online { order:2 } #c-feed { order:3 } #c-results { order:4 } #c-net { order:5 } #c-net.warnnet { order:0 }
   }
 
   .skel { height:14px; border-radius:6px; background:var(--skel); margin:8px 0; }
@@ -118,18 +123,20 @@
   td.name { font-weight:600; max-width:220px; }
   td.nw { white-space:nowrap; }
   abbr[title] { text-decoration:none; cursor:help; }
-  @media (max-width: 600px) { .hide-sm { display:none; } td.name { max-width:40vw; } .match .side { white-space:normal; overflow-wrap:anywhere; } }
+  @media (max-width: 600px) { .hide-sm { display:none; } td.name { max-width:40vw; } #live .match .side { white-space:normal; overflow-wrap:anywhere; }
+    .game { grid-template-columns:minmax(0,1fr); } .game .act { justify-self:start; } }
   @media (max-width: 420px) { .hide-xs { display:none; } }
 
+  .list-plain { list-style:none; margin:0; padding:0; }
   .match { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:12px; padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:10px; }
   .match .side { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .match .side.away { text-align:right; }
+  .match .side:not(.away) { text-align:right; }
   .score { font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; text-align:center; }
   .score.vs { font-size:15px; color:var(--muted); font-weight:600; }
   .phase { grid-column:1/-1; text-align:center; font-size:13px; }
 
   .results { list-style:none; margin:0; padding:0; }
-  .results li { display:grid; grid-template-columns:72px minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:baseline; padding:7px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .results li { display:grid; grid-template-columns:7.5em minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:baseline; padding:7px 0; border-bottom:1px solid var(--line); font-size:14px; }
   .results li:last-child { border-bottom:0; }
   .results .h { text-align:right; overflow-wrap:anywhere; }
   .results .a { overflow-wrap:anywhere; }
@@ -162,6 +169,7 @@
   main.login input[type=password] { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--field); background:var(--bg); color:var(--fg); font:inherit; }
   main.login .remember { display:flex; gap:8px; align-items:flex-start; font-weight:400; margin:12px 0 16px; font-size:14px; }
   main.login .remember input { margin-top:4px; }
+  .pwrow { display:flex; gap:8px; } .pwrow input { flex:1; min-width:0; }
   main.login button { width:100%; padding:11px; font-size:15px; }
   #err { color:var(--live); font-size:14px; min-height:20px; margin-top:10px; }
 </style>
@@ -172,8 +180,9 @@
     <h1><span aria-hidden="true">⚽ </span>PES 2021 Server</h1>
     <p class="muted" style="margin:0">Sign in to your PES 2021 server.</p>
     <form id="lf">
+      <input type="text" name="username" autocomplete="username" value="admin" hidden>
       <label for="pw">Admin password</label>
-      <input id="pw" type="password" autocomplete="current-password" required aria-describedby="err">
+      <div class="pwrow"><input id="pw" type="password" autocomplete="current-password" required aria-describedby="err"><button type="button" id="showpw" aria-pressed="false">Show</button></div>
       <label class="remember"><input type="checkbox" id="remember"> <span>Keep me signed in on this device for 30 days</span></label>
       <button type="submit" class="primary" id="signin">Sign in</button>
     </form>
@@ -194,17 +203,16 @@
   </header>
 
   <div id="down" class="banner down" role="alert" hidden></div>
-  <div id="remote" class="banner remote" hidden><b>Anyone on the internet can reach this sign-in page</b> (remote admin is on), and the connection isn't encrypted: your password and session can be read along the way. Use Tailscale instead if you can.</div>
 
   <section class="card invite" aria-labelledby="inv-h">
     <div>
-      <h2 id="inv-h">Invite your friends</h2>
+      <h2 id="inv-h" tabindex="-1">Invite your friends</h2>
+      <div class="reach" id="inv-reach" style="margin:0 0 10px"></div>
       <p>Send each friend this one file, once. It already knows your server and keeps working after restarts.</p>
       <a class="dl" id="dl" href="/mod/dinput8.dll" download="dinput8.dll"><span aria-hidden="true">⬇ </span>Download the mod for friends</a>
-      <p class="small ok" id="dl-done" aria-live="polite" style="margin:8px 0 0"></p>
+      <p class="small" id="dl-done" aria-live="polite" style="margin:8px 0 0"></p>
       <p class="small muted" style="margin:8px 0 0">One file, <code>dinput8.dll</code>. Send it on Discord, WhatsApp or Telegram; email usually blocks this kind of file.</p>
-      <div class="reach" id="inv-reach"></div>
-      <div class="small"><b>Or send this link.</b> It opens a page with the download and these same steps:</div>
+      <div class="small" style="margin-top:14px"><b>Or send this link.</b> It opens a page with the download and these same steps<span id="jp-note"></span>:</div>
       <div class="linkrow"><code id="jp">Loading…</code><button type="button" id="copy" disabled>Copy link</button></div>
       <span class="sr" id="copy-live" aria-live="polite"></span>
     </div>
@@ -219,13 +227,17 @@
     </div>
   </section>
 
+  <div id="remote" class="banner remote" hidden><b>Anyone on the internet can reach this sign-in page</b> (remote admin is on), and the connection isn't encrypted: your password and session can be read along the way. Use Tailscale instead if you can. Sign-ins last 12 hours.</div>
+
   <section class="card" id="thispc" aria-labelledby="pc-h" hidden>
     <h2 id="pc-h">This PC</h2>
+    <p class="muted small" style="margin:-6px 0 8px">Play on this computer too: set up your own copy of PES 2021.</p>
     <div id="games"></div>
     <span class="sr" id="pc-live" aria-live="polite"></span>
   </section>
 
   <div id="stats"></div>
+  <p class="stalenote small warn" id="stalenote"></p>
   <div id="board">
     <div class="cols">
       <div class="col">
@@ -242,7 +254,7 @@
   </div>
 
   <footer class="foot">
-    <p style="margin:0 0 6px">The admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale. <button class="linkbtn" id="logout-all" type="button" style="font-size:13px">Sign out on all devices</button></p>
+    <p style="margin:0 0 6px">The admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale. <span id="devices"></span> <button class="linkbtn" id="logout-all" type="button" style="font-size:13px">Sign out on all devices</button></p>
     <details>
       <summary>Server commands</summary>
       <ul>
@@ -298,7 +310,8 @@ function dur(s) {
 const fmt = new Intl.DateTimeFormat([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"});
 const hm = new Intl.DateTimeFormat([], {hour: "2-digit", minute: "2-digit"});
 const dayName = new Intl.DateTimeFormat([], {weekday: "long", month: "short", day: "numeric"});
-const when = (t, now) => now - t < 86400 ? ago(t, now) : fmt.format(new Date(t * 1000));
+const dateOnly = new Intl.DateTimeFormat([], {month: "short", day: "numeric"});
+const when = (t, now) => now - t < 86400 ? ago(t, now) : dateOnly.format(new Date(t * 1000));
 const iso = t => new Date(t * 1000).toISOString();
 function dayLabel(t) {
   const d = new Date(t * 1000), today = new Date(), y = new Date(); y.setDate(today.getDate() - 1);
@@ -332,20 +345,22 @@ function setDown(on) {
     text("status-t", "Server online");
     return;
   }
+  if (!last && failures === 0) for (const id of ["live", "online", "results", "feed", "net", "league"]) put(id, `<p class="empty">Can't load yet…</p>`);
   if (++failures < 2 || downSince) return;      // announce the outage once, not on every poll
-  downSince = Date.now();
+  downSince = lastOkAt || Date.now();
+  if (!last) { text("jp", "Shown when the server answers"); }
+  text("stalenote", lastOkAt ? "Not live: last update " + hm.format(new Date(lastOkAt)) : "");
   pill.className = "pill bad"; text("status-t", "Not answering");
   text("uptime", lastOkAt ? "last update " + hm.format(new Date(lastOkAt)) : "");
   document.body.classList.add("stale");
-  $("down").innerHTML = `<b>Can't reach the server since ${hm.format(new Date(downSince))}.</b> Is that computer on? Start the server with <code>sudo docker start pesserver</code>. This page keeps trying.`;
+  $("down").innerHTML = `<b>Last heard from the server at ${hm.format(new Date(downSince))}.</b> Is that computer on? Start the server with <code>sudo docker start pesserver</code>. This page keeps trying.`;
   $("down").hidden = false;
-  if (!last) for (const id of ["live", "online", "results", "feed", "net", "league"]) put(id, `<p class="empty">Waiting for the server…</p>`);
 }
 
 function reachInfo(s) {
-  const bad = {ok: false, short: "Home network only", long: `<span class="warn">⚠ <b>Friends on your Wi-Fi can connect. Friends elsewhere can't yet.</b></span> <a href="#c-net">Fix this ↓</a>`};
+  const bad = {ok: false, short: "Home network only", long: `<span class="warn">⚠ <b>Only friends on your Wi-Fi can join right now.</b></span> <a href="#c-net">Fix this ↓</a>`};
   if (s.cgnat) return bad;
-  if (s.ports_open.length || s.pinned) return {ok: true, short: "Friends anywhere can connect", long: `<span class="ok">✓ Friends anywhere can connect.</span>`};
+  if (s.ports_open.length || s.pinned) return {ok: true, short: "Friends anywhere can connect", long: `<span class="ok">✓ Your server is ready. Friends anywhere can join.</span>`};
   if (s.wan) return bad;
   return {ok: true, short: "Home network", long: `<span class="muted">Friends on your Wi-Fi can connect.</span>`};
 }
@@ -365,14 +380,17 @@ async function refresh() {
 function render(d) {
   const now = d.now, s = d.server;
   text("uptime", "running for " + dur(d.uptime));
-  text("jp", s.main); $("copy").disabled = false;
+  text("jp", s.main); $("jp").title = s.main; $("copy").disabled = false;
+  text("jp-note", s.link_home_only ? " (works on your Wi-Fi only)" : "");
+  text("devices", s.sessions > 1 ? `Signed in on ${s.sessions} devices.` : "");
   $("remote").hidden = !s.remote_admin;
   const r = reachInfo(s);
   $("reach").hidden = false; $("reach").className = "pill " + (r.ok ? "" : "warn"); text("reach", (r.ok ? "✓ " : "⚠ ") + r.short);
   put("inv-reach", r.long);
+  $("c-net").classList.toggle("warnnet", !r.ok);
 
   const quiet = !d.online.length && !d.live.length && !d.played_total;
-  $("board").classList.toggle("quiet", quiet);
+  $("board").classList.toggle("board-quiet", quiet);
   const today = d.results.filter(r => new Date(r.ended * 1000).toDateString() === new Date().toDateString()).length;
   put("stats", quiet
     ? `<div class="quiet"><b>Waiting for your first friend.</b> Send them the mod; they appear here within seconds of starting PES 2021.<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
@@ -386,30 +404,21 @@ function render(d) {
   put("net", netHtml(s));
   if (quiet) return;
 
-  put("live", d.live.length ? d.live.map(m => m.kickoff && m.phase === "Full time" ? `
-    <div class="match">
-      <div class="side">${esc(m.home_name)}</div>
-      <div class="score">${m.home_score} – ${m.away_score}</div>
-      <div class="side away">${esc(m.away_name)}</div>
-      <div class="phase"><span class="pill neutral">Full time</span></div>
-    </div>` : m.kickoff ? `
-    <div class="match">
-      <div class="side">${esc(m.home_name)}</div>
-      <div class="score">${m.home_score} – ${m.away_score}</div>
-      <div class="side away">${esc(m.away_name)}</div>
-      <div class="phase"><span class="pill live"><span class="dot"></span>${esc(m.phase)}</span> <span class="muted">&nbsp;kicked off ${ago(m.kickoff, now)}</span></div>
-    </div>` : `
-    <div class="match">
-      <div class="side">${esc(m.home_name)}</div>
-      <div class="score vs">vs</div>
-      <div class="side away">${esc(m.away_name)}</div>
-      <div class="phase"><span class="pill neutral">Getting ready</span></div>
-    </div>`).join("") : `<p class="empty">No one is playing. A match starts when two friends choose Quick Match at the same time.</p>`);
+  const phaseLabel = m => m.kickoff && m.phase === "Full time" ? `<span class="pill neutral">Full time</span>`
+    : m.kickoff ? `<span class="pill live"><span class="dot"></span>${esc(m.phase)}</span> <span class="muted">&nbsp;kicked off ${ago(m.kickoff, now)}</span>`
+    : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}${now - (m.started || now) > 300 ? " · stuck? They can leave and search again" : ""}</span>`;
+  put("live", d.live.length ? `<ul class="list-plain" aria-label="Live matches">` + d.live.map(m => `
+    <li class="match"><span class="sr">${esc(m.home_name)} ${m.kickoff ? m.home_score : ""} ${m.kickoff ? "" : "versus"} ${esc(m.away_name)} ${m.kickoff ? m.away_score : ""}, ${esc(m.kickoff ? m.phase : "getting ready")}</span>
+      <div class="side" aria-hidden="true">${esc(m.home_name)}</div>
+      <div class="score${m.kickoff ? "" : " vs"}" aria-hidden="true">${m.kickoff ? `${m.home_score} – ${m.away_score}` : "vs"}</div>
+      <div class="side away" aria-hidden="true">${esc(m.away_name)}</div>
+      <div class="phase" aria-hidden="true">${phaseLabel(m)}</div>
+    </li>`).join("") + `</ul>` : `<p class="empty">No one is playing. A match starts when two friends choose Quick Match at the same time.</p>`);
 
   put("online", d.online.length ? `<div class="tablewrap"><table><caption class="sr">Players online now</caption>
     <thead><tr><th scope="col">Player</th><th scope="col">Status</th><th scope="col" class="hide-sm">Connection</th><th scope="col" class="num hide-sm">Online for</th><th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
     d.online.map(p => `<tr><td class="name">${esc(p.name)}</td><td class="nw">${esc(p.status)}</td>
-      <td class="hide-sm muted nw" title="${esc(p.ip)}">${where(p.ip)}</td><td class="num muted hide-sm">${dur(now - p.since)}</td>
+      <td class="hide-sm muted nw">${where(p.ip)} · ${esc(p.ip)}</td><td class="num muted hide-sm">${dur(now - p.since)}</td>
       <td class="num"><button class="danger" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></td></tr>`).join("") +
     `</tbody></table></div><p class="note">Kick disconnects someone now; they can reconnect. There's no ban: anyone you've sent the mod can come back.</p>`
     : `<p class="empty">Nobody is online right now. Send your friends the mod to get them in.</p>`);
@@ -421,12 +430,11 @@ function render(d) {
         <span class="h ${hw ? "win" : ""}">${esc(r.home_name)}</span><span class="s">${r.home_score}–${r.away_score}</span>
         <span class="a ${aw ? "win" : ""}">${esc(r.away_name)}${r.reason ? ` <span class="pill neutral tag">abandoned</span>` : ""}</span></li>`;
     }).join("") + `</ul>` +
-    (d.results.length > 10 ? `<button type="button" class="more" data-key="more-results" data-more="results">${showAllResults ? "Show fewer" : `Show last ${d.results.length}`}</button>` : "")
+    (d.results.length > 10 ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">${showAllResults ? "Show fewer" : `Show last ${d.results.length}`}</button>` : "")
     : `<p class="empty">Finished matches will be listed here.</p>`);
 
-  const ICON = {goal: "⚽", result: "🏁", warn: "⚠", info: "•"};
-  const icon = f => f.kind !== "info" ? ICON[f.kind] || "•" : /came online|logged in|joined/i.test(f.text) ? "→" : /left|offline|disconnect/i.test(f.text) ? "←"
-    : /search/i.test(f.text) ? "🔍" : /match found|kick-off|kicked off|half|paired/i.test(f.text) ? "▶" : "•";
+  const ICON = {goal: "⚽", result: "🏁", warn: "⚠", login: "→", logout: "←", search: "🔍", match: "▶", web: "⬇", info: "•"};
+  const icon = f => ICON[f.kind] || "•";
   const items = feedAll ? d.feed : d.feed.slice(0, 15);
   let lastDay = "", feed = "";
   for (const f of items) {
@@ -435,7 +443,7 @@ function render(d) {
     feed += `<li><time datetime="${iso(f.t)}">${hm.format(new Date(f.t * 1000))}</time><span class="ico" aria-hidden="true">${icon(f)}</span><span class="k-${f.kind}">${esc(f.text)}</span></li>`;
   }
   put("feed", d.feed.length ? `<ul class="feed">${feed}</ul>` +
-    (d.feed.length > 15 ? `<button type="button" class="more" data-key="more-feed" data-more="feed">${feedAll ? "Show less" : "Show more"}</button>` : "")
+    (d.feed.length > 15 ? `<button type="button" class="more linkbtn" data-key="more-feed" data-more="feed">${feedAll ? "Show less" : "Show more"}</button>` : "")
     : `<p class="empty">Logins, goals and results will appear here.</p>`);
 
   const pts = p => p.won * 3 + p.drawn, gd = p => (p.gf || 0) - (p.ga || 0);
@@ -457,7 +465,7 @@ function netHtml(s) {
   if (s.pinned) out.push(`<div>Address given to players <b>${esc(s.pinned)}</b></div>`);
   if (s.cgnat) out.push(`<div class="warn"><b>⚠ Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free) to fix it.</a></div>`);
   // when everything is fine, the header and the invite card already say so
-  else if (s.wan) out.push(`<div class="warn"><b>⚠ Only friends on your home network can connect.</b> Turn on UPnP in your router (or ask whoever runs it), then run the install command again.</div>
+  else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>⚠ Friends outside your home can't connect yet.</b> Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then run the install command again.</div>
     <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to ${esc(s.lan)}.</details>`);
   return out.join("");
 }
@@ -465,7 +473,7 @@ function netHtml(s) {
 // ---- This PC ------------------------------------------------------------------------------------
 function label(path) {
   const p = String(path).split("/").filter(Boolean), i = p.indexOf("common");
-  return i >= 0 && p[i - 1] === "steamapps" ? "PES 2021 (Steam)" : p.slice(-2).join("/");
+  return i >= 0 && p[i - 1] === "steamapps" ? "PES 2021 (Steam)" : `PES 2021 (${p.slice(-2).join("/")})`;
 }
 function parent(path) {
   const p = String(path).split("/").filter(Boolean), i = p.indexOf("steamapps");
@@ -476,7 +484,8 @@ function gameRow(g) {
   const name = label(g.path);
   let st, btn = "", info = "";
   const b = (cls, act, text) => `<button type="button" class="${cls}" data-game="${esc(g.id)}" data-act="${act}" data-key="game-${esc(g.id)}-${act}" aria-label="${text}: ${esc(name)}">${text}</button>`;
-  const what = `<div class="what">Copies <code>dinput8.dll</code> next to <code>PES2021.exe</code> and turns on a Wine setting for PES2021.exe only (a backup is kept).</div>`;
+  const what = `<div class="what">Copies <code>dinput8.dll</code> into the game folder and tells PES to load it (keeps a backup of your settings).</div>`;
+  const failed = rowMsg[g.id] && rowMsg[g.id].error;
   if (g.mod === "foreign") {
     st = `<span class="warn">Another mod's <code>dinput8.dll</code> is in this folder</span>`;
     info = `<span class="muted">Move that file out of</span> <code>${esc(g.path)}</code><span class="muted">, then check again.</span>`;
@@ -488,15 +497,15 @@ function gameRow(g) {
   } else if (g.override === false) {
     st = `<span class="warn">Almost ready: one more step so PES loads the mod</span>${what}`; btn = b("primary", "install", "Finish setup");
   } else if (g.override === null) {
-    st = `<span class="warn">Installed. One step left if you use Steam on Linux</span>`; btn = b("linkbtn", "remove", "Uninstall");
+    st = `<span class="warn">Needs a launch option (Steam on Linux only)</span>`; btn = b("danger small", "remove", "Uninstall");
     info = `<span class="muted">If you play this copy through Steam on Linux or Steam Deck, also add this launch option:</span> <code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code>`;
   } else {
-    st = `<span class="ok">✓ Ready to play</span>`; btn = b("linkbtn", "remove", "Uninstall");
+    st = `<span class="ok">✓ Ready to play</span>`; btn = b("danger small", "remove", "Uninstall");
   }
   const msg = rowMsg[g.id] ? rowMsg[g.id].html : "";
   return `<div class="game"><div class="where"><b>${esc(name)}</b>
-      <span class="parent" title="${esc(g.path)}">${esc(parent(g.path))}</span><div class="st">${st}</div></div>
-    <div class="act">${btn}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
+      <code class="parent">${esc(g.path)}</code><div class="st">${st}</div></div>
+    <div class="act">${failed ? "" : btn}</div><div class="msg" tabindex="-1" data-key="msg-${esc(g.id)}">${[msg, info].filter(Boolean).join("<br>")}</div></div>`;
 }
 async function loadGames(force, focusMsg) {
   let gs;
@@ -512,8 +521,8 @@ async function loadGames(force, focusMsg) {
   }
   $("thispc").hidden = !gs.length;
   if (!gs.length) return;
-  const need = gs.filter(g => !(g.mod === "ours" && g.override !== false)).length;
-  const isReady = g => g.mod === "ours" && g.override !== false && !rowMsg[g.id];
+  const need = gs.filter(g => !(g.mod === "ours" && g.override === true)).length;
+  const isReady = g => g.mod === "ours" && g.override === true && !rowMsg[g.id];
   const todo = gs.filter(g => !isReady(g)), done = gs.filter(isReady);
   const rows = need && done.length >= 2
     ? `<div class="games">${todo.map(gameRow).join("")}</div><details class="pcready" style="margin-top:8px"><summary>✓ ${done.length} other copies are ready</summary><div class="games">${done.map(gameRow).join("")}</div></details>`
@@ -527,7 +536,7 @@ async function loadGames(force, focusMsg) {
 }
 async function gameAction(btn) {
   const id = btn.dataset.game, act = btn.dataset.act, g = lastGames.find(x => x.id === id);
-  if (act === "remove" && !confirm("Remove the mod from PES 2021 on this PC? You won't be able to play online until you install it again.")) return;
+  if (act === "remove" && !confirm(`Remove the mod from ${label(g.path)} (${g.path})? That copy can't play online until you install it again.`)) return;
   if (act === "switch" && !confirm("PES 2021 on this PC will stop connecting to the other server and use this one. Continue?")) return;
   btn.setAttribute("aria-busy", "true"); btn.disabled = true;
   btn.textContent = act === "remove" ? "Removing…" : "Installing…";
@@ -537,13 +546,13 @@ async function gameAction(btn) {
     const ng = gs.find(x => x.id === id) || g;
     msg = act === "remove"
       ? {html: `<span class="muted">Removed.</span>`, state: stateOf(ng), until: Date.now() + 8000}
-      : {html: `<span class="ok">Installed.</span> Start PES 2021 → eFootball → Quick Match. If PES was open while you installed, close it and check this row again.`, state: stateOf(ng), until: Date.now() + 20000};
+      : {html: `<span class="ok">Installed.</span> Start PES 2021 → eFootball → Quick Match. If PES was open, close it; this row will show <b>Finish setup</b> if one more click is needed.`, state: stateOf(ng), until: Date.now() + 20000};
     $("pc-live").textContent = act === "remove" ? "Mod removed" : "Mod installed";
   } catch (e) {
     if (e.status === 401) return signedOut();
     const text = e.name === "TimeoutError" || e.message === "failed" ? "That didn't work. Close the game and try again." : e.message;
     msg = {html: `<span class="err">${esc(text)}</span> <button type="button" data-game="${esc(id)}" data-act="${act}" data-key="retry-${esc(id)}">Try again</button>`,
-           state: g ? stateOf(g) : "", until: Date.now() + 15000};
+           state: g ? stateOf(g) : "", until: Date.now() + 15000, error: true};
     $("pc-live").textContent = text;
   }
   rowMsg[id] = msg;
@@ -563,8 +572,8 @@ async function copyLink() {
     ta.remove(); btn.focus();
   }
   if (!ok) { const r = document.createRange(); r.selectNodeContents($("jp")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
-  btn.textContent = ok ? "Copied ✓" : "Press Ctrl+C";
-  $("copy-live").textContent = ok ? "Link copied" : "The link is selected; press Ctrl+C to copy it";
+  btn.textContent = ok ? "Copied ✓" : "Selected";
+  $("copy-live").textContent = ok ? "Link copied" : "Link selected. Copy it now";
   setTimeout(() => { btn.textContent = "Copy link"; }, 2000);
 }
 
@@ -585,9 +594,11 @@ document.addEventListener("click", async e => {
     k.disabled = true;
     try { await api("/admin/api/kick", {method: "POST", body: JSON.stringify({pid: +k.dataset.kick})}); $("kick-msg").textContent = `${k.dataset.name} was disconnected.`; }
     catch (err) { if (err.status === 401) return signedOut(); $("kick-msg").textContent = `Couldn't kick ${k.dataset.name}; they may have already left.`; }
-    const next = $("online").querySelector("[data-kick]:not(:disabled)"); (next || $("h-online")).focus();
+    const all = [...$("online").querySelectorAll("[data-kick]")], i = all.indexOf(k);
     setTimeout(() => { $("kick-msg").textContent = ""; }, 8000);
-    refresh();
+    await refresh();
+    const after = [...$("online").querySelectorAll("[data-kick]")];
+    (after[Math.min(i, after.length - 1)] || $("h-online")).focus();
   }
 });
 $("lf").onsubmit = async e => {
@@ -607,6 +618,7 @@ $("lf").onsubmit = async e => {
     $("pw").removeAttribute("aria-invalid");
     $("pw").value = "";
     start();
+    $("inv-h").focus();
   } catch (err) {
     $("signin").disabled = false; $("signin").textContent = "Sign in";
     $("err").textContent = err.name === "TimeoutError" || err instanceof TypeError ? "Can't reach the server. Is it running?" : err.message;
@@ -615,24 +627,27 @@ $("lf").onsubmit = async e => {
 };
 $("logout-all").onclick = async () => {
   if (!confirm("Sign out of this admin page on every device, including this one?")) return;
-  try { await api("/admin/api/logout-all", {method: "POST"}); } catch (e) {}
+  try { await api("/admin/api/logout-all", {method: "POST"}); }
+  catch (e) { if (e.status !== 401) { alert("Couldn't reach the server, so other devices are still signed in. Try again when it's back."); return; } }
   token = ""; store.clear(); showLogin("Signed out on all devices.");
 };
-$("dl").addEventListener("click", () => { $("dl-done").textContent = "Downloaded. Now attach dinput8.dll to a Discord, WhatsApp or Telegram message."; });
+$("dl").addEventListener("click", () => { $("dl-done").textContent = "Your download should start. Then attach dinput8.dll to a Discord, WhatsApp or Telegram message."; });
+$("showpw").onclick = () => { const on = $("pw").type === "password"; $("pw").type = on ? "text" : "password";
+  $("showpw").textContent = on ? "Hide" : "Show"; $("showpw").setAttribute("aria-pressed", String(on)); };
 $("logout").onclick = async () => {
   try { await api("/admin/api/logout", {method: "POST"}); } catch (e) {}
-  token = ""; store.clear(); $("pw").value = ""; showLogin();
+  token = ""; store.clear(); $("pw").value = ""; showLogin("Signed out here.");
 };
 
 function opponent(d, name) {
-  const m = d.live.find(m => m.kickoff && (m.home_name === name || m.away_name === name));
+  const m = d.live.find(m => m.kickoff && m.phase !== "Full time" && (m.home_name === name || m.away_name === name));
   return m ? (m.home_name === name ? m.away_name : m.home_name) : "";
 }
 function start() {
   clearInterval(timer); clearInterval(gamesTimer);
   $("login").hidden = true; $("app").hidden = false;
   let until = 0; try { until = +(localStorage.getItem("pes-admin-until") || sessionStorage.getItem("pes-admin-until") || 0); } catch (e) {}
-  text("until", until ? "signed in until " + new Intl.DateTimeFormat([], {month: "short", day: "numeric"}).format(new Date(until * 1000)) : "");
+  text("until", until ? "signed in until " + new Intl.DateTimeFormat([], until * 1000 - Date.now() < 86400000 ? {hour: "2-digit", minute: "2-digit"} : {month: "short", day: "numeric"}).format(new Date(until * 1000)) : "");
   refresh(); loadGames();
   timer = setInterval(refresh, 3000); gamesTimer = setInterval(loadGames, 15000);
 }
