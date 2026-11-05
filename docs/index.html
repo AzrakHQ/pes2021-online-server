@@ -67,6 +67,7 @@ code, pre { font-family: var(--mono); }
 .nav .gh svg { width: 22px; height: 22px; display: block; }
 .theme { border: 1px solid var(--line); background: var(--bg2); color: var(--fg); border-radius: 99px; width: 44px; height: 44px; cursor: pointer; display: grid; place-items: center; flex: none; }
 .theme svg { width: 18px; height: 18px; }
+@media (max-width: 900px) { .nav .wide-only { display: none; } }
 @media (max-width: 640px) { .logo span { display: none; } .nav ul { gap: 12px; } .nav ul a { font-size: 14px; } .nav .wrap { gap: 10px; } }
 @media (max-width: 460px) { .nav .gh { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 13px; } .nav .wrap { padding: 0 12px; } .theme { width: 40px; height: 40px; } }
 @media (max-width: 380px) { .logo { display: none; } .nav ul { gap: 9px; } .nav ul a { font-size: 12.5px; } .nav .wrap { gap: 8px; padding: 0 12px; } }
@@ -187,6 +188,7 @@ details.changes ul { font-size: 14px; padding-left: 18px; color: var(--muted); }
 .flow b.a { color: var(--brand); flex: none; }
 @media (min-width: 601px) { .flow { flex-wrap: nowrap; } .flow span { flex: 1 1 0; min-width: 0; } .flow b.a { font-size: 20px; } .flow b.a.txt { font-size: 15px; } }
 @media (max-width: 600px) { .flow { flex-direction: column; align-items: stretch; } .flow b.a { align-self: center; transform: rotate(90deg); line-height: 1; font-size: 22px; } .flow b.a.txt { transform: none; } }
+@media (max-width: 600px) { .log { white-space: pre-wrap; overflow-wrap: anywhere; } }
 .log { background: var(--code-bg); color: #cfe9dc; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font: 13px/1.7 var(--mono); max-width: 46em; overflow-x: auto; margin: 16px 0 6px; }
 .log .t { color: #7f978b; } .log .h { color: #8fe3bd; font-weight: 700; }
 .quote { border-left: 4px solid var(--brand); padding: 4px 0 4px 16px; margin: 14px 0; font-size: 19px; font-weight: 600; max-width: 40em; }
@@ -290,7 +292,7 @@ details.q .cmd { max-width: 48em; margin-bottom: 16px; }
 .totop[hidden] { display: none; }
 .totop:hover { color: var(--on-brand); filter: brightness(1.08); }
 dialog.lightbox { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
-dialog.lightbox::backdrop { background: rgba(0,0,0,.75); }
+dialog.lightbox::backdrop, #lightbox::backdrop { background: rgba(0,0,0,.8); }
 dialog.lightbox img { display: block; max-width: 96vw; max-height: calc(94vh - 52px); border-radius: 10px; }
 .lb-close { display: block; margin: 0 0 8px auto; border: 0; border-radius: 99px; padding: 8px 14px; font: 700 14px var(--sans); background: #fff; color: #10201a; cursor: pointer; }
 footer { padding: 40px 0 56px; color: var(--muted); font-size: 15px; border-top: 1px solid var(--line); }
@@ -315,6 +317,7 @@ footer a { color: var(--muted); }
       <li><a href="#help">Help</a></li>
       <li><a href="#faq">FAQ</a></li>
       <li><a href="#inside">How it works</a></li>
+      <li class="wide-only"><a href="protocol.html">Write-up</a></li>
       <li><a class="gh" href="https://github.com/MohamedAliRashad/pes2021-private-server" aria-label="Source code on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></li>
     </ul>
     <button class="theme" id="theme" type="button" aria-label="Dark theme" aria-pressed="false">
@@ -428,9 +431,16 @@ footer a { color: var(--muted); }
                 <li>Open the admin page address it prints (if it shows a "from anywhere" line, use that) and download the mod for your friends.</li>
               </ol></details></li>
             <li><details><summary><b>Windows or Mac only, want it free:</b> Docker Desktop on one PC, about 20 minutes (untested)</summary>
-              <p class="inline-steps">Install Docker Desktop, download this project, set your address in a small settings file, and start it with one command. The admin page then opens at <code>http://localhost:8090/admin</code> on that PC. <a href="#faq-winhost">Full steps</a>.</p></details></li>
+              <ol class="inline-steps">
+                <li>Install <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> and start it.</li>
+                <li>Download <a href="https://github.com/MohamedAliRashad/pes2021-private-server/archive/refs/heads/main.zip">this project as a ZIP</a> and unzip it.</li>
+                <li>In that folder, create a settings file with the address players will use (<code>PUBLIC_IP=…</code>).</li>
+                <li>Run <code>docker compose -f docker-compose.bridge.yml up -d</code> there.</li>
+                <li>Open <code>http://localhost:8090/admin</code> on that PC; the password is in <code>docker compose -f docker-compose.bridge.yml logs</code>.</li>
+              </ol>
+              <p class="inline-steps"><a href="#faq-winhost">Full steps with the exact commands</a> (which address to use, port forwarding, playing on the same PC).</p></details></li>
           </ul>
-          <p class="small muted">Open a terminal (on Ubuntu press <b>Ctrl+Alt+T</b>, or search "Terminal" in the app menu), paste the command and press Enter. It asks for your password (sudo); nothing shows while you type it, that's normal. It installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
+          <p class="small muted"><b>On a Linux PC:</b> open a terminal (on Ubuntu press <b>Ctrl+Alt+T</b>, or search "Terminal" in the app menu), paste the command and press Enter. It asks for your password (sudo); nothing shows while you type it, that's normal. It installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
         </div>
         <div>
           <div class="cmd"><span class="label">Linux terminal</span><pre id="c-host">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
@@ -467,7 +477,9 @@ footer a { color: var(--muted); }
           <div class="step-num" aria-hidden="true">2</div>
           <h3>The host sends friends one file</h3>
           <p class="small muted">Open your admin page, sign in with the password, and click <b>Download the mod for friends</b>. You get one small file, <code>dinput8.dll</code>, made for your server.</p>
+          <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> (or a fixed address) means friends outside your home should be able to connect. If it says <b>Home network only</b> or warns about router ports or CGNAT, fix that first (<a href="#help">Help → For hosts</a>).</p>
           <p class="small muted">Send it to each friend on <b>Discord, WhatsApp or Telegram</b>. Email usually blocks this kind of file. Or copy the link under the button (your server's address) and send that: it opens a page where friends download the file themselves.</p>
+          <p class="small muted"><b>First test:</b> have one friend start the game. They appear under <b>Online now</b> on your admin page within a minute.</p>
         </div>
         <div>
           <figure class="mini-shot">
@@ -503,7 +515,7 @@ footer a { color: var(--muted); }
             <summary>What the mod changes on your PC</summary>
             <ul>
               <li><b>Nothing outside the game folder</b> (except its log in <code>%TEMP%</code> if the game folder is read-only). No administrator rights, no hosts file, no certificate, no installer. It only acts while PES 2021 is running.</li>
-              <li>Inside the game it does two things: when the game asks for Konami's old servers, it answers with your friend's server; and for the game's network test only, it accepts your friend's server instead of Konami's certificate.</li>
+              <li>Inside the game it does two things: when the game asks for Konami's old servers, it answers with your friend's server; and for the game's four network-test names only, it skips the certificate check (those names already point to your friend's verified server).</li>
               <li><b>Undo:</b> delete <code>dinput8.dll</code> (and the launch option on Linux). Open source: <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">read the code</a>.</li>
             </ul>
           </details>
@@ -620,7 +632,7 @@ footer a { color: var(--muted); }
       <ul>
         <li>answers the game's "where are Konami's servers?" with your host's server, for the six names the game uses online;</li>
         <li>first checks that the address really is your host's server: the server has to prove it holds a secret key that matches the identity written in your file;</li>
-        <li>for the game's network test only, accepts the host's server instead of Konami's certificate;</li>
+        <li>for the game's four network-test names only, skips the certificate check, since those names already point to the host's verified server;</li>
         <li>writes what it did to <code>pes2021-online.log</code>.</li>
       </ul>
       <p>That's all. Besides its own settings and log files next to the game, it doesn't change Windows, needs no administrator rights, and stops the moment the game closes. <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">Read the source</a>.</p>
@@ -802,7 +814,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
       <div>
         <h3>The connection test is a real security check</h3>
         <p>Before eFootball modes unlock, the game tests your network. It asks a server "what's my address from the outside?" (a <b>STUN</b> check, the standard trick games use to see through home routers), then fetches a small status page over <b>HTTPS</b>.</p>
-        <p>That HTTPS request checks certificates exactly like a web browser does. A stand-in server without a trusted certificate fails the test, and the online modes stay locked. So for those four network-test addresses only, the mod tells the game to accept your friend's server instead of Konami's certificate. Everything else the game does online keeps its normal checks.</p>
+        <p>That HTTPS request checks certificates exactly like a web browser does. A stand-in server without a trusted certificate fails the test, and the online modes stay locked. So for those four network-test addresses only, the mod tells the game to skip the certificate check, and those names already point to your friend's verified server. Everything else the game does online keeps its normal checks.</p>
         <div class="flow" role="img" aria-label="The test: a STUN check, then an HTTPS page with a certificate check, then eFootball unlocks."><span>STUN: "my outside address?"</span><b class="a" aria-hidden="true">→</b><span>HTTPS status page<br><small>certificate checked</small></span><b class="a" aria-hidden="true">→</b><span class="k">eFootball unlocked</span></div>
       </div>
     </article>
