@@ -346,7 +346,7 @@ async def _admin(service, method, route, headers, body, peer=""):
                 result = gamesetup.remove(gid)
                 verb = "removed from"
             path = next((g["path"] for g in result if g["id"] == gid), "")
-            events.feed(service, f"The mod was {verb} this PC's PES 2021 ({os.path.basename(path.rstrip('/')) or 'game folder'})", "info")
+            events.feed(service, f"The mod was {verb} PES 2021 on the server computer ({copy_name(path)})", "info")
         except LookupError:
             return "404 Not Found", b'{"error":"That game folder is gone. Run the install command again to look for PES 2021."}', "application/json"
         except PermissionError as e:
@@ -434,6 +434,20 @@ def _mod(service, route, headers, writer, path=""):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
     return "200 OK", mod_bytes(mod_url(service, headers, writer)), "application/octet-stream", \
         b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
+
+
+def copy_name(path):
+    """A short name for a game copy: its folder, skipping generic parts (never a Linux user name)."""
+    import re as _re
+    generic = _re.compile(r"^((efootball )?pes ?2021( season update)?|files|bin|game|games|data|common|steamapps|drive_c)$", _re.I)
+    parts = [x for x in str(path).split("/") if x]
+    for i in range(len(parts) - 1, -1, -1):
+        if generic.match(parts[i]):
+            continue
+        if i > 0 and parts[i - 1] == "home" or parts[i] in ("home", "opt", "mnt"):
+            break
+        return parts[i]
+    return "game folder"
 
 
 def _tailscale(addr):

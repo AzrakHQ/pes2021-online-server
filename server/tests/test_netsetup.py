@@ -410,3 +410,10 @@ def test_example_admin_password_is_refused(tmp_path, monkeypatch):
     assert netsetup.admin_password(str(tmp_path)) == pw                 # the generated one, kept
     monkeypatch.setenv("ADMIN_PASSWORD", "a-real-long-password")
     assert netsetup.admin_password(str(tmp_path)) == "a-real-long-password"
+
+
+def test_copy_names_for_the_activity_feed():
+    n = httpgate.copy_name
+    assert n("/home/me/Games/pes/files") == "pes"
+    assert n("/mnt/games/SteamLibrary/steamapps/common/eFootball PES 2021 SEASON UPDATE") == "SteamLibrary"
+    assert n("/home/alex/Games/eFootball PES 2021") == "game folder"
