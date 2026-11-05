@@ -80,7 +80,7 @@ def strip_ours(text):
 
 def game_running():
     try:
-        return subprocess.run(["pgrep", "-f", "PES2021.exe"], capture_output=True).returncode == 0
+        return subprocess.run(["pgrep", "-x", "PES2021.exe"], capture_output=True).returncode == 0
     except OSError:
         return False
 
@@ -96,8 +96,11 @@ def main():
         i = args.index("--ca"); ca = args[i + 1]; del args[i:i + 2]
     prefixes = [os.path.abspath(os.path.expanduser(a)) for a in args if a not in ("--remove", "--remove-all")] or [find_prefix()]
     if prefixes == [None]:
-        sys.exit("PES 2021's Proton prefix was not found. Start the game once from Steam, close it, and run "
-                 "this again (or set PES_PREFIX=/path/to/compatdata/1259970/pfx).")
+        sys.exit("PES 2021's Proton prefix was not found in your Steam libraries.\n"
+                 "  Installed through Steam? Start the game once from Steam, close it, and run the line again.\n"
+                 "  Game in its own Proton/Wine prefix (Lutris, Bottles, a custom launcher)? Put its prefix\n"
+                 "  folder (the one that contains system.reg) right before 'bash', for example:\n"
+                 "    curl -fsSL http://your-server/join | PES_PREFIX=/path/to/pfx bash")
     if game_running():
         sys.exit("PES 2021 is running. Close the game, then run this again.")
     if remove_all:

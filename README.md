@@ -30,6 +30,17 @@ When it finishes, you get:
   ```
   curl -fsSL https://your-server-address/join | bash
   ```
+  **Game not in Steam's usual folder?** If you get *"PES 2021's Proton prefix was not found"*, your game
+  runs in its own Proton/Wine prefix (Lutris, Bottles, a custom launcher, or a Steam library the script
+  can't see). Close the game and tell the line where that prefix is: the folder that contains
+  `system.reg`, put right before `bash`:
+  ```
+  curl -fsSL https://your-server-address/join | PES_PREFIX=/path/to/your/pfx bash
+  ```
+  It asks for your sudo password, adds the Konami names to `/etc/hosts` and trusts the server only
+  inside that prefix. Use the same `PES_PREFIX=…` before `bash` when you undo.
+- **Windows, game installed anywhere:** nothing extra. The join line changes the system-wide hosts
+  file and certificate store, so it works wherever the game is.
 
 ## 3. Play
 
