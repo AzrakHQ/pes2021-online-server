@@ -310,6 +310,12 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
             area = body[body.find(marker) + len(marker):][:identity.EMBED_SIZE - len(marker)].rstrip(b"\0").decode()
             assert f"key={identity.public_hex()}" in area and "url=https://pes.example.org" in area
             assert "addrs=192.168.1.50,203.0.113.7" in area and body.endswith(b"..tail")
+            # reached by IP, with a fixed web name: the same file (and hash) as through the name
+            monkeypatch.setenv("PESSERVER_PUBLIC_ADDR", "pes.example.org")
+            assert httpgate.mod_url(None, {"host": "192.168.1.50"}, None) == "http://pes.example.org"
+            monkeypatch.setenv("PESSERVER_PUBLIC_ADDR", "203.0.113.7")
+            assert httpgate.mod_url(None, {"host": "192.168.1.50"}, None) == ""
+            assert httpgate._tailscale("100.101.1.2") and not httpgate._tailscale("203.0.113.7")
             monkeypatch.setattr(httpgate, "MOD_DLL", str(tmp_path / "missing.dll"))
             head, body = await get(port, "/mod/dinput8.dll")
             assert "404" in head

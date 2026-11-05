@@ -139,13 +139,14 @@ section.alt .card { background: var(--bg); }
 p.inline-steps { padding-left: 0; }
 .step p.small.muted { font-size: 16px; color: var(--fg); }
 .mini-shot { margin: 0 0 12px; } .mini-shot img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line); }
-.mini-shot img.dark { display: none; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mini-shot img.light { display: none; } :root:not([data-theme="light"]) .mini-shot img.dark { display: block; } }
-:root[data-theme="dark"] .mini-shot img.light { display: none; } :root[data-theme="dark"] .mini-shot img.dark { display: block; }
+.mini-shot a { display: block; } .mini-shot a.dark { display: none; } .mini-shot figcaption { margin-top: 6px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mini-shot a.light { display: none; } :root:not([data-theme="light"]) .mini-shot a.dark { display: block; } }
+:root[data-theme="dark"] .mini-shot a.light { display: none; } :root[data-theme="dark"] .mini-shot a.dark { display: block; }
 .wingroup ol { margin: 6px 0 0; padding-left: 20px; font-size: 14px; } .wingroup li { margin-bottom: 4px; }
 .pick { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 8px; }
 .pick li { border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: 10px; padding: 8px 12px; background: var(--bg2); }
 section.alt .pick li { background: var(--bg); }
+.pick > li { min-width: 0; } .pick .cmd pre { overflow-wrap: anywhere; }
 .banner-mock { background: var(--code-bg); color: #cfe9dc; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; font: 13px/1.7 var(--mono); white-space: normal; overflow-wrap: anywhere; }
 .banner-mock > div:not(.bm-title) { padding-left: 132px; text-indent: -132px; }
 .banner-mock .bm-title { color: #fff; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.15); padding-bottom: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; gap: 20px; }
@@ -324,7 +325,7 @@ footer a { color: var(--muted); }
     <div>
       <span class="eyebrow">Free · Open source (MIT) · No admin rights for players</span>
       <h1>PES 2021 is back online.</h1>
-      <p class="lead">Konami switched off the online servers for eFootball PES 2021 in 2022, and every online mode went dark with them. This project brings online Quick Match back: one friend runs a small server, everyone else gets one small file, and you play real online matches again.</p>
+      <p class="lead">Konami switched off the online servers for eFootball PES 2021, and every online mode went dark with them. This project brings online Quick Match back: one friend runs a small server, everyone else gets one small file, and you play real online matches again.</p>
       <div class="ctas">
         <a class="btn primary" href="#play">Start playing</a>
         <a class="btn ghost" href="#inside">How it works</a>
@@ -414,16 +415,16 @@ footer a { color: var(--muted); }
           <p class="small" style="margin:0 0 8px"><b>Who should host?</b></p>
           <ul class="pick small">
             <li><b>Someone has a Linux PC</b> that stays on while you play: one command, about 2 minutes. It's right here.</li>
-            <li><details><summary><b>All on Windows, want it easy:</b> a small cloud server, about $5 a month, about 10 minutes (untested)</summary>
+            <li><details><summary><b>Windows or Mac only, want it easy:</b> a small cloud server, about $5 a month, about 10 minutes (untested)</summary>
               <ol class="inline-steps">
-                <li>At any cloud provider (for example Hetzner, DigitalOcean or Oracle's free tier), create the cheapest <b>Ubuntu 24.04</b> server.</li>
+                <li>At any cloud provider (for example Hetzner, DigitalOcean or Oracle's free tier), create the cheapest <b>Ubuntu 24.04</b> server. On Hetzner, for example: <b>Add Server</b> → a location near you → <b>Ubuntu 24.04</b> → the cheapest shared-CPU type → create it (menu names may differ a little).</li>
                 <li>In its firewall settings, allow <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b>.</li>
                 <li>Open its web console (or SSH), paste this version of the install line and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.
                   <div class="cmd" style="margin-top:8px"><pre id="c-cloud-q">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>install.<wbr>sh | ADMIN_REMOTE=1 sh</pre><button class="copy" data-copy="c-cloud-q" type="button">Copy</button></div>
                   It lets you open the admin page from home. The admin page isn't encrypted, so don't sign in from public Wi-Fi. <a href="#faq-cloud">More about cloud hosting</a>.</li>
                 <li>Open the admin page address it prints (if it shows a "from anywhere" line, use that) and download the mod for your friends.</li>
               </ol></details></li>
-            <li><details><summary><b>All on Windows, want it free:</b> Docker Desktop on one PC, about 20 minutes (untested)</summary>
+            <li><details><summary><b>Windows or Mac only, want it free:</b> Docker Desktop on one PC, about 20 minutes (untested)</summary>
               <p class="inline-steps">Install Docker Desktop, download this project, set your address in a small settings file, and start it with one command. The admin page then opens at <code>http://localhost:8090/admin</code> on that PC. <a href="#faq-winhost">Full steps</a>.</p></details></li>
           </ul>
           <p class="small muted">Open a terminal (on Ubuntu press <b>Ctrl+Alt+T</b>, or search "Terminal" in the app menu), paste the command and press Enter. It asks for your password (sudo); nothing shows while you type it, that's normal. It installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
@@ -444,6 +445,7 @@ footer a { color: var(--muted); }
           <details class="changes">
             <summary>What the installer does</summary>
             <ul>
+              <li>Prefer to read it first? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/install.sh">View install.sh</a> (about 100 lines).</li>
               <li>Installs Docker if it's missing, using Docker's official script from get.docker.com (it runs as administrator).</li>
               <li>Starts the server in a container that restarts after reboots until you stop it. It uses about 50 MB of memory.</li>
               <li>Opens 6 ports on your router (UPnP) so friends outside your home can reach you.</li>
@@ -465,8 +467,9 @@ footer a { color: var(--muted); }
         </div>
         <div>
           <figure class="mini-shot">
-            <img class="light" src="admin-invite-light.webp" width="1431" height="489" loading="lazy" alt="The top of the real admin page: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does.">
-            <img class="dark" src="admin-invite-dark.webp" width="1431" height="489" loading="lazy" alt="The top of the real admin page in dark mode: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does.">
+            <a class="light" href="admin-invite-light.webp"><img src="admin-invite-light.webp" width="1431" height="489" loading="lazy" alt="The top of the real admin page: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does."></a>
+            <a class="dark" href="admin-invite-dark.webp"><img src="admin-invite-dark.webp" width="1431" height="489" loading="lazy" alt="The top of the real admin page in dark mode: Invite your friends, a large Download the mod for friends button, a link to send instead, and what your friend does."></a>
+            <figcaption class="small muted">Click or tap to enlarge.</figcaption>
           </figure>
           <p class="small muted"><b>Playing on the same PC?</b> If the installer found PES 2021 on it, the admin page has a <b>The server computer</b> card: close the game and click <b>Install mod</b>.</p>
           <details class="changes">
@@ -581,6 +584,7 @@ footer a { color: var(--muted); }
           <tr><td>"Could not build the server image"</td><td>The download from GitHub failed. Check the internet connection and run the install line again.</td></tr>
           <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server this message is normal: open the 6 ports in the provider's firewall instead.</td></tr>
           <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
+          <tr><td>On an Oracle Cloud server, nobody can connect although the ports are open in its web firewall</td><td>Oracle's Ubuntu images also block ports inside the server. Run <code>sudo iptables -I INPUT -p tcp -m multiport --dports 80,443,8080,10000 -j ACCEPT</code> and <code>sudo iptables -I INPUT -p udp -m multiport --dports 3478,7600 -j ACCEPT</code>, then <code>sudo netfilter-persistent save</code> so it survives a reboot.</td></tr>
           <tr><td>It works on the host's PC, but nobody else can connect</td><td>The host computer's own firewall is blocking the ports. On Ubuntu with ufw: <code>sudo ufw allow 80,443,8080,10000/tcp</code> and <code>sudo ufw allow 3478,7600/udp</code>. On a cloud server, also open them in the provider's firewall settings.</td></tr>
         </tbody>
       </table>
@@ -619,7 +623,13 @@ footer a { color: var(--muted); }
     </details>
     <details class="q" id="faq-trust">
       <summary>Should I trust a mod file my friend sends?</summary>
-      <p>Only from friends you trust, like any program. Get the file straight from your host: they send it to you directly, or you download it from their link at home (not on public Wi-Fi; that link isn't encrypted). Avoid copies passed on by other people. To check a copy, compare its SHA-256 with the one on your host's download page or admin page: on Windows run <code>Get-FileHash .\dinput8.dll</code> in the game folder (Linux: <code>sha256sum dinput8.dll</code>). If they match, your copy is exactly the file their server hands out (capital or small letters and spaces don't matter). The hash can't tell you whether you reached the right server in the first place, which is why you get the file straight from your host or at home. If they don't match, ask your host to download it again: the hash changes when the server's address changes. The server key (the first 16 characters after <code>key</code> in the first line of <code>pes2021-online.log</code>; the friends' page shows them split by a space, the admin page as one block) only tells you which server the file connects to. The file their server hands out is the official build with their server's details written in. It can only make your game talk to their server, and it can't be redirected elsewhere (unless you switch servers yourself with Shift, see below): a server that doesn't hold their secret key is refused. The server writes only its key, name, addresses and (if it has one) its web address into a fixed 2 KB settings area of the file; the rest is identical to the public build in <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">server/mod</a>.</p>
+      <p>Only from friends you trust, like any program. It runs inside your game.</p>
+      <ul>
+        <li><b>Get it straight from your host.</b> They send it to you directly, or you download it from their link at home (not on public Wi-Fi; that link isn't encrypted). Avoid copies passed on by other people.</li>
+        <li><b>Check the hash.</b> In the game folder run <code>Get-FileHash .\dinput8.dll</code> on Windows (Linux: <code>sha256sum dinput8.dll</code>) and compare the result with the SHA-256 on your host's download page or admin page (capital or small letters and spaces don't matter). A match means your copy is exactly the file their server hands out; it can't tell you whether you reached the right server in the first place, which is why the first point matters. No match? Ask your host to download it again: the hash changes when the server's address changes.</li>
+        <li><b>The key in your log</b> (the first 16 characters after <code>key</code> in the first line of <code>pes2021-online.log</code>; the friends' page shows them split by a space, the admin page as one block) only tells you which server the file connects to.</li>
+        <li><b>What's inside:</b> the official build with their server's details written into a fixed 2 KB settings area: its key, name, addresses, its web address if it has one, and an address-book field that's empty for now. The rest is identical to the public build in <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">server/mod</a>. It can only make your game talk to their server and can't be redirected elsewhere (unless you switch servers yourself with Shift, see below): a server that doesn't hold their secret key is refused.</li>
+      </ul>
       <p>The server stores your player name, Steam ID and match results, sees your IP address, and keeps a log of the game's messages on the host's disk. Like any peer-to-peer game, your opponent's PC connects straight to yours during a match, so it sees your IP address too.</p>
     </details>
     <details class="q" id="faq-undo">
@@ -657,7 +667,7 @@ footer a { color: var(--muted); }
     </details>
     <details class="q" id="faq-thispc">
       <summary>How does the admin page install the mod on the server computer?</summary>
-      <p>When you run the install line, it looks for PES 2021 in your Steam libraries and in <code>~/Games</code>, and lets the server (a root container) read and write only those game folders and their Proton prefix (the game's own Windows drive); it changes only <code>user.reg</code> there, with a backup. <b>Install mod</b> puts your server's <code>dinput8.dll</code> next to <code>PES2021.exe</code> and, on Linux, sets Wine to load it for PES 2021 only, so you don't need the launch option (start PES 2021 once <b>before you run the install line</b>, or run the install line again afterwards, so its Wine prefix exists; otherwise use the launch option). Close the game first. It never replaces another mod's <code>dinput8.dll</code>, keeps a backup of Wine's settings, and <b>Uninstall</b> undoes it.</p>
+      <p>When you run the install line, it looks for PES 2021 in your Steam libraries and in <code>~/Games</code>, and lets the server (a root container) read and write only those game folders and their Proton prefix (the game's own Windows drive); it changes only <code>user.reg</code> there, with a backup. <b>Install mod</b> puts your server's <code>dinput8.dll</code> next to <code>PES2021.exe</code> and, on Linux, sets Wine to load it for PES 2021 only, so you don't need the launch option (start PES 2021 once <b>before you run the install line</b>, or run the install line again afterwards, so its Wine prefix exists; otherwise use the launch option). Close the game first. It never replaces another mod's <code>dinput8.dll</code>, keeps a backup of Wine's settings, and <b>Uninstall</b> removes the mod and that Wine setting (the backup <code>user.reg.pes2021-backup</code> and the mod's small <code>.ini</code>/<code>.log</code> files stay).</p>
     </details>
     <details class="q" id="faq-cloud">
       <summary>How do I run it on a cloud server?</summary>
@@ -912,10 +922,10 @@ answer with a 16-byte key
         <h3>From one line to one file</h3>
         <p class="quote">The safest change to a player's PC is none at all.</p>
         <p>The first version asked every player to paste a line into a terminal. It ran with administrator rights, edited the PC's hosts file and installed a certificate in Windows. It worked, but it asked friends to trust a lot, and it touched the whole PC for the sake of one game.</p>
-        <p>The mod does the same two jobs from inside the game instead. PES 2021, like most PC games, loads a file named <code>dinput8.dll</code> from its own folder when it starts. Ours passes the game's controller requests straight on to Windows, and while the game runs it answers the game's "where is Konami?" with your friend's server, and accepts that server for the network test. Close the game and it's gone; delete the file and nothing is left.</p>
+        <p>The mod does the same two jobs from inside the game instead. PES 2021, like many PC games, loads a file named <code>dinput8.dll</code> from its own folder when it starts. Ours passes the game's controller requests straight on to Windows, and while the game runs it answers the game's "where is Konami?" with your friend's server, and accepts that server for the network test. Close the game and it's gone; delete it (and its small <code>pes2021-online.ini</code> and <code>.log</code> files) and nothing is left.</p>
         <p>One more problem: home servers restart, and an old address might later belong to someone else. So each server has a permanent <b>identity</b>, a secret key it never shares, and every copy of the mod carries the matching public half. Before connecting anywhere, the mod sends a random challenge and only accepts an address that answers with the right signature:</p>
         <div class="flow" role="img" aria-label="The mod sends a random challenge to an address; your friend's server signs it with its secret key; the mod checks the signature and connects. A different server can't sign it, so it is refused."><span>mod: "prove it: 7f3a…"</span><b class="a" aria-hidden="true">→</b><span>server signs it with its secret key</span><b class="a" aria-hidden="true">→</b><span class="k">signature matches: connect</span></div>
-        <p class="fun"><b>What it buys:</b> the file keeps working after restarts, and nobody else at your friend's old address can pretend to be their server. If the host's internet address changes, they send a fresh file (an address book that fixes this automatically is planned). Tested with the real game: a restart with a wrong saved address, and a forged "the server moved" note, which the mod ignored.</p>
+        <p class="fun"><b>What it buys:</b> the file keeps working after restarts, and nobody else at your friend's old address can pretend to be their server. If the host's internet address changes, they send a fresh file, unless their server has a web name (an address book that fixes this for everyone is planned). Tested with the real game: a restart with a wrong saved address, and a forged "the server moved" note, which the mod ignored.</p>
       </div>
     </article>
 
@@ -978,7 +988,7 @@ answer with a 16-byte key
     toTop.hidden = y < innerHeight * 1.5 || (innerWidth <= 600 && !up && document.activeElement !== toTop); }, {passive: true});
   toTop.addEventListener("click", () => setTimeout(() => document.getElementById("main").focus({preventScroll: true}), 400));
   const lb = document.getElementById("lightbox");
-  document.querySelectorAll(".shot a").forEach(a => a.addEventListener("click", e => {
+  document.querySelectorAll(".shot a, .mini-shot a").forEach(a => a.addEventListener("click", e => {
     if (!lb.showModal || innerWidth < 700) { a.target = "_blank"; return; }   // phones: open the image itself (zoomable)
     e.preventDefault();
     const img = a.querySelector("img");
@@ -987,7 +997,7 @@ answer with a 16-byte key
   }));
   document.getElementById("lb-close").addEventListener("click", () => lb.close());
   lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
-  if (/Windows/.test(navigator.userAgent)) { const d = document.querySelector(".pick details"); if (d) d.open = true; }   // Windows visitors: show the cloud path
+  if (/Windows|Macintosh/.test(navigator.userAgent)) { const d = document.querySelector(".pick details"); if (d) d.open = true; }   // Windows/Mac visitors: show the cloud path
   if (innerWidth <= 600) document.querySelectorAll("details.helpgrp").forEach(d => d.open = false);   // phones: start folded
   const openTarget = () => { const d = document.getElementById(location.hash.slice(1)); if (d && d.tagName === "DETAILS") d.open = true; };
   addEventListener("hashchange", openTarget); openTarget();

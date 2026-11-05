@@ -61,7 +61,7 @@
   button.danger { color:var(--muted); }
   button.danger:hover, button.danger:focus-visible { border-color:var(--live); color:var(--live); }
   button:disabled, button[aria-disabled="true"] { opacity:.6; filter:grayscale(1); cursor:progress; }
-  @media (pointer: coarse) { button, .linkbtn { min-height:40px; } }
+  @media (pointer: coarse) { button, .linkbtn, summary { min-height:44px; } }
   button.small { padding:4px 10px; font-size:13px; }
 
   /* invite */
@@ -82,7 +82,7 @@
   .friend li { margin-bottom:7px; }
   @media (max-width: 800px) { .invite { grid-template-columns:minmax(0,1fr); gap:16px; } }
   .friend details summary { cursor:pointer; font-weight:600; }
-  #fsteps > summary h3 { display:inline; margin:0; }
+  #fsteps > summary { font-size:15px; font-weight:700; }
   #fsteps[open] > summary { margin-bottom:8px; }
   .invite.compact .intro-p, .invite.compact .onefile { display:none; }
 
@@ -99,6 +99,7 @@
   .game .st { font-size:14px; margin-top:2px; }
   .game .act { justify-self:end; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
   .what code { display:inline-block; max-width:100%; white-space:nowrap; overflow-x:auto; vertical-align:bottom; }
+  @media (max-width: 420px) { .what code { white-space:normal; overflow-wrap:anywhere; } }
   .game .msg { grid-column:1 / -1; font-size:14px; }
   .game .msg:empty { display:none; }
   .ok { color:var(--accent); font-weight:700; }
@@ -114,7 +115,7 @@
   .quiet b { color:var(--fg); }
 
   .cols { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:16px; }
-  @media (max-width: 1100px) { .hide-md { display:none; } }
+  .hide-md { display:none; }
   #board.board-quiet .cols { grid-template-columns:minmax(0,1fr); }
   #board.board-quiet .col:first-child { display:none; }
   .col { min-width:0; }
@@ -137,7 +138,8 @@
   td { padding:8px; border-bottom:1px solid var(--line); overflow-wrap:anywhere; }
   tr:last-child td { border-bottom:0; }
   td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  td.name { font-weight:600; min-width:10em; overflow-wrap:break-word; word-break:normal; }
+  td.name { font-weight:600; min-width:10em; max-width:16em; overflow-wrap:anywhere; word-break:normal; }
+  #c-league table { max-width:860px; }
   td.nw, span.nw { white-space:nowrap; }
   abbr[title] { text-decoration:none; cursor:help; }
   @media (max-width: 600px) { .hide-sm { display:none; } td.name { max-width:40vw; } 
@@ -168,7 +170,8 @@
   .feed li:not(.day) { display:flex; gap:10px; padding:6px 0; border-bottom:1px solid var(--line); font-size:14px; }
   .feed li time { flex:none; min-width:64px; }
   .feed li > span { min-width:0; overflow-wrap:anywhere; }
-  .feed .ico { flex:none; width:18px; text-align:center; }
+  .feed .ico { flex:none; width:18px; text-align:center; color:var(--muted); }
+  .feed .ico svg { width:14px; height:14px; vertical-align:-2px; }
   .k-goal { font-weight:600; } .k-result { color:var(--accent); font-weight:600; } .k-warn { color:var(--warn); }
   .empty { color:var(--muted); font-size:14px; padding:4px 0; margin:0; }
   .more { margin-top:10px; }
@@ -179,8 +182,8 @@
   .note { overflow-wrap:anywhere; }
   summary { min-height:24px; padding:3px 0; }
   #pw[aria-invalid="true"] { border-color:var(--live); border-width:2px; }
-  .feed h3.day { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:10px 0 2px; }
-  .conn-sm { display:none; white-space:normal; overflow-wrap:anywhere; } @media (max-width: 1100px) and (min-width: 421px) { .conn-sm { display:block; } }
+  #feed h3.day { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:10px 0 2px; }
+  .conn-sm { display:none; white-space:normal; overflow-wrap:anywhere; } @media (min-width: 421px) { .conn-sm { display:block; } }
   .finished { font-size:14px; color:var(--muted); margin:4px 0 0; }
   footer.foot { color:var(--muted); font-size:13px; margin-top:8px; }
   footer.foot summary { cursor:pointer; }
@@ -200,6 +203,7 @@
   .banner.remote.login-warn { margin:0 0 14px; }
   #err { color:var(--live); font-size:14px; min-height:20px; margin-top:10px; }
   #err:empty { min-height:0; margin:0; }
+  #err.info { color:var(--muted); }
 </style>
 </head>
 <body>
@@ -211,7 +215,7 @@
     <form id="lf">
       <input type="text" name="username" autocomplete="username" value="admin" hidden>
       <label for="pw">Admin password</label>
-      <div class="pwrow"><input id="pw" type="password" autocomplete="current-password" required aria-describedby="err"><button type="button" id="showpw" aria-pressed="false" aria-label="Show password">Show</button></div>
+      <div class="pwrow"><input id="pw" type="password" autocomplete="current-password" aria-describedby="err"><button type="button" id="showpw">Show<span class="sr"> password</span></button></div>
       <label class="remember" id="remember-row"><input type="checkbox" id="remember"> <span>Keep me signed in on this device for 30 days</span></label>
       <button type="submit" class="primary" id="signin">Sign in</button>
     </form>
@@ -223,7 +227,7 @@
 <main class="app" id="app" hidden>
   <header class="top">
     <h1><span aria-hidden="true">⚽ </span>PES 2021 Server</h1>
-    <span class="pill neutral" id="status"><span class="dot"></span><span id="status-t">Connecting…</span></span>
+    <span class="pill neutral" id="status"><span class="dot"></span><span id="status-t">Connecting…</span></span><span class="sr" id="status-live" aria-live="polite"></span>
     <a class="pill neutral" id="reach" href="#h-net" hidden></a>
     <span class="muted small" id="uptime"></span>
     <span class="grow"></span>
@@ -250,7 +254,7 @@
         <code id="ssha" style="display:block;margin:6px 0;letter-spacing:.04em">…</code>
         That proves the file is exactly the one your server hands out. The mod's log line <code id="skey">key …</code> shows which server it connects to.</details>
     </div>
-    <div class="friend"><details id="fsteps" open><summary><h3>What your friend does</h3></summary>
+    <div class="friend"><details id="fsteps" open><summary>What your friend does</summary>
       <ol>
         <li>In Steam, right-click <b>PES 2021</b> → Manage → <b>Browse local files</b>, and put the file next to <code>PES2021.exe</code>.</li>
         <li><details><summary>Steam Deck / Linux only</summary>PES 2021 → Properties → Launch options: <code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code></details></li>
@@ -308,7 +312,7 @@ const store = {
 };
 let token = store.get(), timer = null, gamesTimer = null, failures = 0, inflight = false, downSince = 0, lastOkAt = 0;
 let showAllResults = false, feedAll = false, last = null, lastGames = [], dockerDesktop = false;
-let compactState = null;
+let compactState = null, backUntil = 0;
 const DC = "docker compose -f docker-compose.bridge.yml";
 const INSTALL = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh";
 function cmdsHtml() {
@@ -360,7 +364,7 @@ const fmt = new Intl.DateTimeFormat([], {month: "short", day: "numeric", hour: "
 const hm = new Intl.DateTimeFormat([], {hour: "numeric", minute: "2-digit"});
 const dayName = new Intl.DateTimeFormat([], {weekday: "long", month: "short", day: "numeric"});
 const dateOnly = new Intl.DateTimeFormat([], {month: "short", day: "numeric"});
-const when = (t, now) => now - t < 86400 ? ago(t, now) : dateOnly.format(new Date(t * 1000));
+const when = (t, now) => now - t < 86400 ? ago(t, now) : fmt.format(new Date(t * 1000));
 const iso = t => new Date(t * 1000).toISOString();
 function dayLabel(t) {
   const d = new Date(t * 1000), today = new Date(), y = new Date(); y.setDate(today.getDate() - 1);
@@ -383,7 +387,7 @@ async function api(path, opts = {}) {
 
 function showLogin(msg) {
   clearInterval(timer); clearInterval(gamesTimer);
-  $("app").hidden = true; $("login").hidden = false; $("err").textContent = msg || "";
+  $("app").hidden = true; $("login").hidden = false; $("err").textContent = msg || ""; $("err").className = msg ? "info" : "";
   $("signin").disabled = false; $("signin").textContent = "Sign in";
   $("pw").focus();
 }
@@ -393,11 +397,12 @@ function setDown(on) {
   const pill = $("status");
   if (!on) {
     failures = 0; lastOkAt = Date.now();
+    if (downSince) { backUntil = Date.now() + 4000; $("status-live").textContent = "The server is answering again."; }
     if (downSince || pill.className !== "pill") { downSince = 0; pill.className = "pill"; $("down").hidden = true; document.body.classList.remove("stale");
       $("dl").removeAttribute("aria-disabled"); $("dl").removeAttribute("tabindex");
       if ($("dl").dataset.label) { $("dl").innerHTML = '<span aria-hidden="true">⬇ </span>Download the mod for friends'; delete $("dl").dataset.label; }
       document.querySelectorAll("[data-kick], #thispc button").forEach(b => b.removeAttribute("aria-disabled")); }
-    text("status-t", "Server online");
+    text("status-t", Date.now() < backUntil ? "Back online" : "Server online");
     return;
   }
   if (!last && failures === 0) { $("board").hidden = true; put("stats", `<div class="quiet">Waiting for the server…</div>`); }
@@ -417,9 +422,9 @@ function setDown(on) {
 
 function reachInfo(s) {
   const bad = {ok: false, short: "Home network only", long: `<span class="warn">⚠ <b>Only friends on your Wi-Fi can join right now.</b></span> <a href="#h-net">Fix this <span aria-hidden="true">↓</span></a>`};
-  if (s.cgnat) return bad;
   if (s.pinned && isTs(s.pinned)) return {ok: true, short: "Tailscale friends can connect", long: `<span class="ok">✓ Friends on your Tailscale network can connect.</span>`};
-  if (s.pinned) return {ok: true, short: "Friends use " + s.pinned, long: `<span class="ok">✓ Players get the fixed address ${esc(s.pinned)}.</span>`};
+  if (s.cgnat) return bad;
+  if (s.pinned) return {ok: true, short: "Friends use " + s.pinned, long: `<span class="ok">✓ Friends connect to ${esc(s.pinned)} (your fixed address).</span>`};
   if (s.ports_open.length) return {ok: true, short: "Router ports open", long: `<span class="ok">✓ Router ports are open: friends outside your home should be able to join.</span>`};
   if (s.wan) return bad;
   return {ok: true, neutral: true, short: "Home network only", long: `<span class="muted">Friends on your Wi-Fi can connect. Want friends elsewhere? <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale</a>.</span>`};
@@ -457,7 +462,6 @@ function render(d) {
   const r = reachInfo(s);
   $("reach").hidden = false; $("reach").className = "pill " + (r.neutral ? "neutral" : r.ok ? "" : "warn"); text("reach", (r.neutral ? "" : r.ok ? "✓ " : "⚠ ") + r.short); $("reach").title = r.short;
   put("inv-reach", r.long);
-  $("c-net").classList.toggle("warnnet", !r.ok);
 
   const joinedOnly = !d.online.length && !d.live.length && !d.played_total && d.players.length > 0;
   const quiet = (!d.online.length && !d.live.length && !d.played_total && !d.players.length) || joinedOnly;
@@ -469,13 +473,13 @@ function render(d) {
   const today = d.results.filter(r => new Date(r.ended * 1000).toDateString() === new Date().toDateString()).length;
   put("stats", quiet
     ? joinedOnly
-      ? `<div class="quiet"><b>${d.players.slice(0, 4).map(p => esc(p.name)).join(", ")}${d.players.length > 4 ? ` and ${d.players.length - 4} more` : ""} ${d.players.length === 1 ? "has" : "have"} joined.</b> A match starts when two of them choose Quick Match at the same time.<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
+      ? `<div class="quiet"><b>${d.players.slice(0, 4).map(p => esc(p.name)).join(", ")}${d.players.length > 4 ? ` and ${d.players.length - 4} more` : ""} ${d.players.length === 1 ? `has joined.</b> A match starts when ${esc(d.players[0].name)} and one more friend choose Quick Match at the same time.` : `have joined.</b> A match starts when two of them choose Quick Match at the same time.`}<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
       : `<div class="quiet"><b>Waiting for your first friend.</b> Send them the mod; they appear here within seconds of starting PES 2021.<div class="small" style="margin-top:6px">Live matches, results and a league table show up here as you play.</div></div>`
     : `<div class="tiles">
-        <div class="tile"><b>${d.online.length}</b><span>players online</span></div>
+        <div class="tile"><b>${d.online.length}</b><span>${d.online.length === 1 ? "player" : "players"} online</span></div>
         <div class="tile"><b>${d.searching}</b><span>looking for a match</span></div>
-        <div class="tile"><b>${playing}</b><span>matches live${ready ? ` · ${ready} getting ready` : ""}</span></div>
-        <div class="tile"><b>${d.played_total}</b><span>matches played${today ? ` · ${today} today` : ""}</span></div></div>`);
+        <div class="tile"><b>${playing}</b><span>${playing === 1 ? "match" : "matches"} live${ready ? ` · ${ready} getting ready` : ""}</span></div>
+        <div class="tile"><b>${d.played_total}</b><span>${d.played_total === 1 ? "match" : "matches"} played${today ? ` · ${today} today` : ""}</span></div></div>`);
   // with nobody around, keep only the network card (it may need fixing before anyone can join)
   for (const id of ["c-live", "c-online", "c-results", "c-league"]) $(id).hidden = quiet;
   $("c-feed").hidden = quiet && !(joinedOnly && d.feed.length);
@@ -512,20 +516,24 @@ function render(d) {
         <span class="h ${hw ? "win" : ""}">${esc(r.home_name)}${hw ? '<span class="sr"> won</span>' : ""}</span><span class="s">${r.home_score}–${r.away_score}</span>
         <span class="a ${aw ? "win" : ""}">${esc(r.away_name)}${aw ? '<span class="sr"> won</span>' : ""}${r.reason ? ` <span class="pill neutral tag">abandoned</span>` : ""}</span></li>`;
     }).join("") + `</ul>` +
-    (d.results.length > nRes ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">${showAllResults ? "Show fewer" : `Show last ${d.results.length}`}</button>` : "")
+    (d.results.length > nRes ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">${showAllResults ? "Show fewer" : `Show all ${d.results.length} results`}</button>` : "")
     : `<p class="empty">Finished matches will be listed here.</p>`);
 
-  const ICON = {goal: "●", result: "⚑", warn: "!", login: "→", logout: "←", search: "⌕", match: "▶", web: "↓", info: "·"};
-  const icon = f => ICON[f.kind] || "•";
+  const svg = d => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const ICON = {login: svg('<path d="M10 3h3v10h-3M2 8h7M6 5l3 3-3 3"/>'), logout: svg('<path d="M6 3H3v10h3M7 8h7M11 5l3 3-3 3"/>'),
+    goal: svg('<circle cx="8" cy="8" r="5.5"/><path d="M8 5.6l2.3 1.7-.9 2.7H6.6l-.9-2.7z"/>'), result: svg('<path d="M4 14V2.5M4 3h7l-1.5 2.5L11 8H4"/>'),
+    warn: svg('<path d="M8 2l6.5 11.5h-13zM8 6.5v3M8 11.8v.2"/>'), search: svg('<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/>'),
+    match: svg('<path d="M5 3.5v9l7.5-4.5z"/>'), web: svg('<path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"/>'),
+    info: svg('<circle cx="8" cy="8" r="1.6" fill="currentColor"/>')};
   const items = feedAll ? d.feed : d.feed.slice(0, nFeed);
-  let lastDay = "", feed = "";
+  const groups = [];
   for (const f of items) {
     const day = dayLabel(f.t);
-    if (day !== lastDay) { feed += `<li class="day" role="presentation"><h3 class="day">${day}</h3></li>`; lastDay = day; }
-    feed += `<li><time datetime="${iso(f.t)}">${hm.format(new Date(f.t * 1000))}</time><span class="ico" aria-hidden="true">${icon(f)}</span><span class="k-${f.kind}">${esc(f.text)}</span></li>`;
+    if (!groups.length || groups[groups.length - 1].day !== day) groups.push({day, rows: []});
+    groups[groups.length - 1].rows.push(`<li><time datetime="${iso(f.t)}">${hm.format(new Date(f.t * 1000))}</time><span class="ico" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="k-${f.kind}">${esc(f.text)}</span></li>`);
   }
-  put("feed", d.feed.length ? `<ul class="feed">${feed}</ul>` +
-    (d.feed.length > nFeed ? `<button type="button" class="more linkbtn" data-key="more-feed" data-more="feed">${feedAll ? "Show less" : "Show more"}</button>` : "")
+  put("feed", d.feed.length ? groups.map(g => `<h3 class="day">${g.day}</h3><ul class="feed">${g.rows.join("")}</ul>`).join("") +
+    (d.feed.length > nFeed ? `<button type="button" class="more linkbtn" data-key="more-feed" data-more="feed">${feedAll ? "Show less" : "Show older activity"}</button>` : "")
     : `<p class="empty">Logins, goals and results will appear here.</p>`);
 
   const pts = p => p.won * 3 + p.drawn, gd = p => (p.gf || 0) - (p.ga || 0);
@@ -544,8 +552,8 @@ function render(d) {
 function netHtml(s) {
   const out = [`<div>Home network address <b>${esc(s.lan)}</b></div>`];
   if (s.wan) out.push(`<div>${s.cgnat ? "Shared internet address (CGNAT)" : "Internet address"} <b>${esc(s.wan)}</b></div>`);
-  if (s.cgnat) out.push(`<div class="warn"><b>⚠ Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free) to fix it.</a></div>`);
-  else if (s.pinned) out.push(`<div class="ok">✓ Players get the fixed address ${esc(s.pinned)}</div>`);
+  if (s.cgnat && !(s.pinned && isTs(s.pinned))) out.push(`<div class="warn"><b>⚠ Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="https://mohamedalirashad.github.io/pes2021-private-server/#faq-far">Use Tailscale (free) to fix it.</a></div>`);
+  else if (s.pinned) out.push(`<div class="ok">✓ Friends connect to ${esc(s.pinned)} (your fixed address)</div>`);
   else if (s.ports_open.length) out.push(`<div class="ok">✓ Router ports open (UPnP)</div><div class="small muted">While they're open, your server's address is public: anyone who has it can download the mod and join. Share it only with friends.</div>`);
   else if (s.wan && !s.ports_open.length && !s.pinned) out.push(`<div class="warn"><b>⚠ Friends outside your home can't connect yet.</b> ${dockerDesktop ? `On your router, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to this computer.` : `Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then run <a href="#install-cmd">the install command</a> again.`}</div>
     <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 to ${esc(s.lan)}.</details>`);
@@ -638,6 +646,12 @@ async function loadGames(force, focusMsg, focusKey) {
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }
   if (focusMsg) { const m = $("games").querySelector(`[data-key="msg-${CSS.escape(focusMsg)}"]`); (m && m.textContent.trim() ? m : $("pc-h")).focus(); }
 }
+function doneMsg(act, ng) {
+  $("pc-live").textContent = act === "remove" ? "Mod removed." : "Mod installed. Start PES 2021, then eFootball, Quick Match.";
+  return act === "remove"
+    ? {html: `<span class="muted">Removed.</span>`, state: stateOf(ng), until: Date.now() + 8000}
+    : {html: `<span class="ok">Installed.</span> Start PES 2021 → eFootball → Quick Match.`, state: stateOf(ng), until: Date.now() + 20000};
+}
 async function gameAction(btn) {
   const id = btn.dataset.game, act = btn.dataset.act, g = lastGames.find(x => x.id === id);
   if (document.body.classList.contains("stale") || btn.getAttribute("aria-disabled") === "true") return;
@@ -648,13 +662,16 @@ async function gameAction(btn) {
   let msg;
   try {
     const gs = await api("/admin/api/games/" + (act === "switch" ? "install" : act), {method: "POST", body: JSON.stringify({id})});
-    const ng = gs.find(x => x.id === id) || g;
-    $("pc-live").textContent = act === "remove" ? "Mod removed." : "Mod installed. Start PES 2021, then eFootball, Quick Match.";
-    msg = act === "remove"
-      ? {html: `<span class="muted">Removed.</span>`, state: stateOf(ng), until: Date.now() + 8000}
-      : {html: `<span class="ok">Installed.</span> Start PES 2021 → eFootball → Quick Match.`, state: stateOf(ng), until: Date.now() + 20000};
+    msg = doneMsg(act, gs.find(x => x.id === id) || g);
   } catch (e) {
     if (e.status === 401) return signedOut();
+    if (e.name === "TimeoutError" && g) {
+      rowMsg[id] = {html: `<span class="muted">The server is slow to answer. Checking…</span>`, state: stateOf(g), until: Date.now() + 15000};
+      $("pc-live").textContent = "The server is slow to answer. Checking…";
+      await loadGames(true, id);
+      const ng = lastGames.find(x => x.id === id);
+      if (ng && stateOf(ng) !== stateOf(g)) { rowMsg[id] = doneMsg(act, ng); return loadGames(true, id); }
+    }
     const text = e.name === "TimeoutError" || e.message === "failed" ? "That didn't work. Close the game and try again." : e.message;
     const needsInstall = /install command/.test(text);
     $("pc-live").textContent = text;
@@ -685,6 +702,13 @@ async function copyLink() {
 
 document.addEventListener("click", async e => {
   if (e.target.closest("#copy")) return copyLink();
+  if (e.target.closest('a[href="#install-cmd"]')) {
+    e.preventDefault();
+    const det = document.querySelector("footer.foot details"); det.open = true;
+    $("install-cmd").scrollIntoView({block: "center"});
+    ($("install-cmd").querySelector("button") || det.querySelector("summary")).focus();
+    return;
+  }
   const ct = e.target.closest("[data-copytext]");
   if (ct) {
     let ok = false;
@@ -739,7 +763,7 @@ document.addEventListener("click", async e => {
 $("lf").onsubmit = async e => {
   e.preventDefault();
   const password = $("pw").value.trim();
-  if (!password) { $("err").textContent = "Type the admin password."; $("pw").focus(); return; }
+  if (!password) { $("err").className = ""; $("err").textContent = "Type the admin password."; $("pw").focus(); return; }
   $("signin").disabled = true; $("signin").textContent = "Checking…"; $("err").textContent = "";
   try {
     const r = await fetch("/admin/api/login", {method: "POST", signal: AbortSignal.timeout(8000),
@@ -758,7 +782,7 @@ $("lf").onsubmit = async e => {
     start();
     $("dl").focus();
   } catch (err) {
-    $("signin").disabled = false; $("signin").textContent = "Sign in";
+    $("signin").disabled = false; $("signin").textContent = "Sign in"; $("err").className = "";
     $("err").textContent = err.name === "TimeoutError" || err instanceof TypeError ? "Can't reach the server. Is it running?" : err.message;
     if (err.wrong) { $("pw").setAttribute("aria-invalid", "true"); $("pw").focus(); $("pw").select(); }
     else { $("pw").removeAttribute("aria-invalid"); $("signin").focus(); }
@@ -772,14 +796,14 @@ $("logout-all").onclick = async () => {
 };
 $("dl").addEventListener("click", () => { $("dl-done").textContent = "Your download should start. Then attach dinput8.dll to a Discord, WhatsApp or Telegram message."; });
 $("showpw").onclick = () => { const on = $("pw").type === "password"; $("pw").type = on ? "text" : "password";
-  $("showpw").textContent = on ? "Hide" : "Show"; $("showpw").setAttribute("aria-pressed", String(on)); };
+  $("showpw").innerHTML = (on ? "Hide" : "Show") + '<span class="sr"> password</span>'; };
 $("pw").addEventListener("input", () => { $("pw").removeAttribute("aria-invalid"); if (!$("err").dataset.keep) $("err").textContent = ""; });
 fetch("/admin/api/info").then(r => r.json()).then(i => {
   if (i.docker_desktop) { dockerDesktop = true; put("cmds", cmdsHtml()); }
   if (i.docker_desktop) $("forgot").innerHTML = "Forgot it? On this computer, open a terminal and run <code>docker logs pesserver</code>.";
   if (i.host_ok === false) {
     const where = i.lan ? `<a href="http://${i.lan}/admin">http://${i.lan}/admin</a>` : "the server's address (for example http://192.168.x.x/admin)";
-    $("err").innerHTML = `This page was opened by a web name, which the admin page doesn't accept. Open ${where} instead.`; $("err").dataset.keep = "1";
+    $("err").innerHTML = `This page was opened by a web name, which the admin page doesn't accept. Open ${where} instead.`; $("err").dataset.keep = "1"; $("err").className = "";
     $("signin").disabled = true;
   }
   if (i.remote) { $("login-remote").hidden = false; $("remember-row").hidden = true; $("remember").checked = false; }

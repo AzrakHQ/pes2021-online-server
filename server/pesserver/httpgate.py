@@ -298,7 +298,8 @@ async def _admin(service, method, route, headers, body, peer=""):
     if route == "/admin/api/state":
         snap = events.snapshot(service)
         st = netsetup.STATE
-        reachable = bool(st["mapped"] or os.environ.get("PESSERVER_PUBLIC_ADDR")) and not st["cgnat"]
+        pinned = os.environ.get("PESSERVER_PUBLIC_ADDR") or ""
+        reachable = bool(st["mapped"] or pinned) and (not st["cgnat"] or _tailscale(pinned))
         addrs = netsetup.game_addrs()
         main = "http://" + (addrs[-1] if reachable else addrs[0])     # a link that works for someone
         snap["server"] = {"main": main, "lan": st["lan"], "wan": st["wan"],
@@ -320,7 +321,7 @@ async def _admin(service, method, route, headers, body, peer=""):
             if route.endswith("install"):
                 if not os.path.isfile(MOD_DLL):
                     return "404 Not Found", b'{"error":"This server was built without the mod."}', "application/json"
-                result = gamesetup.install(gid, mod_bytes())
+                result = gamesetup.install(gid, mod_bytes(mod_url(service, headers, None)))
                 events.feed(service, "The mod was installed in this PC's game", "info")
             else:
                 result = gamesetup.remove(gid)
@@ -413,6 +414,15 @@ def _mod(service, route, headers, writer, path=""):
         b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
 
 
+def _tailscale(addr):
+    import ipaddress
+    try:
+        ip = ipaddress.ip_address(str(addr).strip("[]"))
+    except ValueError:
+        return False
+    return ip in ipaddress.ip_network("100.64.0.0/10") if ip.version == 4 else ip in ipaddress.ip_network("fd7a:115c:a1e0::/48")
+
+
 _DOWNLOADS = {}
 
 
@@ -450,8 +460,14 @@ def mod_url(service, headers, writer):
     changes; IPs and local-only names (which would break friends' files) give none."""
     from . import netsetup
     host, server, scheme, _ = _origin(service, headers, writer)
-    local = server in ("localhost",) or "." not in server or server.endswith((".local", ".lan", ".home", ".internal"))
-    return f"{scheme}://{host}" if not netsetup._ip(server) and not local else ""
+    web = lambda n: bool(n) and not netsetup._ip(n) and n != "localhost" and "." in n \
+        and not n.endswith((".local", ".lan", ".home", ".internal"))
+    if web(server):
+        return f"{scheme}://{host}"
+    pinned = (os.environ.get("PESSERVER_PUBLIC_ADDR") or "").strip().lower()
+    # reached by IP (the admin page, the server computer): use the fixed web name if there is one,
+    # so every copy of the file (and its published hash) is the same
+    return f"http://{pinned}" if web(pinned) else ""
 
 
 _SHA = {}
