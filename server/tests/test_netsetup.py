@@ -190,6 +190,9 @@ def test_admin_api_needs_password_and_tracks_a_match(tmp_path):
             assert token not in json.dumps(sessions) and len(sessions) == 1          # only a hash is kept
             assert (await _http(port, "POST", "/admin/api/logout", b"", auth))[0] == 200
             assert (await _http(port, "GET", "/admin/api/state", headers=auth))[0] == 401   # revoked
+            tokens = [json.loads((await _http(port, "POST", "/admin/api/login", b'{"password": "s3cret"}'))[1])["token"] for _ in range(2)]
+            assert (await _http(port, "POST", "/admin/api/logout-all", b"", [("Authorization", "Bearer " + tokens[0])]))[0] == 200
+            assert (await _http(port, "GET", "/admin/api/state", headers=[("Authorization", "Bearer " + tokens[1])]))[0] == 401
             for _ in range(4):
                 await _http(port, "POST", "/admin/api/login", b'{"password": "x"}')
             assert (await _http(port, "POST", "/admin/api/login", b'{"password": "s3cret"}'))[0] == 429

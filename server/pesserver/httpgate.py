@@ -154,6 +154,13 @@ class AdminSessions:
         self.s.pop(self._h(token), None)
         self._save()
 
+    def clear(self):
+        self.s = {}
+        self._save()
+
+    def expires(self, token):
+        return self.s.get(self._h(token), 0)
+
 
 def _sessions(service):
     if not hasattr(service, "_admin_sessions"):
@@ -217,12 +224,15 @@ async def _admin(service, method, route, headers, body, peer=""):
             await asyncio.sleep(1)            # slow down password guessing
             return "401 Unauthorized", b'{"error":"wrong password"}', "application/json"
         token = _sessions(service).new(bool(req.get("remember")))
-        return "200 OK", json.dumps({"token": token}).encode(), "application/json"
+        return "200 OK", json.dumps({"token": token, "expires": _sessions(service).expires(token)}).encode(), "application/json"
     given = headers.get("authorization", "")[7:] if headers.get("authorization", "").startswith("Bearer ") else ""
     if not _sessions(service).valid(given):
         return "401 Unauthorized", b'{"error":"signed out"}', "application/json"
     if route == "/admin/api/logout" and method == "POST":
         _sessions(service).revoke(given)
+        return "200 OK", b'{"ok":true}', "application/json"
+    if route == "/admin/api/logout-all" and method == "POST":
+        _sessions(service).clear()
         return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/state":
         snap = events.snapshot(service)
