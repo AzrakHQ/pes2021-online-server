@@ -350,31 +350,6 @@ def test_admin_only_from_own_networks(monkeypatch):
     assert httpgate.admin_allowed("8.8.8.8")
 
 
-def test_admin_port_keeps_the_admin_page_off_the_game_ports(tmp_path, monkeypatch):
-    monkeypatch.setenv("ADMIN_PORT", "8090")
-    httpgate._FAILED.clear()
-    svc = Service(Accounts(str(tmp_path / "a.db"))); svc.admin_password = "pw"; svc.data_dir = str(tmp_path)
-
-    async def go():
-        game = await httpgate.serve(svc, "127.0.0.1", 0)
-        admin = await httpgate.serve(svc, "127.0.0.1", 0, admin_listener=True)
-        try:
-            gp, ap = game.sockets[0].getsockname()[1], admin.sockets[0].getsockname()[1]
-            code, out = await _http(gp, "GET", "/admin")
-            assert code == 404 and b"localhost:8090" in out
-            assert (await _http(gp, "POST", "/admin/api/login", b'{"password": "pw"}'))[0] == 404
-            assert (await _http(ap, "GET", "/admin"))[0] == 200
-            assert (await _http(ap, "POST", "/admin/api/login", b'{"password": "pw"}'))[0] == 200
-            assert (await _http(ap, "GET", "/join"))[0] == 404
-            assert (await _http(ap, "GET", "/status"))[0] == 200                       # the page's own needs
-            code, _ = await _http(ap, "GET", "/mod/dinput8.dll")
-            assert code in (200, 404) and code == (200 if os.path.isfile(httpgate.MOD_DLL) else 404)
-        finally:
-            game.close(); admin.close()
-    asyncio.run(go())
-    assert "localhost:8090/admin" in netsetup.banner("pw", color=False)
-
-
 def test_admin_rebinding_and_csp(tmp_path):
     svc = Service(Accounts(str(tmp_path / "a.db"))); svc.admin_password = "pw"; svc.data_dir = str(tmp_path)
     assert httpgate.host_ok({"host": "192.168.1.5"}) and httpgate.host_ok({"host": "192.168.1.5:8080"})
@@ -388,7 +363,7 @@ def test_admin_rebinding_and_csp(tmp_path):
         port = srv.sockets[0].getsockname()[1]
         try:
             code, out = await _http(port, "GET", "/admin/api/info")
-            assert code == 200 and {k: v for k, v in json.loads(out).items() if k not in ("lan", "admin_url", "password_replaced")} == {"remote": False, "host_ok": True, "docker_desktop": False, "program": False}
+            assert code == 200 and {k: v for k, v in json.loads(out).items() if k not in ("lan", "admin_url", "password_replaced")} == {"remote": False, "host_ok": True, "service": False}
         finally:
             srv.close()
     import json

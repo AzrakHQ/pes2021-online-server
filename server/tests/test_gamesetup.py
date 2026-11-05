@@ -22,11 +22,8 @@ def host(tmp_path, monkeypatch):
     games, prefixes = tmp_path / "games", tmp_path / "prefixes"
     (games / "1").mkdir(parents=True); (games / "1" / "PES2021.exe").write_bytes(b"MZ")
     (games / "2").mkdir(); (games / "2" / "PES2021.exe").write_bytes(b"MZ")       # no prefix found
-    (games / "3").mkdir()                                                          # not a game folder
     (prefixes / "1").mkdir(parents=True); (prefixes / "1" / "user.reg").write_text(USER_REG)
-    monkeypatch.setattr(gamesetup, "GAMES_ROOT", str(games))
-    monkeypatch.setattr(gamesetup, "PREFIXES_ROOT", str(prefixes))
-    monkeypatch.setenv("PES_GAME_1", "/home/me/Games/PES/files")
+    monkeypatch.setattr(gamesetup, "LOCAL", [(str(games / "1"), str(prefixes / "1")), (str(games / "2"), None)])
     marker = identity.EMBED_MARKER
     dll = b"MZ" + marker + b"\0" * (identity.EMBED_SIZE - len(marker)) + b"end"
     return tmp_path, identity.pack_mod(dll, identity.mod_settings("srv", "", ["192.168.1.5"]))
@@ -35,7 +32,7 @@ def host(tmp_path, monkeypatch):
 def test_install_and_remove(host):
     tmp, dll = host
     st = {g["id"]: g for g in gamesetup.status()}
-    assert set(st) == {"1", "2"} and st["1"]["path"] == "/home/me/Games/PES/files"
+    assert set(st) == {"1", "2"} and st["1"]["path"] == str(tmp / "games" / "1")
     assert st["1"]["mod"] == "none" and st["1"]["override"] is False and st["2"]["override"] is None
     st = {g["id"]: g for g in gamesetup.install("1", dll)}
     assert st["1"]["mod"] == "ours" and st["1"]["override"] is True

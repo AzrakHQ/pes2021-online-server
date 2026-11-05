@@ -1,12 +1,12 @@
 #!/bin/sh
-# PES 2021 server on your own computer (Linux, Steam Deck, Mac): no Docker, no sudo.
+# PES 2021 server on your own computer (Linux, Steam Deck, Mac): no sudo, nothing to install.
 #
 #   curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh
 #
 # Downloads the newest version of the server program (only when there is a new one), then runs it in this
 # window. Ctrl+C stops it. Next time, run the same line: you always get the newest version.
 # Options go after "sh -s --", e.g. ... | sh -s -- --data ~/pes-server-data
-# Always-on server (VPS, home server, Pi) instead? Use install.sh (Docker): it starts by itself after a reboot.
+# Always-on server (VPS, home server, Pi) instead? Use install.sh: the same program as a service.
 set -eu
 REL="https://github.com/MohamedAliRashad/pes2021-private-server/releases/latest/download"
 
@@ -15,7 +15,7 @@ case "$(uname -s)-$(uname -m)" in
   Linux-aarch64|Linux-arm64)   PLATFORM=linux-arm64 ;;
   Darwin-arm64)                PLATFORM=macos-arm64 ;;
   *) echo "There's no ready-made server program for this computer ($(uname -sm))."
-     echo "Use the Docker install instead: https://mohamedalirashad.github.io/pes2021-private-server/"
+     echo "You can run it from source instead: https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server"
      exit 1 ;;
 esac
 if [ "$(uname -s)" = Darwin ]; then

@@ -1,29 +1,34 @@
 # pesserver: server internals
 
 Player and host instructions are in the [main README](../README.md). This page covers running the
-server without Docker and how the code is laid out.
+server from source, building the program, and how the code is laid out.
 
-## Run without Docker
+## Run from source
 
 Requires Python 3.10+.
 
 ```bash
 pip install msgpack cryptography
 cd server
-# certificate for the HTTPS network test: certs/server.crt (chain) + certs/server.key, next to the DB.
-# Easiest: reuse the certs created by the Docker image (docker-entrypoint.sh).
-sudo python3 -m pesserver --db data/pes.db serve --host 0.0.0.0 --auto-net --join-port 80 --https-port 443
+sh mod/build.sh mod/dinput8.dll          # the mod (needs gcc-mingw-w64-x86-64); optional
+python3 -m pesserver --data data         # same as the downloaded program: banner, admin page, feed
 ```
 
-`--auto-net` detects the LAN and public addresses and opens the router ports with UPnP
-(`UPNP=0` disables UPnP). `--public-ip ADDR` pins one address for every client instead.
-Ports below 1024 need root; otherwise use e.g. `--https-port 8443` and forward 443 to it.
+It creates its certificates, admin password and identity in `data/`, detects the LAN and public
+addresses and opens the router ports with UPnP (`UPNP=0` disables it; `PUBLIC_IP=ADDR` pins one
+address for every client). Without root on Linux, ports 80 and 443 are skipped: the pages move to
+8080, and 8080 also answers HTTPS, which is where the mod sends the network test.
+`python3 -m pesserver serve ...` is the bare development mode (`tools/pes.py restart`).
+
+**The program:** `packaging/build.sh <name>` (PyInstaller) builds one file in `dist/`;
+`packaging/smoke.py dist/<name>` checks it. `.github/workflows/program.yml` does both for every
+platform and publishes the release that `run.sh`, `run.ps1` and `install.sh` download.
 
 | Port | Service | Module |
 |---|---|---|
 | 80/tcp | player pages: `/` instructions, `/join`, `/leave` (setup script picked by User-Agent) | `httpgate.py`, `web/` |
-| 443/tcp | HTTPS `GateInfo.php` (NAT test) | `httpgate.py` |
-| 8080/tcp | web API (form POST → msgpack), `/ca.crt`, `/banner`, the player pages, `/admin` (password) | `httpgate.py` |
+| 443/tcp | HTTPS `GateInfo.php` (NAT test) for join-line players and older mods; needs root on Linux | `httpgate.py` |
+| 8080/tcp | web API (form POST → msgpack), HTTPS `GateInfo.php` for the mod (TLS told apart by the first byte), `/ca.crt`, the player pages, `/admin` (password) | `httpgate.py` |
 | 10000/tcp | game gate: login, menus, matchmaking (NclMio protocol) | `gate.py`, `ncl.py` |
 | 3478/udp | STUN binding (NAT test) | `stun.py` |
 | 7600/udp | game-relay placeholder (logs only) | `stun.py` |
@@ -40,6 +45,7 @@ Environment variables:
 | `PESSERVER_HTTP_PORT` | port used in URL lists (default 8080) |
 | `PESSERVER_RXLOG` | path of a JSONL log of every decoded message (optional) |
 | `UPNP` | `0` = don't open router ports |
+| `UPDATE_CHECK` | `0` = don't ask GitHub whether a newer server is out |
 | `ADMIN_PASSWORD` | fixed admin password (default: random, saved in `<data>/admin_password`) |
 | `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
 
@@ -54,8 +60,11 @@ Environment variables:
 | `pesserver/stun.py` | STUN responder |
 | `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner |
 | `pesserver/identity.py` | the server's Ed25519 identity, signed notes and hellos for the mod, writing settings into the mod DLL |
-| `pesserver/gamesetup.py` | admin page "The server computer" card: installs the mod into PES copies the installer found (`/games/<n>`, `/prefixes/<n>`) |
-| `mod/` | the mod (`dinput8.dll`): MinHook hooks, Monocypher signatures, built by the Dockerfile's first stage |
+| `pesserver/gamesetup.py` | admin page "The server computer" card: finds PES copies on this computer and installs the mod |
+| `pesserver/certs.py`, `updates.py` | the server's CA and TLS certificate; the "newer version is out" check |
+| `pesserver/__main__.py` | command line: `host` (the program), `serve` (development), `adduser` |
+| `mod/` | the mod (`dinput8.dll`): MinHook hooks, Monocypher signatures, built by `mod/build.sh` (MinGW) |
+| `packaging/` | PyInstaller build script, entry point and smoke test for the program |
 | `pesserver/events.py` | live activity for the admin page: online players, match phases and scores, saved results |
 | `pesserver/web/` | player page, `join.ps1` / `join.sh` (served with the server address filled in), Proton CA installer |
 | `pesserver/schemas.json` | response schemas of ~400 commands, extracted from the client (`notes/re/extract_schemas.py`) |

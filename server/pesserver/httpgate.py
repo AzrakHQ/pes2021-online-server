@@ -6,7 +6,7 @@ import asyncio, sys, json, logging, os
 log = logging.getLogger("pesserver.http")
 
 
-def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False):
+def make_handler(service, stun_host, stun_port, gate_port):
     async def on_conn(reader, writer):
         try:
             head = await asyncio.wait_for(reader.readuntil(b"\r\n\r\n"), 10)
@@ -22,17 +22,7 @@ def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False)
             route = path.split("?", 1)[0].rstrip("/").lower()
             status = "200 OK"
             extra = b""
-            admin_port = os.environ.get("ADMIN_PORT")
-            if (route == "/admin" or route.startswith("/admin/api/")) and admin_port and not admin_listener:
-                # Docker Desktop: the admin page lives on its own port, published on this computer only
-                status, ctype = "404 Not Found", "text/html; charset=utf-8"
-                out = (f"<!doctype html><meta charset=utf-8><title>PES 2021 Admin</title><body style='font:16px system-ui;margin:60px auto;max-width:560px'>"
-                       f"<h1>The admin page is on the server computer</h1><p>Open <b>http://localhost:{admin_port}/admin</b> "
-                       f"on the computer that runs the server.</p></body>").encode()
-            elif admin_listener and not (route == "/admin" or route.startswith("/admin/api/")
-                                         or route in ("/mod/dinput8.dll", "/status")):
-                status, out, ctype = "404 Not Found", b"admin port: open /admin", "text/plain"
-            elif route == "/admin" or route.startswith("/admin/api/"):
+            if route == "/admin" or route.startswith("/admin/api/"):
                 peer = (writer.get_extra_info("peername") or ("",))[0]
                 status, out, ctype = await _admin(service, method, route, headers, body, peer)
                 extra = (b"X-Frame-Options: DENY\r\nContent-Security-Policy: " + admin_csp().encode() + b"\r\n"
@@ -266,10 +256,9 @@ async def _admin(service, method, route, headers, body, peer=""):
     from . import events, netsetup
     if route == "/admin/api/info":            # public: lets the sign-in page warn before a password is typed
         return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8"), "host_ok": bool(host_ok(headers)),
-                                     "docker_desktop": bool(os.environ.get("ADMIN_PORT")),
                                      "lan": (netsetup.STATE.get("lan") or "") if admin_allowed(peer) else "",
                                      "admin_url": netsetup.web_url(netsetup.STATE.get("lan") or "") + "/admin" if admin_allowed(peer) else "",
-                                     "program": os.environ.get("PES_PROGRAM") == "1",
+                                     "service": os.environ.get("PES_SERVICE") == "1",
                                      "password_replaced": bool(netsetup.PASSWORD_IGNORED)}).encode(), "application/json"
     if route.startswith("/admin/api/") and not host_ok(headers):
         return "403 Forbidden", b'{"error":"open the admin page by its address"}', "application/json"
@@ -325,7 +314,7 @@ async def _admin(service, method, route, headers, body, peer=""):
         main = netsetup.web_url(addrs[-1] if reachable else addrs[0])   # a link that works for someone
         from . import VERSION, updates
         snap["server"] = {"main": main, "version": VERSION, "update": updates.STATE["latest"],
-                          "program": os.environ.get("PES_PROGRAM") == "1", "platform": sys.platform,
+                          "service": os.environ.get("PES_SERVICE") == "1", "platform": sys.platform,
                           "data_dir": getattr(service, "data_dir", ""), "lan_url": netsetup.web_url(st["lan"] or ""), "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
@@ -333,8 +322,7 @@ async def _admin(service, method, route, headers, body, peer=""):
                           "link_home_only": not reachable,
                           "sessions": len([1 for v in _sessions(service).s.values() if v > now]),
                           "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex()),
-                          "mod_sha256": mod_sha256(mod_url(service, headers, None)),
-                          "docker_desktop": bool(os.environ.get("ADMIN_PORT"))}
+                          "mod_sha256": mod_sha256(mod_url(service, headers, None))}
         from . import announce
         snap["announce"] = announce.snapshot(service)
         return "200 OK", json.dumps(snap).encode(), "application/json"
@@ -451,7 +439,9 @@ def _origin(service, headers, writer):
     return host, server, scheme, addrs
 
 
-MOD_DLL = os.environ.get("PESSERVER_MOD_DLL", "/app/mod/dinput8.dll")
+# Packed into the program (PyInstaller) or, in a checkout, built by mod/build.sh
+MOD_DLL = os.environ.get("PESSERVER_MOD_DLL") or os.path.join(
+    getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mod", "dinput8.dll")
 
 
 def _mod(service, route, headers, writer, path=""):
@@ -586,9 +576,8 @@ async def serve_tls(service, host, port, certfile, keyfile, stun_host="127.0.0.1
                                       ssl=ctx, ssl_handshake_timeout=10)
 
 
-async def serve(service, host="0.0.0.0", port=8080, stun_host="127.0.0.1", stun_port=3478, gate_port=10000,
-                admin_listener=False, tls=None):
-    handler = make_handler(service, stun_host, stun_port, gate_port, admin_listener)
+async def serve(service, host="0.0.0.0", port=8080, stun_host="127.0.0.1", stun_port=3478, gate_port=10000, tls=None):
+    handler = make_handler(service, stun_host, stun_port, gate_port)
     if not tls:
         return await asyncio.start_server(handler, host, port)
     return await _serve_mux(handler, host, port, tls)

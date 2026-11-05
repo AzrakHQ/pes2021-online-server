@@ -1,4 +1,4 @@
-# PES 2021 server on your Windows PC: no Docker, no administrator rights.
+# PES 2021 server on your Windows PC: no administrator rights, nothing to install.
 #
 #   irm https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.ps1 | iex
 #

@@ -1,11 +1,12 @@
-# Builds the downloadable server program (no Docker) for Linux, Windows and macOS and publishes it as the
-# repository's latest release, which run.sh / run.ps1 download:
+# Tests the server, builds it as one program for Linux, Windows and macOS and publishes it as the
+# repository's latest release, which run.sh / run.ps1 / install.sh download:
 #   https://github.com/<owner>/pes2021-private-server/releases/latest/download/pes2021-server-<platform>
 name: program
 on:
   push:
     branches: [main]
     paths: ["server/**", ".github/workflows/program.yml"]
+  pull_request:
   workflow_dispatch:
 permissions:
   contents: write
@@ -13,7 +14,16 @@ concurrency:
   group: program
   cancel-in-progress: true
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install msgpack==1.1.0 cryptography==44.0.1 pytest && cd server && python -m pytest -q
+
   mod:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,6 +70,7 @@ jobs:
 
   release:
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -73,5 +84,5 @@ jobs:
           v="$(cat version.txt)"
           gh release delete program -R "$REPO" --yes --cleanup-tag 2>/dev/null || true
           gh release create program -R "$REPO" --target "$GITHUB_SHA" --latest --title "PES 2021 server $v" \
-            --notes "The server as one program, no Docker needed. Start it with the line on the website (it always downloads this newest version), or download the file for your computer and run it. Windows: pes2021-server-windows-x64.exe." \
+            --notes "The server as one program. Start it with the line on the website (it always downloads this newest version), or download the file for your computer and run it. Windows: pes2021-server-windows-x64.exe." \
             pes2021-server-* version.txt

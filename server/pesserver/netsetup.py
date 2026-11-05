@@ -305,7 +305,7 @@ def admin_password(data_dir):
 
 
 def banner(password=None, color=True):
-    """The startup screen (docker logs, install.sh)."""
+    """The startup screen (the server's window, or journalctl for the always-on service)."""
     c = (lambda code, t: f"\033[{code}m{t}\033[0m") if color else (lambda code, t: t)
     B, D, G, C, Y = (lambda t: c("1", t)), (lambda t: c("2", t)), (lambda t: c("1;32", t)), \
                     (lambda t: c("1;36", t)), (lambda t: c("1;33", t))
@@ -313,14 +313,12 @@ def banner(password=None, color=True):
     pinned = os.environ.get("PESSERVER_PUBLIC_ADDR")
     here = pinned or lan
     line = D("  " + "─" * 66)
-    admin = f"http://localhost:{os.environ['ADMIN_PORT']}/admin" if os.environ.get("ADMIN_PORT") else web_url(here) + "/admin"
+    admin = web_url(here) + "/admin"
     from . import VERSION
     out = ["", line, f"   ⚽  {B('PES 2021 SERVER')}" + " " * 39 + G("● ONLINE"),
            D(f"       version {VERSION}"), line, "",
            f"   {B('Admin page')}   {C(admin)}"]
-    if os.environ.get("ADMIN_PORT"):
-        out.append(D("                (on this computer only)"))
-    elif wan and wan != here and os.environ.get("ADMIN_REMOTE") == "1":
+    if wan and wan != here and os.environ.get("ADMIN_REMOTE") == "1":
         out.append(D(f"                from anywhere: {web_url(wan)}/admin"))
     if password:
         out.append(f"   {B('Password')}     {Y(password)}")

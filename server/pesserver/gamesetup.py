@@ -1,9 +1,7 @@
 """Install the mod into PES 2021 copies on the host's own machine, from the admin page.
 
-Docker: install.sh looks for PES2021.exe on the host (Steam libraries, ~/Games) and mounts only those
-game folders into the container at /games/<n>, plus each copy's Wine prefix at /prefixes/<n> when it
-finds one. PES_GAME_<n> / PES_PREFIX_<n> carry the host paths, for display.
-The downloadable program (pesserver host) does the same search itself: use_local_games().
+The server looks for PES2021.exe on this computer (Steam libraries, ~/Games, on Windows the registry)
+and, on Linux, for each copy's Wine prefix.
 
 Installing writes dinput8.dll (packed with this server's identity) next to PES2021.exe and, on
 Linux, tells Wine to load it for PES2021.exe only:
@@ -16,13 +14,11 @@ import os, re, sys, time
 
 from . import identity
 
-GAMES_ROOT = os.environ.get("PESSERVER_GAMES_ROOT", "/games")
-PREFIXES_ROOT = os.environ.get("PESSERVER_PREFIXES_ROOT", "/prefixes")
 SECTION = "[Software\\\\Wine\\\\AppDefaults\\\\PES2021.exe\\\\DllOverrides]"
 LINE = '"dinput8"="native,builtin"'
 
 
-LOCAL = None           # the downloadable program: [(dir, prefix or None)] found on this computer
+LOCAL = None           # [(dir, prefix or None)] found on this computer (searched on first use)
 
 
 def _steam_roots():
@@ -113,23 +109,10 @@ def use_local_games():
 
 
 def _games():
-    if LOCAL is not None:
-        return [{"id": str(i + 1), "dir": d, "host_dir": d, "prefix": p, "host_prefix": p}
-                for i, (d, p) in enumerate(LOCAL)]
-    out = []
-    try:
-        names = sorted(os.listdir(GAMES_ROOT), key=lambda n: (len(n), n))
-    except OSError:
-        return out
-    for n in names:
-        d = os.path.join(GAMES_ROOT, n)
-        if not os.path.lexists(os.path.join(d, "PES2021.exe")):   # may be a link into another copy
-            continue
-        pfx = os.path.join(PREFIXES_ROOT, n)
-        out.append({"id": n, "dir": d, "host_dir": os.environ.get(f"PES_GAME_{n}", d),
-                    "prefix": pfx if os.path.isfile(os.path.join(pfx, "user.reg")) else None,
-                    "host_prefix": os.environ.get(f"PES_PREFIX_{n}")})
-    return out
+    if LOCAL is None:
+        use_local_games()
+    return [{"id": str(i + 1), "dir": d, "host_dir": d, "prefix": p, "host_prefix": p}
+            for i, (d, p) in enumerate(LOCAL)]
 
 
 def _dll_state(path):

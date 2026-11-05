@@ -1,8 +1,9 @@
 """pesserver command line.
 
   pesserver host              the downloadable program (also what it does with no arguments): runs in this
-                              window, data in the user's folder, finds PES 2021 on this computer
-  pesserver serve ...         the Docker image (docker-entrypoint.sh) and development
+                              window, data in the user's folder, finds PES 2021 on this computer. install.sh runs
+                              the same as an always-on systemd service.
+  pesserver serve ...         development (tools/pes.py restart)
   pesserver adduser NAME PW   add an account by hand
 """
 import argparse, asyncio, logging, os, sys
@@ -27,12 +28,6 @@ def default_data_dir():
     return os.path.join(os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "pes2021-server")
 
 
-def bundled(*parts):
-    """A file packed into the program (PyInstaller) or, from a checkout, next to the package."""
-    base = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base, *parts)
-
-
 async def _optional(what, port, coro):
     """Ports below 1024 need administrator rights on Linux: the server works without them, with less."""
     try:
@@ -47,7 +42,7 @@ async def run(a):
     from . import certs, netsetup
     data_dir = os.path.dirname(os.path.abspath(a.db))
     tls = None
-    if a.cmd == "host" or os.path.exists(os.path.join(data_dir, "certs", "server.crt")) or os.environ.get("PESSERVER_MAKE_CERTS") == "1":
+    if a.cmd == "host" or os.path.exists(os.path.join(data_dir, "certs", "server.crt")):
         tls = certs.ensure(os.path.join(data_dir, "certs"))
     # 8080 speaks both HTTP and HTTPS: the mod sends the game's network test here (no admin rights needed)
     try:
@@ -58,7 +53,7 @@ async def run(a):
             raise
         sys.exit(f"\n   The server can't start: port {a.gate_port} or {a.http_port} is already in use.\n"
                  "   Is another PES 2021 server running on this computer? Close its window, or stop the\n"
-                 "   always-on one with: sudo docker stop pesserver\n")
+                 "   always-on one with: sudo systemctl stop pes2021-server\n")
     if not tls:
         netsetup.skip_port(443)
     if tls and a.https_port:        # 443: players set up with the /join line, and mods from before 2026-11
@@ -82,8 +77,6 @@ async def run(a):
             netsetup.WEB_PORT = a.http_port
     else:
         netsetup.WEB_PORT = a.http_port
-    if os.environ.get("ADMIN_PORT"):                  # Docker Desktop: admin page on a local-only port
-        servers.append(await httpgate.serve(svc, a.host, int(os.environ["ADMIN_PORT"]), admin_listener=True))
     st = await stun.serve(a.stun_host or a.host, a.stun_port)
     await stun.serve_relay(a.stun_host or a.host, int(os.environ.get("PESSERVER_RELAY_PORT", "7600")))
     logging.info("gate tcp/%d  http tcp/%d  stun udp/%d", a.gate_port, a.http_port, a.stun_port)
@@ -92,23 +85,19 @@ async def run(a):
     from . import identity
     identity.init(data_dir)
     logging.info("server identity %s", identity.public_hex())
-    # Docker: inside the container, not the data volume (a stale copy must never be shown by install.sh)
-    banner_file = os.environ.get("PESSERVER_BANNER_FILE", "/tmp/pesserver-banner.txt")
-    try:
-        os.unlink(banner_file)
-    except OSError:
-        pass
+    # read by install.sh to show the always-on service's address and password (local only)
+    banner_file = os.path.join(data_dir, "banner.txt") if a.cmd == "host" else None
+    if banner_file and os.path.exists(banner_file):
+        os.unlink(banner_file)                        # a stale copy must never be shown
 
     def show_banner():
         if not netsetup.STATE["ready"]:
             return
-        print(netsetup.banner(svc.admin_password), flush=True)
-        try:
-            with open(banner_file, "w", encoding="utf-8") as f:   # read by install.sh (has the admin password: local only)
-                f.write(netsetup.banner(svc.admin_password))
+        print(netsetup.banner(svc.admin_password, color=sys.stdout.isatty()), flush=True)
+        if banner_file:
+            with open(banner_file, "w", encoding="utf-8") as f:
+                f.write(netsetup.banner(svc.admin_password, color=False))
             os.chmod(banner_file, 0o600)
-        except OSError:
-            pass
 
     if a.auto_net:
         await asyncio.to_thread(netsetup.setup, use_upnp=os.environ.get("UPNP", "1") != "0")
@@ -119,8 +108,8 @@ async def run(a):
     identity.start_publisher()
     from . import events, updates
     updates.start(lambda v: events.feed(svc, f"A newer server version is out ({v}): "
-                                             + ("close this window and start the server again to update" if a.cmd == "host"
-                                                else "run the install command again to update"), "warn"))
+                                             + ("run the install command again to update" if os.environ.get("PES_SERVICE") == "1"
+                                                else "close this window and start the server again to update"), "warn"))
     if os.environ.get("PES_CONSOLE") == "1":
         print("   Keep this window open while you play. Press Ctrl+C to stop the server.\n", flush=True)
     stop = asyncio.Event()
@@ -148,7 +137,7 @@ async def run(a):
 
 
 def _host_setup(a):
-    """The downloadable program: everything the Docker entrypoint sets, for this computer."""
+    """The downloadable program (and the always-on service): settings for this computer."""
     os.makedirs(a.data, exist_ok=True)
     a.db = os.path.join(a.data, "pesserver.db")
     a.host, a.codec, a.no_register, a.stun_host = "0.0.0.0", "ncl", False, None
@@ -156,15 +145,12 @@ def _host_setup(a):
     a.auto_net = not a.public_ip
     env = os.environ
     env.setdefault("PES_CONSOLE", "1")
-    env["PES_PROGRAM"] = "1"
     env["PESSERVER_HTTP_PORT"] = str(a.http_port)
     env["PESSERVER_GATE_PORT"] = str(a.gate_port)
     env["PESSERVER_CERTS"] = os.path.join(a.data, "certs")
-    env.setdefault("PESSERVER_BANNER_FILE", os.path.join(a.data, "banner.txt"))
     if a.public_ip:
         env["PESSERVER_PUBLIC_ADDR"] = a.public_ip
     from . import gamesetup
-    httpgate.MOD_DLL = env.get("PESSERVER_MOD_DLL") or bundled("mod", "dinput8.dll")
     gamesetup.use_local_games()
     if sys.platform == "win32":
         os.system("")                     # turn on colours in the Windows console

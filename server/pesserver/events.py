@@ -1,6 +1,6 @@
 """Live server activity for the admin page: who is online, matches in progress, finished results and
 an activity feed. Fed by pescmds.dispatch (observe) and gate disconnects; results are kept in SQLite."""
-import collections, logging, os, time
+import collections, logging, os, sys, time
 
 log = logging.getLogger("pesserver.events")
 
@@ -41,7 +41,7 @@ def feed(svc, text, kind="info"):
     if os.environ.get("PES_CONSOLE") == "1":      # foreground: the host's window shows the same feed
         line = time.strftime("%H:%M", time.localtime(item["t"])) + "  " + text
         color = {"goal": "1;32", "result": "1", "warn": "33"}.get(kind)
-        print(f"   \033[{color}m{line}\033[0m" if color else "   " + line, flush=True)   # a terminal, like the banner
+        print(f"   \033[{color}m{line}\033[0m" if color and sys.stdout.isatty() else "   " + line, flush=True)
     try:
         db = svc.accounts.db
         with svc.accounts.lock, db:

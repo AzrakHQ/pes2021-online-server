@@ -26,7 +26,7 @@ It downloads the server (one program, 15–30 MB, no admin rights) and prints yo
 **password**. Keep the window open while you play: **Ctrl+C** or closing it stops the server. Paste the same line
 next time: it always starts the newest version.
 
-**Always-on server** (VPS, home server, Raspberry Pi; starts by itself after a reboot, uses Docker):
+**Always-on server** (Linux VPS, home server, Raspberry Pi; runs as a service and starts by itself after a reboot):
 `curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh`
 
 ## 2. Host: send your friends the mod
@@ -58,7 +58,7 @@ delete the file.
 | Problem | Fix |
 |---|---|
 | A friend can't connect | The host's server must be running. The mod writes what it tried to `pes2021-online.log` in the game folder |
-| "Router ports are closed" on the host | Turn on **UPnP** in your router settings and run the install again, or forward the ports it lists |
+| "Router ports are closed" on the host | Turn on **UPnP** in your router settings and start the server again, or forward the ports it lists |
 | "Failed to connect with opponent" | The two PCs can't reach each other directly. Everyone installs [Tailscale](https://tailscale.com); the host starts the server again with `PUBLIC_IP=<host's Tailscale IP>` before `sh` (PowerShell: `$env:PUBLIC_IP="…";` before `irm`) |
 | Play on another server | Get that server's file and replace yours, or hold **Shift** while the game starts and paste its address |
 
@@ -67,29 +67,8 @@ Quick Match), the game asks for a region and a player name, and your server save
 their Steam account. They appear on the admin page.
 
 Updating: paste your start line again (the admin page also tells you when a newer version is out). Always-on
-server: `sudo docker logs pesserver` (shows the admin page and password again) · `sudo docker stop pesserver` ·
-`sudo docker start pesserver`; run its install line again to update.
-
-<details id="hosting-from-windows-or-mac"><summary><b>Hosting from Windows or Mac with Docker Desktop</b> (older way; the one line above needs no Docker)</summary>
-
-Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and start it. Download this
-repo (**Code → Download ZIP**) and unzip it. In that folder, create a file named `.env` containing one
-line with the address every player will use: your PC's LAN address for friends in your home (`ipconfig`,
-"IPv4 Address"), or your public IP / Tailscale IP for friends elsewhere:
-```
-PUBLIC_IP=192.168.1.50
-```
-(In PowerShell: `Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii`.) Then, in a terminal in
-that folder:
-```
-docker compose -f docker-compose.bridge.yml up -d
-docker compose -f docker-compose.bridge.yml logs
-```
-The admin page is at `http://localhost:8090/admin` on that PC (the logs show the password); it isn't
-reachable from other computers.
-With a public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this PC (players in
-your own home may then need "NAT loopback" on the router). Not yet tested.
-</details>
+server: run its install line again to update · `sudo cat /var/lib/pes2021-server/banner.txt` (admin page and
+password) · `sudo systemctl stop pes2021-server` · `sudo systemctl start pes2021-server`.
 
 <details><summary><b>Set up earlier with a join line?</b></summary>
 
