@@ -45,9 +45,6 @@ a{color:var(--accent);text-underline-offset:3px}
 .skip:focus{left:8px}
 .totop{margin:18px 0 0;font-size:14px;text-align:right}.totop a{text-decoration:none;font-weight:600}
 @media (min-width:1000px){.grid{grid-template-columns:repeat(5,1fr)}}
-@media (max-width:440px){.site ul li:last-child{display:none}.site ul{gap:10px}}
-@media (max-width:350px){.site ul li:nth-child(3){display:none}}
-@media (max-width:420px){.site .logo{display:none}.site ul{gap:10px}.site ul a{font-size:13px}.site .in{gap:10px}}
 footer.site-foot{border-top:1px solid var(--line);color:var(--muted);font-size:14px}
 footer.site-foot .in{max-width:1080px;margin:0 auto;padding:28px 16px 48px;display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
 footer.site-foot a{color:var(--muted)}
@@ -61,7 +58,6 @@ footer.site-foot a{color:var(--muted)}
 .site ul a:hover{color:var(--ink)}
 .site .theme{float:none;width:36px;height:36px;border-radius:99px;display:grid;place-items:center;padding:0}
 .site .theme svg{width:18px;height:18px;min-width:0}
-@media (max-width:640px){.site .logo span{display:none}.site ul{gap:12px}.site ul a{font-size:14px}}
 .plain{background:var(--soft);border-radius:10px;padding:14px 16px;margin:14px 0 6px}
 main{max-width:1080px;margin:0 auto;padding:28px 16px 80px}
 h1{font-size:clamp(28px,4vw,38px);line-height:1.15;letter-spacing:-.02em;margin:0 0 6px}
@@ -99,6 +95,10 @@ nav.toc a{color:var(--accent);text-decoration:none}
 .log li{margin:4px 0}
 .theme{flex:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer}
 code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
+@media (max-width:640px){.site .logo span{display:none}.site ul{gap:12px}.site ul a{font-size:14px}}
+@media (max-width:440px){.site ul li:last-child{display:none}.site ul{gap:10px}}
+@media (max-width:420px){.site .logo{display:none}.site ul{gap:10px}.site ul a{font-size:13px}.site .in{gap:10px}}
+@media (max-width:360px){.site .in{padding:0 12px;gap:8px}.site ul{gap:8px}.site ul a{font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -126,7 +126,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 
 <h2 id="status">Status</h2>
 <div class="grid">
-  <div class="stat"><b>Redirect</b><span class="t-ok">✔ 6 Konami hostnames → your server (hosts file, set by the join line)</span></div>
+  <div class="stat"><b>Redirect</b><span class="t-ok">✔ 6 Konami hostnames → your server (answered by the mod inside the game)</span></div>
   <div class="stat"><b>Frame</b><span class="t-ok">✔ XOR + MD5 (NclMio)</span></div>
   <div class="stat"><b>Body crypto</b><span class="t-ok">✔ Blowfish-ECB, static 56-byte key</span></div>
   <div class="stat"><b>Payload</b><span class="t-ok">✔ MessagePack commands</span></div>
@@ -148,8 +148,8 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <text x="120" y="184" text-anchor="middle" class="muted" font-size="13">fox::ncl NclMio</text>
   <text x="120" y="204" text-anchor="middle" class="muted" font-size="13">client 1.01.00</text>
   <rect class="box" x="270" y="125" width="150" height="80" rx="10"/>
-  <text x="345" y="155" text-anchor="middle" font-weight="700">hosts file</text>
-  <text x="345" y="175" text-anchor="middle" class="muted" font-size="12">written by the join line</text>
+  <text x="345" y="155" text-anchor="middle" font-weight="700">the mod</text>
+  <text x="345" y="175" text-anchor="middle" class="muted" font-size="12">dinput8.dll in the game</text>
   <text x="345" y="192" text-anchor="middle" class="muted" font-size="12">6 Konami names → server</text>
   <path class="ar" d="M220 165 H270"/>
   <rect class="hl" x="500" y="20" width="420" height="70" rx="10"/>
@@ -306,7 +306,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
   <li>Its UDP socket is bound to the network interface, so it cannot reach 127.0.0.1 — the redirect target must be the machine's LAN address. <span class="tag t-ok">LIVE</span></li>
   <li>Probe order: (1) 32-byte Binding Request with vendor attr <code>0xF000</code> (8 bytes: <code>05730000 00000002</code>); (2) TLS to port 443 with SNI <code>ntl.service.konami.net</code> (no HTTP request seen after the handshake yet); (3) 64-byte Binding Requests every 5 s with vendor attrs <code>0x9090</code> (24 B, starts <code>10000001</code>) and <code>0x9091</code> (12 B, <code>00010104 00000000 &lt;counter&gt;</code>). The keepalives need more than a plain Binding Success (see next item). <span class="tag t-ok">LIVE</span></li>
   <li>A plain Binding Success (XOR-MAPPED + MAPPED, same tid) <b>is</b> accepted for the 0xF000 "MappingTestIA" probe. The 0x9090/0x9091 packets are post-test <b>keepalives</b> (RP_P2P_HEADER / RP_RELIABILITY); a new serial every 5 s means they are being answered. Don't send OTHER-ADDRESS unless a real alternate IP:port exists. <span class="tag t-ok">LIVE</span></li>
-  <li><b>GateInfo.php</b>: <code>POST https://ntl.service.konami.net/ntl/api/GateInfo.php</code>, User-Agent <code>NTL HttpModule/0.1</code>, body <code>req={"titleCode":"PES2021",…}</code>. WinHTTP default certificate validation (no pinning) — solved by a private CA, name-constrained to the four NTL host names, that the join line trusts: on Windows in the machine Root store, on Linux only inside the game's Proton prefix (<code>server/pesserver/web/install-ca-proton.py</code> writes it into <code>system.reg</code>). Reply is text lines: <code>STATUS: 200</code>, <code>API_STATUS: 0</code>, <code>LOG_ACTIVE: 0</code>, <code>SERVER_TIME: &lt;unix&gt;</code>. <span class="tag t-ok">LIVE</span></li>
+  <li><b>GateInfo.php</b>: <code>POST https://ntl.service.konami.net/ntl/api/GateInfo.php</code>, User-Agent <code>NTL HttpModule/0.1</code>, body <code>req={"titleCode":"PES2021",…}</code>. WinHTTP default certificate validation (no pinning). The mod sets <code>WINHTTP_OPTION_SECURITY_FLAGS</code> (ignore unknown CA / CN / date / usage) on requests whose connection was opened to one of the four <code>ntl*.service.konami.net</code> names, and on nothing else. (The earlier join scripts instead trusted a private CA name-constrained to those four names.) Reply is text lines: <code>STATUS: 200</code>, <code>API_STATUS: 0</code>, <code>LOG_ACTIVE: 0</code>, <code>SERVER_TIME: &lt;unix&gt;</code>. <span class="tag t-ok">LIVE</span></li>
 </ul>
 </div>
 
@@ -364,12 +364,12 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 <h2 id="deploy">Deployment</h2>
 <div class="panel"><ol>
-  <li>Host (Linux): <code>curl -fsSL …/install.sh | sh</code> installs Docker if needed and runs the server image (published as <code>ghcr.io/mohamedalirashad/pes2021-private-server</code>; built from the repo when it can't be pulled) with host networking. No configuration: <code>netsetup.py</code> finds the LAN IP, asks the router for its external IP and opens TCP 80/443/8080/10000 + UDP 3478/7600 over UPnP IGD (renewed every 30 min, removed on stop), checks the public IP against a what-is-my-IP service to detect CGNAT, and prints the player commands. Docker Desktop hosts use <code>docker-compose.bridge.yml</code> with a fixed <code>PUBLIC_IP</code>. <span class="tag t-ok">LIVE</span></li>
+  <li>Host (Linux): <code>curl -fsSL …/install.sh | sh</code> installs Docker if needed and runs the server image (published as <code>ghcr.io/mohamedalirashad/pes2021-private-server</code>; built from the repo when it can't be pulled) with host networking. No configuration: <code>netsetup.py</code> finds the LAN IP, asks the router for its external IP and opens TCP 80/443/8080/10000 + UDP 3478/7600 over UPnP IGD (renewed every 30 min, removed on stop), checks the public IP against a what-is-my-IP service to detect CGNAT, and prints the admin page address and password. It also looks for <code>PES2021.exe</code> (Steam libraries, <code>~/Games</code>) and bind-mounts only those folders and their Wine prefixes, for the admin page's one-click install. Docker Desktop hosts use <code>docker-compose.bridge.yml</code> with a fixed <code>PUBLIC_IP</code>. <span class="tag t-ok">LIVE</span></li>
   <li><b>Per-client address</b>: SVRLIST / URLLIST / GAMERELAY carry the server address. Without a pinned <code>PUBLIC_IP</code>, a client from a non-global address (LAN, Tailscale 100.64/10, loopback) gets the local address its TCP connection reached (<code>sockname</code>); an internet client gets the public IP. One server serves LAN and internet players at once. <span class="tag t-ok">LIVE</span></li>
-  <li><b>Player setup is served by the server</b>: <code>irm http://SERVER/join | iex</code> (PowerShell User-Agent → <code>join.ps1</code>, self-elevates) or <code>curl -fsSL http://SERVER/join | bash</code> (→ <code>join.sh</code>); a browser gets an instructions page. The scripts come with the address from the request's <code>Host</code> header filled in. On Linux the CA goes straight into the prefix's <code>system.reg</code> (<code>[Software\\Microsoft\\SystemCertificates\\Root\\Certificates\\&lt;SHA1&gt;]</code>, <code>"Blob"=hex:</code> 20,00,00,00 01,00,00,00 len DER), so no Wine/Proton is needed; earlier server CAs are removed. Verified: GateInfo over HTTPS passes with a CA written this way. <span class="tag t-ok">LIVE</span></li>
-  <li>First start generates a private CA (name-constrained to the four NTL host names) plus a certificate for <code>ntl</code>, <code>ntleu</code>, <code>ntlus</code> and <code>ntljp.service.konami.net</code> only (no wildcards, no IP addresses), in the data volume (<code>/data/certs</code>); the CA is downloadable at <code>http://&lt;ip&gt;:8080/ca.crt</code>.</li>
+  <li><b>The mod</b> (<code>server/mod/</code>, built by the image's first stage with MinGW): a <code>dinput8.dll</code> proxy (exports forwarded to the system DLL) that hooks <code>ws2_32</code> <code>getaddrinfo</code> / <code>GetAddrInfoW</code> / <code>GetAddrInfoExW</code> / <code>gethostbyname</code> for the 6 Konami names, and <code>winhttp</code> <code>WinHttpConnect</code> / <code>OpenRequest</code> / <code>SendRequest</code> for the NTL certificate exception. Hooks are MinHook detours in the system DLLs; the game's own code is not touched. Loaded under Proton via <code>WINEDLLOVERRIDES="dinput8=n,b"</code> or the per-program registry override <code>[Software\\Wine\\AppDefaults\\PES2021.exe\\DllOverrides] "dinput8"="native,builtin"</code>, which the admin page writes into the prefix's <code>user.reg</code>. <span class="tag t-ok">LIVE</span></li>
+  <li><b>Server identity</b>: an Ed25519 key in the data volume. <code>/mod/dinput8.dll</code> writes the public key and the server's addresses into a 2 KB reserved section of the DLL (<code>.pescfg</code>). Before using an address the mod GETs <code>/mod/hello?n=&lt;random nonce&gt;</code> and checks the signature (Monocypher); to find the server again it fetches a signed <code>/mod/note</code> (time + addresses) and ignores notes not signed by that key or older than the last one seen. Tested in the game: fresh download, dead web link plus wrong IP, forged note rejected. <span class="tag t-ok">LIVE</span></li>
+  <li>The server still keeps the private CA (name-constrained to the four NTL host names) for players set up with the older join scripts (<code>/join</code>, <code>/ca.crt</code>); the mod doesn't use it.</li>
   <li><b>Docker bridge vs. the NAT test</b>: the client's STUN socket is bound to the network interface (Wine maps <code>IP_UNICAST_IF</code> to <code>SO_BINDTODEVICE</code>). A game on the <i>same Linux PC</i> as a bridged container therefore never reaches it: the DNAT'd packet must go out via docker0, but the socket is pinned to the NIC. Verified with a device-bound test socket (no reply on the bridge, reply with host networking). Remote players are unaffected. <span class="tag t-ok">LIVE</span></li>
-  <li>What the join scripts do: hosts-file entries for <code>pes21-x64-gate.cs.konami.net</code>, <code>pes21-x64-stun.cs.konami.net</code>, <code>ntl / ntleu / ntlus / ntljp.service.konami.net</code>, and trust the server CA (Windows: <code>Import-Certificate</code> into <code>Cert:\LocalMachine\Root</code>; Linux: the game's Proton prefix only). The CA carries a critical <code>nameConstraints</code> extension (permitted: exactly the four <code>ntl*.service.konami.net</code> names; all IPs excluded), so it cannot vouch for any other site, Konami's included. A CA from an older version (constrained to <code>konami.net</code>) is replaced on start and the banner asks players to rejoin. No change to the game files.</li>
 </ol></div>
 
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
@@ -433,6 +433,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 <h2 id="log">Changelog</h2>
 <ul class="log">
+  <li><b>2026-11-05</b> — <b>The mod replaces the join commands</b>: one <code>dinput8.dll</code> per server, no admin rights or system changes; signed server identity; admin page download and one-click install on the host's own PC; the Cloudflare tunnel was removed again (the mod never needed a web link); admin page limited to the home network.</li>
   <li><b>2026-11-05</b> — Free public web address per server (Cloudflare quick tunnel, <code>https://&lt;words&gt;.trycloudflare.com</code>) for the join page and scripts; join scripts receive the server's LAN + internet IPs and pick the one answering <code>/status</code> with the server id (sha1 of its CA). Password-protected admin page (<code>/admin</code>): online players, live matches by phase, saved results (<code>pes_matches</code>), league table, activity feed, kick. Note: the game logs in twice (ACCOUNT then MENU connection); a pairing can be abandoned with LEAVE_ROOM before kick-off and re-paired in a new room.</li>
   <li><b>2026-11-04</b> — <b>One-command hosting</b>: <code>install.sh</code> (installs Docker, runs the published image), zero-config networking (UPnP, public-IP/CGNAT detection, per-client advertised address), player setup served at <code>/join</code> and <code>/leave</code>, CA written directly into the Proton prefix registry. Tested: installer → served join script on both prefixes → fresh users → network test → matched → kick-off.</li>
   <li><b>2026-11-04</b> — Docker end-to-end: fresh container, CA from <code>/ca.crt</code> installed with the player script, new players created, matched and playing through the container. Found the bridge/NAT-test limitation; added the host-network compose file.</li>

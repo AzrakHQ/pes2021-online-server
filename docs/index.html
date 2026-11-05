@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PES 2021 Online: play eFootball PES 2021 online again</title>
 <script>try { var t = localStorage.getItem("pes-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
-<meta name="description" content="Konami switched off the PES 2021 servers. Run your own with one command, friends join with one line, and play online Quick Match again. The game is never modified.">
+<meta name="description" content="Konami switched off the PES 2021 servers. Run your own with one command, send friends one small file, and play online Quick Match again. No admin rights, no game files changed.">
 <meta property="og:title" content="PES 2021 is back online">
-<meta property="og:description" content="Host your own PES 2021 server with one command. Friends join with one line. Then just play.">
+<meta property="og:description" content="Host your own PES 2021 server with one command. Friends get one small file. Then just play.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mohamedalirashad.github.io/pes2021-private-server/">
 <meta property="og:image" content="https://mohamedalirashad.github.io/pes2021-private-server/og.png">
@@ -134,6 +134,16 @@ section.alt .pick li { background: var(--bg); }
 .banner-mock > div:not(.bm-title) { padding-left: 132px; text-indent: -132px; }
 .banner-mock .bm-title { color: #fff; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.15); padding-bottom: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; gap: 20px; }
 .banner-mock .bm-title span { color: #3ccf8e; }
+.admin-mock { display: grid; gap: 10px; margin: 0 0 12px; }
+.am-card { background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; display: grid; gap: 6px; }
+section.alt .am-card { background: var(--bg); }
+.am-invite { border: 2px solid var(--brand); }
+.am-card b { font-size: 15px; }
+.am-card span { color: var(--muted); }
+.am-card i { font-style: normal; font-weight: 700; text-align: center; background: var(--brand); color: var(--on-brand); border-radius: 9px; padding: 9px 12px; }
+.am-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.am-row i { padding: 6px 12px; }
+.am-row code { overflow-wrap: anywhere; }
 .banner-mock.ps { background: #012456; border-color: #0b3a7a; color: #eef3ff; margin: 0 0 12px; }
 .banner-mock.ps > div:not(.bm-title) { padding-left: 0; text-indent: 0; }
 .banner-mock.ps .ok { color: #7ee2a8; font-weight: 700; }
@@ -285,9 +295,9 @@ footer a { color: var(--muted); }
 <header class="hero" id="top">
   <div class="wrap">
     <div>
-      <span class="eyebrow">Free · Open source (MIT) · No game mods</span>
+      <span class="eyebrow">Free · Open source (MIT) · No admin rights</span>
       <h1>PES 2021 is back online.</h1>
-      <p class="lead">Konami switched off the online servers for eFootball PES 2021, and every online mode went dark with them. This project brings online Quick Match back: one friend runs a small server, everyone else joins with one line, and you play real online matches again.</p>
+      <p class="lead">Konami switched off the online servers for eFootball PES 2021, and every online mode went dark with them. This project brings online Quick Match back: one friend runs a small server, everyone else gets one small file, and you play real online matches again.</p>
       <div class="ctas">
         <a class="btn primary" href="#play">Start playing</a>
         <a class="btn ghost" href="#inside">How it works</a>
@@ -296,7 +306,7 @@ footer a { color: var(--muted); }
       <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or cheap server</b> to host (Windows/Mac hosting should work through Docker Desktop, untested).</p>
       <ul class="facts">
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>1 command to host</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>1 line to join</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>1 file for friends</li>
         <li><svg viewBox="0 0 24 24" fill="none" stroke="#3ccf8e" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>0 game files changed</li>
       </ul>
     </div>
@@ -345,7 +355,7 @@ footer a { color: var(--muted); }
       <div class="card test">
         <h3>Ready, needs testers</h3>
         <ul class="check">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Windows players: the join script is written but not yet run on a real Windows PC</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Windows players: the mod is built for Windows, but so far it has only run on Linux under Proton</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Starting the game from the Steam client: our tests launched the game directly under Proton</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Steam Deck: same as Linux, not yet tried on a Deck</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Two separate PCs, in the same home or far apart: not tested yet</span></li>
@@ -363,7 +373,7 @@ footer a { color: var(--muted); }
       </div>
     </div>
     <a class="card hook" href="#inside"><span>At 04:28 one morning, the game sent 152 bytes to a computer that wasn't Konami. Fourteen hours later, two copies played a full match through it.</span><span class="go">How it works →</span></a>
-    <nav class="jump" aria-label="Jump to"><a href="#host">Host a server</a><a href="#join">Join &amp; play</a><a href="#help">Help</a><a href="#inside">How it works</a></nav>
+    <nav class="jump" aria-label="Jump to"><a href="#host">Host a server</a><a href="#share">Send the file</a><a href="#join">Join &amp; play</a><a href="#help">Help</a><a href="#inside">How it works</a></nav>
     <p class="note">Tried it on Windows, a Steam Deck, through the Steam client or across two homes? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues/new?template=test-report.md">Tell us how it went</a>; it's the most useful thing you can do for the project right now.</p>
   </div>
 </section>
@@ -372,7 +382,7 @@ footer a { color: var(--muted); }
   <div class="wrap">
     <p class="kicker">Get playing</p>
     <h2>Three steps, about five minutes</h2>
-    <p class="intro">Every player needs their own copy of PES 2021 on Steam (version 1.01.00, the final update). One person hosts; nobody touches the game files.</p>
+    <p class="intro">Every player needs their own copy of PES 2021 on Steam (version 1.01.00, the final update). One person hosts; everyone else gets one small file.</p>
     <div class="steps">
       <div class="card step" id="host">
         <div>
@@ -385,86 +395,89 @@ footer a { color: var(--muted); }
             <li><b>All on Windows, want it free:</b> <a href="#faq-winhost">Docker Desktop</a> on one PC, about 20 minutes.</li>
           </ul>
           <p class="small muted">Any 64-bit Linux works: your gaming PC, a laptop, a Raspberry Pi with 64-bit Raspberry Pi OS, or a cloud server. Ubuntu, Debian and Fedora need nothing else; on Arch, SteamOS or Bazzite, install Docker with your package manager first. Open a terminal, paste the command and press Enter.</p>
-          <p class="small muted">It asks for your password (sudo), installs Docker if it's missing, and when it's ready shows <b>your server's web address</b>, <b>the line for your friends</b> and <b>your admin password</b>.</p>
-          <p class="small muted"><b>Playing on the same PC?</b> If PES 2021 is installed there, the installer offers to set it up for you too.</p>
+          <p class="small muted">It asks for your password (sudo), installs Docker if it's missing, and when it's ready shows <b>your admin page</b> and <b>its password</b>. That's all you need.</p>
         </div>
         <div>
           <div class="cmd"><span class="label">Linux terminal</span><pre id="c-host">curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
-          <div class="banner-mock" role="img" aria-label="Example of what the host sees when the server is ready: the server's web address, the lines to send Windows and Linux friends, and the admin page with its password">
+          <div class="banner-mock" role="img" aria-label="Example of what the host sees when the server is ready: the admin page address and its password.">
             <div class="bm-title">⚽ PES 2021 SERVER <span>● ONLINE</span></div>
-            <div><span class="bm-k">Your server</span>https://brave-tiger-moon-river.trycloudflare.com</div>
-            <div><span class="bm-k">Windows friends</span>irm https://brave-tiger-moon-river…/join | iex</div>
-            <div><span class="bm-k">Linux / Deck</span>curl -fsSL https://brave-tiger-moon-river…/join | bash</div>
-            <div><span class="bm-k">Admin page</span>…/admin · password k7Rm-2Qx9-PaLw</div>
+            <div><span class="bm-k">Admin page</span>http://192.168.1.50/admin</div>
+            <div><span class="bm-k">Password</span>k7Rm-2Qx9-PaLw</div>
           </div>
           <details class="changes">
             <summary>What the installer does</summary>
             <ul>
               <li>Installs Docker if it's missing, using Docker's official script from get.docker.com (it runs as administrator).</li>
               <li>Starts the server in a container that restarts after reboots until you stop it. It uses about 50 MB of memory.</li>
-              <li>Opens 6 ports on your router (UPnP) and keeps a free Cloudflare tunnel running for the web address. The tunnel is a free service with no uptime promise. If it's down, friends use the lines by IP address that the banner also shows: <code>irm http://&lt;your IP&gt;/join | iex</code> on Windows or <code>curl -fsSL http://&lt;your IP&gt;/join | bash</code> on Linux. Those aren't encrypted, so prefer the web address when it works.</li>
-              <li>The admin page by IP (<code>http://&lt;your LAN IP&gt;/admin</code>) sends its password unencrypted; use it only at home.</li>
-              <li>The join page, admin page and game services are reachable from the internet; the admin page needs its password.</li>
+              <li>Opens 6 ports on your router (UPnP) so friends outside your home can reach you.</li>
+              <li>If PES 2021 is installed on this computer, lets the server see <b>only those game folders</b>, so the admin page can install the mod for you in one click.</li>
               <li>Keeps players, results and a message log in a Docker volume. <a href="#faq-host">Stop or remove it</a> any time.</li>
             </ul>
           </details>
           <p class="note"><b>No Linux PC?</b> A small cloud server should work too (not yet tested): <a href="#faq-cloud">step by step</a>. Or host from <a href="#faq-winhost">Windows or a Mac</a> with Docker Desktop (should work, untested).</p>
         </div>
       </div>
-      <div class="card step" id="join">
+
+      <div class="card step" id="share">
         <div>
           <div class="step-num" aria-hidden="true">2</div>
-          <h3>Friends join, once</h3>
-          <p class="small muted">Each player runs the line the host sends them, once.</p>
-          <ol class="small how">
-            <li><b>Windows</b> (should work, not yet tested on a real Windows PC): press Start, type <b>PowerShell</b>, open it, paste the line, press Enter and click <b>Yes</b>. A second, administrator window opens and finishes with <b>Done!</b>. If Windows Firewall later asks about PES 2021, click <b>Allow</b>.</li>
-            <li><b>Linux:</b> start the game once from Steam, <b>close it</b>, then paste the line in a terminal (needs <code>python3</code>, which most distributions include).</li>
-            <li><b>Steam Deck:</b> switch to Desktop Mode, open <b>Konsole</b>, type <code>passwd</code> to set a password if you never have, then paste the line.</li>
-          </ol>
-          <details class="changes" open>
-            <summary>What this changes on your PC</summary>
+          <h3>The host sends friends one file</h3>
+          <p class="small muted">Open your admin page, sign in with the password, and click <b>Download the mod for friends</b>. You get one small file, <code>dinput8.dll</code>, made for your server.</p>
+          <p class="small muted">Send it to each friend on <b>Discord, WhatsApp or Telegram</b>. Email usually blocks this kind of file.</p>
+          <p class="small muted"><b>Playing on the same PC?</b> If the installer found PES 2021 on it, the admin page has a <b>This PC</b> card: close the game and click <b>Install mod</b>.</p>
+        </div>
+        <div>
+          <div class="admin-mock" role="img" aria-label="The top of the admin page: an Invite your friends card with a large Download the mod button, and a This PC card with an Install mod button.">
+            <div class="am-card am-invite">
+              <b>Invite your friends</b>
+              <span>Send each friend this one file, once. It already knows your server and keeps working after restarts.</span>
+              <i>⬇ Download the mod for friends</i>
+            </div>
+            <div class="am-card">
+              <b>This PC</b>
+              <span class="am-row"><code>~/.steam/…/eFootball PES 2021</code><i>Install mod</i></span>
+            </div>
+          </div>
+          <details class="changes">
+            <summary>Why one file is enough</summary>
             <ul>
-              <li>Adds 6 lines to your <b>hosts file</b> so Konami's old server names point to your friend's server.</li>
-              <li>Trusts your friend's server <b>certificate</b>. On Windows it goes into the machine's Trusted Root store; on Linux only inside the game. It is restricted to the four network-test addresses the game uses by a standard certificate rule (a name constraint), so it isn't valid for your bank or any other website.</li>
-              <li>Nothing else, and never the game files. <a href="#faq-undo">Undo it any time</a>, even if the server is gone. Read the scripts: <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/server/pesserver/web/join.ps1">Windows</a> · <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/server/pesserver/web/join.sh">Linux</a>.</li>
+              <li>The file carries your server's <b>identity</b> and addresses, so your friends never type anything.</li>
+              <li>It keeps working after your server restarts: it remembers your server's last address and checks it's really you before connecting.</li>
+              <li>If your internet address changes (rare on most home connections), send the file again.</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+
+      <div class="card step" id="join">
+        <div>
+          <div class="step-num" aria-hidden="true">3</div>
+          <h3>Friends drop it in and play</h3>
+          <ol class="small how">
+            <li>In Steam, right-click <b>PES 2021</b> → <b>Manage</b> → <b>Browse local files</b>, and put <code>dinput8.dll</code> in that folder, next to <code>PES2021.exe</code>.</li>
+            <li><b>Steam Deck / Linux only:</b> right-click PES 2021 → <b>Properties</b> → <b>Launch options</b>, and paste the line on the right.</li>
+            <li>Start PES 2021. The first time, pick your region, accept the terms and choose a player name.</li>
+            <li>Go to <b>eFootball → Quick Match</b>, pick a team and press <b>Go to Matchmaking</b>. When two players are searching, the server pairs them: press <b>Proceed</b>, then both press <b>Kick Off</b>.</li>
+          </ol>
+          <details class="changes">
+            <summary>What the mod changes on your PC</summary>
+            <ul>
+              <li><b>Nothing outside the game.</b> No administrator rights, no hosts file, no certificate, no installer. It only acts while PES 2021 is running.</li>
+              <li>Inside the game it does two things: when the game asks for Konami's old servers, it answers with your friend's server; and for the game's network test only, it accepts your friend's server instead of Konami's certificate.</li>
+              <li><b>Undo:</b> delete <code>dinput8.dll</code> (and the launch option on Linux). Open source: <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">read the code</a>.</li>
             </ul>
           </details>
         </div>
         <div>
-          <p class="small muted" style="margin:0 0 8px"><b>Your host's line will look like this</b> (use theirs, not these examples):</p>
-          <div class="cmd example"><span class="label">Windows · PowerShell</span><pre>irm https://brave-tiger-moon-river.trycloudflare.com/join | iex</pre></div>
-          <div class="cmd example"><span class="label">Linux · Steam Deck terminal</span><pre>curl -fsSL https://brave-tiger-moon-river.trycloudflare.com/join | bash</pre></div>
-          <p class="warnline">This runs your host's setup script with administrator rights: it adds 6 lines to your hosts file and trusts a certificate that only works for the game's four network-test addresses. Use it only with people you trust. <a href="#faq-undo">Undo any time</a>.</p>
-          <p class="note">Opening the host's address in a browser shows their lines with copy buttons.</p>
-          <p class="note"><b>Antivirus warning?</b> Some antivirus tools flag any line that downloads and runs a script. That's expected for this kind of line; <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/server/pesserver/web/join.ps1">read the script</a> first if you're unsure.</p>
-          <div class="banner-mock ps" role="img" aria-label="Example of the Windows administrator window when joining finishes: Done! Start PES 2021, eFootball, Quick Match to play on the server; if Windows Firewall asks about PES 2021, click Allow; and the undo line.">
-            <div class="bm-title">Administrator: Windows PowerShell</div>
-            <div class="ok">Done! Start PES 2021 -&gt; eFootball -&gt; Quick Match to play on brave-tiger-moon-river.trycloudflare.com.</div>
-            <div>If Windows Firewall asks about PES 2021, click Allow.</div>
-            <div>Undo any time:  irm https://brave-tiger-moon-river…/leave | iex</div>
-          </div>
-          <p class="note"><b>Did it work?</b> The window ends with <b>Done!</b> like the example above. In the game, eFootball's connection test then passes and Quick Match unlocks.</p>
-        </div>
-      </div>
-      <div class="card step" id="howplay">
-        <div>
-          <div class="step-num" aria-hidden="true">3</div>
-          <h3>Play</h3>
-          <p class="small muted">No more setup. From now on you just start the game.</p>
-          <ol class="small how">
-            <li>Start PES 2021. The first time, pick your region, accept the terms and choose a player name.</li>
-            <li>Go to <b>eFootball → Quick Match</b>, pick a team and press <b>Go to Matchmaking</b>.</li>
-            <li>When two players are searching, the server pairs them. Press <b>Proceed</b>, then both press <b>Kick Off</b>.</li>
-          </ol>
-        </div>
-        <div>
-          <p class="small" style="margin:0 0 6px"><b>What success looks like</b></p>
+          <div class="cmd"><span class="label">Steam Deck / Linux launch option</span><pre id="c-launch">WINEDLLOVERRIDES="dinput8=n,b" %command%</pre><button class="copy" data-copy="c-launch" type="button">Copy</button></div>
+          <p class="small" style="margin:14px 0 6px"><b>What success looks like</b></p>
           <ul class="small how">
             <li>The game's network test passes and the eFootball modes are no longer locked.</li>
             <li>After Go to Matchmaking you see "Searching for an opponent…" until a second player searches too.</li>
             <li>Then the game shows the matched opponent and a <b>Proceed</b> button.</li>
           </ul>
-          <p class="note">Stuck? See <a href="#help">Help</a>. Done playing with this host for good? Run the <a href="#faq-undo">undo line</a>.</p>
+          <p class="warnline">Only use a mod file from a friend you trust: it's a program that runs inside your game. The safest copy is one your host downloaded from their own admin page.</p>
+          <p class="note">Stuck? See <a href="#help">Help</a>. The mod writes what it did to <code>pes2021-online.log</code> in the game folder.</p>
         </div>
       </div>
     </div>
@@ -475,12 +488,12 @@ footer a { color: var(--muted); }
   <div class="wrap">
     <p class="kicker">For the host: what you get</p>
     <h2>Your server does the boring parts</h2>
-    <p class="intro">No accounts to create, and in most homes no router settings to dig through.</p>
+    <p class="intro">No accounts to create, no web services to sign up for, and in most homes no router settings to dig through.</p>
     <div class="grid3">
       <div class="card">
-        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></div>
-        <h3>A free web address</h3>
-        <p class="small muted">Each server gets a link like <code>brave-tiger-moon-river.trycloudflare.com</code>, through Cloudflare's free tunnel service. Friends at home and far away use the same link; their PC works out the best way to reach you (playing across two homes isn't tested yet).</p>
+        <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></div>
+        <h3>One file per friend</h3>
+        <p class="small muted">The admin page hands you the mod with your server built in. Friends drop it in the game folder; there's nothing to type and nothing to install.</p>
       </div>
       <div class="card">
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
@@ -490,12 +503,12 @@ footer a { color: var(--muted); }
       <div class="card">
         <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h3M8 17h6"/></svg></div>
         <h3>An admin page</h3>
-        <p class="small muted">Password-protected: who's online, matches in progress and their stage, final scores, a league table, and a kick button.</p>
+        <p class="small muted">Password-protected: the mod download, one-click install on your own PC, who's online, matches in progress and their stage, final scores, a league table, and a kick button.</p>
       </div>
     </div>
     <figure class="shot">
-      <a class="light" href="admin-light.webp"><img src="admin-light.webp" width="1475" height="1434" loading="lazy" alt="The admin page: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands."></a>
-      <a class="dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1475" height="1434" loading="lazy" alt="The admin page in dark mode: three players online, a live match between Alex and Sam in the second half, recent results, an activity feed and the invite commands."></a>
+      <a class="light" href="admin-light.webp"><img src="admin-light.webp" width="1475" height="1434" loading="lazy" alt="The admin page: an Invite your friends card with the mod download, a This PC card, players online, a live match in the second half, recent results and an activity feed."></a>
+      <a class="dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1475" height="1434" loading="lazy" alt="The admin page in dark mode: an Invite your friends card with the mod download, a This PC card, players online, a live match in the second half, recent results and an activity feed."></a>
       <figcaption>The real admin page, filled with made-up demo players and scores. Tap to open it full size.</figcaption>
     </figure>
   </div>
@@ -505,27 +518,26 @@ footer a { color: var(--muted); }
   <div class="wrap">
     <p class="kicker">Troubleshooting</p>
     <h2>Something went wrong?</h2>
-    <p class="intro">Find what you see on screen.</p>
+    <p class="intro">Find what you see. For a friend's problem, the mod's log, <code>pes2021-online.log</code> in their game folder, usually says why.</p>
     <div class="card">
       <table class="help">
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
-          <tr><td>"Unable to connect to the server" when the game starts</td><td>Run your join line again. Then, on that PC, open <code>http://&lt;host's IP&gt;:8080/status</code> in a browser (the host's IP is shown on their screen). If it doesn't load, the host's ports are closed or their IP changed.</td></tr>
-          <tr><td>The network test fails, or eFootball modes stay locked</td><td>Close the game and run the join line again (on Linux the game must be closed). The host should check that ports 443 and 3478 are open.</td></tr>
+          <tr><td>"Unable to connect to the server" when going online</td><td>The host's server must be running. If the log says <i>not found</i>, the server is off or unreachable: the host checks it's up and its router ports are open. If the host's internet address changed, they send a fresh file from the admin page.</td></tr>
+          <tr><td>No <code>pes2021-online.log</code> appears in the game folder</td><td>The mod didn't load. Check that <code>dinput8.dll</code> is next to <code>PES2021.exe</code> (not in a subfolder, not renamed to <code>dinput8 (1).dll</code>). On Steam Deck / Linux, check the launch option.</td></tr>
+          <tr><td>The file disappeared, or antivirus warns about it</td><td>Some antivirus tools flag game mods. Restore it and allow it, if it came from your host's admin page. The source code is public.</td></tr>
+          <tr><td>The network test fails, or eFootball modes stay locked</td><td>The host should check that ports 443 and 3478 are open (the banner and admin page say if they aren't).</td></tr>
           <tr><td>Matchmaking searches forever</td><td>Two players must be in eFootball → Quick Match and searching at the same time.</td></tr>
           <tr><td>"Failed to connect with opponent"</td><td>The two PCs can't reach each other directly. Try Tailscale (an untested workaround): see <a href="#faq-far">playing across the internet</a>.</td></tr>
           <tr><td>The host's screen says "Router ports are closed"</td><td>At home: turn on UPnP in your router's settings and run the install line again, or forward the ports it lists. On a cloud server this message is normal: open the 6 ports in the provider's firewall instead.</td></tr>
           <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale or a cheap cloud server.</td></tr>
-          <tr><td>"The remote name could not be resolved" (Windows) or "Could not resolve host" (Linux)</td><td>The line uses an old web address: it changes every time the host's server restarts. Ask the host for the current line (<code>sudo docker logs pesserver</code>), or use the line by IP address under it on the banner, which survives restarts (it isn't encrypted, so prefer the web address when it works).</td></tr>
-          <tr><td>Windows: no <b>Yes</b> prompt appeared, or the window closed without <b>Done!</b></td><td>Right-click Start → <b>Terminal (Admin)</b> or <b>Windows PowerShell (Admin)</b>, paste the line again and press Enter. If your antivirus blocked it, allow it or add an exception, then retry.</td></tr>
-          <tr><td>Windows: "irm" or "iex" is not recognized</td><td>You pasted into the old Command Prompt. Open <b>PowerShell</b> instead (press Start, type PowerShell) and paste the line there.</td></tr>
-          <tr><td>Linux: "PES 2021's Proton prefix was not found"</td><td>Your game isn't in Steam's usual folder (Lutris, Bottles or a custom launcher). Close the game and run the line with your prefix folder put right before <code>bash</code>: see <a href="#faq-prefix">game in its own prefix</a>.</td></tr>
           <tr><td>It works on the host's PC, but nobody else can connect</td><td>The host computer's own firewall is blocking the ports. On Ubuntu with ufw: <code>sudo ufw allow 80,443,8080,10000/tcp</code> and <code>sudo ufw allow 3478,7600/udp</code>. On a cloud server, also open them in the provider's firewall settings.</td></tr>
+          <tr><td>Windows Firewall asks about PES 2021</td><td>Click <b>Allow</b>: matches run directly between the two players' PCs.</td></tr>
           <tr><td>The match ends with a "no operation" message</td><td>The game's own rule: a player didn't touch the controller for about 50 seconds.</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="note">Still stuck? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Open an issue</a> with what you see and the output of <code>docker logs pesserver</code>.</p>
+    <p class="note">Still stuck? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/issues">Open an issue</a> with what you see, the friend's <code>pes2021-online.log</code>, and the output of <code>docker logs pesserver</code>.</p>
   </div>
 </section>
 
@@ -536,61 +548,63 @@ footer a { color: var(--muted); }
     <h3 class="faqh">For players</h3>
     <details class="q">
       <summary>Does this modify or crack the game?</summary>
-      <p>No. The game files stay exactly as Steam installed them, and this project doesn't host, share or patch any game files. It only provides a server for the game to talk to. You need your own legal copy of PES 2021 on Steam.</p>
+      <p>No. The game's own files stay exactly as Steam installed them; the mod is one extra file next to them, and deleting it puts everything back. Nothing here cracks the game or touches its copy protection, and this project doesn't host or share any game files. You need your own copy of PES 2021 on Steam.</p>
     </details>
     <details class="q" id="faq-version">
       <summary>Which version of the game do I need?</summary>
-      <p>eFootball PES 2021 (Season Update) for PC on <b>Steam</b>, at version <b>1.01.00</b>, the final update. Steam installs it automatically, so a normal Steam copy is already on it. Other versions, other stores, consoles and modified game files aren't supported. Every player needs their own copy; this project never shares game files.</p>
+      <p>eFootball PES 2021 (Season Update) for PC on <b>Steam</b>, at version <b>1.01.00</b>, the final update. Steam installs it automatically, so a normal Steam copy is already on it. Other versions, other stores, consoles and modified game files aren't supported.</p>
     </details>
-    <details class="q">
-      <summary>What exactly does the join line do on my PC?</summary>
+    <details class="q" id="faq-mod">
+      <summary>What exactly does the mod do?</summary>
+      <p>PES 2021 loads a file named <code>dinput8.dll</code> from its own folder when it starts; that's the standard way PC game mods load. While the game runs, the mod:</p>
       <ul>
-        <li>It downloads a small setup script from your friend's server and runs it. The script asks for administrator rights (Windows) or your sudo password (Linux).</li>
-        <li>The script adds 6 lines to your <b>hosts file</b>, so the game's old Konami server names point to your friend's server.</li>
-        <li>It trusts your friend's server <b>certificate</b> so the game's connection test passes: on Windows in the machine's Trusted Root store, on Linux only inside the game. The certificate is restricted to the game's four network-test addresses.</li>
+        <li>answers the game's "where are Konami's servers?" with your host's server, for the six names the game uses online;</li>
+        <li>first checks that the address really is your host's server: the server has to prove it holds a secret key that matches the identity written in your file;</li>
+        <li>for the game's network test only, accepts the host's server instead of Konami's certificate;</li>
+        <li>writes what it did to <code>pes2021-online.log</code>.</li>
       </ul>
-      <p>Nothing else. To undo both, see <a href="#faq-undo">how to undo</a>. You can read the exact script before running it by opening <code>https://your-server-address/join.ps1</code> (Windows) or <code>/join.sh</code> (Linux) in a browser, or <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/pesserver/web">on GitHub</a>.</p>
+      <p>That's all. It doesn't change Windows, needs no administrator rights, and stops the moment the game closes. <a href="https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server/mod">Read the source</a>.</p>
     </details>
-    <details class="q">
-      <summary>Should I trust a server my friend runs?</summary>
-      <p>Only use the join line with people you trust: it runs their server's script with administrator rights. The certificate it installs is restricted to the four network-test addresses the game uses, by a standard certificate rule, so it isn't valid for your bank or any other website, including Konami's other sites. Your friend's server holds that certificate's key, so in principle it could pretend to be those four addresses on your PC; that's why you undo it when you stop playing with them.</p>
+    <details class="q" id="faq-trust">
+      <summary>Should I trust a mod file my friend sends?</summary>
+      <p>Only from friends you trust, like any program. The file your host downloads from their own admin page is the official build with their server's details written in. It can only make your game talk to their server, and it can't be redirected elsewhere: a server that doesn't hold their secret key is refused.</p>
       <p>The server stores your player name, Steam ID and match results, sees your IP address, and keeps a log of the game's messages on the host's disk. Like any peer-to-peer game, your opponent's PC connects straight to yours during a match, so it sees your IP address too.</p>
     </details>
     <details class="q" id="faq-undo">
-      <summary>How do I undo the join line, even if the server is gone?</summary>
-      <p>Run the undo line for your system. It comes from this website, not from your friend's server, so it works even after their server has moved or shut down (the Windows one hasn't been tested on a real Windows PC yet):</p>
+      <summary>How do I undo it?</summary>
+      <p>Delete <code>dinput8.dll</code> from the game folder (and <code>pes2021-online.ini</code> / <code>.log</code> if you like), and on Steam Deck / Linux remove the launch option. Nothing else was changed.</p>
+      <p><b>Set up earlier with a join line?</b> That older method changed your hosts file and installed a certificate. Remove both with the undo line for your system, which comes from this website and works even if the server is gone:</p>
       <div class="cmd"><span class="label">Windows · PowerShell</span><pre id="c-leave-w">irm https://mohamedalirashad.github.io/pes2021-private-server/leave.ps1 | iex</pre><button class="copy" data-copy="c-leave-w" type="button">Copy</button></div>
       <div class="cmd"><span class="label">Linux · Steam Deck (close the game first)</span><pre id="c-leave-l">curl -fsSL https://mohamedalirashad.github.io/pes2021-private-server/leave.sh | bash</pre><button class="copy" data-copy="c-leave-l" type="button">Copy</button></div>
-      <p>By hand: delete the lines ending in <code># pes2021-private-server</code> from your hosts file (<code>C:\Windows\System32\drivers\etc\hosts</code> or <code>/etc/hosts</code>), and on Windows open <code>certlm.msc</code> → Trusted Root Certification Authorities → Certificates and delete "PES2021 Private Server CA".</p>
     </details>
-    <details class="q" id="faq-prefix">
-      <summary>My game isn't in Steam's usual folder. How do I join?</summary>
-      <p><b>Windows:</b> nothing extra. The join line changes the system-wide hosts file and certificate store, so it works wherever the game is installed.</p>
-      <p><b>Linux:</b> the join line looks for the game's Proton prefix in your Steam libraries. If your game runs in its own Proton or Wine prefix (Lutris, Bottles, a custom launcher), it stops with <i>"PES 2021's Proton prefix was not found"</i>. Close the game and tell the line where the prefix is: the folder that contains <code>system.reg</code>, put right before <code>bash</code>:</p>
-      <div class="cmd"><span class="label">Linux · replace both parts with your own</span><pre id="c-prefix">curl -fsSL https://your-server-address/join | PES_PREFIX=/path/to/your/pfx bash</pre><button class="copy" data-copy="c-prefix" type="button">Copy</button></div>
-      <p>It asks for your sudo password, adds the Konami names to <code>/etc/hosts</code> and trusts the server's certificate only inside that prefix. To undo, put the same <code>PES_PREFIX=…</code> before <code>bash</code> in the undo line.</p>
+    <details class="q" id="faq-switch">
+      <summary>Can I play on more than one server?</summary>
+      <p>Yes. Replace the file with the one from another host. Or hold <b>Shift</b> while the game starts: a small box lets you paste another server's address (its IP or name), and the mod switches to it.</p>
     </details>
     <details class="q" id="faq-far">
       <summary>Can I play with friends in other cities or countries?</summary>
       <p>Probably, but it's not tested yet: so far everything was tested on one home network. The server opens the host's router ports automatically; the match itself then needs the two players' PCs to reach each other directly. If they can't ("Failed to connect with opponent"), put everyone on one private network with <a href="https://tailscale.com">Tailscale</a>, a free app for small groups (this workaround is untested too):</p>
       <ul>
         <li>Everyone installs Tailscale and joins the host's network.</li>
-        <li>The host runs the install line again with their Tailscale address (shown in the Tailscale app), for example:</li>
+        <li>The host runs the install line again with their Tailscale address (shown in the Tailscale app), then downloads a fresh mod file for friends:</li>
       </ul>
       <div class="cmd"><span class="label">Replace 100.x.y.z with the host's Tailscale address</span><pre id="c-ts">curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/install.sh | PUBLIC_IP=100.x.y.z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
-      <ul><li>Everyone runs their join line again.</li></ul>
       <p>A built-in relay that removes this step is on the to-do list.</p>
     </details>
     <h3 class="faqh">For hosts</h3>
     <details class="q" id="faq-host">
       <summary>How do I see the password again, stop or update the server?</summary>
       <ul>
-        <li>Show the address, join lines and admin password again: <code>sudo docker logs pesserver</code></li>
+        <li>Show the admin page and password again: <code>sudo docker logs pesserver</code></li>
         <li>Restart: <code>sudo docker restart pesserver</code> · Stop: <code>sudo docker stop pesserver</code> (this also closes the router ports it opened)</li>
-        <li>Update to the latest version: run the install line again. Players and results are kept. If an update replaces the server's certificate, the banner says so in yellow and every player runs their join line once more.</li>
-        <li>Remove everything: <code>sudo docker rm -f pesserver; sudo docker volume rm pesserver-data; sudo docker rmi ghcr.io/mohamedalirashad/pes2021-private-server</code> (deletes players and results; Docker itself stays installed).</li>
+        <li>Update to the latest version: run the install line again. Players, results and your server's identity are kept, so friends' files keep working.</li>
+        <li>Remove everything: <code>sudo docker rm -f pesserver; sudo docker volume rm pesserver-data; sudo docker rmi ghcr.io/mohamedalirashad/pes2021-private-server</code> (deletes players and results, and the server's identity, so old mod files stop working; Docker itself stays installed).</li>
       </ul>
       <p>If your user is in the <code>docker</code> group you can leave out <code>sudo</code>.</p>
+    </details>
+    <details class="q" id="faq-thispc">
+      <summary>How does "This PC" install the mod for me?</summary>
+      <p>When you run the install line, it looks for PES 2021 in your Steam libraries and in <code>~/Games</code>, and lets the server see only those game folders and their Wine settings. <b>Install mod</b> puts your server's <code>dinput8.dll</code> next to <code>PES2021.exe</code> and, on Linux, sets Wine to load it for PES 2021 only, so you don't need the launch option. Close the game first. It never replaces another mod's <code>dinput8.dll</code>, keeps a backup of Wine's settings, and <b>Remove</b> undoes it.</p>
     </details>
     <details class="q" id="faq-cloud">
       <summary>How do I run it on a cloud server?</summary>
@@ -600,7 +614,7 @@ footer a { color: var(--muted); }
         <li>In the provider's firewall (often called "security group" or "firewall rules"), allow incoming <b>TCP 80, 443, 8080, 10000</b> and <b>UDP 3478, 7600</b> from anywhere.</li>
         <li>Open the server's terminal (the provider's web console, or SSH), paste the install line from <a href="#host">step 1</a> and press Enter. In most web consoles you paste with <b>Ctrl+Shift+V</b> or right-click → Paste.</li>
         <li>The banner may say "Router ports are closed": on a cloud server that's normal, because there's no home router. The ports you opened in step 2 are what count.</li>
-        <li>Send your friends the join lines from the banner.</li>
+        <li>Open the admin page at the server's internet address (the banner shows it) and download the mod for your friends.</li>
       </ol>
       <p>The match itself still runs directly between the two players' PCs, so a cloud server doesn't fix "Failed to connect with opponent". It does keep login and matchmaking reachable for everyone.</p>
     </details>
@@ -610,24 +624,24 @@ footer a { color: var(--muted); }
       <ol>
         <li>Install <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> and start it. On Windows it needs WSL 2 (the installer offers to set it up) and virtualization turned on in the BIOS.</li>
         <li>Download the project (<a href="https://github.com/MohamedAliRashad/pes2021-private-server/archive/refs/heads/main.zip">ZIP</a>) and unzip it.</li>
-        <li>Choose the address players will use. Friends in your home only: your computer's address (Windows: <code>ipconfig</code> in PowerShell, "IPv4 Address"; Mac: <code>ipconfig getifaddr en0</code> in Terminal), for example <code>192.168.1.50</code>. Friends in other homes: your public IP (search "what is my IP"), which also needs the port forwarding in step 6, or everyone's <a href="#faq-far">Tailscale</a> address. This mode gives every player the same single address.</li>
-        <li>Open a terminal in the unzipped folder (Windows: right-click the folder → <b>Open in Terminal</b>; Mac: right-click → <b>New Terminal at Folder</b>) and create the settings file. Windows: <code>Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii</code>. Mac: <code>echo PUBLIC_IP=192.168.1.50 &gt; .env</code>. (With Notepad, choose "Save as type: All files" or it saves <code>.env.txt</code>.)</li>
-        <li>In that terminal run <code>docker compose -f docker-compose.bridge.yml up -d</code>, then <code>docker compose -f docker-compose.bridge.yml logs</code> to see the join lines and password.</li>
-        <li>If you used your public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this computer. Players in your own home may then need their router's "NAT loopback" to reach that public address.</li>
+        <li>Choose the address players will use. Friends in your home only: your computer's address (Windows: <code>ipconfig</code> in PowerShell, "IPv4 Address"; Mac: <code>ipconfig getifaddr en0</code> in Terminal), for example <code>192.168.1.50</code>. Friends in other homes: your public IP (search "what is my IP"), which also needs the port forwarding in step 6, or everyone's <a href="#faq-far">Tailscale</a> address.</li>
+        <li>Open a terminal in the unzipped folder (Windows: right-click the folder → <b>Open in Terminal</b>; Mac: right-click → <b>New Terminal at Folder</b>) and create the settings file. Windows: <code>Set-Content .env "PUBLIC_IP=192.168.1.50" -Encoding ascii</code>. Mac: <code>echo PUBLIC_IP=192.168.1.50 &gt; .env</code>.</li>
+        <li>In that terminal run <code>docker compose -f docker-compose.bridge.yml up -d</code>, then <code>docker compose -f docker-compose.bridge.yml logs</code> to see the admin page and password.</li>
+        <li>If you used your public IP, forward TCP 80, 443, 8080, 10000 and UDP 3478, 7600 on your router to this computer.</li>
       </ol>
     </details>
     <details class="q">
       <summary>Will our accounts and results survive a restart?</summary>
-      <p>Yes. Player names, results and the server's certificate stay on the host's disk through restarts, reboots and updates. The free web address changes when the server restarts, but players who already joined don't need to do anything. If the host's internet IP changes, the server notices within 10 minutes; friends outside the host's home then run their join line again. If the server restarted, the host sends the new line from <code>sudo docker logs pesserver</code>.</p>
+      <p>Yes. Player names, results and the server's identity stay on the host's disk through restarts, reboots and updates, and friends' mod files keep working. The only thing that needs a fresh file is the host's internet address changing; on most home connections that's rare, and the server notices within 10 minutes.</p>
     </details>
     <h3 class="faqh">About the project</h3>
     <details class="q">
       <summary>Does it cost anything?</summary>
-      <p>No. The software, the web address and the admin page are free. The host just needs a computer that's on while you play.</p>
+      <p>No. The software and the admin page are free, and nothing depends on an outside service. The host just needs a computer that's on while you play.</p>
     </details>
     <details class="q">
       <summary>Is this legal? Is it affiliated with Konami?</summary>
-      <p>It's an independent fan preservation project, not affiliated with Konami, so that a game people paid for keeps working online. It only reimplements the server side of the network protocol, for interoperability. It contains no Konami code or game assets, only the interface details needed to talk to the game (message field names and the protocol key built into the game). Every player uses their own copy of the game. The project's code is MIT-licensed. PES and eFootball are trademarks of Konami. (This is not legal advice.)</p>
+      <p>It's an independent fan preservation project, not affiliated with Konami, so that a game people paid for keeps working online. It only reimplements the server side of the network protocol, for interoperability, plus a small mod that points the game at it. It contains no Konami code or game assets, only the interface details needed to talk to the game (message field names and the protocol key built into the game). Every player uses their own copy of the game. The project's code is MIT-licensed. PES and eFootball are trademarks of Konami. (This is not legal advice.)</p>
     </details>
   </div>
 </section>
@@ -637,9 +651,9 @@ footer a { color: var(--muted); }
     <p class="kicker">Under the hood</p>
     <h2>How PES 2021's online mode actually works</h2>
     <p class="intro">Nobody handed us a manual. Other fans' earlier server projects gave useful hints, but this version of the game had to be worked out by watching what it sends, reading how its code reads the replies, and answering it until it believed it was talking to Konami again. Here's what we found, in plain words.</p>
-    <div class="fun thirty"><b>In 30 seconds:</b> the game looks up Konami's servers in your PC's address book; the join line changes that entry to your friend's server. Our server then answers in the game's own sealed message format, closely enough that the game believes it's Konami. The match itself goes straight from player to player.</div>
+    <div class="fun thirty"><b>In 30 seconds:</b> the game asks for Konami's servers by name; a small mod inside the game answers with your friend's server instead. Our server then answers in the game's own sealed message format, closely enough that the game believes it's Konami. The match itself goes straight from player to player.</div>
     <p class="quote">At 04:28 on 4 November, the game sent 152 bytes to a computer that wasn't Konami. Fourteen hours later, two copies of it played a full 90-minute match through that computer. Here's how.</p>
-    <ol class="chapters" aria-label="Chapters"><li><a href="#ch-desks">Three desks</a></li><li><a href="#ch-parcel">Sealed parcels</a></li><li><a href="#ch-reader">A strict reader</a></li><li><a href="#ch-test">The connection test</a></li><li><a href="#ch-matchmaking">Matchmaking</a></li><li><a href="#ch-p2p">Player to player</a></li><li><a href="#ch-errors">Error codes</a></li><li><a href="#ch-wrongturn">Wrong turn</a></li><li><a href="#ch-timeline">14 hours</a></li></ol>
+    <ol class="chapters" aria-label="Chapters"><li><a href="#ch-desks">Three desks</a></li><li><a href="#ch-parcel">Sealed parcels</a></li><li><a href="#ch-reader">A strict reader</a></li><li><a href="#ch-test">The connection test</a></li><li><a href="#ch-matchmaking">Matchmaking</a></li><li><a href="#ch-p2p">Player to player</a></li><li><a href="#ch-errors">Error codes</a></li><li><a href="#ch-wrongturn">Wrong turn</a></li><li><a href="#ch-timeline">14 hours</a></li><li><a href="#ch-mod">One file</a></li></ol>
 
     <article class="chapter" id="ch-desks">
       <div class="n" aria-hidden="true">01</div>
@@ -651,9 +665,9 @@ footer a { color: var(--muted); }
           <li><b>2 · Account</b><span>"Who are you?" Reads your Steam ID and creates your player the first time.</span></li>
           <li><b>3 · Menu</b><span>The online lobby, on a fresh connection. Your game says "still here" every 30 seconds.</span></li>
         </ol>
-        <p>Konami's servers no longer answer, so the game can't get past the first desk. Our server just has to be a convincing desk clerk. The game finds it through your PC's <b>hosts file</b>, a small address book Windows and Linux check before asking the internet:</p>
-        <div class="flow" role="img" aria-label="The game asks for Konami's gate address, the hosts file answers with your friend's server address, and the game connects there."><span>Game: "where is Konami's gate server?"</span><b class="a" aria-hidden="true">→</b><span class="k">hosts file: 203.0.113.7</span><b class="a" aria-hidden="true">→</b><span>your friend's server</span></div>
-        <p class="gloss">That one line in the address book is what the join line adds (six of them, one per Konami server name).</p>
+        <p>Konami's servers no longer answer, so the game can't get past the first desk. Our server just has to be a convincing desk clerk. The game finds it by asking for Konami's server <b>by name</b>, and the mod answers that question before anyone else does:</p>
+        <div class="flow" role="img" aria-label="The game asks for Konami's gate address, the mod answers with your friend's server address, and the game connects there."><span>Game: "where is Konami's gate server?"</span><b class="a" aria-hidden="true">→</b><span class="k">mod: 203.0.113.7</span><b class="a" aria-hidden="true">→</b><span>your friend's server</span></div>
+        <p class="gloss">The game uses six Konami names online; the mod answers all six. (The first version did this by editing the PC's hosts file instead; chapter 10 tells why we moved on.)</p>
       </div>
     </article>
 
@@ -712,7 +726,7 @@ a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre></figure>
       <div>
         <h3>The connection test is a real security check</h3>
         <p>Before eFootball modes unlock, the game tests your network. It asks a server "what's my address from the outside?" (a <b>STUN</b> check, the standard trick games use to see through home routers), then fetches a small status page over <b>HTTPS</b>.</p>
-        <p>That HTTPS request checks certificates exactly like a web browser does. A stand-in server without a trusted certificate fails the test, and the online modes stay locked. That's why the join line installs your server's certificate, restricted to the game's four network-test addresses so it isn't valid for anything else.</p>
+        <p>That HTTPS request checks certificates exactly like a web browser does. A stand-in server without a trusted certificate fails the test, and the online modes stay locked. So for those four network-test addresses only, the mod tells the game to accept your friend's server instead of Konami's certificate. Everything else the game does online keeps its normal checks.</p>
         <div class="flow" role="img" aria-label="The test: a STUN check, then an HTTPS page with a certificate check, then eFootball unlocks."><span>STUN: "my outside address?"</span><b class="a" aria-hidden="true">→</b><span>HTTPS status page<br><small>certificate checked</small></span><b class="a" aria-hidden="true">→</b><span class="k">eFootball unlocked</span></div>
       </div>
     </article>
@@ -824,15 +838,30 @@ answer with a 16-byte key
         <ol class="timeline" style="margin-top:14px">
           <li><b>4 Nov, 21:33–22:05 · the server in Docker</b><span>Fresh container, new players, a full 90-minute match through it.</span></li>
           <li><b>4 Nov, 23:54 · one command to host</b><span>An install script with automatic router setup and join lines served by the server.</span></li>
-          <li><b>5 Nov, 00:28 · a free web address and an admin page</b><span>Every server gets its own link, and the host can watch matches live.</span></li>
+          <li><b>5 Nov, 00:28 · an admin page</b><span>The host can watch matches live, see results and a league table.</span></li>
+          <li><b>5 Nov, 05:28 · the mod's first run</b><span>The game logs in through the mod alone, with no hosts file and no certificate on the PC.</span></li>
+          <li><b>5 Nov, 06:21 · one click on the admin page</b><span>The host's own copy gets the mod from the admin page and starts with no launch option.</span></li>
         </ol>
+      </div>
+    </article>
+
+    <article class="chapter" id="ch-mod">
+      <div class="n" aria-hidden="true">10</div>
+      <div>
+        <h3>From one line to one file</h3>
+        <p class="quote">The safest change to a player's PC is none at all.</p>
+        <p>The first version asked every player to paste a line into a terminal. It ran with administrator rights, edited the PC's hosts file and installed a certificate in Windows. It worked, but it asked friends to trust a lot, and it touched the whole PC for the sake of one game.</p>
+        <p>The mod does the same two jobs from inside the game instead. PES 2021, like most PC games, loads a file named <code>dinput8.dll</code> from its own folder when it starts. Ours passes the game's controller requests straight on to Windows, and while the game runs it answers the game's "where is Konami?" with your friend's server, and accepts that server for the network test. Close the game and it's gone; delete the file and nothing is left.</p>
+        <p>One more problem: home servers restart and their addresses change. So each server has a permanent <b>identity</b>, a secret key it never shares, and every copy of the mod carries the matching public half. Before connecting anywhere, the mod sends a random challenge and only accepts an address that answers with the right signature:</p>
+        <div class="flow" role="img" aria-label="The mod sends a random challenge to an address; your friend's server signs it with its secret key; the mod checks the signature and connects. A different server can't sign it, so it is refused."><span>mod: "prove it: 7f3a…"</span><b class="a" aria-hidden="true">→</b><span>server signs it with its secret key</span><b class="a" aria-hidden="true">→</b><span class="k">signature matches: connect</span></div>
+        <p class="fun"><b>What it buys:</b> the file keeps working after restarts, a stranger at your friend's old address can't take over, and a forged "the server moved" note is ignored. We tested all three with the real game.</p>
       </div>
     </article>
 
     <div class="card next" style="margin-top:28px">
       <div>
         <h3>What's next, and how to help</h3>
-        <p class="small muted" style="margin:0">Next up: a relay so any two players can connect, then rooms, co-op and maybe myClub. The most useful help right now is testing on Windows, Steam Deck and across two homes, and reporting what happens.</p>
+        <p class="small muted" style="margin:0">Next up: a relay so any two players can connect, an optional address book so a file survives an IP change, then rooms, co-op and maybe myClub. The most useful help right now is testing on Windows, Steam Deck and across two homes, and reporting what happens.</p>
       </div>
       <div class="ctas">
         <a class="btn primary" href="protocol.html">Technical write-up →</a>
@@ -876,9 +905,9 @@ answer with a 16-byte key
   const sync = () => { const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; btn.innerHTML = dark ? sun : moon; btn.setAttribute("aria-pressed", String(dark)); btn.setAttribute("aria-label", "Dark theme"); };
   sync(); btn.addEventListener("click", () => setTimeout(sync, 0));
   const links = [...document.querySelectorAll('.nav ul a[href^="#"]')];
-  const owner = { host: "#host", server: "#host", join: "#join", howplay: "#join", help: "#help", faq: "#faq", inside: "#inside" };
+  const owner = { host: "#host", share: "#host", server: "#host", join: "#join", help: "#help", faq: "#faq", inside: "#inside" };
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { const h = owner[e.target.id] || ""; links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === h)); } }), { rootMargin: "-45% 0px -50% 0px" });
-  ["host", "join", "howplay", "server", "help", "faq", "inside", "status"].forEach(id => { const t = document.getElementById(id); if (t) io.observe(t); });
+  ["host", "share", "join", "server", "help", "faq", "inside", "status"].forEach(id => { const t = document.getElementById(id); if (t) io.observe(t); });
   const openTarget = () => { const d = document.getElementById(location.hash.slice(1)); if (d && d.tagName === "DETAILS") d.open = true; };
   addEventListener("hashchange", openTarget); openTarget();
   document.addEventListener("click", e => { const a = e.target.closest('a[href^="#"]'); const d = a && document.getElementById(a.hash.slice(1)); if (d && d.tagName === "DETAILS") d.open = true; });
