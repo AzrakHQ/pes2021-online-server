@@ -22,7 +22,7 @@ irm https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/ma
 curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh
 ```
 
-It downloads the server (one program, about 30 MB, no admin rights) and prints your **admin page** and its
+It downloads the server (one program, 15–30 MB, no admin rights) and prints your **admin page** and its
 **password**. Keep the window open while you play: **Ctrl+C** or closing it stops the server. Paste the same line
 next time: it always starts the newest version.
 

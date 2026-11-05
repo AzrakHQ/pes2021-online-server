@@ -31,7 +31,7 @@ latest="$(curl -fsSL --max-time 20 "$REL/version.txt" 2>/dev/null | head -n 1 ||
 
 if [ -n "$latest" ] && { [ "$latest" != "$have" ] || [ ! -x "$BIN" ]; }; then
   if [ -n "$have" ] && [ -x "$BIN" ]; then echo "Updating the PES 2021 server: $have  ->  $latest"
-  else echo "Downloading the PES 2021 server ($latest)..."; fi
+  else echo "Downloading the PES 2021 server, version $latest..."; fi
   if curl -fL --progress-bar --max-time 600 "$REL/pes2021-server-$PLATFORM" -o "$BIN.new" && [ -s "$BIN.new" ]; then
     chmod +x "$BIN.new" && mv -f "$BIN.new" "$BIN" && printf '%s\n' "$latest" > "$VERFILE"
   else

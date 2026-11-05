@@ -17,7 +17,7 @@ try { $latest = ([string](Invoke-RestMethod -Uri "$rel/version.txt" -TimeoutSec 
 
 if ($latest -and ($latest -ne $have -or -not (Test-Path $bin))) {
   if ($have -and (Test-Path $bin)) { Write-Host "Updating the PES 2021 server: $have  ->  $latest" }
-  else { Write-Host "Downloading the PES 2021 server ($latest), about 30 MB..." }
+  else { Write-Host "Downloading the PES 2021 server, version $latest (about 15 MB)..." }
   try {
     Invoke-WebRequest -UseBasicParsing -Uri "$rel/pes2021-server-windows-x64.exe" -OutFile "$bin.new" -TimeoutSec 600
     Move-Item -Force "$bin.new" $bin
