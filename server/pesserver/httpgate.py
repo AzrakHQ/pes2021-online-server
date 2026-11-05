@@ -42,7 +42,7 @@ def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False)
             elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
                                              "/leave.ps1", "/install-ca-proton.py", "/banner"):
                 out, ctype = _web(service, route, headers, writer)
-            elif method == "GET" and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
+            elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
             elif path.startswith("/status"):
                 from . import pesmatch
@@ -96,7 +96,8 @@ def make_handler(service, stun_host, stun_port, gate_port, admin_listener=False)
             else:
                 out = b"ok"; ctype = "text/plain"
             writer.write(b"HTTP/1.1 " + status.encode() + b"\r\nCache-Control: no-store\r\nContent-Type: " + ctype.encode() +
-                         b"\r\nContent-Length: " + str(len(out)).encode() + b"\r\n" + extra + b"Connection: close\r\n\r\n" + out)
+                         b"\r\nContent-Length: " + str(len(out)).encode() + b"\r\n" + extra + b"Connection: close\r\n\r\n"
+                         + (b"" if method == "HEAD" else out))
             await writer.drain()
         except Exception as e:  # noqa
             peer = writer.get_extra_info("peername"); tls = writer.get_extra_info("ssl_object")
@@ -245,7 +246,8 @@ async def _admin(service, method, route, headers, body, peer=""):
     import hmac, time as _time
     from . import events, netsetup
     if route == "/admin/api/info":            # public: lets the sign-in page warn before a password is typed
-        return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8"), "host_ok": bool(host_ok(headers))}).encode(), "application/json"
+        return "200 OK", json.dumps({"remote": admin_allowed("8.8.8.8"), "host_ok": bool(host_ok(headers)),
+                                     "docker_desktop": bool(os.environ.get("ADMIN_PORT"))}).encode(), "application/json"
     if route.startswith("/admin/api/") and not host_ok(headers):
         return "403 Forbidden", b'{"error":"open the admin page by its address"}', "application/json"
     if not admin_allowed(peer):
@@ -261,7 +263,13 @@ async def _admin(service, method, route, headers, body, peer=""):
         recent = [t for t in _FAILED.get(peer, []) if now - t < 60]
         _FAILED[peer] = recent
         everyone = sum(len([t for t in ts if now - t < 60]) for ts in _FAILED.values())
-        if len(recent) >= 5 or everyone >= 30:   # per address, and overall (many addresses guessing)
+        import ipaddress
+        try:
+            local = not ipaddress.ip_address(peer.split("%")[0]).is_global
+        except ValueError:
+            local = False
+        # per address; the overall cap only stops outside guessers, never the owner at home
+        if len(recent) >= 5 or (everyone >= 30 and not local):
             return "429 Too Many Requests", b'{"error":"too many wrong passwords; wait a minute"}', "application/json"
         try:
             req = json.loads(body or b"{}")
@@ -296,7 +304,8 @@ async def _admin(service, method, route, headers, body, peer=""):
                           "remote_admin": admin_allowed("8.8.8.8"), "link_home_only": not reachable,
                           "sessions": len([1 for v in _sessions(service).s.values() if v > now]),
                           "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex()),
-                          "mod_sha256": mod_sha256(mod_url(service, headers, None))}
+                          "mod_sha256": mod_sha256(mod_url(service, headers, None)),
+                          "docker_desktop": bool(os.environ.get("ADMIN_PORT"))}
         return "200 OK", json.dumps(snap).encode(), "application/json"
     if route == "/admin/api/games":
         from . import gamesetup
@@ -316,7 +325,7 @@ async def _admin(service, method, route, headers, body, peer=""):
             return "404 Not Found", b'{"error":"That game folder is gone. Run the install command again to look for PES 2021."}', "application/json"
         except PermissionError as e:
             msg = str(e) if "dinput8.dll" in str(e) and "Errno" not in str(e) else \
-                "Couldn't write to the game folder. Close the game and try again."
+                "The server isn't allowed to write to this folder. Run the install command again so it can fix the permissions."
             return "409 Conflict", json.dumps({"error": msg}).encode(), "application/json"
         except OSError:
             log.exception("installing the mod")

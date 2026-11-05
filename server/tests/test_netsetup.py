@@ -291,6 +291,10 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
             assert "400" in head
             head, body = await get(port, "/mod/dinput8.dll")
             assert 'filename="dinput8.dll"' in head and len(body) == dll.stat().st_size
+            r, w = await asyncio.open_connection("127.0.0.1", port)
+            w.write(b"HEAD /mod/dinput8.dll HTTP/1.1\r\nHost: pes.example.org\r\n\r\n"); await w.drain()
+            raw = await r.read(); w.close()
+            assert raw.startswith(b"HTTP/1.1 200") and f"Content-Length: {len(body)}".encode() in raw and raw.endswith(b"\r\n\r\n")
             import hashlib
             head, st = await get(port, "/status")
             assert json.loads(st)["mod_sha256"] == hashlib.sha256(body).hexdigest()      # the exact served file
@@ -356,7 +360,7 @@ def test_admin_rebinding_and_csp(tmp_path):
         port = srv.sockets[0].getsockname()[1]
         try:
             code, out = await _http(port, "GET", "/admin/api/info")
-            assert code == 200 and json.loads(out) == {"remote": False, "host_ok": True}
+            assert code == 200 and json.loads(out) == {"remote": False, "host_ok": True, "docker_desktop": False}
         finally:
             srv.close()
     import json
