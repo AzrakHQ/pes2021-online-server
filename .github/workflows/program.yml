@@ -45,8 +45,8 @@ jobs:
         run: |
           v="$(git log -1 --format=%cd --date=format:%Y-%m-%d) ($(git rev-parse --short=7 HEAD))"
           printf 'VERSION = "%s"\nCOMMIT = "%s"\n' "$v" "$GITHUB_SHA" > server/pesserver/_build.py
-          echo "$v" > version.txt
       - run: sh server/packaging/build.sh ${{ matrix.file }}
+      - run: git log -1 --format="%cd (%h)" --date=format:%Y-%m-%d --abbrev=7 > server/dist/version.txt
       - name: Smoke test
         run: |
           exe=server/dist/${{ matrix.file }}; [ -f "$exe.exe" ] && exe="$exe.exe"
@@ -56,14 +56,14 @@ jobs:
           name: ${{ matrix.file }}
           path: |
             server/dist/${{ matrix.file }}*
-            version.txt
+            server/dist/version.txt
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
-        with: { path: out, merge-multiple: true }
+        with: { path: out, pattern: "pes2021-server-*", merge-multiple: true }
       - name: Publish as the latest release
         env:
           GH_TOKEN: ${{ github.token }}
