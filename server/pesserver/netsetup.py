@@ -23,6 +23,13 @@ def web_url(addr):
     return f"http://{addr}" + ("" if WEB_PORT == 80 else f":{WEB_PORT}")
 
 
+def port_list():
+    """'TCP 8080,10000 + UDP 3478,7600': the ports this server listens on, for forwarding instructions."""
+    tcp = ",".join(str(p) for p, proto in PORTS if proto == "TCP")
+    udp = ",".join(str(p) for p, proto in PORTS if proto == "UDP")
+    return f"TCP {tcp} + UDP {udp}"
+
+
 def skip_port(port):
     """The server isn't listening there (no rights for a low port): don't ask the router for it."""
     global PORTS
@@ -330,7 +337,7 @@ def banner(password=None, color=True):
                      "      can't connect. Use Tailscale (see the README) or a cloud server."))
     elif wan and not STATE["mapped"] and not pinned:
         out.append(Y("   !  Router ports are closed") + D(f" ({STATE['upnp_error'] or 'UPnP off'}).\n"
-                 f"      At home: enable UPnP on your router, or forward TCP 80,443,8080,10000 + UDP 3478,7600 to {lan}.\n"
+                 f"      At home: enable UPnP on your router, or forward {port_list()} to {lan}.\n"
                  "      On a cloud server this is normal: open those ports in the provider's firewall instead."))
     out += [line, ""]
     return "\n".join(out)

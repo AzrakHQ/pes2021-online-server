@@ -57,3 +57,4 @@ def test_skipped_ports_are_not_mapped(monkeypatch):
     monkeypatch.setattr(netsetup, "PORTS", list(netsetup.PORTS))
     netsetup.skip_port(80)
     assert (80, "TCP") not in netsetup.PORTS and (8080, "TCP") in netsetup.PORTS
+    assert netsetup.port_list() == "TCP 443,8080,10000 + UDP 3478,7600"
