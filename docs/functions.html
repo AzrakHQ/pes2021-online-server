@@ -135,7 +135,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 </div>
 
 <nav class="toc" id="contents" aria-label="Sections">
-  <a href="#changes">What changes for our server</a><a href="#net">Connecting the players</a><a href="#match">Match flow</a><a href="#results">Results &amp; divisions</a><a href="#rooms">Lobbies &amp; rooms</a><a href="#coop">Co-op &amp; spectating</a><a href="#menus">Fair play &amp; menus</a><a href="#wire">Transport layers</a><a href="#modes">Big modes</a><a href="#errors">Error codes</a><a href="#catalog">All commands</a><a href="#method">How this was found</a>
+  <a href="#changes">What changes for our server</a><a href="#net">Connecting the players</a><a href="#match">Match flow</a><a href="#results">Results &amp; divisions</a><a href="#rooms">Lobbies &amp; rooms</a><a href="#coop">Co-op &amp; spectating</a><a href="#menus">Fair play &amp; menus</a><a href="#wire">Transport layers</a><a href="#modes">Big modes</a><a href="#db">Game database</a><a href="#live">Live Update</a><a href="#nettune">Tuning the link</a><a href="#texts">What players see</a><a href="#errors">Error codes</a><a href="#catalog">All commands</a><a href="#method">How this was found</a>
 </nav>
 
 <h2 id="changes">What changes for our server</h2>
@@ -148,6 +148,10 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <li><b>Live scores never update:</b> goals arrive as <code>CMD_ADD_SCORE</code>; <code>CMD_ADD_GOAL</code> doesn't exist. Dedupe by gtimer (both clients report). <a href="#gamequeue">→</a> <span class="tag t-ok">DONE</span> Both games sent the same goal with gtimer 2996; each (gtimer, side) now counts once.</li>
 <li><b>Reconcile both <code>SEND_GAME_RESULT</code> reports</b> (one says NOERR, the other DISCONN_P2P with the same score), and keep <code>SET_PLAYDATA_MATCH</code> (scorers, player ratings), STATS_DATA and the line-ups. <a href="#results">→</a></li>
 <li><b>Pair only players whose <code>CHECK_CHEAT</code> sums match</b>, or they fail with "DATAPACK error" after connecting. <code>JOIN_ONLINE_MODE</code> → <code>ERR_MODE_BLOCKED</code> is a clean version gate. Record <code>SEND_TAMPER_DATA</code> as a cheat flag. <a href="#cheat">→</a></li>
+<li><b>The game database is decoded</b> (players, teams, rosters, shirt numbers), and the login checksums reproduce exactly from the files: both test clients ran the stock update pack. Delivering live data would change every player's checksum. <a href="#db">→</a></li>
+<li><b>The Live Update channel is mapped</b>: the server can give every player the same data (rosters, form) through the game's own downloader: an HTTP GET of one CPK, checked only by a server-supplied SHA-256. Same data → same checksums → no DATAPACK errors. <a href="#live">→</a></li>
+<li><b>The server can tune the player-to-player link</b>: all connect timeouts and direct/TURN switching thresholds come from JSON the server sends in <code>GET_SERVER_ENV.proto_opt</code> (we send none → defaults; direct connect gives up after 15 s, twice). <a href="#protoopt">→</a></li>
+<li><b>Use the game's own texts</b>: replies like <code>ERR_INVALID_ACCOUNT</code> (ban), <code>ERR_FREE_TO_PLAY_FULL</code> (server full) or <code>ERR_COMMAND_BLOCKED</code> show clear messages instead of a bare code. <a href="#texts">→</a></li>
 <li><b>Split large replies</b> into 0x70 / 0x71 / 0x72 fragment frames; the client rejects any frame body over 0x410 bytes. <a href="#frags">→</a> Our encoder doesn't split yet. Today's biggest reply is the news body; the admin page refuses a message that wouldn't fit (only long non-Latin text gets close).</li>
 <li><b>Never reply <code>ERR_CHEAT</code></b> to in-match commands, keep <code>upload:"NO"</code> in GET_MATCHID and <code>key_size</code> 16 (32 switches the whole game to AES until restart). <a href="#gamequeue">→</a></li>
 <li><b><code>CMD_RECONNECT</code> is unimplemented:</b> after a gate drop it needs a session key like SET_CURRENTPLAYER. <a href="#match">→</a></li>
@@ -263,7 +267,7 @@ CreatePermission / ChannelBind (B) ───────────────
 <tr><td>11</td><td><code>SetConfig()</code>: builds the P2P/TURN config</td><td>MXNV_0009 "Error SetConfig()"</td></tr>
 <tr><td>14–17</td><td>Multiplay init; one 15 s retry wait; CreateMultiplaySession</td><td>MXNV_0010 "Error CreateMultiplaySession"</td></tr>
 <tr><td>18–19</td><td>Wait for the session to reach "connected". Normally no retry.</td><td><b>MXNV_0013</b>: session never connected (seen in our failed tests) <span class="tag t-ok">LIVE</span></td></tr>
-<tr><td>20–21</td><td>Init online multiplay; P2P <b>revision check</b> (60 s)</td><td>MXNV_0015 timeout, 0016 revision error, 0017 DATAPACK error, 0018 other user disconnected, 0019 unknown</td></tr>
+<tr><td>20–21</td><td>Init online multiplay; P2P <b>revision check</b> (60 s)</td><td>MXNV_0015 timeout, 0017 DATAPACK error (any revision/data mismatch; status 3 "revision error" is dead code in 1.01), 0018 other user disconnected, 0019 unknown. <code>is_revision_check:"NO"</code> turns the compare off (0x140fff5b3).</td></tr>
 <tr><td>22</td><td>Ping check against the ping limit</td><td>MXNV_0022 "Ping range over"</td></tr>
 <tr><td>23–26</td><td>Error teardown / finish</td><td></td></tr>
 </tbody></table></div>
@@ -272,7 +276,7 @@ CreatePermission / ChannelBind (B) ───────────────
 <p>All three SEND commands carry <code>{pid_list_num, pid_list[int], data STR}</code>; the pushes carry <code>{data}</code>. The client never checks who sent a notice except through what's inside <code>data</code>. <span class="tag t-static">STATIC</span></p>
 <ul>
   <li><b>SYNC_NOTICE</b> = match-session barrier. <code>data</code> = <code>"&lt;pid&gt;,"</code> for each other member. The receiver pops one entry and ignores its contents. <b><code>pid_list</code> grows by one copy per match</b>: the game never clears the vector it's built from (<code>[2]</code>, <code>[2,2]</code> … <code>[2,2,2,2,2,2]</code> in our logs). If the server relays every copy, stale entries make the next match's barrier pass instantly. Harmless, but not real synchronisation. <span class="tag t-ok">LIVE</span> <span class="tag t-static">STATIC</span></li>
-  <li><b>SYSTEM_NOTICE</b> = P2P connect rendezvous (thread 0x1411d9620). <code>data</code> = <code>"START:pid=&lt;sender&gt;;time=&lt;unix s&gt;;"</code> or <code>"END:…"</code>. Each handshake waits up to <b>30 s</b> for a matching entry at the <b>head</b> of the queue, and the parser doesn't drop a non-matching head. <b>One duplicate or stray notice therefore blocks the handshake and the P2P connect fails.</b> <span class="tag t-static">STATIC</span></li>
+  <li><b>SYSTEM_NOTICE</b> = P2P connect rendezvous (thread 0x1411d9620). <code>data</code> = <code>"START:pid=&lt;sender&gt;;time=&lt;unix s&gt;;"</code> or <code>"END:…"</code>. Each handshake waits up to <b>30 s</b> for a matching entry at the <b>head</b> of the queue, and the parser doesn't drop a non-matching head. <b>One duplicate or stray notice therefore blocks the handshake and the P2P connect fails.</b> Relay <code>data</code> byte for byte: each side builds the session tag "pid-pid-…-min(own time, peer time)" from <code>time=</code> and passes it to the NTL connect (0x1411d81d0), so altered times make the tags differ. <span class="tag t-static">STATIC</span></li>
   <li><b>NOTICE</b> = JSON notices for rooms (not Quick Match): <code>{"notice_key": …}</code> with <code>MOMROOM_START_COUNTDOWN {from_pid, reason, count_zero}</code>, <code>MOMROOM_RESULT_TIMEOUT</code>, <code>MOMROOM_REQ_RESULT_TIMEOUT {from_pid, roomid}</code>, <code>ROOM_SHARE_INFO {from_pid, has_team_data, team_power, chemistry, team_id, team_name}</code>, <code>SYNC_PROGRESS {pid_list}</code>. Keys exist with no builder found: MOMROOM_CANCEL/REQUEST_COUNTDOWN, MOMROOM_SEND_XSESSION_INFO, MOMROOM_CONNECT_COMPLETE, QUICK_PING_RES. <span class="tag t-static">STATIC</span></li>
   <li><b>Server rule for all three:</b> take <code>set(pid_list) − {sender}</code>, deliver each push exactly once per target, keep the order (START before END), never inject extra notices.</li>
 </ul>
@@ -350,7 +354,7 @@ Online Divisions only (gamemode 24): GET_DIVISION_INFO → division-points scree
   gameend_reason NORMAL_END | DISCONN | OWNGOAL | CHEAT | INJURY | GIVEUP | … | DISCONN_P2P | DEGRADE_P2P,
   is_pk YES|NO }</pre></li>
   <li>The entry whose <code>pid</code> equals the player's own pid is "me". <code>gameend_reason</code> must be <code>NORMAL_END</code> (or INJURY). Anything else, or a missing value, shows <b>OLXH186</b>. The rating screen shows oldrating → rating (gain = rating − rating_compe when rating &gt; rating_compe), the boost and the win streak. <span class="tag t-static">STATIC</span></li>
-  <li><b>Server should:</b> keep a rating per player (e.g. Elo from 1000) and a win streak. Answer REQ_GAMEADDPOINT with NOERR and <b>push the verdict immediately</b>. Also try pushing it to both players once both sent CHANGE_GAMEPHASE END. Whether the Quick Match mode shows the rating screen is decided by a table filled at runtime, so a live test will tell. <span class="tag t-inf">INFERRED</span></li>
+  <li><b>Server should:</b> keep a rating per player (e.g. Elo from 1000) and a win streak. Answer REQ_GAMEADDPOINT with NOERR and <b>push the verdict immediately</b>. Also try pushing it to both players once both sent CHANGE_GAMEPHASE END. <b>Quick Match never shows the rating screen</b>: it only runs for mode groups 13, 19, 28 and 29 (bit mask 0x30082000 at 0x141379270, static table 0x1434fc9c0), and Quick Match (gamemode 25) is group 14. The push still matters: it ends the 20 s wait. Send <code>rating_compe</code> 0 (gain shown = rating − rating_compe). <span class="tag t-static">STATIC</span></li>
 </ul>
 
 <h3>What each game reports</h3>
@@ -375,7 +379,8 @@ Online Divisions only (gamemode 24): GET_DIVISION_INFO → division-points scree
 
 <h3>Suggested storage</h3>
 <p>Tables for: match (ids, teams, final score, winner, end reason, status final/disputed/aborted, play_data JSON); match_report (both clients' GAME_RESULT); match_team_stats (STATS_DATA); match_player (line-up, minutes, rating, goals); player_rating (rating, W/D/L, streak); rating_change (source for the verdict push); division_state, division_rule (promotion/demotion thresholds), division_history. Rankings are just ordered queries over these.</p>
-<p class="note"><b>Still unknown:</b> whether the Quick Match mode shows the rating screen, and whether a push to the non-waiting client is used (push at END and watch); the values of the <code>division</code> string and of ranking <code>sort</code>/<code>order</code> (open Online Divisions and log the requests); what <code>rating_compe</code> means; the units of the STATS counters (all 0 in our 0–0 test matches).</p>
+<p><b>Value sets</b> <span class="tag t-static">STATIC</span>: <code>division</code> = <code>"D1"</code> (top) … <code>"D12"</code>, or <code>"NONE"</code> (GET_SERVER_ENV <code>max_division</code> "D12"). Ranking <code>sort</code> = RATING, WIN_NUM, MATCH_NUM, WIN_STRAIGHT, WIN_RATE (or absent), <code>order</code> always "ASC", <code>view_num</code> 100. GET_GAMERESULTS request = <code>pid, game_res_type</code> (ALL/RANK/MYCLUB/COOP_ALL/PESLEAGUE/COOP_PESLEAGUE), <code>pesleague_compe_id</code>. <code>gtimer</code> ≈ 50 ticks per real second (950 at kick-off, ~94,000 for a full match); use it only for de-duplication.</p>
+<p class="note"><b>Still unknown:</b> whether a verdict push to the client that isn't waiting is used; the units of the STATS counters (all 0 in our 0–0 test matches).</p>
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 
 <h2 id="rooms">Lobbies and rooms: playing a chosen friend</h2>
@@ -441,6 +446,7 @@ after: LEAVE_GAME {pid} → server pushes StateChanged WAITING (otherwise the ow
 </tbody></table></div>
 <ul>
   <li><b>Follow list</b> (<code>FOLLOW_USER</code>, <code>GET_FOLLOW_LIST</code> → <code>follow_list[blob{user_id{pid, pname}, is_locked, is_clan_member}]</code>, <code>LOCK_FOLLOW_USER</code>) lives with the clan and co-op code. No path leads from a followed player into a Free room. Reply <code>follow_list_num:0</code> for now. <span class="tag t-static">STATIC</span></li>
+  <li><b>Mode names</b> <span class="tag t-static">STATIC</span>: <code>lobby_type</code> = FREE, MULTI, MYCLUB, PESLEAGUE; <code>JOIN_ONLINE_MODE online_mode</code> = QUICK, RANKMATCH, FREE, MULTI, MYCLUB, PESLEAGUE, MATCHDAY, COOP, EDIT_DATA_LIVE_UPDATE. SET_GAMEENV <code>game_env</code> is a packed blob holding the 9-key settings map. Co-op <code>room_phase</code> uses the game-phase names (DATASYNC…END).</li>
   <li><code>SET_MATCHREJECTPID</code> / <code>GET_MATCHREJECTLIST</code> (a player's block list for matchmaking): bare or empty is fine.</li>
 </ul>
 
@@ -528,16 +534,16 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <h3 id="cheat"><code>CMD_CHECK_CHEAT</code>: checksums of the player database</h3>
 <ul>
   <li>Request: <code>pid, dlc_version, dlc_type</code> ("NotImplement"), <code>param_check_sum, entry_check_sum</code>. Sent after JOIN_ONLINE_MODE. <span class="tag t-ok">LIVE</span></li>
-  <li><b><code>param_check_sum</code></b> (0x141128e90) is <b>not MD5</b>. For every player in the database: id + the 108 ability values + two extra values + a registration flag, added into four u32 accumulators (by id &amp; 3). The accumulators are XOR'd with <code>{29bda03d, 0593fbe2, 298015ab, 9fbead21}</code> and printed as 32 uppercase hex characters. <span class="tag t-static">STATIC</span></li>
-  <li><b><code>entry_check_sum</code></b> (0x141129240): the same idea over the team rosters (team id + each slot's player id + a per-slot u16, probably the shirt number), with no XOR. <span class="tag t-static">STATIC</span></li>
+  <li><b><code>param_check_sum</code></b> (0x141128e90) is <b>not MD5</b>. For every player in the database: low 16 bits of the id + the 108 parameters + height + weight + the weekly condition (a constant 5 unless live data is applied), added into four u32 accumulators (by id &amp; 3). Reproduced exactly from the game files, see <a href="#db">the database</a>. The accumulators are XOR'd with <code>{29bda03d, 0593fbe2, 298015ab, 9fbead21}</code> and printed as 32 uppercase hex characters. <span class="tag t-static">STATIC</span></li>
+  <li><b><code>entry_check_sum</code></b> (0x141129240): the same idea over the team rosters (team id + each player's id + shirt number), with no XOR. <span class="tag t-static">STATIC</span></li>
   <li><b>What changes them:</b> stat edits, transfers, roster or number changes, live-update data. <b>What doesn't:</b> names, kits, faces, emblems, stadiums and other cosmetic option-file content. <span class="tag t-static">STATIC</span> <span class="tag t-inf">INFERRED</span> All 48 logged requests (both players) had the same two values. <span class="tag t-ok">LIVE</span></li>
-  <li><b>Reply:</b> only <code>result</code> is read. <code>ERR_PARAMCHECK_FAILED</code> aborts online login (<b>CCWR450</b>); any other error also aborts (CCWR455). There's no "warn and continue". <span class="tag t-static">STATIC</span></li>
+  <li><b>Reply:</b> only <code>result</code> is read. <code>ERR_PARAMCHECK_FAILED</code> aborts online login (<b>CCWR_0014</b>); any other error also aborts (CCWR_0015). There's no "warn and continue". <span class="tag t-static">STATIC</span></li>
   <li><b>Where the sums are really enforced:</b> in the P2P revision check after connecting, the peers exchange <code>revision, param_check_sum, entry_check_sum</code>. A mismatch ends the match with <b>"DATAPACK error" (MXNV533)</b>. The switch is probably <code>is_revision_check</code> from GET_SERVER_ENV, which we send as "YES". <span class="tag t-static">STATIC</span> <span class="tag t-inf">INFERRED</span></li>
   <li><b>Server should:</b> store both sums (and the versions from JOIN_ONLINE_MODE) per session and <b>only pair players whose sums match</b>. Optional strict mode: whitelist the accepted sums and reply ERR_PARAMCHECK_FAILED to the rest.</li>
 </ul>
 
 <h3><code>CMD_JOIN_ONLINE_MODE</code>: a natural version gate</h3>
-<p>Request <code>online_mode (QUICK…), patch_version "1.01.00", dlc_version, livedata_version, extradata_version</code>. Replying <code>ERR_MODE_BLOCKED</code> blocks entry with CCWR211, which is a clearer failure than a DATAPACK error after connecting. Other errors give CCWR216. <span class="tag t-static">STATIC</span> <span class="tag t-ok">LIVE</span></p>
+<p>Request <code>online_mode (QUICK…), patch_version "1.01.00", dlc_version, livedata_version, extradata_version</code>. Replying <code>ERR_MODE_BLOCKED</code> blocks entry with its own message (CCWR_0003), which is a clearer failure than a DATAPACK error after connecting. Other errors (including ERR_DIFFERENT_PATCHVERSION / LIVEDATA / DCVERSION) end in the generic login error CCWR216, possibly after the command's own text. <span class="tag t-static">STATIC</span> <span class="tag t-ok">LIVE</span></p>
 
 <h3><code>CMD_SEND_TAMPER_DATA</code>: the game reports its own tampering</h3>
 <p>After a Quick Match or a vs-COM match start, the game recomputes <code>param_check_sum</code>. If it differs from the login value (stats changed in memory, e.g. by a trainer), or the squad has "Unregister:" / "Doping:" / "costover" entries, it sends <code>{pid, match_category, data, error_code}</code> (TaskWatchCheat 0x1411263a0). Never seen in our logs. <b>Reply NOERR and record a cheat flag for the admin page.</b> <span class="tag t-static">STATIC</span></p>
@@ -568,7 +574,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <tr><td><code>LEAVE_ONLINE_MODE</code>, <code>JOIN/LEAVE_OFFLINE_MODE</code></td><td>presence: <code>online_mode</code> / <code>offline_mode</code> ("EXHIBITION"); results ignored</td><td>NOERR; could drive a presence status</td></tr>
 <tr><td><code>GET_STORE_PRODUCT_LIST</code>, <code>GET_STORE_TRANSACTION_STATE</code>, <code>*_STEAM_STORE*</code> (HTTP)</td><td>myClub coin store; Steam microtransactions</td><td>empty / no pending transaction; reply an error to START_STEAM_STORE</td></tr>
 </tbody></table></div>
-<p class="note"><b>Still unknown:</b> exactly which two fields the P2P check compares (test: one edited stat → expect MXNV533, then with <code>is_revision_check:"NO"</code>); the on-screen text of CCWR450/CCWR211 and the manner messages; whether a no-banner news item shows and how <code>priority</code> sorts; the image format for banners, ads and avatars.</p>
+<p class="note"><b>Still unknown:</b> exactly which two fields the P2P check compares (test: one edited stat → expect MXNV533, then with <code>is_revision_check:"NO"</code>);  whether a no-banner news item shows and how <code>priority</code> sorts; the image format for banners, ads and avatars.</p>
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 
 <h2 id="wire">Transport layers: large messages, the AES tier, dlcp, and the player-to-player link</h2>
@@ -676,11 +682,179 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <p><code>TEAM_DATA_SYNC, USER_DATA_SYNC, BL_DATA_SYNC, SYNC_COMMENTARY, SELECT_SIDE, COMPLETE/UPDATE_TEAM_SELECT, CMD_ERR, CMD_LACK, CMD_SENDFAILED, LOST_GUEST, SET_GUEST, REVISION_CHECK</code> have no reply parser. They look like player-to-player multiplay commands carried inside the match session (MultiplayCmdTeamDataSync.cpp), not server commands. <span class="tag t-inf">INFERRED</span> <code>CMD_RECONNECT</code> is a real server command (see <a href="#match">match flow</a>).</p>
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 
+<h2 id="db">The game database: players, teams, rosters</h2>
+<div class="plain"><b>In plain words:</b> every player and team the game knows is in a set of small files inside the game's archives. They're compressed but not encrypted, and now fully decoded. The proof: recomputing the game's own login checksums from these files gives exactly the values our test clients sent. With this, the server can turn the player and team ids in match results into names, build squads, and tell two players why their data doesn't match.</div>
+
+<h3>Where it is <span class="tag t-static">STATIC</span></h3>
+<ul>
+  <li>Files <code>common/etc/pesdb/*.bin</code> inside the CPK archives: the update pack <code>download/dt80_100E_x64.cpk</code> overrides <code>Data/dt10_x64.cpk</code>, which overrides <code>dt00</code>. The game reads 28 tables, including Player, Team, PlayerAssignment, Coach, Competition, CompetitionEntry, Country, Stadium, Tactics, TacticsFormation, PlayerWeekly and TeamWeekly (file table 0x1434d6630, record sizes 0x1428bb100).</li>
+  <li>Wrapper: <code>ff 10 81 "WESYS"</code> + u32 compressed size + u32 size + zlib (flag 0x00 = stored). No encryption.</li>
+  <li>In memory: up to 30,001 players (0x17c bytes each) and 750 teams (0x690 each). Player loader 0x1414f4500 → converter 0x1414f8420 → bit unpacker 0x1414c78e0 (108 setters) → clamp to MIN/MAX 0x1414f79d0. Teams and rosters: 0x1414f5120.</li>
+</ul>
+
+<h3>Player.bin: 312 bytes per player (18,452 in the update pack) <span class="tag t-static">STATIC</span></h3>
+<div class="tw"><table><thead><tr><th>Offset</th><th>Field</th></tr></thead><tbody>
+<tr><td><code>+0x00</code> u32</td><td>associated / legend club (e.g. Totti → Roma). <b>Not</b> the current team, which comes from PlayerAssignment.</td></tr>
+<tr><td><code>+0x04</code> u32</td><td>loan parent club (0 = not on loan)</td></tr>
+<tr><td><code>+0x08</code> u32</td><td><b>player id</b> (bits 0–17; Messi = 7511)</td></tr>
+<tr><td><code>+0x0c</code>, <code>+0x10</code></td><td>contract-until / loan-until dates as yyyymmdd in bits 0–26; the top 5 bits hold the free-kick motion and the playing style</td></tr>
+<tr><td><code>+0x1b</code></td><td>height − 100</td></tr>
+<tr><td><code>+0x1c</code></td><td>nationality (bits 9–17), second nationality (bits 0–8), goal celebration, place kicking</td></tr>
+<tr><td><code>+0x20…+0x43</code></td><td>bit fields holding the <b>108 parameters</b> (<code>value = (u32 &gt;&gt; shift &amp; mask) + add</code>)</td></tr>
+<tr><td><code>+0x44</code>, <code>+0x81</code>, <code>+0xbe</code>, <code>+0xfb</code></td><td>names, 61 bytes each, UTF-8: Japanese name, shirt name, second short name, <b>main name</b> ("L. MESSI")</td></tr>
+</tbody></table></div>
+<p><b>The 108 parameters</b> (in the order the checksum uses): registered position; 13 position ratings (none / B / A); the 29 abilities (Offensive Awareness, Ball Control, Dribbling, Tight Possession, Low Pass, Lofted Pass, Finishing, Heading, Place Kicking, Curl, Speed, Acceleration, Kicking Power, Jump, Physical Contact, Balance, Stamina, Defensive Awareness, Ball Winning, Aggression, GK Awareness/Catching/Parrying/Reflexes/Reach, weak-foot usage and accuracy, form, injury resistance); height and weight; foot; age; playing style (22 values); 7 COM playing styles; 41 skills; and motion and appearance values. Names come from the game's own UI-order tables (0x142978fd0 abilities, 0x142978f90 positions, 0x142979100 skills, 0x1429790d8 COM styles). The bit map was checked against the game's real unpack code for 150 random players with zero differences. A few names are still uncertain (p43, p48–p50, motion order; skill slots 11 vs 13). <span class="tag t-static">STATIC</span> <span class="tag t-inf">INFERRED</span></p>
+
+<h3>Team.bin and PlayerAssignment.bin <span class="tag t-static">STATIC</span></h3>
+<ul>
+  <li><b>Team.bin</b>: 0x5fc bytes per team, 669 teams. Team id at +8, coach id at +0, rivals, stadium id (u16 at +0x3c), country (+0x44 bits 18–26), 20 language name slots (English at 0x170), short name at 0x372.</li>
+  <li><b>PlayerAssignment.bin</b>: 16 bytes per row, 18,582 rows: entry id, <b>player id, team id</b>, then flags with <b>shirt number − 1</b> (bits 0–9), line-up order, set-piece roles and <b>captain</b> (bit 21). This is where current club, national team and shirt numbers come from.</li>
+  <li>Coach, Country, Stadium, Competition, CompetitionEntry, Derby, Tactics, PlayerWeekly and TeamWeekly are described in <code>notes/re/functions/db.md</code>.</li>
+</ul>
+
+<h3>What the login checksums really are <span class="tag t-ok">LIVE</span> <span class="tag t-static">STATIC</span></h3>
+<ul>
+  <li><code>param_check_sum</code> = for each player, (id &amp; 0xffff) + the 108 parameters + (height &amp; 0xff) + (weight &amp; 0xff) + <b>condition</b>, summed into 4 accumulators and XOR'd with a fixed key. <code>entry_check_sum</code> = for each team, team id + Σ(player id + shirt number).</li>
+  <li><b>Recomputed from the stock update-pack files: <code>25D6DFBB091E75D525E090F993DBAE73</code> / <code>1E21A82F1DFF00C9DBE591735FF8746A</code>, exactly what both test clients sent.</b> So both ran the unmodified update-pack database, with no edits and no live data. A game without the update pack (dt10 only) sends <code>25BC6828…</code> / <code>1E8FB88B…</code> and would fail the revision check against an updated player.</li>
+  <li>The "condition" term is the player's <b>weekly form</b> from PlayerWeekly.bin, but only after a live update has been applied (DB live-data mode 1, set by LiveDataSetFlow). Otherwise it's the constant 5. <b>So delivering live data changes every player's checksum</b>: all players must get the same live data.</li>
+</ul>
+
+<h3>Saves and the option file</h3>
+<p>Saves live in <code>Documents\KONAMI\eFootball PES 2021 SEASON UPDATE\save\</code> (types EDIT, SYSTEM, LIVE, …). They're encrypted with an MT19937-based XOR stream (0x14140e0f0), keyed from 64 header bytes at +0x100. Where the master key comes from wasn't traced, and no save files were read. Edit data overrides the database, so an edited option file changes the checksums. <span class="tag t-static">STATIC</span></p>
+
+<h3>Using it</h3>
+<p><code>notes/re/functions/tools/pesdb.py</code> reads the CPKs directly (update pack first): <code>checksum</code> (both sums, also the live-data variant), <code>player &lt;id&gt;</code>, <code>team &lt;id&gt;</code>, <code>dump out.json</code>. For the server, it gives names for the ids in <code>SET_PLAYDATA_MATCH</code> and line-ups, squads for vs-CPU co-op and a myClub-lite, and a way to name the cause when two players' checksums differ (missing update pack vs edited data).</p>
+<p class="totop"><a href="#contents">↑ Back to contents</a></p>
+
+<h2 id="live">Live Update: how the game downloads new data</h2>
+<div class="plain"><b>In plain words:</b> at login, the game asks the server whether there's new "Live Update" data. If there is, it downloads one file over plain HTTP, checks it against a SHA-256 hash the server sends, saves it, and loads it on top of its data, the same way it loads the update pack. Our server could use this to give every player on it the same rosters and form, so their data never mismatches. Konami's server did exactly this, and the game expects nothing more.</div>
+
+<h3>Three kinds of downloadable data <span class="tag t-static">STATIC</span></h3>
+<p>All three are ordinary CRI CPK archives, loaded on top of the base data (driver <code>livedata::LiveDataSetFlow</code>, LiveDataSetFlow.cpp, error prefix <b>SGJC</b>, update fn 0x1420ac3f0):</p>
+<div class="tw"><table><thead><tr><th>Kind</th><th>Reply list</th><th>Saved as</th><th>Load priority</th><th>Version file inside</th></tr></thead><tbody>
+<tr><td><b>Live Update</b></td><td><code>dlcfile_list[0]</code></td><td>save slot 0x1b "Live Update"</td><td>5</td><td><code>common/etc/version/version_wu.bin</code></td></tr>
+<tr><td>Variation 0–15</td><td><code>variation_file_list[i]</code></td><td>slots 0x1c–0x2b</td><td>5</td><td><code>version_vd00…15.bin</code></td></tr>
+<tr><td>Extra Update</td><td><code>extra_file_list[0]</code></td><td>file <code>ExtraUpdate.bin</code></td><td>6</td><td><code>version_xu.bin</code></td></tr>
+</tbody></table></div>
+
+<h3>The sequence</h3>
+<ol>
+  <li><b>Data pack gate:</b> the game's update-pack version (<code>version_dp.bin</code> in dt80 = "1.00" | "1.01.00" | "2396" → 100) must not be lower than the server's DLC version, which is GET_SVRVERSION <code>dlc_version</code> (copied to <code>[netmgr+0x68]</code> by 0x1410f08c0). Otherwise ERROR_CODE_DP_VERSION_OLD (SGJC392). Our "1.00" passes. GET_SVRVERSION <code>livedata_version</code> has no reader. <span class="tag t-static">STATIC</span></li>
+  <li><b>Ask:</b> <code>CMD_GET_DLC_FILELIST</code> over HTTP to the FLOW URL: <code>file_type=LIVEDATA&amp;region=REGION_ALL&amp;pid=0</code>. Sent at every login and again on entering an online mode, before JOIN_ONLINE_MODE and CHECK_CHEAT. <span class="tag t-ok">LIVE</span></li>
+  <li><b>Decide:</b> Live Update is new if <code>atoi(dlcfile_list[0].dlc_version)</code> &gt; the version of the Live Update already saved (0 if none). Version strings in the files parse as "a.bb" → a·100+bb, so "1.01" ↔ <code>"101"</code>. <span class="tag t-static">STATIC</span></li>
+  <li><b>Download:</b> plain WinHTTP <b>GET</b> of the entry's <code>url</code> (https only if the URL says so). It needs status 200, and the body must be <b>exactly <code>size</code> bytes</b>: longer fails, shorter is zero-filled and fails the hash. The limit is 120 s for the whole transfer. <span class="tag t-static">STATIC</span></li>
+  <li><b>Check:</b> SHA-256 of the downloaded bytes as <b>64 lowercase hex</b> characters, compared exactly with <code>hash</code> (mismatch → "wrong hash", SGJC1006). That's the only check: no signature or key. <span class="tag t-static">STATIC</span></li>
+  <li><b>Save and load:</b> the raw bytes go into the save slot (save failure → SGJC1102), then get loaded as a CPK at priority 5 (load failure → SGJC1306). Afterwards the edit data (option file) is re-applied on top, so players' own edits stay. A "LiveDataSetDialog" confirms it. <span class="tag t-static">STATIC</span></li>
+</ol>
+
+<h3><code>CMD_GET_DLC_FILELIST</code> reply <span class="tag t-static">STATIC</span></h3>
+<ul>
+  <li>Fields: <code>dlcfile_list_count, dlcfile_list, variation_file_list_count, variation_file_list, extra_file_list_count, extra_file_list</code> (parser 0x141d34a90). There is <b>no top-level <code>dlc_version</code></b>; the one we send is ignored.</li>
+  <li>Each element is a <b>real inline msgpack map</b> (not a nested blob): <code>{name STR, size NUM, url STR, hash STR, dlc_version STR (integer string), required_program_version NUM (ignored)}</code>. Only <code>dlcfile_list[0]</code> is used. <code>extra_file_list_count</code> is trusted as the count, so keep it consistent with the list.</li>
+  <li><b>Today</b> we send empty lists: no live data → ERROR_CODE_NOT_DELIVERED → one "No new Live Update" dialog per session and <code>CMD_SEND_LOG {title:"LiveUpdate"}</code>, then login continues. Harmless. <span class="tag t-ok">LIVE</span></li>
+</ul>
+
+<h3>What a Live Update file contains</h3>
+<ul>
+  <li><code>common/etc/version/version_wu.bin</code>: 30 bytes, three NUL-padded 10-byte ASCII fields (content version, required program version, build string; the same layout as <code>version_dp.bin</code>; only the first field is read). <b>Required</b>: without it the client stays at version 0 and downloads again at every login. <span class="tag t-static">STATIC</span> <span class="tag t-inf">INFERRED</span></li>
+  <li>The database tables the live-data module handles (0x142bd0ec0): <b>PlayerWeekly, Tactics, TacticsFormation, PlayerAssignment, Player, PlayerAppearance, BootsList, PlayerDeleteList, Coach, CoachDeleteList, TeamWeekly</b>, under <code>common/etc/pesdb/</code> in the <a href="#db">usual WESYS format</a>. A full roster update is about 1.5 MB. Team.bin is not in the list.</li>
+  <li><b>Persistence:</b> the saved file stays across restarts until a higher version replaces it. The Live Update is applied per session by this flow; Variation and Extra files are loaded from boot.</li>
+</ul>
+
+<h3>Effect on matchmaking</h3>
+<p>CHECK_CHEAT is sent after the Live Update is applied, and with live data active the checksum also includes each player's weekly form. So <b>players with the same Live Update get the same checksums</b>, and a player without it (or with an older one) would hit "DATAPACK error" against them. Players report their live-data version in <code>JOIN_ONLINE_MODE livedata_version</code> ("0" today), which the server can compare. There's also an <code>ERR_DIFFERENT_LIVEDATA_VERSION</code> error code, whose on-screen handling is unverified. <span class="tag t-static">STATIC</span> <span class="tag t-ok">LIVE</span></p>
+
+<h3>Publishing our own update (what the game expects)</h3>
+<ol>
+  <li>Build a CPK with <code>common/etc/version/version_wu.bin</code> (e.g. "1.01" | "1.01.00" | a build string) and the changed <code>common/etc/pesdb/*.bin</code> tables. Our <code>tools/pesmod</code> CPK writer produces CPKs the game accepts.</li>
+  <li>Serve it with HTTP GET at a fixed URL on the server's HTTP port: status 200, exact Content-Length, raw bytes. <code>httpgate.py</code> needs a new route for this.</li>
+  <li>Reply: <code>{"result":"NOERR", "dlcfile_list_count":1, "dlcfile_list":[{"name":"livedata_101.cpk", "size":&lt;bytes&gt;, "url":"http://&lt;server&gt;:8080/livedata/101.cpk", "hash":"&lt;sha256, lowercase&gt;", "dlc_version":"101"}], "variation_file_list_count":0, "variation_file_list":[], "extra_file_list_count":0, "extra_file_list":[]}</code>. To publish again, raise the version in both the file and the reply.</li>
+  <li>Compare <code>livedata_version</code> at JOIN_ONLINE_MODE and pair players only when their checksums match.</li>
+</ol>
+<p class="note"><b>Still unknown (one test with a tiny update settles most):</b> the save-file name and folder for the slots and for ExtraUpdate.bin; which tables are re-read after loading; how the client shows ERR_DIFFERENT_LIVEDATA_VERSION; what Variation and Extra files were used for (probably myClub card art and stadium assets).</p>
+<p class="totop"><a href="#contents">↑ Back to contents</a></p>
+
+<h2 id="nettune">Tuning the connection: <code>proto_opt</code>, failover, NAT type, NAT test</h2>
+<div class="plain"><b>In plain words:</b> every timeout and threshold of the player-to-player link, including how long the game waits for a connection and when it switches between the direct path and the TURN relay, comes from a JSON text <b>the server sends</b> in <code>GET_SERVER_ENV</code>. We send none, so the game uses its built-in defaults. Konami's real values are lost, but our server can now tune them. The NAT type the game reports is never used by the game itself.</div>
+
+<h3 id="protoopt"><code>GET_SERVER_ENV.proto_opt</code>: the tuning tree <span class="tag t-static">STATIC</span></h3>
+<ul>
+  <li>Chain: GET_SERVER_ENV handler 0x141210dd0 → <code>ParameterMultiplay::SetJson</code> 0x141174b20 → JSON parse. It's read again every time a match session is created (CreateMultiplaySession 0x1411aa730). Invalid or missing JSON (our "NotImplement") is harmless: all defaults stay. A hash of the text is reported back in the post-match stats (<code>PROTO_OPT_HASH</code>).</li>
+  <li>Shape: <code>{ "&lt;profile&gt;": { "&lt;group&gt;": { "&lt;key&gt;": value } } }</code>. The profile is <code>"P2P"</code> for normal matches (<code>"CS"</code> for the game relay, <code>"P2P_ADHOC"</code> for direct online). A level profile <code>"P2P_HIGH_LEVEL"</code> / <code>"_LOW_LEVEL"</code> / <code>"_GIVE_UP_QUICKLY_LEVEL"</code> overrides it key by key. Which level Quick Match uses is unknown, so put values in <code>"P2P"</code>. Integers must be JSON integers.</li>
+  <li>Groups: <b>Network</b>, NatTraversal, Session, Domain, ProtocolTransmission, ProtocolChannel, MatchCommandBufferingControl (input-delay buffering), Match (load/out-of-play/command-lack timeouts), MultiplayStatistics, OnlineSystem (voice chat, network testers, observe).</li>
+</ul>
+<div class="tw"><table><thead><tr><th>Network key (selection)</th><th>Default</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>NetworkIoConnectionTimeoutUs</code></td><td>15 000 000</td><td>direct-link connect timeout. Two attempts ≈ the 30 s we see before ER_MATCHING_RETRY</td></tr>
+<tr><td><code>ChangeoverPeerReceiveIdleTimeMsThreshold</code></td><td>7500</td><td>silence on a route before failover</td></tr>
+<tr><td><code>ChangeoverToTurnBufferCriticalConditionTimeMsThreshold</code></td><td>10000</td><td>direct link congested this long → TURN</td></tr>
+<tr><td><code>P2pModeTurnSendEnable</code> / <code>…IntervalMs</code></td><td>true / 5000</td><td>keep the other route alive</td></tr>
+<tr><td><code>TurnNetworkIoTcpConnectionTimeoutMs</code> / <code>ConnectionTimeoutMs</code></td><td>10000 / 10000</td><td>the TURN TLS-over-TCP connect must finish in 10 s</td></tr>
+<tr><td><code>TurnNetworkIoPingIntervalMs</code> / <code>QuickPingIntervalMs</code></td><td>5000 / 1000</td><td>RTT probing on the TURN route</td></tr>
+<tr><td><code>TcpFallbackEnable</code> / <code>TimeoutMs</code></td><td>false (true for CS) / 10000</td><td>TCP fallback of the link</td></tr>
+<tr><td><code>MaxPayloadLength</code></td><td>1196</td><td>max UDP payload (leaves room for TURN overhead)</td></tr>
+<tr><td><code>DscpEnable</code> / <code>Dscp</code></td><td>true / 46</td><td>packet priority marking (EF)</td></tr>
+</tbody></table></div>
+<p>The other two 15 s timeouts are <code>ProtocolTransmission.ConnectionTimeoutUs</code> and <code>Domain.LinkTimeoutUs</code> (key exchange: <code>Domain.KeyExchangeTimeoutUs</code> 20 s). Lever to test for hard-to-connect pairs: <code>{"P2P":{"Network":{"NetworkIoConnectionTimeoutUs":30000000}}}</code>. Keep <code>proto_opt</code> small so GET_SERVER_ENV stays within one frame. The full key list is in <code>notes/re/functions/nettune.md</code>.</p>
+
+<h3 id="failover">When the game switches between direct and TURN <span class="tag t-static">STATIC</span></h3>
+<p><code>P2pTurnIoFailover</code> (only when a TURN list is sent) starts on the direct path. It moves to TURN, while the TURN route is up, when: the direct link isn't connected (reason 1); the direct link has been congested for over 10 s (reason 3); or TURN is receiving but the direct link never received (reason 4) or has been silent for 7.5 s (reason 5). It goes back when the direct link receives within 7.5 s again (reason 6). After a congestion switch it waits 0 s, 10 s, 20 s… (at most 60 s) before going back. The reasons are reported in the post-match stats (<code>TURN_CHANGEOVER_REASON/TIME</code>). The TURN server must keep allocations alive for the whole match.</p>
+<p class="note"><b>Possible limit:</b> TURN setup checks that one config list has exactly one entry (0x14122eab1). If that list is the peers, TURN mode would only work 1v1 and co-op with a TURN list would fail with "Error CreateMultiplaySession". Test co-op with TURN before relying on it. <span class="tag t-unk">UNKNOWN</span></p>
+
+<h3>The NAT type value (<code>ntl_nat_type</code>) <span class="tag t-static">STATIC</span></h3>
+<ul>
+  <li>1 = no result yet; 2 or 3 = the NAT test failed. Otherwise a bit set: 0x10 UDP reachable, 0x20+low bits = filtering class (3 = worst/unknown), 0x100–0x2000 UPnP found / mapping / external IP, 0x4000 STUN address ≠ UPnP address, 0x10000 hairpin works, 0x20000 mapping varies (symmetric NAT), 0x100000 port preserved, 0x200000 port parity preserved, high bits = NTL config flags.</li>
+  <li>Our clients' <b><code>0x10307533</code></b> = UDP reachable, port and parity preserved, UPnP working, STUN ≠ UPnP address (our STUN sees the LAN IP), filtering class 3. The hairpin and mapping tests never ran.</li>
+  <li><b>The game never branches on it</b>: no strategy change, no refusal, and no "NAT Type" text shown to the player. It's only reported to the server for matchmaking. Our matchmaker can ignore it, or use the symmetric-NAT bit as a hint to prefer TURN.</li>
+</ul>
+
+<h3>The NAT test and GateInfo.php</h3>
+<ul>
+  <li>14 tests in phases (MappingTest IA…IV, FilteringTest I/II, hairpin). The extra tests only run if the first reply (IA) carries an OTHER-ADDRESS (0x802C) and a Konami 0xF000 "O573_CR_XADDR" address. Our STUN answers IA only, so the rest are marked skipped, and our logs show only the 32-byte IA probe. Nothing depends on the rest; leave <code>stun.py</code> as it is until the 0xF000 reply layout is proven. <span class="tag t-static">STATIC</span> <span class="tag t-ok">LIVE</span></li>
+  <li><code>GateInfo.php</code>: STATUS 200 and API_STATUS 0 (what we send) are fine. API_STATUS 1 + LOG_ACTIVE 1 + PUT_LOG_URL would make clients upload their NTL logs, an optional debug channel.</li>
+  <li>The <b>"SC" game relay</b> (Konami's own full relay) isn't worth building: it needs the undecoded link layer and session logic, with no traffic to learn from. TURN is strictly better.</li>
+</ul>
+<p class="totop"><a href="#contents">↑ Back to contents</a></p>
+
+<h2 id="texts">What the player sees: error texts and server replies</h2>
+<div class="plain"><b>In plain words:</b> every error reply our server can send already has a matching text in the game, often a clear one: "account suspended", "server busy", "your version is out of date", "the room is full". This section shows how the game picks the text, and which replies give players a friendly message instead of a bare error code. All 764 rows of the game's server-error table are resolved to the English text.</div>
+
+<h3>How a text is found <span class="tag t-static">STATIC</span></h3>
+<ul>
+  <li>Message id = <code>(group number &lt;&lt; 16) | entry id</code>, where the group number is the u32 at +4 of each group header in the <code>.str</code> string tables (lookup 0x141497dd0 → 0x1414996f0). Example: 0x0398002f = "Press Any Button". "Failed to connect with opponent." is <b>0x045b0010</b>, shown by the lobby room screen (0x1410438a0).</li>
+  <li><b>Server error replies:</b> every command shows an error dialog automatically (on by default, flag at +0x74; about 40 commands switch it off). The text comes from the game's table at 0x1428a1170 (command, ERR code, message id):
+    <ul>
+      <li>message id 0xffffffff: no dialog; the screen that sent the command decides (109 rows);</li>
+      <li>message id 0 or 0x01fb00d2: the generic "An unexpected problem has occurred while communicating with the server." plus <code>CODE:</code> = a hash of the command name + "_" + the ERR number, e.g. <code>ZVMY_0079</code> (163 rows);</li>
+      <li>any other id: that specific text, with no code (492 rows).</li>
+    </ul></li>
+  <li><b>On-screen codes from the error reporter:</b> <code>TAG_%04d</code> when the site has a sub-code, otherwise <code>TAG</code> + line, optionally followed by an extra value (<code>GNCX_0003_0x20000000</code>). Most codes players see are therefore in the sub-code form (<code>MXNV_0013</code>, <code>CCWR_0014</code>); the <a href="#errors">error table</a> shows both forms.</li>
+</ul>
+
+<h3>Replies that give players a clear message <span class="tag t-static">STATIC</span></h3>
+<div class="tw"><table><thead><tr><th>Use</th><th>Reply</th><th>Text the player sees</th></tr></thead><tbody>
+<tr><td>Ban</td><td><code>CMD_LOGIN</code> → <code>ERR_INVALID_ACCOUNT</code></td><td>"…we have suspended your account in line with our policy on violations…"</td></tr>
+<tr><td>Server full</td><td><code>CMD_LOGIN</code> → <code>ERR_FREE_TO_PLAY_FULL</code></td><td>"Due to excessive traffic on the server, login is currently restricted. Please try reconnecting again later."</td></tr>
+<tr><td>Maintenance</td><td><code>CMD_LOGIN</code> → <code>ERR_SERVERNOTREADY</code></td><td>"The online service is currently unavailable. The server may be undergoing maintenance…" (includes Konami's website address)</td></tr>
+<tr><td>Wrong game version</td><td><code>JOIN_ONLINE_MODE</code> → <code>ERR_DIFFERENT_PATCHVERSION</code></td><td>"Your version of the game is out of date. Please update to the latest version and reconnect."</td></tr>
+<tr><td>Wrong Live Update</td><td><code>JOIN_ONLINE_MODE</code> → <code>ERR_DIFFERENT_LIVEDATA_VERSION</code></td><td>"Unable to log in while using outdated Live Update data."</td></tr>
+<tr><td>Missing data pack</td><td><code>JOIN_ONLINE_MODE</code> → <code>ERR_DIFFDCVERSION</code></td><td>"Data Pack Incompatible. Please reboot and update the software."</td></tr>
+<tr><td>Mode closed</td><td><code>JOIN_ONLINE_MODE</code> → <code>ERR_MODE_BLOCKED</code></td><td>"&lt;mode&gt; is currently unavailable online…" (login error dialog, CCWR_0003)</td></tr>
+<tr><td>Feature closed</td><td><code>START_MATCHING</code> → <code>ERR_COMMAND_BLOCKED</code></td><td>"This feature is currently unavailable. Please refer to Online Information for further details."</td></tr>
+<tr><td>Edited player data</td><td><code>CHECK_CHEAT</code> → <code>ERR_PARAMCHECK_FAILED</code></td><td>"Invalid player data found." (then the login error "Unable to load content data…", CCWR_0014)</td></tr>
+<tr><td>Room full / in a match / wrong password</td><td><code>JOIN_ROOM_NTL</code> → <code>ERR_ROOMISFULL</code> / <code>ERR_ROOMSTATNOTMATCH</code> / <code>ERR_PASSWDINCORRECT</code></td><td>"Cannot participate due to full quota." / "Could not enter because a match is currently being played." / "Incorrect password."</td></tr>
+</tbody></table></div>
+<ul>
+  <li>Avoid: CMD_LOGIN's live-data error row, which points to a Condition Rating help text; and <code>ERR_JOINKICKEDROOM</code>, which only gives the generic text plus a code.</li>
+  <li>Live-update errors (0x1420ac100): 1 "Unable to login.", 2/6 "Communication error", 3 "The downloaded file is broken.", 4/5 "Install failed.", 7 "No new Live Update available.", 8 "Data Pack Incompatible…".</li>
+  <li><code>{rf}</code> / <code>{re}</code> in texts are macros the game fills in (probably the game title) <span class="tag t-inf">INFERRED</span>. The full table, with every command and ERR code and its text, is <code>notes/re/functions/data/server_errors.tsv</code>.</li>
+</ul>
+<p class="totop"><a href="#contents">↑ Back to contents</a></p>
+
 <h2 id="errors">Error codes: every place the online code reports one</h2>
 <div class="plain"><b>In plain words:</b> an on-screen code like <code>EYRH763</code> or <code>GNCX_0003_…</code> points to one line of the game's source code. This table lists all 186 places in the online code that report an error, so a code a player sees can be looked up here.</div>
 <ul>
   <li>The reporter is <code>0x1411546b0(mgr, function-name, source path, line, sub-code)</code>. The four letters are a hash of the .cpp file name (<code>notes/re/errcode.py</code>). <span class="tag t-static">STATIC</span></li>
-  <li>Two formats share those letters: <b>letters + line</b> (<code>EYRH763</code> = OnlineModeTaskQuickMatching.cpp line 763), and <b>letters + "_" + 4-digit sub-code</b> (<code>GNCX_0003_0x20000000</code> = OnlineModeMultiplay.cpp sub-code 3, reported at line 505; the hex tail is an extra error value). <span class="tag t-static">STATIC</span> <span class="tag t-ok">LIVE</span></li>
+  <li>The code players see is <b>letters + "_" + 4-digit sub-code</b> when the site has one (most do), otherwise letters + line. Two formats share those letters: <b>letters + line</b> (<code>EYRH763</code> = OnlineModeTaskQuickMatching.cpp line 763), and <b>letters + "_" + 4-digit sub-code</b> (<code>GNCX_0003_0x20000000</code> = OnlineModeMultiplay.cpp sub-code 3, reported at line 505; the hex tail is an extra error value). <span class="tag t-static">STATIC</span> <span class="tag t-ok">LIVE</span></li>
   <li>Codes reported through other paths and seen in our logs: <code>EYRH763</code> Quick Match search timed out; <code>EYRH1530</code> Quick Match abnormal end GAMERELAY / DEGRADE_SC; <code>QVHE1459</code> GameModeMatchListenerMatch.cpp, loading took longer than <code>load_timeout</code> (LOAD_TIMEOUT); <code>VIXT2253</code> MatchOnline.cpp, no input for about a minute (NO_OPERATION, the AFK rule); <code>OLXH152</code> error on the CHECK_ALIVE_PLAYER watcher; <code>FAMY242</code> the server replied ERR_CHEAT to an in-match command; <code>LZFP101</code> SEND_ALIVE. <span class="tag t-ok">LIVE</span> <span class="tag t-static">STATIC</span></li>
   <li>Meanings come from the message string the code stores next to the report, or from the area sections above. Rows without a meaning have no nearby text.</li>
 </ul>
@@ -1341,7 +1515,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
   <li><b>The game's own structure helps a lot.</b> Each command has an <code>…Option</code> class (request; vtable slot 3 = HTTP form builder, slot 1 of the +280 vtable = gate MessagePack packer) and a <code>…Result</code> class whose parser stores every field at a fixed offset. Game code creates commands by name, and the tasks are state machines full of debug strings and source paths (<code>D:\pes2021\PATCH10100\pes21\Source\…\OnlineModeTaskMatchSession.cpp</code>).</li>
   <li><b>Cross-checked with our logs:</b> every claim about a request that the game really sent was compared with the decoded traffic of our test sessions. <span class="tag t-ok">LIVE</span></li>
   <li><b>Reply schemas:</b> <code>notes/re/extract_schemas.py</code> missed keys that the client compares with its <code>std::string == const char*</code> helper (0x140cf3990) instead of <code>memcmp</code>. The fixed extractor finds <b>1,907 more reply fields in 108 commands</b> (for example the verdict push, division info and all rankings). The catalogue below uses the fixed result. The server's <code>schemas.json</code> has not been regenerated yet, because the server builds default replies from it and that needs a test run.</li>
-  <li>The full per-area reports, with every address, are in <code>notes/re/functions/</code>: <code>net.md</code>, <code>match.md</code>, <code>results.md</code>, <code>rooms.md</code>, <code>coop.md</code>, <code>menus.md</code>, <code>wire.md</code>, <code>survey.md</code>.</li>
+  <li>The full per-area reports, with every address, are in <code>notes/re/functions/</code>: <code>net.md</code>, <code>match.md</code>, <code>results.md</code>, <code>rooms.md</code>, <code>coop.md</code>, <code>menus.md</code>, <code>wire.md</code>, <code>survey.md</code>, <code>db.md</code> (with the parser <code>tools/pesdb.py</code>), <code>live.md</code>, <code>nettune.md</code>, <code>messages.md</code>, <code>sweep.md</code>.</li>
 </ul>
 <h3>What a live test would settle</h3>
 <ul>

@@ -1,0 +1,765 @@
+command	err	err_index	msgid	kind	string_ref	code_if_generic	text
+CMD_ACCEPT_CLAN_ENTRY	ERR_ALREADY_CANCEL	164	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ACCEPT_CLAN_ENTRY	ERR_ALREADY_CLAN_MEMBER	180	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ACCEPT_CLAN_ENTRY	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	EHCS_0013	An error occurred while accessing the {rf} database.
+CMD_ACCEPT_CLAN_ENTRY	ERR_OPPONENT_JOIN_CLAN_FULL	173	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ACCEPT_CLAN_ENTRY	ERR_SELF_CLAN_MEMBER_FULL	170	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ACCEPT_CLAN_INVITE	ERR_ALREADY_CANCEL	164	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ACCEPT_CLAN_INVITE	ERR_ALREADY_CLAN_MEMBER	180	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ACCEPT_CLAN_INVITE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	DYEJ_0013	An error occurred while accessing the {rf} database.
+CMD_ACCEPT_CLAN_INVITE	ERR_OPPONENT_CLAN_MEMBER_FULL	172	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ACCEPT_CLAN_INVITE	ERR_SELF_JOIN_CLAN_FULL	171	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ADD_FOUL	ERR_INVALIDARG	14	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ADD_FOUL	ERR_NOTGAMEHOST	59	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ADD_FOUL	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ADD_FOUL	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ADD_FOUL	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ADD_MYCLUB_AUCTION_WATCH_LIST	ERR_DATABASE	13	0x022601fb	specific	Onml1T/507	AHTW_0013	You cannot add anyone else to the Watch List.\nYou will need to delete someone first.
+CMD_ADD_MYCLUB_AUCTION_WATCH_LIST	ERR_WATCH_LIST_MAX	152	0x022601fb	specific	Onml1T/507	AHTW_0152	You cannot add anyone else to the Watch List.\nYou will need to delete someone first.
+CMD_ADD_MYCLUB_AUCTION_WISH_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	JDIU_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:JDIU_0013
+CMD_ADD_MYCLUB_AUCTION_WISH_LIST	ERR_WISH_LIST_ALREADY_ADD	154	0x02260268	specific	Onml1T/616	JDIU_0154	The same type of Scout is already on your Wish List.
+CMD_ADD_MYCLUB_AUCTION_WISH_LIST	ERR_WISH_LIST_MAX	153	0x0226021c	specific	Onml1T/540	JDIU_0153	You cannot add anyone else to your Wish List.\nYou can remove a Scout from the list via "Scouts" → "Wish List".
+CMD_ADD_MYCLUB_SUBSCRIPTION_GAMEPLAYER	ERR_COMMAND_BLOCKED	135	0x00000000	generic	Nm3T/210	ANFZ_0135	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ANFZ_0135
+CMD_ADD_MYCLUB_SUBSCRIPTION_GAMEPLAYER	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	ANFZ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ANFZ_0013
+CMD_ADD_MYCLUB_SUBSCRIPTION_GAMEPLAYER	ERR_ENABLE_BUY_NUM	119	0x00000000	generic	Nm3T/210	ANFZ_0119	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ANFZ_0119
+CMD_ADD_MYCLUB_SUBSCRIPTION_GAMEPLAYER	ERR_NOT_SUBSCRIPTION	159	0x00000000	generic	Nm3T/210	ANFZ_0159	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ANFZ_0159
+CMD_ADD_SCORE	ERR_MSGFORMAT	16	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ADD_SCORE	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ADD_SCORE	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ADD_SCORE	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_AUTH_STEAM	ERR_INVALID_TICKET	39	0x00000000	generic	Nm3T/210	GKCC_0039	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:GKCC_0039
+CMD_BUY_MYCLUB_MARKET_COACH	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	PPNX_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_BUY_MYCLUB_MARKET_COACH	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	PPNX_0013	An error occurred while accessing the {rf} database.
+CMD_BUY_MYCLUB_MARKET_COACH	ERR_INSUFFICIENT_GP	129	0x022600a7	specific	Onml1T/167	PPNX_0129	Not enough GP.
+CMD_BUY_MYCLUB_MARKET_COACH	ERR_INSUFFICIENT_PES_POINT	128	0x022600a8	specific	Onml1T/168	PPNX_0128	Not enough myClub Coins.
+CMD_BUY_MYCLUB_MARKET_COACH	ERR_REFRESH_LIST	132	0x02260097	specific	Onml1T/151	PPNX_0132	The list has been updated.
+CMD_BUY_MYCLUB_MARKET_COACH	ERR_TEAM_COACH_FULL	130	0x02260098	specific	Onml1T/152	PPNX_0130	You cannot sign more managers as you have no vacant slots.\nIf you want to sign new managers, you must release some existing ones.
+CMD_CANCEL_CLAN_ENTRY	ERR_ALREADY_ACCEPT	165	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_CANCEL_CLAN_ENTRY	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	VXNQ_0013	An error occurred while accessing the {rf} database.
+CMD_CANCEL_CLAN_INVITE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UOPH_0013	An error occurred while accessing the {rf} database.
+CMD_CANCEL_COOP_GROUP_MATCHING	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	XODB_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XODB_0013
+CMD_CANCEL_COOP_MATCHING	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	PTPU_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:PTPU_0013
+CMD_CANCEL_MATCHDAY_ENTRY_PICKUP_MATCH	ERR_ALREADY_PICKUP	187	0x00000000	generic	Nm3T/210	VKJX_0187	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:VKJX_0187
+CMD_CANCEL_MATCHDAY_ENTRY_PICKUP_MATCH	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	VKJX_0013	An error occurred while accessing the {rf} database.
+CMD_CANCEL_MATCHING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	DQPZ_0013	An error occurred while accessing the {rf} database.
+CMD_CHANGE_GAMEPHASE	ERR_DATABASE	13	0x020f007d	specific	Nm12T/125	EWQD_0013	An error occurred while accessing the {rf} database.\nThis game session will be terminated.
+CMD_CHANGE_GAMEPHASE	ERR_NOTGAMEHOST	59	0x020f0086	specific	Nm12T/134	EWQD_0059	An error occurred during host verification.\nThis game session will be terminated.
+CMD_CHANGE_GAMEPHASE	ERR_NOTINROOM	56	0x020f0087	specific	Nm12T/135	EWQD_0056	An error occurred during participant verification.\nThis game session will be terminated.
+CMD_CHANGE_GAMEPHASE	ERR_NOTROOMOWNER	58	0x020f00ac	specific	Nm12T/172	EWQD_0058	An error has occurred on the session owner's side. This match will be abandoned. 
+CMD_CHANGE_GAMEPHASE	ERR_ROOMNOTFOUND	55	0x020f0082	specific	Nm12T/130	EWQD_0055	Game session error.\nThis session will be terminated.
+CMD_CHANGE_GAMEPHASE	ERR_ROOMSTATNOTMATCH	57	0x020f0088	specific	Nm12T/136	EWQD_0057	An error occurred while joining the session.\nThis game session will be terminated.
+CMD_CHECK_CHEAT	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	SXCA_0013	An error occurred while accessing the {rf} database.
+CMD_CHECK_CHEAT	ERR_PARAMCHECK_FAILED	34	0x020f0015	specific	Nm12T/21	SXCA_0034	Invalid player data found.
+CMD_CHECK_LOCAL_GAMERELAY_PLAYER	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	LDTE_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:LDTE_0013
+CMD_CHECK_MYCLUB_STORE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	LETG_0013	An error occurred while accessing the {rf} database.
+CMD_CHECK_STRING	ERR_NGWORD	17	0x01f50013	specific	Nm1T/19	FFMF_0017	Includes unusable letters or phrases.
+CMD_CONFIRM_CLAN_REQUEST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	MXYJ_0013	An error occurred while accessing the {rf} database.
+CMD_COPY_MYCLUB_SQUAD	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	OJYV_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:OJYV_0013
+CMD_CREATEJOIN_COOP_ROOM	ERR_ALREADYINROOM	54	0x020f003a	specific	Nm12T/58	KWXK_0054	Unable to create Match Room.
+CMD_CREATEJOIN_COOP_ROOM	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	KWXK_0013	An error occurred while accessing the {rf} database.
+CMD_CREATEJOIN_COOP_ROOM	ERR_INVALIDARG	14	0x020f003a	specific	Nm12T/58	KWXK_0014	Unable to create Match Room.
+CMD_CREATEJOIN_COOP_ROOM	ERR_MSGFORMAT	16	0x020f003a	specific	Nm12T/58	KWXK_0016	Unable to create Match Room.
+CMD_CREATEJOIN_COOP_ROOM	ERR_NGWORDINRNAME	50	0x01f50013	specific	Nm1T/19	KWXK_0050	Includes unusable letters or phrases.
+CMD_CREATEJOIN_COOP_ROOM	ERR_PESLEAGUE_CLAN	179	0x04640072	specific	Nm13T/114	KWXK_0179	You can't create a room because you're already participating in another Clan's tournament.
+CMD_CREATEJOIN_COOP_ROOM	ERR_ROOMCREATELIMIT	53	0x020f003a	specific	Nm12T/58	KWXK_0053	Unable to create Match Room.
+CMD_CREATEJOIN_ROOM	ERR_ALREADYINROOM	54	0x020f003a	specific	Nm12T/58	GVTJ_0054	Unable to create Match Room.
+CMD_CREATEJOIN_ROOM	ERR_INVALIDARG	14	0x020f0093	specific	Nm12T/147	GVTJ_0014	An error has been found in the transmitted data.
+CMD_CREATEJOIN_ROOM	ERR_MSGFORMAT	16	0x020f0093	specific	Nm12T/147	GVTJ_0016	An error has been found in the transmitted data.
+CMD_CREATEJOIN_ROOM	ERR_NGWORDINRNAME	50	0x01f50013	specific	Nm1T/19	GVTJ_0050	Includes unusable letters or phrases.
+CMD_CREATEJOIN_ROOM	ERR_RATING_NOTMET	71	0x020f00b3	specific	Nm12T/179	GVTJ_0071	Unable to create match room as you have not achieved the required rating.
+CMD_CREATEJOIN_ROOM	ERR_ROOMCREATELIMIT	53	0x020f001a	specific	Nm12T/26	GVTJ_0053	You cannot create any more Match Rooms.
+CMD_CREATEJOIN_ROOM	ERR_ROOMTOOMANY	51	0x020f001a	specific	Nm12T/26	GVTJ_0051	You cannot create any more Match Rooms.
+CMD_CREATE_CLAN	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	IHYT_0013	An error occurred while accessing the {rf} database.
+CMD_CREATE_MYCLUB_SQUAD	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QNRN_0013	An error occurred while accessing the {rf} database.
+CMD_CREATE_MYCLUB_STAFF	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	WSTQ_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_CREATE_MYCLUB_STAFF	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WSTQ_0013	An error occurred while accessing the {rf} database.
+CMD_CREATE_MYCLUB_STAFF	ERR_PLAYER_PROTECTED	145	0x02260212	specific	Onml1T/530	WSTQ_0145	One or more of the players you have selected have been designated as locked, so this sale cannot proceed.
+CMD_CREATE_MYCLUB_STAFF	ERR_TEAM_MEMBER_LACK	121	0x02260198	specific	Onml1T/408	WSTQ_0121	You cannot convert this player into a trainer, as you would end up with too few players.
+CMD_CREATE_MYCLUB_STAFF	ERR_TEAM_STAFF_FULL	139	0x02260132	specific	Onml1T/306	WSTQ_0139	Unable to proceed. Every EXP Trainer slot has been filled. You can have a maximum of 100 Trainers.
+CMD_CREATE_MYCLUB_TEAM	ERR_ALREADYEXISTS	35	0x020f0094	specific	Nm12T/148	WZCB_0035	You have already created a "My Team".
+CMD_CREATE_MYCLUB_TEAM	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WZCB_0013	An error occurred while accessing the {rf} database.
+CMD_CREATE_MYCLUB_TEAM	ERR_NGWORD	17	0x01f50013	specific	Nm1T/19	WZCB_0017	Includes unusable letters or phrases.
+CMD_CREATE_MYCLUB_TEAM	ERR_NOTFOUND	112	0x020f00af	specific	Nm12T/175	WZCB_0112	Unable to find team data.
+CMD_CREATE_PLAYER	ERR_ALREADYEXISTS	35	0x01f50014	specific	Nm1T/20	MHJX_0035	There is already a User with that name.
+CMD_CREATE_PLAYER	ERR_DATABASE	13	0x020f0022	specific	Nm12T/34	MHJX_0013	Unable to register User.
+CMD_CREATE_PLAYER	ERR_INVALIDLETTER	36	0x01f50013	specific	Nm1T/19	MHJX_0036	Includes unusable letters or phrases.
+CMD_CREATE_PLAYER	ERR_NGWORDINPNAME	29	0x01f50013	specific	Nm1T/19	MHJX_0029	Includes unusable letters or phrases.
+CMD_DELETE_MYCLUB_AUCTION_WATCH_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	DUTG_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DUTG_0013
+CMD_DELETE_MYCLUB_AUCTION_WISH_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	ZJRP_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ZJRP_0013
+CMD_DELETE_MYCLUB_SQUAD	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	RAYR_0013	An error occurred while accessing the {rf} database.
+CMD_DISCONNECT	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_END_STEAM_STORE	ERR_INVALID_TICKET	39	0x00000000	generic	Nm3T/210	LATB_0039	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:LATB_0039
+CMD_END_STORE_TRANSACTION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ECNE_0013	An error occurred while accessing the {rf} database.
+CMD_ENTRY_CLAN	ERR_ALREADY_CLAN_MEMBER	180	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ENTRY_CLAN	ERR_ALREADY_REQUESTED	163	0x04640016	specific	Nm13T/22	EQLT_0163	You've already sent a request to this clan.\nPlease wait until the Clan Owner responds to your request.
+CMD_ENTRY_CLAN	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	EQLT_0013	An error occurred while accessing the {rf} database.
+CMD_ENTRY_CLAN	ERR_OPPONENT_CLAN_MEMBER_FULL	172	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ENTRY_CLAN	ERR_OPPONENT_REQUEST_FULL	162	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ENTRY_CLAN	ERR_SELF_JOIN_CLAN_FULL	171	0x04640076	specific	Nm13T/118	EQLT_0171	You can't send this Request because you've already joined the maximum number of Clans allowed.
+CMD_ENTRY_CLAN	ERR_SELF_REQUEST_FULL	161	0x04640017	specific	Nm13T/23	EQLT_0161	You can't send any more requests.\nYou must cancel a request before you can send a new one.
+CMD_ENTRY_GAME	ERR_PLAYERISWATCHER	66	0x01fb00d2	generic	Nm3T/210	QHPI_0066	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:QHPI_0066
+CMD_ENTRY_GAME	ERR_PROHIBITEDTIME	67	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_ENTRY_GAME	ERR_ROOMNOTFOUND	55	0x020f0081	specific	Nm12T/129	QHPI_0055	Unable to find game session.
+CMD_ENTRY_GAME	ERR_ROOMSTATNOTMATCH	57	0x020f0088	specific	Nm12T/136	QHPI_0057	An error occurred while joining the session.\nThis game session will be terminated.
+CMD_ENTRY_MYCLUB_WEEKLY_RANKING	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	TIXZ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:TIXZ_0013
+CMD_EXCHANGE_E_FOOTBALL_POINT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	GAOZ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:GAOZ_0013
+CMD_EXCHANGE_E_FOOTBALL_POINT	ERR_INSUFFICIENT_POINT		0x00000000	generic	Nm3T/210	GAOZ0	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:GAOZ0
+CMD_EXCHANGE_E_FOOTBALL_POINT	ERR_KONAMIID_MAINTENANCE	181	0x020800b0	specific	Nm10T/176	GAOZ_0181	The KONAMI ID verification process is unavailable due to KONAMI ID. \nPlease try again later.
+CMD_EXPEL_CLAN_MEMBER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	MZMW_0013	An error occurred while accessing the {rf} database.
+CMD_EXTEND_MYCLUB_COACH	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	SUUP_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_EXTEND_MYCLUB_COACH	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	SUUP_0013	An error occurred while accessing the {rf} database.
+CMD_EXTEND_MYCLUB_COACH	ERR_INSUFFICIENT_GP	129	0x022600a7	specific	Onml1T/167	SUUP_0129	Not enough GP.
+CMD_EXTEND_MYCLUB_COACH	ERR_INSUFFICIENT_PES_POINT	128	0x022600a8	specific	Onml1T/168	SUUP_0128	Not enough myClub Coins.
+CMD_EXTEND_MYCLUB_GAMEPLAYER	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	RHXD_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_EXTEND_MYCLUB_GAMEPLAYER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	RHXD_0013	An error occurred while accessing the {rf} database.
+CMD_EXTEND_MYCLUB_GAMEPLAYER	ERR_INSUFFICIENT_GP	129	0x022600a7	specific	Onml1T/167	RHXD_0129	Not enough GP.
+CMD_EXTEND_MYCLUB_GAMEPLAYER	ERR_INSUFFICIENT_PES_POINT	128	0x022600a8	specific	Onml1T/168	RHXD_0128	Not enough myClub Coins.
+CMD_EXTEND_MYCLUB_ITEM_GAMEPLAYER	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	LQZG_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_EXTEND_MYCLUB_ITEM_GAMEPLAYER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	LQZG_0013	An error occurred while accessing the {rf} database.
+CMD_EXTEND_MYCLUB_ITEM_GAMEPLAYER	ERR_INSUFFICIENT_ITEM	148	0x00000000	generic	Nm3T/210	LQZG_0148	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:LQZG_0148
+CMD_FINISH_SEASON	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	DBMS_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DBMS_0013
+CMD_FOLLOW_USER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	NAJW_0013	An error occurred while accessing the {rf} database.
+CMD_FOLLOW_USER	ERR_FOLLOW_USER_LOCKED	168	0x020f0093	specific	Nm12T/147	NAJW_0168	An error has been found in the transmitted data.
+CMD_FOLLOW_USER	ERR_NOPLAYER	37	0x0464008d	specific	Nm13T/141	NAJW_0037	User Information not found.
+CMD_GET_AGING_REVISION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	XVAU_0013	An error occurred while accessing the {rf} database.
+CMD_GET_AVATAR_HTTP	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_AVATAR_HTTP	ERR_DATANOTFOUND	25	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_BEGINNERRATING	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_BLOCKLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ZMSC_0013	An error occurred while accessing the {rf} database.
+CMD_GET_CLAN_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	PJJA_0013	An error occurred while accessing the {rf} database.
+CMD_GET_CLAN_INFO	ERR_NOPLAYER	37	0x0464004e	specific	Nm13T/78	PJJA_0037	Could not find the selected user's Clan.
+CMD_GET_CLAN_INFO	ERR_NOT_EXISTS	167	0x0464004e	specific	Nm13T/78	PJJA_0167	Could not find the selected user's Clan.
+CMD_GET_CLAN_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UMEN_0013	An error occurred while accessing the {rf} database.
+CMD_GET_CLAN_MEMBER_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	BFUP_0013	An error occurred while accessing the {rf} database.
+CMD_GET_CLAN_PENDING_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	BJVG_0013	An error occurred while accessing the {rf} database.
+CMD_GET_CLAN_RANKING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	LNWB_0013	An error occurred while accessing the {rf} database.
+CMD_GET_CLAN_RANKING	ERR_NOTFOUND	112	0x01fb0040	specific	Nm3T/64	LNWB_0112	No Data
+CMD_GET_CLAN_RANKING_BYID	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	SBHW_0013	An error occurred while accessing the {rf} database.
+CMD_GET_CLAN_RANKING_BYID	ERR_NOTFOUND	112	0x01fb0040	specific	Nm3T/64	SBHW_0112	No Data
+CMD_GET_CLAN_REQUEST_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	SHAW_0013	An error occurred while accessing the {rf} database.
+CMD_GET_CLAN_SETTINGS	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ZOAH_0013	An error occurred while accessing the {rf} database.
+CMD_GET_CLAN_SIMPLE_INFO_LIST	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_COMPEV_INFO	ERR_COMPE_NOTFOUND	88	0x020f0044	specific	Nm12T/68	ORNF_0088	Unable to obtain Competition Data.
+CMD_GET_COMPEV_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ORNF_0013	An error occurred while accessing the {rf} database.
+CMD_GET_COMPEV_LIST	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	JESI_0088	Competition not found.
+CMD_GET_COMPEV_LIST	ERR_DATABASE	13	0x020f003d	specific	Nm12T/61	JESI_0013	Competition not found.
+CMD_GET_COMPEV_MAINMENU_INFO	ERR_DATABASE	13	0x020f0044	specific	Nm12T/68	NULA_0013	Unable to obtain Competition Data.
+CMD_GET_COMPEV_MYENTRY_COMPEID	ERR_DATABASE	13	0x020f0044	specific	Nm12T/68	ZQFV_0013	Unable to obtain Competition Data.
+CMD_GET_COMPLG_MYENTRY_COMPEID	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_COOP_LEVEL_RESULT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	CSMU_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:CSMU_0013
+CMD_GET_COOP_MAINMENU_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	NHWF_0013	An error occurred while accessing the {rf} database.
+CMD_GET_COOP_MATCH_DATA	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	QQOG_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:QQOG_0013
+CMD_GET_COOP_PROFILE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	GOZC_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:GOZC_0013
+CMD_GET_COOP_QUICKMATCHOPTION	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	LMSU_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:LMSU_0013
+CMD_GET_COOP_REJECT_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	DFZD_0013	An error occurred while accessing the {rf} database.
+CMD_GET_COOP_ROOMLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	TTTQ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_COOP_ROOM_MEMBER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	MAOG_0013	An error occurred while accessing the {rf} database.
+CMD_GET_COOP_ROOM_MEMBER	ERR_ROOMNOTFOUND	55	0x01fa006f	specific	Nm2T/111	MAOG_0055	This match room no longer exists.
+CMD_GET_COOP_ROOM_OPTION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	THAN_0013	An error occurred while accessing the {rf} database.
+CMD_GET_COOP_ROOM_OPTION	ERR_ROOMNOTFOUND	55	0x01fa006f	specific	Nm2T/111	THAN_0055	This match room no longer exists.
+CMD_GET_COOP_ROOM_PLATFORM_SESSION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WWOK_0013	An error occurred while accessing the {rf} database.
+CMD_GET_COOP_ROOM_PLATFORM_SESSION	ERR_ROOMNOTFOUND	55	0x01fa006f	specific	Nm2T/111	WWOK_0055	This match room no longer exists.
+CMD_GET_DIVISION_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	VBFV_0013	An error occurred while accessing the {rf} database.
+CMD_GET_DIVISION_POINT_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UGYT_0013	An error occurred while accessing the {rf} database.
+CMD_GET_DIVISION_RANKING	ERR_DATABASE	13	0x01fa0074	specific	Nm2T/116	RFSW_0013	Error occurred while loading Ranking Data.
+CMD_GET_DIVISION_RANKING	ERR_NOTFOUND	112	0x01fa00ee	specific	Nm2T/238	RFSW_0112	Unable to find any ranked users.\n*Rankings are updated regularly.\n*Users who have not yet played 10 games will not be ranked in Win Rate rankings.\nPlease try again later.
+CMD_GET_DIVISION_RANKING_BYID	ERR_DATABASE	13	0x01fa0074	specific	Nm2T/116	YTDR_0013	Error occurred while loading Ranking Data.
+CMD_GET_DIVISION_RANKING_BYID	ERR_NOTFOUND	112	0x01fa00ee	specific	Nm2T/238	YTDR_0112	Unable to find any ranked users.\n*Rankings are updated regularly.\n*Users who have not yet played 10 games will not be ranked in Win Rate rankings.\nPlease try again later.
+CMD_GET_DLC_FILELIST	ERR_DATABASE	13	0x020f009e	specific	Nm12T/158	OEOW_0013	Unable to obtain relevant data.
+CMD_GET_DLC_FILELIST	ERR_SERVERNOTREADY	28	0x020f009e	specific	Nm12T/158	OEOW_0028	Unable to obtain relevant data.
+CMD_GET_DMM_NOTIFICATION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WGRH_0013	An error occurred while accessing the {rf} database.
+CMD_GET_DMM_PLAYERINFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	JSDK_0013	An error occurred while accessing the {rf} database.
+CMD_GET_EFP_MOST_RECENTLY_EXPIRED_POINTS	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	EQDZ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:EQDZ_0013
+CMD_GET_EFP_MOST_RECENTLY_EXPIRED_POINTS	ERR_KONAMIID_MAINTENANCE	181	0x020800b0	specific	Nm10T/176	EQDZ_0181	The KONAMI ID verification process is unavailable due to KONAMI ID. \nPlease try again later.
+CMD_GET_ENTRY_GAME	ERR_DATABASE	13	0x020f009e	specific	Nm12T/158	JYVZ_0013	Unable to obtain relevant data.
+CMD_GET_EULA_NATION_CODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	AZXJ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_EULA_NATION_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	JTMY_0013	An error occurred while accessing the {rf} database.
+CMD_GET_EVENT_CATEGORY_LIST	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_EVENT_CATEGORY_LIST	ERR_EMPTY	27	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_E_FOOTBALL_POINT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	ZGTE_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ZGTE_0013
+CMD_GET_E_FOOTBALL_POINT	ERR_KONAMIID_MAINTENANCE	181	0x020800b0	specific	Nm10T/176	ZGTE_0181	The KONAMI ID verification process is unavailable due to KONAMI ID. \nPlease try again later.
+CMD_GET_FOLLOW_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WFRE_0013	An error occurred while accessing the {rf} database.
+CMD_GET_GAMERELAY	ERR_DATABASE	13	0x020f009c	specific	Nm12T/156	QUTM_0013	Unable to obtain relay server data.
+CMD_GET_GAMERELAY	ERR_GAMERELAY_NOTENOUGH	72	0x020f001a	specific	Nm12T/26	QUTM_0072	You cannot create any more Match Rooms.
+CMD_GET_GAMERELAY	ERR_NOTFOUND	112	0x020f00a1	specific	Nm12T/161	QUTM_0112	Unable to connect.
+CMD_GET_GAMERELAY	ERR_RETRY_LIMIT	123	0x020f0005	specific	Nm12T/5	QUTM_0123	Unable to enter Match Room.
+CMD_GET_GAMERELAY_QUALITYCHECKLIST	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_GAMERELAY_QUALITYCHECKLIST	ERR_NOTFOUND	112	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_GAMERESULTS	ERR_DATABASE	13	0x020f008e	specific	Nm12T/142	DAFG_0013	Unable to obtain match result data.
+CMD_GET_GAME_SCORE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WZKA_0013	An error occurred while accessing the {rf} database.
+CMD_GET_GAME_SCORE	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_GAME_SCORE	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_GAME_SCORE	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_GAME_TEAM_LIST	ERR_DATABASE	13	0x020f009b	specific	Nm12T/155	WGKH_0013	Unable to obtain Team Class data.
+CMD_GET_GLOBALINFOTITLELIST	ERR_DATABASE	13	0x020f009e	specific	Nm12T/158	HQVP_0013	Unable to obtain relevant data.
+CMD_GET_GP_ACHIEVEMENT	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	YJHD_0013	An error occurred while accessing the {rf} database.
+CMD_GET_HEROSTATS	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	MNNP_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:MNNP_0013
+CMD_GET_INFOBODY	ERR_DATABASE	13	0x020f00ab	specific	Nm12T/171	RREU_0013	Unable to obtain information.
+CMD_GET_INFOBODY	ERR_DATANOTFOUND	25	0x020f00ab	specific	Nm12T/171	RREU_0025	Unable to obtain information.
+CMD_GET_INFOBODY	ERR_INVALIDARG	14	0x020f00ab	specific	Nm12T/171	RREU_0014	Unable to obtain information.
+CMD_GET_IS_JOIN_COOP_ROOM	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	JVPY_0013	An error occurred while accessing the {rf} database.
+CMD_GET_IS_KONAMIID_COOPERATION	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	AWED_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:AWED_0013
+CMD_GET_IS_KONAMIID_COOPERATION	ERR_KONAMIID_MAINTENANCE	181	0x020800b0	specific	Nm10T/176	AWED_0181	The KONAMI ID verification process is unavailable due to KONAMI ID. \nPlease try again later.
+CMD_GET_KONAMIID_FUNCTIONAL_BLOCKADE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	VIIJ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:VIIJ_0013
+CMD_GET_KONAMIID_LINK_URL	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	QBTP_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:QBTP_0013
+CMD_GET_KONAMIID_LINK_URL	ERR_KONAMIID_MAINTENANCE	181	0x020800b0	specific	Nm10T/176	QBTP_0181	The KONAMI ID verification process is unavailable due to KONAMI ID. \nPlease try again later.
+CMD_GET_LOBBYINFO	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_LOBBYLIST	ERR_MODE_BLOCKED	124	0x020f00b1	specific	Nm12T/177	XPFB_0124	Some of our online services are currently unavailable. Please refer to Online Information for further details.
+CMD_GET_MAINTENANCE_INFO	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_MANNER_WARN	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_MATCHDAY_ACHIEVEMENT_REWARD	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	QWTI_0088	Competition not found.
+CMD_GET_MATCHDAY_ACHIEVEMENT_REWARD	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QWTI_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_FINAL_RESULT_INFO	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	UGDK_0088	Competition not found.
+CMD_GET_MATCHDAY_FINAL_RESULT_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UGDK_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_INFO	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	TOPA_0088	Competition not found.
+CMD_GET_MATCHDAY_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	TOPA_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_LIST	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	YRKN_0088	Competition not found.
+CMD_GET_MATCHDAY_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	YRKN_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_MAINMENU_INFO	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	RJOD_0088	Competition not found.
+CMD_GET_MATCHDAY_MAINMENU_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	RJOD_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_RANKING	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	PSCB_0088	Competition not found.
+CMD_GET_MATCHDAY_RANKING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	PSCB_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_RANKING	ERR_NOTFOUND	112	0x0226026d	specific	Onml1T/621	PSCB_0112	No ranked users found.\n*Rankings will be updated shortly. Please check again later.
+CMD_GET_MATCHDAY_RANKING_BYID	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	WGNW_0088	Competition not found.
+CMD_GET_MATCHDAY_RANKING_BYID	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WGNW_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_RANKING_BYID	ERR_NOTFOUND	112	0x0226026d	specific	Onml1T/621	WGNW_0112	No ranked users found.\n*Rankings will be updated shortly. Please check again later.
+CMD_GET_MATCHDAY_SP_ALL_COOP_MEMBER_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	XIQO_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_SP_CONFIRM_COOP_SQUAD	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	VZUR_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_SP_GAMEPLAN	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	NJDQ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHDAY_WATCH_MATCH_REWARD	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	YKPQ_0088	Competition not found.
+CMD_GET_MATCHDAY_WATCH_MATCH_REWARD	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	YKPQ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MATCHID	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_MATCHID	ERR_ROOMNOTFOUND	55	0x00000000	generic	Nm3T/210	BYSX_0055	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:BYSX_0055
+CMD_GET_MATCHREJECTLIST	ERR_DATABASE	13	0x020f007b	specific	Nm12T/123	NBFR_0013	Unable to obtain relevant list.
+CMD_GET_MATCH_ANALYZE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	FSAJ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FSAJ_0013
+CMD_GET_MATCH_ANALYZE	ERR_DATANOTFOUND	25	0x020f009e	specific	Nm12T/158	FSAJ_0025	Unable to obtain relevant data.
+CMD_GET_MATCH_ANALYZE	ERR_NOPLAYER	37	0x01fb0016	specific	Nm3T/22	FSAJ_0037	Unable to find User.
+CMD_GET_MATCH_ANALYZE_ENV	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	NJRJ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:NJRJ_0013
+CMD_GET_MYCLUB_ACHIEVEMENTLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QMUW_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_AGENT_BOX_INFO	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	QPDB_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:QPDB_0013
+CMD_GET_MYCLUB_AGENT_DRAW_RATE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	NEKZ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:NEKZ_0013
+CMD_GET_MYCLUB_ALL_COOP_MEMBER_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	YORL_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:YORL_0013
+CMD_GET_MYCLUB_AUCTION_PRICE_RANKING	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	OYBA_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:OYBA_0013
+CMD_GET_MYCLUB_AUCTION_REPORT_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	YDYR_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:YDYR_0013
+CMD_GET_MYCLUB_AUCTION_SCOUT_DETAIL	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	PQVF_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_GET_MYCLUB_AUCTION_SCOUT_DETAIL	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	PQVF_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:PQVF_0013
+CMD_GET_MYCLUB_AUCTION_SCOUT_TENDER_USERINFOLIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	SCPB_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:SCPB_0013
+CMD_GET_MYCLUB_AUCTION_SUCCESSFUL_BID_INFO	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	OHPM_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:OHPM_0013
+CMD_GET_MYCLUB_AUCTION_WATCH_LIST	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	GIJW_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_GET_MYCLUB_AUCTION_WATCH_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	GIJW_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:GIJW_0013
+CMD_GET_MYCLUB_AUCTION_WISH_LIST	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	PEYU_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_GET_MYCLUB_AUCTION_WISH_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	PEYU_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:PEYU_0013
+CMD_GET_MYCLUB_CLOUDMATCH_BONUS	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	FBIB_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FBIB_0013
+CMD_GET_MYCLUB_CLOUD_SQUADID	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QLHI_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_COACHLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	NXWV_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_COACH_CONTRACT_NORMA	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	WLSF_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:WLSF_0013
+CMD_GET_MYCLUB_COMMENTARY_INFO	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_MYCLUB_COM_MATCH_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UPIG_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_CONFIRM_COOP_SQUAD	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	PSUJ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:PSUJ_0013
+CMD_GET_MYCLUB_DEFAULT_COACHLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	CVAS_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_DEFAULT_RENTAL_GAMEPLAYERLIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	CBDP_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:CBDP_0013
+CMD_GET_MYCLUB_EFP_EXCHANGE_STORELIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	SDAB_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:SDAB_0013
+CMD_GET_MYCLUB_FEATURE_PLAYER_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QDIT_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_GAMEPLAYERLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	JZZX_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_GAMEPLAYER_EXPERIENCE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WJOO_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_GAMEPLAYER_NEED_EXPERIENCELIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	WZHY_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:WZHY_0013
+CMD_GET_MYCLUB_GAME_BONUS	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_MYCLUB_HISTORYLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	SLGW_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_INCREASED_COINLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	YWTI_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_IS_FIRST_AGENT_MULTIPLE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	MSLW_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_IS_FIRST_MEMBERLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	SMXW_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_IS_MARKET_COACH_AVAILABLE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	YNDJ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:YNDJ_0013
+CMD_GET_MYCLUB_ITEMLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	PLHZ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_LEGEND_GAMEPLAYERLIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	FWKZ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FWKZ_0013
+CMD_GET_MYCLUB_LOGIN_BONUS	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	NBYE_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_MAINMENU_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	NKBW_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_MAIN_SQUAD	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WNJJ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_MAIN_SQUAD	ERR_SQUAD_NOTFOUND	158	0x022602c7	specific	Onml1T/711	WNJJ_0158	User's myClub data not found
+CMD_GET_MYCLUB_MARKET_AGENTLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	TPYN_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_MARKET_COACHLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	PEOV_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_PLAYER_NUMBER_FIXATION	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	TFUV_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:TFUV_0013
+CMD_GET_MYCLUB_PRESENTLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	XSFU_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	XRWI_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST_RARITY	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	JBUM_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:JBUM_0013
+CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST_SCOUT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	VCLJ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:VCLJ_0013
+CMD_GET_MYCLUB_PROCURABLE_SCOUTLIST_GAMEPLAYER	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	VVIT_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:VVIT_0013
+CMD_GET_MYCLUB_RANKING	ERR_DATABASE	13	0x01fa0074	specific	Nm2T/116	BIZF_0013	Error occurred while loading Ranking Data.
+CMD_GET_MYCLUB_RANKING	ERR_NOTFOUND	112	0x01fa00ee	specific	Nm2T/238	BIZF_0112	Unable to find any ranked users.\n*Rankings are updated regularly.\n*Users who have not yet played 10 games will not be ranked in Win Rate rankings.\nPlease try again later.
+CMD_GET_MYCLUB_RANKING_BYID	ERR_DATABASE	13	0x01fa0074	specific	Nm2T/116	MDGT_0013	Error occurred while loading Ranking Data.
+CMD_GET_MYCLUB_RANKING_BYID	ERR_NOTFOUND	112	0x01fa00ee	specific	Nm2T/238	MDGT_0112	Unable to find any ranked users.\n*Rankings are updated regularly.\n*Users who have not yet played 10 games will not be ranked in Win Rate rankings.\nPlease try again later.
+CMD_GET_MYCLUB_REFINE_SEARCH_AUCTION_LIST	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	DIUP_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_GET_MYCLUB_REFINE_SEARCH_AUCTION_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	DIUP_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DIUP_0013
+CMD_GET_MYCLUB_RENTAL_GAMEPLAYERLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	NDZS_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_SCOUTLIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	BLOX_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:BLOX_0013
+CMD_GET_MYCLUB_SERVER_ENV	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	RKBC_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_SQUADLIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	PRUH_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_SQUAD_BONUS_TARGET_PLAYERLIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	TQYG_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:TQYG_0013
+CMD_GET_MYCLUB_SQUAD_GAMEPLAN	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ZRAN_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_STAFF_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	RAPI_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_SUBSCRIPTION_MY_GAMEPLAYERLIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	OUXO_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:OUXO_0013
+CMD_GET_MYCLUB_USER_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	OGYF_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_VSCOM_OPPONENT	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	RFWP_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_GET_MYCLUB_VSCOM_OPPONENT	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	RFWP_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_VSCOM_OPPONENT	ERR_TEAM_NOTFOUND	95	0x020f00b0	specific	Nm12T/176	RFWP_0095	Unable to find the opponent data.
+CMD_GET_MYCLUB_WEEKLYPOINT_RESULT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	NTYK_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:NTYK_0013
+CMD_GET_MYCLUB_WEEKLY_RANKING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	JUYA_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_WEEKLY_RANKING	ERR_GROUP_NOTFOUND	157	0x022602a3	specific	Onml1T/675	JUYA_0157	No Group Rankings found. You will be registered for Group Rankings after entering Weekly eFootball League and playing a match.\n\n*Rankings are updated periodically. Please check back later after completing a match and rankings are updated.
+CMD_GET_MYCLUB_WEEKLY_RANKING	ERR_NOTFOUND	112	0x0226026d	specific	Onml1T/621	JUYA_0112	No ranked users found.\n*Rankings will be updated shortly. Please check again later.
+CMD_GET_MYCLUB_WEEKLY_RANKING_BASIC_INFO	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	JGTF_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:JGTF_0013
+CMD_GET_MYCLUB_WEEKLY_RANKING_BYID	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	EBML_0013	An error occurred while accessing the {rf} database.
+CMD_GET_MYCLUB_WEEKLY_RANKING_BYID	ERR_NOTFOUND	112	0x0226026d	specific	Onml1T/621	EBML_0112	No ranked users found.\n*Rankings will be updated shortly. Please check again later.
+CMD_GET_OFFMODE_PLAYER_PARAMETERLIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	FFSU_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FFSU_0013
+CMD_GET_OFTEN_USED_TEAM_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	PXEH_0013	An error occurred while accessing the {rf} database.
+CMD_GET_ONLINE_AD_FILE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	XPDL_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XPDL_0013
+CMD_GET_ONLINE_ID	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	ZHLY_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ZHLY_0013
+CMD_GET_ONLINE_ID	ERR_EXPIRED_ACCESS_TOKEN	127	0x00000000	generic	Nm3T/210	ZHLY_0127	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ZHLY_0127
+CMD_GET_ONLINE_ID	ERR_INVALID_GRANT	126	0x00000000	generic	Nm3T/210	ZHLY_0126	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ZHLY_0126
+CMD_GET_ONLINE_ID_CLIENT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	UPAC_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:UPAC_0013
+CMD_GET_ONLINE_ID_CLIENT	ERR_EXPIRED_ACCESS_TOKEN	127	0x00000000	generic	Nm3T/210	UPAC_0127	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:UPAC_0127
+CMD_GET_ONLINE_ID_CLIENT	ERR_INVALID_GRANT	126	0x00000000	generic	Nm3T/210	UPAC_0126	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:UPAC_0126
+CMD_GET_PESLEAGUE_1VS1_MAINMENU_INFO	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	WDHL_0088	Competition not found.
+CMD_GET_PESLEAGUE_1VS1_MAINMENU_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WDHL_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_INFO	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	MNSG_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	MNSG_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_LIST	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	PIFL_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	PIFL_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_OVERVIEW_INFO	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	SLIK_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_OVERVIEW_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	SLIK_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_PARTICIPATION_RIGHT	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	UGEJ_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_PARTICIPATION_RIGHT	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UGEJ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_RANKING	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	QATC_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_RANKING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QATC_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_RANKING	ERR_NOTFOUND	112	0x01fb0040	specific	Nm3T/64	QATC_0112	No Data
+CMD_GET_PESLEAGUE_COMPE_RANKING_BYID	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	ELOJ_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_RANKING_BYID	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ELOJ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_RANKING_BYID	ERR_NOTFOUND	112	0x01fb0040	specific	Nm3T/64	ELOJ_0112	No Data
+CMD_GET_PESLEAGUE_COMPE_RESULT_LIST	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	OPCK_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_RESULT_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	OPCK_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_REWARD_INFO	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	ZMBN_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_REWARD_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ZMBN_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_REWARD_LIST	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	UZGQ_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_REWARD_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UZGQ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_COMPE_TEAM_LIST	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	UCIJ_0088	Competition not found.
+CMD_GET_PESLEAGUE_COMPE_TEAM_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UCIJ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PESLEAGUE_MAINMENU_INFO	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	NKKM_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PLATFORM_SESSION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	YPFS_0013	An error occurred while accessing the {rf} database.
+CMD_GET_PLATFORM_SESSION	ERR_ROOMNOTFOUND	55	0x020f0081	specific	Nm12T/129	YPFS_0055	Unable to find game session.
+CMD_GET_PLAYERINFO	ERR_DATABASE	13	0x01fb0016	specific	Nm3T/22	TTET_0013	Unable to find User.
+CMD_GET_PLAYERINFO	ERR_NOPLAYER	37	0x0464008d	specific	Nm13T/141	TTET_0037	User Information not found.
+CMD_GET_PLAYER_DATA	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	OYNJ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:OYNJ_0013
+CMD_GET_PLAYER_PARAMETERLIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	DXJE_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DXJE_0013
+CMD_GET_POSITION_RATING	ERR_DATABASE	13	0x020f009e	specific	Nm12T/158	CQIJ_0013	Unable to obtain relevant data.
+CMD_GET_PRIVATEINFOTITLELIST	ERR_DATABASE	13	0x020f009e	specific	Nm12T/158	QTMO_0013	Unable to obtain relevant data.
+CMD_GET_QUICKMATCHOPTION	ERR_DATABASE	13	0x020f0092	specific	Nm12T/146	DLGF_0013	Unable to obtain setting data.
+CMD_GET_RANDOMSELECTION_LOTTERY_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	TUMP_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:TUMP_0013
+CMD_GET_RANKING	ERR_DATABASE	13	0x01fa0074	specific	Nm2T/116	HDPF_0013	Error occurred while loading Ranking Data.
+CMD_GET_RANKING	ERR_NOTFOUND	112	0x01fa00ee	specific	Nm2T/238	HDPF_0112	Unable to find any ranked users.\n*Rankings are updated regularly.\n*Users who have not yet played 10 games will not be ranked in Win Rate rankings.\nPlease try again later.
+CMD_GET_RANKING_BYID	ERR_DATABASE	13	0x01fa0074	specific	Nm2T/116	VOKM_0013	Error occurred while loading Ranking Data.
+CMD_GET_RANKING_BYID	ERR_NOTFOUND	112	0x01fa00ee	specific	Nm2T/238	VOKM_0112	Unable to find any ranked users.\n*Rankings are updated regularly.\n*Users who have not yet played 10 games will not be ranked in Win Rate rankings.\nPlease try again later.
+CMD_GET_ROOM_BESTPLAYER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UYQZ_0013	An error occurred while accessing the {rf} database.
+CMD_GET_SERVER_ENV	ERR_DATABASE	13	0x020f0092	specific	Nm12T/146	ETRH_0013	Unable to obtain setting data.
+CMD_GET_STEAM_STORE_STATE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	JXWY_0013	An error occurred while accessing the {rf} database.
+CMD_GET_STEAM_STORE_STATE	ERR_INVALID_TICKET	39	0x00000000	generic	Nm3T/210	JXWY_0039	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:JXWY_0039
+CMD_GET_STORELINK	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	BUSM_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:BUSM_0013
+CMD_GET_STORE_PRODUCT_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QAEA_0013	An error occurred while accessing the {rf} database.
+CMD_GET_STORE_TRANSACTION_STATE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	TQZK_0013	An error occurred while accessing the {rf} database.
+CMD_GET_SVRTIME	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	IXRO_0013	An error occurred while accessing the {rf} database.
+CMD_GET_TRIAL_URLLIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	QJTE_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:QJTE_0013
+CMD_GET_TURN_SERVER_LIST	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_URGENT_ANNOUNCEMENT	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_GET_WATCHING_MATCH_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	MWMU_0013	An error occurred while accessing the {rf} database.
+CMD_GET_WATCHING_MATCH_LIST	ERR_NOTPERMISSION	115	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_INVITE_CLAN	ERR_ALREADY_CLAN_MEMBER	180	0x04640078	specific	Nm13T/120	ODPB_0180	You can't send this invite because the user is already a member of your Clan.
+CMD_INVITE_CLAN	ERR_ALREADY_REQUESTED	163	0x04640058	specific	Nm13T/88	ODPB_0163	You already sent an Invite to this user.\nPlease wait until they respond.
+CMD_INVITE_CLAN	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ODPB_0013	An error occurred while accessing the {rf} database.
+CMD_INVITE_CLAN	ERR_NOPLAYER	37	0x0464008d	specific	Nm13T/141	ODPB_0037	User Information not found.
+CMD_INVITE_CLAN	ERR_OPPONENT_JOIN_CLAN_FULL	173	0x0464005b	specific	Nm13T/91	ODPB_0173	You can't invite this user because they're already a member of the maximum number of Clans allowed.
+CMD_INVITE_CLAN	ERR_OPPONENT_REQUEST_FULL	162	0x04640056	specific	Nm13T/86	ODPB_0162	You can't send this Invite because the user has too many unanswered requests at this time.
+CMD_INVITE_CLAN	ERR_SELF_CLAN_MEMBER_FULL	170	0x04640059	specific	Nm13T/89	ODPB_0170	You can't send any more Invites because your Clan is full.
+CMD_INVITE_CLAN	ERR_SELF_REQUEST_FULL	161	0x04640057	specific	Nm13T/87	ODPB_0161	You've reached the maximum number of requests you can send.\nPlease cancel a request from your Requests Made first.
+CMD_JOIN_BLOCK	ERR_BLOCKISFULL	47	0x0200000e	specific	Nm6T/14	RLJS_0047	Cannot participate due to full quota.
+CMD_JOIN_BLOCK	ERR_BLOCKNOTEXIST	46	0x020f0009	specific	Nm12T/9	RLJS_0046	Selected Lobby does not exist.
+CMD_JOIN_BLOCK	ERR_DIVISIONREFUSED	49	0x01fb00d2	generic	Nm3T/210	RLJS_0049	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:RLJS_0049
+CMD_JOIN_COMPEV	ERR_COMPE_AFTER_ENTRYTIME	94	0x020f003e	specific	Nm12T/62	EGUQ_0094	Entries for this Competition are currently closed.
+CMD_JOIN_COMPEV	ERR_COMPE_BEFORE_ENTRYTIME	93	0x020100a5	specific	Nm7T/165	EGUQ_0093	You cannot take part in this competition as it is being held at a later date.
+CMD_JOIN_COMPEV	ERR_COMPE_FULL	87	0x02010047	specific	Nm7T/71	EGUQ_0087	Unable to enter Competition as maximum capacity has been reached.
+CMD_JOIN_COMPEV	ERR_COMPE_JOIN_MANNER	116	0x020100ae	specific	Nm7T/174	EGUQ_0116	You cannot take part in competitions as you have a "C" courtesy rating.
+CMD_JOIN_COMPEV	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	EGUQ_0088	Competition not found.
+CMD_JOIN_COMPEV	ERR_DATABASE	13	0x020f009a	specific	Nm12T/154	EGUQ_0013	Unable to obtain competition list.
+CMD_JOIN_COMPEV	ERR_DIFFDCVERSION	70	0x020f000e	specific	Nm12T/14	EGUQ_0070	Data Pack Incompatible.\nPlease reboot {re} and update the software.
+CMD_JOIN_COMPEV	ERR_NOTREGISTERED	23	0x020f005d	specific	Nm12T/93	EGUQ_0023	You have not registered your KONAMI ID.
+CMD_JOIN_COMPEV_MODE	ERR_COMPE_JOIN_SANCTION	86	0x020f00bd	specific	Nm12T/189	DHKY_0086	Your account is currently banned from participating in competitions.
+CMD_JOIN_COMPEV_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	DHKY_0013	An error occurred while accessing the {rf} database.
+CMD_JOIN_COOP_ROOM	ERR_ALREADYINROOM	54	0x020f0005	specific	Nm12T/5	FFQT_0054	Unable to enter Match Room.
+CMD_JOIN_COOP_ROOM	ERR_COOPLEVEL_NOTMET	175	0x04640010	specific	Nm13T/16	FFQT_0175	You can't join this match room because you don't have the required CO-OP Level.
+CMD_JOIN_COOP_ROOM	ERR_COOPMANNER_NOTMET	177	0x04640011	specific	Nm13T/17	FFQT_0177	You can't join this match room because you don't have the required CO-OP Courtesy Rating.
+CMD_JOIN_COOP_ROOM	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	FFQT_0013	An error occurred while accessing the {rf} database.
+CMD_JOIN_COOP_ROOM	ERR_NOTCLANMEMBER	176	0x04640012	specific	Nm13T/18	FFQT_0176	Non-Clan members can't enter this room.
+CMD_JOIN_COOP_ROOM	ERR_PASSWDEMPTY	62	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_JOIN_COOP_ROOM	ERR_PASSWDINCORRECT	61	0x02000009	specific	Nm6T/9	FFQT_0061	Incorrect password.
+CMD_JOIN_COOP_ROOM	ERR_PESLEAGUE_CLAN	179	0x04640073	specific	Nm13T/115	FFQT_0179	You can't enter this room because you're already participating in another Clan's tournament.
+CMD_JOIN_COOP_ROOM	ERR_PESLEAGUE_MEMBER	178	0x04640071	specific	Nm13T/113	FFQT_0178	You can't enter this Match Room because the Clan is already participating in another tournament with different members.
+CMD_JOIN_COOP_ROOM	ERR_ROOMNOTFOUND	55	0x01fa006f	specific	Nm2T/111	FFQT_0055	This match room no longer exists.
+CMD_JOIN_COOP_ROOM	ERR_TEAMPOWERLEVEL_NOTMET	174	0x0464000f	specific	Nm13T/15	FFQT_0174	You can't join this match room because you don't have the required Team Strength Level.
+CMD_JOIN_COOP_ROOM	ERR_TOOMANYMEMBERS	85	0x0200000e	specific	Nm6T/14	FFQT_0085	Cannot participate due to full quota.
+CMD_JOIN_LOBBY	ERR_LOBBYUSERMAX	40	0x0200000e	specific	Nm6T/14	QJMF_0040	Cannot participate due to full quota.
+CMD_JOIN_MATCHDAY	ERR_COMPE_AFTER_ENTRYTIME	94	0x020f003e	specific	Nm12T/62	CTOK_0094	Entries for this Competition are currently closed.
+CMD_JOIN_MATCHDAY	ERR_COMPE_BEFORE_ENTRYTIME	93	0x020100a5	specific	Nm7T/165	CTOK_0093	You cannot take part in this competition as it is being held at a later date.
+CMD_JOIN_MATCHDAY	ERR_COMPE_FULL	87	0x02010047	specific	Nm7T/71	CTOK_0087	Unable to enter Competition as maximum capacity has been reached.
+CMD_JOIN_MATCHDAY	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	CTOK_0088	Competition not found.
+CMD_JOIN_MATCHDAY	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	CTOK_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:CTOK_0013
+CMD_JOIN_MATCHDAY_MODE	ERR_COMPE_JOIN_SANCTION	86	0x020f00bd	specific	Nm12T/189	SBNL_0086	Your account is currently banned from participating in competitions.
+CMD_JOIN_MATCHDAY_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	SBNL_0013	An error occurred while accessing the {rf} database.
+CMD_JOIN_OFFLINE_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	IVEQ_0013	An error occurred while accessing the {rf} database.
+CMD_JOIN_ONLINE_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WCSX_0013	An error occurred while accessing the {rf} database.
+CMD_JOIN_ONLINE_MODE	ERR_DIFFDCVERSION	70	0x020f000e	specific	Nm12T/14	WCSX_0070	Data Pack Incompatible.\nPlease reboot {re} and update the software.
+CMD_JOIN_ONLINE_MODE	ERR_DIFFERENT_EXTRADATA_VERSION	186	0x00f90058	specific	Mc5T/88	WCSX_0186	Unable to log in while using an outdated Asset Data.
+CMD_JOIN_ONLINE_MODE	ERR_DIFFERENT_LIVEDATA_VERSION	138	0x00f90057	specific	Mc5T/87	WCSX_0138	Unable to log in while using outdated Live Update data.
+CMD_JOIN_ONLINE_MODE	ERR_DIFFERENT_PATCHVERSION	38	0x02080068	specific	Nm10T/104	WCSX_0038	Your version of {re} is out of date.\nPlease update to the latest version and reconnect.
+CMD_JOIN_ONLINE_MODE	ERR_MODE_BLOCKED	124	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_JOIN_PESLEAGUE_COMPE	ERR_COMPE_AFTER_ENTRYTIME	94	0x020f003e	specific	Nm12T/62	IJIV_0094	Entries for this Competition are currently closed.
+CMD_JOIN_PESLEAGUE_COMPE	ERR_COMPE_BEFORE_ENTRYTIME	93	0x020100a5	specific	Nm7T/165	IJIV_0093	You cannot take part in this competition as it is being held at a later date.
+CMD_JOIN_PESLEAGUE_COMPE	ERR_COMPE_FULL	87	0x02010047	specific	Nm7T/71	IJIV_0087	Unable to enter Competition as maximum capacity has been reached.
+CMD_JOIN_PESLEAGUE_COMPE	ERR_COMPE_JOIN_DIVISION	118	0x020f0045	specific	Nm12T/69	IJIV_0118	You are not eligible to take part in this Competition.
+CMD_JOIN_PESLEAGUE_COMPE	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	IJIV_0088	Competition not found.
+CMD_JOIN_PESLEAGUE_COMPE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	IJIV_0013	An error occurred while accessing the {rf} database.
+CMD_JOIN_PESLEAGUE_COMPE_MODE	ERR_COMPE_JOIN_SANCTION	86	0x020f00bd	specific	Nm12T/189	QIJL_0086	Your account is currently banned from participating in competitions.
+CMD_JOIN_PESLEAGUE_COMPE_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QIJL_0013	An error occurred while accessing the {rf} database.
+CMD_JOIN_ROOM_NTL	ERR_ALREADYINROOM	54	0x020f0005	specific	Nm12T/5	ZVMY_0054	Unable to enter Match Room.
+CMD_JOIN_ROOM_NTL	ERR_DATABASE	13	0x020f0005	specific	Nm12T/5	ZVMY_0013	Unable to enter Match Room.
+CMD_JOIN_ROOM_NTL	ERR_DIFFDCVERSION	70	0x020f0070	specific	Nm12T/112	ZVMY_0070	Data Pack Incompatible.
+CMD_JOIN_ROOM_NTL	ERR_INVALIDARG	14	0x020f0093	specific	Nm12T/147	ZVMY_0014	An error has been found in the transmitted data.
+CMD_JOIN_ROOM_NTL	ERR_JOINKICKEDROOM	79	0x00000000	generic	Nm3T/210	ZVMY_0079	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ZVMY_0079
+CMD_JOIN_ROOM_NTL	ERR_PASSWDINCORRECT	61	0x02000009	specific	Nm6T/9	ZVMY_0061	Incorrect password.
+CMD_JOIN_ROOM_NTL	ERR_RATING_NOTMET	71	0x01fc008f	specific	Nm5W/143	ZVMY_0071	This room has a rating restriction.\nTo enter this room, you must play a minimum of 5 matches and to receive a sufficient rating.\nAs your rating is too low, you cannot enter this room.
+CMD_JOIN_ROOM_NTL	ERR_ROOMISFULL	52	0x0200000e	specific	Nm6T/14	ZVMY_0052	Cannot participate due to full quota.
+CMD_JOIN_ROOM_NTL	ERR_ROOMNOTFOUND	55	0x020f0081	specific	Nm12T/129	ZVMY_0055	Unable to find game session.
+CMD_JOIN_ROOM_NTL	ERR_ROOMSTATNOTMATCH	57	0x02000041	specific	Nm6T/65	ZVMY_0057	Could not enter because a match is currently being played.
+CMD_JOIN_ROOM_NTL	ERR_TOOMANYMEMBERS	85	0x0200000e	specific	Nm6T/14	ZVMY_0085	Cannot participate due to full quota.
+CMD_LEAVE_BLOCK	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	FWOX_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_CLAN	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	RHSX_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_COMPEV	ERR_COMPE_NOTENTRY	89	0x020f0098	specific	Nm12T/152	DJJI_0089	You have not entered this competition.
+CMD_LEAVE_COMPEV	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	DJJI_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_COMPEV_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	LIKY_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_COOP_ROOM	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	GKIE_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_GAME	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	DYWM_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_GAME	ERR_NOTINROOM	56	0x020f0082	specific	Nm12T/130	DYWM_0056	Game session error.\nThis session will be terminated.
+CMD_LEAVE_MATCHDAY	ERR_COMPE_NOTENTRY	89	0x00000000	generic	Nm3T/210	XHWC_0089	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XHWC_0089
+CMD_LEAVE_MATCHDAY	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	XHWC_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XHWC_0013
+CMD_LEAVE_MATCHDAY_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	YXEB_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_MYCLUB_AUCTION_SCOUT_DETAIL	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	DEKZ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DEKZ_0013
+CMD_LEAVE_OFFLINE_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	DNYS_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_PESLEAGUE_COMPE	ERR_COMPE_NOTENTRY	89	0x020f0099	specific	Nm12T/153	INMW_0089	You were unable to enter the competition.
+CMD_LEAVE_PESLEAGUE_COMPE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	INMW_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_PESLEAGUE_COMPE_MODE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	YVLX_0013	An error occurred while accessing the {rf} database.
+CMD_LEAVE_ROOM	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_LEAVE_ROOM	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_LEAVE_ROOM	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_LOCK_FOLLOW_USER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	JYGH_0013	An error occurred while accessing the {rf} database.
+CMD_LOCK_FOLLOW_USER	ERR_LOCK_USER_FULL	169	0x0464005c	specific	Nm13T/92	JYGH_0169	You can't lock any more of your followed users.\nYou must unlock a user before you can lock a new one.
+CMD_LOGIN	ERR_ALREADYLOGGEDIN	32	0x020f0001	specific	Nm12T/1	NAJM_0032	Account verification failed.\nPlease try to login again at a later time.
+CMD_LOGIN	ERR_DATABASE	13	0x020f0012	specific	Nm12T/18	NAJM_0013	Unable to login.
+CMD_LOGIN	ERR_DEFCLIENTVER	33	0x02080068	specific	Nm10T/104	NAJM_0033	Your version of {re} is out of date.\nPlease update to the latest version and reconnect.
+CMD_LOGIN	ERR_DIFFDCVERSION	70	0x020f000e	specific	Nm12T/14	NAJM_0070	Data Pack Incompatible.\nPlease reboot {re} and update the software.
+CMD_LOGIN	ERR_DIFFERENT_EXTRADATA_VERSION	186	0x00f90058	specific	Mc5T/88	NAJM_0186	Unable to log in while using an outdated Asset Data.
+CMD_LOGIN	ERR_DIFFERENT_LIVEDATA_VERSION	138	0x00f90046	specific	Mc5T/70	NAJM_0138	No Live Update changes to Condition Rating. All players' conditions will change each match from among the following:\n\n 
+CMD_LOGIN	ERR_DIFFERENT_PATCHVERSION	38	0x02080068	specific	Nm10T/104	NAJM_0038	Your version of {re} is out of date.\nPlease update to the latest version and reconnect.
+CMD_LOGIN	ERR_FREE_TO_PLAY_FULL	136	0x01f5003f	specific	Nm1T/63	NAJM_0136	Due to excessive traffic on the {re} server, login is currently restricted.\nPlease try reconnecting again later.
+CMD_LOGIN	ERR_INVALID_ACCOUNT	31	0x020f00a2	specific	Nm12T/162	NAJM_0031	It has been noted that you have acted in direct breach of our Operation Policy and Terms of Use. Therefore, we have suspended your account in line with our policy on violations. Thank you for your understanding.
+CMD_LOGIN	ERR_LOBBYUSERMAX	40	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_LOGIN	ERR_LOGIN_FAILED	30	0x020f00b8	specific	Nm12T/184	NAJM_0030	Unable to login. Account verification failed.
+CMD_LOGIN	ERR_SERVERNOTREADY	28	0x02080005	specific	Nm10T/5	NAJM_0028	The online service is currently unavailable. The server may be undergoing maintenance or you may be using incorrect network settings.\n\nFor information on network status or settings, please visit the {re} official website.\n\n{re} Official Website\nhttps://www.konami.com/wepes/2020/
+CMD_LOGIN_TRIAL	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	IENQ_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:IENQ_0013
+CMD_RECONNECT	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_RECONNECT	ERR_LOGIN_FAILED	30	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_RECV_MYCLUB_ACHIEVEMENT_BONUS	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	WUVX_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:WUVX_0013
+CMD_RECV_MYCLUB_PRESENT	ERR_DATABASE	13	0x022602ca	specific	Onml1T/714	BABK_0013	Unable to claim present.
+CMD_RECV_MYCLUB_PRESENT	ERR_KONAMIID_MAINTENANCE	181	0x020800b0	specific	Nm10T/176	BABK_0181	The KONAMI ID verification process is unavailable due to KONAMI ID. \nPlease try again later.
+CMD_REENTRY_COMPEV	ERR_COMPE_AFTER_ENTRYTIME	94	0x020f003e	specific	Nm12T/62	FDRK_0094	Entries for this Competition are currently closed.
+CMD_REENTRY_COMPEV	ERR_COMPE_JOIN_MANNER	116	0x020100ae	specific	Nm7T/174	FDRK_0116	You cannot take part in competitions as you have a "C" courtesy rating.
+CMD_REENTRY_COMPEV	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	FDRK_0088	Competition not found.
+CMD_REENTRY_COMPEV	ERR_DATABASE	13	0x020f0044	specific	Nm12T/68	FDRK_0013	Unable to obtain Competition Data.
+CMD_REENTRY_COMPEV	ERR_NOTREGISTERED	23	0x020f005d	specific	Nm12T/93	FDRK_0023	You have not registered your KONAMI ID.
+CMD_REJECT_CLAN_REQUEST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	BFMV_0013	An error occurred while accessing the {rf} database.
+CMD_RENT_MYCLUB_GAMEPLAYER	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	ULBF_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_RENT_MYCLUB_GAMEPLAYER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ULBF_0013	An error occurred while accessing the {rf} database.
+CMD_RENT_MYCLUB_GAMEPLAYER	ERR_INSUFFICIENT_GP	129	0x022600a7	specific	Onml1T/167	ULBF_0129	Not enough GP.
+CMD_RENT_MYCLUB_GAMEPLAYER	ERR_INSUFFICIENT_PES_POINT	128	0x022600a8	specific	Onml1T/168	ULBF_0128	Not enough myClub Coins.
+CMD_RENT_MYCLUB_GAMEPLAYER	ERR_REFRESH_LIST	132	0x02260097	specific	Onml1T/151	ULBF_0132	The list has been updated.
+CMD_REQWATCHL_BLOCK_MATCH_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	DMXT_0013	An error occurred while accessing the {rf} database.
+CMD_REQWATCHL_BLOCK_MATCH_LIST	ERR_NOBLOCKBELONG	48	0x01fb00d2	generic	Nm3T/210	DMXT_0048	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DMXT_0048
+CMD_REQWATCH_MYCLUB_AUCTION_REFUNDED_GP	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	YKHU_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:YKHU_0013
+CMD_REQ_GAMEADDPOINT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	AOIH_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:AOIH_0013
+CMD_RESET_MYCLUB_AGENT_BOX	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	GILM_0013	An error occurred while accessing the {rf} database.
+CMD_RESET_MYCLUB_TEAM	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ELSU_0013	An error occurred while accessing the {rf} database.
+CMD_RETURN_COOP_ROOM	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	CSQD_0013	An error occurred while accessing the {rf} database.
+CMD_RETURN_COOP_ROOM	ERR_ROOMNOTFOUND	55	0x01fa006f	specific	Nm2T/111	CSQD_0055	This match room no longer exists.
+CMD_ROLLBACK_STORE_TRANSACTION	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	ULGT_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ULGT_0013
+CMD_SELL_MYCLUB_COACH	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	SXAK_0013	An error occurred while accessing the {rf} database.
+CMD_SELL_MYCLUB_GAMEPLAYER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	VLZX_0013	An error occurred while accessing the {rf} database.
+CMD_SELL_MYCLUB_GAMEPLAYER	ERR_PLAYER_PROTECTED	145	0x02260212	specific	Onml1T/530	VLZX_0145	One or more of the players you have selected have been designated as locked, so this sale cannot proceed.
+CMD_SELL_MYCLUB_GAMEPLAYER	ERR_TEAM_MEMBER_LACK	121	0x001f000b	specific	Lcm7W/11	VLZX_0121	Further releases are not possible.
+CMD_SELL_MYCLUB_SCOUT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	ULOC_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ULOC_0013
+CMD_SEND_ABNORMALEND	ERR_DATABASE	13	0x01fb00d2	generic	Nm3T/210	KYDK_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:KYDK_0013
+CMD_SEND_ABNORMALEND	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_ABNORMALEND	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_ALIVE	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_ALIVE	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_ALIVE	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_ALIVEPLAYER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	GFHE_0013	An error occurred while accessing the {rf} database.
+CMD_SEND_ALIVEPLAYER	ERR_ROOMSTATNOTMATCH	57	0x020f0085	specific	Nm12T/133	GFHE_0057	Game session status error.
+CMD_SEND_AUTHORIZATION_CODE	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_AUTHORIZATION_CODE	ERR_FORBIDDEN	22	0x020f0090	specific	Nm12T/144	THPS_0022	The system you are using to connect has been denied access due to a violation of the Terms of Use or our Operation Policy.
+CMD_SEND_AUTHORIZATION_CODE	ERR_INVALID_GRANT	126	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_AUTHORIZATION_CODE	ERR_SERVICE_UNAVAILABLE	125	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_COOP_ALIVE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	IEVG_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:IEVG_0013
+CMD_SEND_DOWNLOAD_STATS_DATA	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_GAME_RESULT	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_GAME_SEQUENCE_DATA	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_GAME_SEQUENCE_DATA	ERR_INTERNAL	26	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_GAME_SEQUENCE_DATA	ERR_INVALIDARG	14	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_KICK_REQUEST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	RLGS_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:RLGS_0013
+CMD_SEND_KICK_REQUEST	ERR_DIFFROOMUSER	76	0x00000000	generic	Nm3T/210	RLGS_0076	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:RLGS_0076
+CMD_SEND_KICK_REQUEST	ERR_EXISTINGAMEUSER	75	0x00000000	generic	Nm3T/210	RLGS_0075	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:RLGS_0075
+CMD_SEND_KICK_REQUEST	ERR_NOTJOINGAMEUSER	74	0x00000000	generic	Nm3T/210	RLGS_0074	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:RLGS_0074
+CMD_SEND_KICK_REQUEST	ERR_SELECTOWN	77	0x00000000	generic	Nm3T/210	RLGS_0077	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:RLGS_0077
+CMD_SEND_KICK_REQUEST	ERR_SELECTROOMOWNER	78	0x00000000	generic	Nm3T/210	RLGS_0078	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:RLGS_0078
+CMD_SEND_LOG	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_MATCHING_RESULT	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_MATCH_ANALYZE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	MNSL_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:MNSL_0013
+CMD_SEND_MATCH_TEAM_INFO	ERR_CHEAT	73	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_MATCH_TEAM_INFO	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_MYCLUB_MATCH_RATING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	IVZI_0013	An error occurred while accessing the {rf} database.
+CMD_SEND_MYCLUB_PROGRESS_STATUS	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	MDGY_0013	An error occurred while accessing the {rf} database.
+CMD_SEND_MYCLUB_READ_ACHIEVEMENTLIST	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_PSID	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	BSVC_0013	An error occurred while accessing the {rf} database.
+CMD_SEND_PSID	ERR_FORBIDDEN	22	0x020f0090	specific	Nm12T/144	BSVC_0022	The system you are using to connect has been denied access due to a violation of the Terms of Use or our Operation Policy.
+CMD_SEND_STATS_DATA	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_STORE_TRANSACTION_ERROR_INFO	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	DNLB_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DNLB_0013
+CMD_SEND_TAMPER_DATA	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	DANK_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DANK_0013
+CMD_SEND_TEXTCHAT	ERR_CHATENABLE	44	0x020f000b	specific	Nm12T/11	XLBE_0044	Unable to use Text Chat.
+CMD_SEND_TEXTCHAT	ERR_ISNOTGM	45	0x01fb00d2	generic	Nm3T/210	XLBE_0045	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XLBE_0045
+CMD_SEND_TEXTCHAT	ERR_PLAYERISNOTGAMER	65	0x01fb00d2	generic	Nm3T/210	XLBE_0065	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XLBE_0065
+CMD_SEND_TEXTCHAT	ERR_ROOMNOTFOUND	55	0x020f0081	specific	Nm12T/129	XLBE_0055	Unable to find game session.
+CMD_SEND_TEXTCHAT	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_TEXTCHAT	ERR_TARGETINGAME	43	0x020f001b	specific	Nm12T/27	XLBE_0043	Selected User is playing a match.
+CMD_SEND_TEXTCHAT	ERR_TARGETISNOTLOGIN	42	0x020f001c	specific	Nm12T/28	XLBE_0042	Selected User is not logged in.
+CMD_SEND_TRIAL_AUTHORIZATION_CODE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	XFTT_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XFTT_0013
+CMD_SEND_TRIAL_AUTHORIZATION_CODE_CLIENT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	SNIX_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:SNIX_0013
+CMD_SEND_TRIAL_ID	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	OULX_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:OULX_0013
+CMD_SEND_TURN_ADDRESS_DATA	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SEND_WATCHING_RESULT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	YRAK_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:YRAK_0013
+CMD_SET_AVATAR	ERR_DATABASE	13	0x020f0071	specific	Nm12T/113	UCJO_0013	Unable to send or receive data.
+CMD_SET_AVATAR	ERR_DATASIZEOVER	113	0x020f0071	specific	Nm12T/113	UCJO_0113	Unable to send or receive data.
+CMD_SET_AVATAR	ERR_MD5	114	0x020f0071	specific	Nm12T/113	UCJO_0114	Unable to send or receive data.
+CMD_SET_CLAN_SETTINGS	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	LOAH_0013	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_MATCH_DATA	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	CQOG_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:CQOG_0013
+CMD_SET_COOP_MATCH_READY	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	GXRF_0013	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_MATCH_READY	ERR_NOTINROOM	56	0x020f007c	specific	Nm12T/124	GXRF_0056	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_MATCH_READY	ERR_ROOMNOTFOUND	55	0x020f007c	specific	Nm12T/124	GXRF_0055	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_PLAYER_GRADE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	VOME_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:VOME_0013
+CMD_SET_COOP_QUICKMATCHOPTION	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	XMSU_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XMSU_0013
+CMD_SET_COOP_REJECT	ERR_ALREADYREGISTERED	24	0x020f007c	specific	Nm12T/124	RKUG_0024	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_REJECT	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	RKUG_0013	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_REJECT	ERR_REJECT_LIST_FULL	166	0x0464003c	specific	Nm13T/60	RKUG_0166	You have reached the maximum number of users you can add to the Rejection List.\nFrom the Online CO-OP main menu, go to [CO-OP Settings] → [Rejection List] to remove any number of users from the list.
+CMD_SET_COOP_ROOM_GUEST	ERR_CANTADDGUEST	19	0x00000000	generic	Nm3T/210	QRXS_0019	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:QRXS_0019
+CMD_SET_COOP_ROOM_GUEST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QRXS_0013	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_GUEST	ERR_TOOMANYGUEST	20	0x020f008a	specific	Nm12T/138	QRXS_0020	You cannot add any more Guest Users.
+CMD_SET_COOP_ROOM_OPTION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	FHAN_0013	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_OPTION	ERR_MSGFORMAT	16	0x020f007c	specific	Nm12T/124	FHAN_0016	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_OPTION	ERR_NGWORDINRNAME	50	0x020f007c	specific	Nm12T/124	FHAN_0050	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_OPTION	ERR_NOTINROOM	56	0x020f007c	specific	Nm12T/124	FHAN_0056	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_OPTION	ERR_NOTROOMOWNER	58	0x020f007c	specific	Nm12T/124	FHAN_0058	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_OPTION	ERR_ROOMNOTFOUND	55	0x020f007c	specific	Nm12T/124	FHAN_0055	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_PLATFORM_SESSION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	IWOK_0013	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_PLATFORM_SESSION	ERR_NOTINROOM	56	0x020f007c	specific	Nm12T/124	IWOK_0056	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_PLATFORM_SESSION	ERR_NOTROOMOWNER	58	0x020f007c	specific	Nm12T/124	IWOK_0058	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_PLATFORM_SESSION	ERR_ROOMNOTFOUND	55	0x020f007c	specific	Nm12T/124	IWOK_0055	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_TO_MATCHING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	YFMS_0013	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_TO_MATCHING	ERR_NOTINROOM	56	0x020f007c	specific	Nm12T/124	YFMS_0056	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_TO_MATCHING	ERR_NOTROOMOWNER	58	0x020f007c	specific	Nm12T/124	YFMS_0058	An error occurred while accessing the {rf} database.
+CMD_SET_COOP_ROOM_TO_MATCHING	ERR_ROOMNOTFOUND	55	0x020f007c	specific	Nm12T/124	YFMS_0055	An error occurred while accessing the {rf} database.
+CMD_SET_CURRENTPLAYER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	CKRF_0013	An error occurred while accessing the {rf} database.
+CMD_SET_CURRENTPLAYER	ERR_NOPLAYER	37	0x01fb00d2	generic	Nm3T/210	CKRF_0037	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:CKRF_0037
+CMD_SET_CURRENTPLAYER	ERR_REFUSED	96	0x01fb00d2	generic	Nm3T/210	CKRF_0096	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:CKRF_0096
+CMD_SET_DMM_NOTIFICATION_ACTION	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	UUGN_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:UUGN_0013
+CMD_SET_GAMEENV	ERR_NORFOUNDCLIENT		0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEENV	ERR_NOTGAMEHOST	59	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEENV	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEENV	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEENV	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEMEMBER	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEMEMBER	ERR_NOTROOMOWNER	58	0x020f0083	specific	Nm12T/131	DYUN_0058	An error occurred during owner verification.
+CMD_SET_GAMEMEMBER	ERR_PLAYERISNOTENOUGH	64	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEMEMBER	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEMEMBER	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEMEMBERENV	ERR_MSGFORMAT	16	0x020f0057	specific	Nm12T/87	LYLN_0016	This match will be abandoned due to unforeseen circumstances.
+CMD_SET_GAMEMEMBERENV	ERR_NOTGAMEHOST	59	0x020f008d	specific	Nm12T/141	LYLN_0059	An error occurred while obtaining participant status.
+CMD_SET_GAMEMEMBERENV	ERR_NOTINROOM	56	0x020f0080	specific	Nm12T/128	LYLN_0056	This game session no longer exists.
+CMD_SET_GAMEMEMBERENV	ERR_ROOMNOTFOUND	55	0x020f0081	specific	Nm12T/129	LYLN_0055	Unable to find game session.
+CMD_SET_GAMEMEMBERENV	ERR_ROOMSTATNOTMATCH	57	0x020f0085	specific	Nm12T/133	LYLN_0057	Game session status error.
+CMD_SET_GAMEPLAYER_PLAYTIME	ERR_COMPE_NOTENTRY	89	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEPLAYER_PLAYTIME	ERR_COMPE_NOTFOUND	88	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMEPLAYER_PLAYTIME	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ZRBS_0013	An error occurred while accessing the {rf} database.
+CMD_SET_GAMERELAY_CHECK_RES	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMERELAY_MATCH_QUALITY	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	GNKO_0013	An error occurred while accessing the {rf} database.
+CMD_SET_GAMERELAY_QUALITY	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMETEAM	ERR_NOTGAMEHOST	59	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMETEAM	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMETEAM	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GAMETEAM	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_GP_ACHIEVEMENT	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	KJHD_0013	An error occurred while accessing the {rf} database.
+CMD_SET_GUEST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	TXNN_0013	An error occurred while accessing the {rf} database.
+CMD_SET_GUEST	ERR_NOGUEST	21	0x020f0089	specific	Nm12T/137	TXNN_0021	No Guest Users have been assigned.
+CMD_SET_GUEST	ERR_NOTINROOM	56	0x020f0080	specific	Nm12T/128	TXNN_0056	This game session no longer exists.
+CMD_SET_GUEST	ERR_ROOMISFULL	52	0x02c90011	specific	Cmt3T/17	TXNN_0052	Unable to join because maximum capacity has been reached.
+CMD_SET_GUEST	ERR_ROOMNOTFOUND	55	0x020f0081	specific	Nm12T/129	TXNN_0055	Unable to find game session.
+CMD_SET_GUEST	ERR_ROOMSTATNOTMATCH	57	0x020f0085	specific	Nm12T/133	TXNN_0057	Game session status error.
+CMD_SET_GUEST	ERR_TOOMANYGUEST	20	0x020f008a	specific	Nm12T/138	TXNN_0020	You cannot add any more Guest Users.
+CMD_SET_LANGUAGE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ZQPS_0013	An error occurred while accessing the {rf} database.
+CMD_SET_LOCAL_GAMERELAY_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	LHYW_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:LHYW_0013
+CMD_SET_MATCHDAY_SP_COOP_MEMBER_LIST	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WKSX_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MATCHDAY_SP_GAMEPLAN	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ZJDQ_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MATCHDAY_START_WATCH_MATCH	ERR_COMPE_NOTFOUND	88	0x020f003d	specific	Nm12T/61	BDOE_0088	Competition not found.
+CMD_SET_MATCHDAY_START_WATCH_MATCH	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	BDOE_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MATCHREJECTPID	ERR_ALREADYREGISTERED	24	0x020f0095	specific	Nm12T/149	ZMZV_0024	This ID has already been registered.
+CMD_SET_MATCHREJECTPID	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ZMZV_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MATCHREJECTPID	ERR_NOTREGISTERED	23	0x020f0096	specific	Nm12T/150	ZMZV_0023	This ID has not been registered.
+CMD_SET_MATCHREJECTPID	ERR_TOOMANYLIST	18	0x01fa010f	specific	Nm2T/271	ZMZV_0018	You have reached the maximum number of users you can add to the Match Block List.\nBy going to [Top Menu] → [Settings] → [Online Settings] → [Match Block List], you can choose to remove any number of users from the list.
+CMD_SET_MYCLUB_ACHIEVEMENT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	XGWB_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XGWB_0013
+CMD_SET_MYCLUB_ADD_UNIFORM_ID	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	KZCW_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:KZCW_0013
+CMD_SET_MYCLUB_CLOUD_SQUAD	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	CLMS_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MYCLUB_CLUB_EDITION_INFO	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	FNDK_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FNDK_0013
+CMD_SET_MYCLUB_COOP_MEMBER_LIST	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	MQAY_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:MQAY_0013
+CMD_SET_MYCLUB_HOMETOWN	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	CXTG_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:CXTG_0013
+CMD_SET_MYCLUB_ICONIC_MOMENT_VIEW	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	DGWU_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DGWU_0013
+CMD_SET_MYCLUB_MAIN_SQUAD	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	INJJ_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MYCLUB_PLAYER_NUMBER_FIXATION	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	FFUV_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FFUV_0013
+CMD_SET_MYCLUB_PROTECTED_DISABLE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	XASL_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XASL_0013
+CMD_SET_MYCLUB_PROTECTED_ENABLE	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	YLQC_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:YLQC_0013
+CMD_SET_MYCLUB_SQUAD_COACH	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	JFQO_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MYCLUB_SQUAD_GAMEPLAN	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	LRAN_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MYCLUB_SQUAD_GAMEPLAYER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WIEN_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MYCLUB_SQUAD_NAME	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	LWCA_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MYCLUB_TEAM_BASE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	FPGU_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MYCLUB_TEAM_NAME	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	RPAU_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MYCLUB_TEAM_NAME	ERR_NGWORD	17	0x01f50013	specific	Nm1T/19	RPAU_0017	Includes unusable letters or phrases.
+CMD_SET_MYCLUB_VSCOM_GAMERESULT	ERR_ALREADY_ENDGAME	83	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_MYCLUB_VSCOM_GAMERESULT	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UZNR_0013	An error occurred while accessing the {rf} database.
+CMD_SET_MYCLUB_VSCOM_GAMERESULT	ERR_DIFFPLAYER_SEND	137	0x00000000	generic	Nm3T/210	UZNR_0137	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:UZNR_0137
+CMD_SET_MYCLUB_VSCOM_GAMERESULT	ERR_ROOMNOTFOUND	55	0x020f0081	specific	Nm12T/129	UZNR_0055	Unable to find game session.
+CMD_SET_MYCLUB_WISHLIST_AT_TOP	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	EHTK_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:EHTK_0013
+CMD_SET_PLATFORM_SESSION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	KPFS_0013	An error occurred while accessing the {rf} database.
+CMD_SET_PLATFORM_SESSION	ERR_NOTINROOM	56	0x020f0087	specific	Nm12T/135	KPFS_0056	An error occurred during participant verification.\nThis game session will be terminated.
+CMD_SET_PLATFORM_SESSION	ERR_NOTROOMOWNER	58	0x020f0083	specific	Nm12T/131	KPFS_0058	An error occurred during owner verification.
+CMD_SET_PLATFORM_SESSION	ERR_ROOMNOTFOUND	55	0x020f0081	specific	Nm12T/129	KPFS_0055	Unable to find game session.
+CMD_SET_PLAYDATA_MATCH	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	SUCM_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:SUCM_0013
+CMD_SET_PLAYERPROFILE	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	FKGV_0013	An error occurred while accessing the {rf} database.
+CMD_SET_PLAYERPROFILE	ERR_INVALIDDATE	69	0x020f0071	specific	Nm12T/113	FKGV_0069	Unable to send or receive data.
+CMD_SET_PLAYERPROFILE	ERR_MSGFORMAT	16	0x00000000	generic	Nm3T/210	FKGV_0016	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FKGV_0016
+CMD_SET_PLAYERPROFILE	ERR_NGWORDININTRO	68	0x01f5002b	specific	Nm1T/43	FKGV_0068	Your Profile contains invalid letters or phrases.\nThe relevant sections of your Profile will be shown as being "Unregistered".
+CMD_SET_POSITION_RATING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	OQIJ_0013	An error occurred while accessing the {rf} database.
+CMD_SET_QUICKMATCHOPTION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	PLGF_0013	An error occurred while accessing the {rf} database.
+CMD_SET_ROOM_OPTION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	KTZN_0013	An error occurred while accessing the {rf} database.
+CMD_SET_ROOM_OPTION	ERR_MSGFORMAT	16	0x020f0093	specific	Nm12T/147	KTZN_0016	An error has been found in the transmitted data.
+CMD_SET_ROOM_OPTION	ERR_NGWORDINRNAME	50	0x01f50013	specific	Nm1T/19	KTZN_0050	Includes unusable letters or phrases.
+CMD_SET_ROOM_OPTION	ERR_NOTINROOM	56	0x020f0080	specific	Nm12T/128	KTZN_0056	This game session no longer exists.
+CMD_SET_ROOM_OPTION	ERR_NOTROOMOWNER	58	0x020f0083	specific	Nm12T/131	KTZN_0058	An error occurred during owner verification.
+CMD_SET_ROOM_OPTION	ERR_RATING_NOTMET	71	0x020f00b4	specific	Nm12T/180	KTZN_0071	Unable to change settings as you have not achieved the required rating.
+CMD_SET_ROOM_OPTION	ERR_ROOMNOTFOUND	55	0x020f0081	specific	Nm12T/129	KTZN_0055	Unable to find game session.
+CMD_SET_ROOM_OPTION	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_TRACKRECORD	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_TRIAL_MATCH_DATA	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_SET_WEEKLY_INFORMATION_ACTION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	QDXN_0013	An error occurred while accessing the {rf} database.
+CMD_START_COOP_GROUP_MATCHING	ERR_COMMAND_BLOCKED	135	0x00000000	generic	Nm3T/210	ESYX_0135	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ESYX_0135
+CMD_START_COOP_GROUP_MATCHING	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	ESYX_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ESYX_0013
+CMD_START_COOP_GROUP_MATCHING	ERR_INVALIDARG	14	0x00000000	generic	Nm3T/210	ESYX_0014	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:ESYX_0014
+CMD_START_COOP_MATCHING	ERR_COMMAND_BLOCKED	135	0x00000000	generic	Nm3T/210	JERP_0135	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:JERP_0135
+CMD_START_COOP_MATCHING	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	JERP_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:JERP_0013
+CMD_START_COOP_MATCHING	ERR_INVALIDARG	14	0x00000000	generic	Nm3T/210	JERP_0014	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:JERP_0014
+CMD_START_COOP_VSCOM_OPPONENT	ERR_COMMAND_BLOCKED	135	0x00000000	generic	Nm3T/210	EODF_0135	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:EODF_0135
+CMD_START_COOP_VSCOM_OPPONENT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	EODF_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:EODF_0013
+CMD_START_MATCHDAY_ENTRY_PICKUP_MATCH	ERR_ALREADY_PICKUP	187	0x00000000	generic	Nm3T/210	AYUV_0187	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:AYUV_0187
+CMD_START_MATCHDAY_ENTRY_PICKUP_MATCH	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	AYUV_0013	An error occurred while accessing the {rf} database.
+CMD_START_MATCHDAY_PICKUP_MATCHING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	WKDP_0013	An error occurred while accessing the {rf} database.
+CMD_START_MATCHDAY_PICKUP_MATCHING	ERR_NOT_PICKUP_USER	188	0x020f007c	specific	Nm12T/124	WKDP_0188	An error occurred while accessing the {rf} database.
+CMD_START_MATCHING	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	GEWD_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_START_MATCHING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	GEWD_0013	An error occurred while accessing the {rf} database.
+CMD_START_MATCHING	ERR_INVALIDARG	14	0x020f0093	specific	Nm12T/147	GEWD_0014	An error has been found in the transmitted data.
+CMD_START_MATCHING	ERR_NOTROOMOWNER	58	0x020f0083	specific	Nm12T/131	GEWD_0058	An error occurred during owner verification.
+CMD_START_SEND_GAME_SEQUENCE_DATA	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	NSVA_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:NSVA_0013
+CMD_START_STEAM_STORE	ERR_INVALID_TICKET	39	0x00000000	generic	Nm3T/210	NPIW_0039	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:NPIW_0039
+CMD_START_STORE_TRANSACTION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	HSBY_0013	An error occurred while accessing the {rf} database.
+CMD_SYNC_COMPEV_PROGRESS	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	TLFU_0013	An error occurred while accessing the {rf} database.
+CMD_TENDER_MYCLUB_AUCTION_SCOUT	ERR_BID_USER_MAX	147	0x022601ba	specific	Onml1T/442	BEYK_0147	They've already reached the maximum number of bidders, so you can't make an offer.
+CMD_TENDER_MYCLUB_AUCTION_SCOUT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	BEYK_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:BEYK_0013
+CMD_TENDER_MYCLUB_AUCTION_SCOUT	ERR_INSUFFICIENT_TENDER_GP	144	0x022601b8	specific	Onml1T/440	BEYK_0144	You're short of GP, so you can't make a bid.
+CMD_TENDER_MYCLUB_AUCTION_SCOUT	ERR_TENDER_TIMEOUT	146	0x022601b7	specific	Onml1T/439	BEYK_0146	They're no longer accepting bids, so it's too late to make an offer.
+CMD_TENDER_MYCLUB_AUCTION_SCOUT	ERR_WATCH_LIST_MAX	152	0x022601fb	specific	Onml1T/507	BEYK_0152	You cannot add anyone else to the Watch List.\nYou will need to delete someone first.
+CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	RLNY_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:RLNY_0013
+CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION	ERR_INSUFFICIENT_TENDER_GP	144	0x0226024e	specific	Onml1T/590	RLNY_0144	You cannot set a bid value that is the same or lower than your current 1st Round bid.
+CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION	ERR_TENDER_TIMEOUT	146	0x022601b7	specific	Onml1T/439	RLNY_0146	They're no longer accepting bids, so it's too late to make an offer.
+CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION_CANCEL	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	CLTE_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:CLTE_0013
+CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION_CANCEL	ERR_INSUFFICIENT_TENDER_GP	144	0x00000000	generic	Nm3T/210	CLTE_0144	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:CLTE_0144
+CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION_CANCEL	ERR_TENDER_TIMEOUT	146	0x02260257	specific	Onml1T/599	CLTE_0146	The Auction has ended. The Final Round Auto Bid cannot be canceled.
+CMD_TRADE_MYCLUB_GAMEPLAYER	ERR_COMPE_ENTRY		0x0226009f	specific	Onml1T/159	UEYS0	You cannot release a player from the Squad while taking part in a competition.
+CMD_TRADE_MYCLUB_GAMEPLAYER	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	UEYS_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:UEYS_0013
+CMD_TRADE_MYCLUB_GAMEPLAYER	ERR_PLAYER_DUPLICATE	141	0x00000000	generic	Nm3T/210	UEYS_0141	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:UEYS_0141
+CMD_UPDATE_MYCLUB_COACH_CONTRACT	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	HBTO_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_UPDATE_MYCLUB_COACH_CONTRACT	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	HBTO_0013	An error occurred while accessing the {rf} database.
+CMD_USE_MYCLUB_ADAPTABILITY_RATE_ITEM	ERR_ADAPTABILITY_MAX	149	0x02260217	specific	Onml1T/535	USHW_0149	Cannot be used because Familiarity (％) is already at 120％.
+CMD_USE_MYCLUB_ADAPTABILITY_RATE_ITEM	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	USHW_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:USHW_0013
+CMD_USE_MYCLUB_ADAPTABILITY_RATE_ITEM	ERR_INSUFFICIENT_ITEM	148	0x00000000	generic	Nm3T/210	USHW_0148	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:USHW_0148
+CMD_USE_MYCLUB_ADD_POSITION_APTITUDE_ITEM	ERR_ADD_POSITION_FULL	156	0x00000000	generic	Nm3T/210	XDBV_0156	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XDBV_0156
+CMD_USE_MYCLUB_ADD_POSITION_APTITUDE_ITEM	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	XDBV_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XDBV_0013
+CMD_USE_MYCLUB_ADD_POSITION_APTITUDE_ITEM	ERR_INSUFFICIENT_ITEM	148	0x00000000	generic	Nm3T/210	XDBV_0148	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:XDBV_0148
+CMD_USE_MYCLUB_ADD_SKILL_ITEM	ERR_ADD_SKILL_FULL	155	0x00000000	generic	Nm3T/210	FJIN_0155	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FJIN_0155
+CMD_USE_MYCLUB_ADD_SKILL_ITEM	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	FJIN_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FJIN_0013
+CMD_USE_MYCLUB_ADD_SKILL_ITEM	ERR_INSUFFICIENT_ITEM	148	0x00000000	generic	Nm3T/210	FJIN_0148	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:FJIN_0148
+CMD_USE_MYCLUB_AGENT	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	VUNZ_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_USE_MYCLUB_AGENT	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	VUNZ_0013	An error occurred while accessing the {rf} database.
+CMD_USE_MYCLUB_AGENT	ERR_ENABLE_BUY_NUM	119	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_USE_MYCLUB_AGENT	ERR_PLAYER_NOTFOUND	134	0x022600f1	specific	Onml1T/241	VUNZ_0134	There were no players who met the agent's conditions.
+CMD_USE_MYCLUB_AGENT	ERR_REFRESH_LIST	132	0x022602be	specific	Onml1T/702	VUNZ_0132	You can no longer use this Agent because it has expired.
+CMD_USE_MYCLUB_ITEM_RECOVERY	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	UCFE_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_USE_MYCLUB_ITEM_RECOVERY	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	UCFE_0013	An error occurred while accessing the {rf} database.
+CMD_USE_MYCLUB_ITEM_RECOVERY	ERR_INSUFFICIENT_ITEM	148	0x00000000	generic	Nm3T/210	UCFE_0148	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:UCFE_0148
+CMD_USE_MYCLUB_ITEM_RECOVERY	ERR_INSUFFICIENT_PES_POINT	128	0x022600a8	specific	Onml1T/168	UCFE_0128	Not enough myClub Coins.
+CMD_USE_MYCLUB_ITEM_RECOVERY	ERR_UNUSABLE_ITEM_RECOVERY	143	0x022601ab	specific	Onml1T/427	UCFE_0143	Unable to activate stamina recovery.
+CMD_USE_MYCLUB_MANAGEMENT_ITEM	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	DSME_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DSME_0013
+CMD_USE_MYCLUB_MANAGEMENT_ITEM	ERR_INSUFFICIENT_ITEM	148	0x00000000	generic	Nm3T/210	DSME_0148	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:DSME_0148
+CMD_USE_MYCLUB_MANAGEMENT_ITEM	ERR_MANAGEMENT_MAX	150	0x02260218	specific	Onml1T/536	DSME_0150	Cannot be used because Management Skills are already at their maximum level.
+CMD_USE_MYCLUB_SCOUT	ERR_COMMAND_BLOCKED	135	0x00000000	generic	Nm3T/210	REUR_0135	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:REUR_0135
+CMD_USE_MYCLUB_SCOUT	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	REUR_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:REUR_0013
+CMD_USE_MYCLUB_SCOUT	ERR_ENABLE_BUY_NUM	119	0x00000000	generic	Nm3T/210	REUR_0119	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:REUR_0119
+CMD_USE_MYCLUB_SCOUT	ERR_PLAYER_NOTFOUND	134	0x00000000	generic	Nm3T/210	REUR_0134	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:REUR_0134
+CMD_USE_MYCLUB_STAFF	ERR_COMMAND_BLOCKED	135	0x022600f6	specific	Onml1T/246	IQFD_0135	This feature is currently unavailable. \nPlease refer to Online Information for further details.
+CMD_USE_MYCLUB_STAFF	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	IQFD_0013	An error occurred while accessing the {rf} database.
+CMD_USE_MYCLUB_STAFF	ERR_INSUFFICIENT_ITEM	148	0x00000000	generic	Nm3T/210	IQFD_0148	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:IQFD_0148
+CMD_USE_MYCLUB_STAFF	ERR_PLAYER_LEVEL_MAX	140	0x0226017e	specific	Onml1T/382	IQFD_0140	The maximum level has been reached. Further training is not possible.
+CMD_USE_MYCLUB_TACTICAL_TRAINING	ERR_CONCEPT_ALL_MAX	151	0x02260219	specific	Onml1T/537	KEEM_0151	Cannot be used because all players on the squad are already fully on board with the Team Instructions set to these Preset Tactics.
+CMD_USE_MYCLUB_TACTICAL_TRAINING	ERR_DATABASE	13	0x022602ce	specific	Onml1T/718	KEEM_0013	Training not possible. No players with that skill registered to your Squad.
+CMD_USE_MYCLUB_TACTICAL_TRAINING	ERR_INSUFFICIENT_ITEM	148	0x00000000	generic	Nm3T/210	KEEM_0148	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:KEEM_0148
+CMD_WATCHEND_LOBBY_MATCH_LIST	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_CHECK_ALIVE_PLAYER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ASWB_0013	An error occurred while accessing the {rf} database.
+CMD_WATCH_COOP_GROUP_MATCHING	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	WZRI_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:WZRI_0013
+CMD_WATCH_COOP_MATCHING	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	BLKA_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:BLKA_0013
+CMD_WATCH_COOP_MATCHING_CONDITION	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_COOP_VSCOM_OPPONENT	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_COOP_VSCOM_OPPONENT	ERR_TEAM_NOTFOUND	95	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_GAMEADDPOINT	ERR_NOTINROOM	56	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_GAMEADDPOINT	ERR_ROOMNOTFOUND	55	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_GAMEADDPOINT	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_GAMERELAY_CHECK_RES	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_MATCHDAY_PICKUP_MATCHING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ORWA_0013	An error occurred while accessing the {rf} database.
+CMD_WATCH_MATCHDAY_PICKUP_USER	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	ZNKX_0013	An error occurred while accessing the {rf} database.
+CMD_WATCH_MATCHING	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	YLPO_0013	An error occurred while accessing the {rf} database.
+CMD_WATCH_MATCHING_CONDITION	ERR_DATABASE	13	0x020f007c	specific	Nm12T/124	FGXY_0013	An error occurred while accessing the {rf} database.
+CMD_WATCH_MATCHING_CONDITION	ERR_INVALIDARG	14	0x020f0093	specific	Nm12T/147	FGXY_0014	An error has been found in the transmitted data.
+CMD_WATCH_MATCHING_CONDITION	ERR_NOTFOUND	112	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_MYCLUB_AUCTION_SCOUT_DETAIL	ERR_DATABASE	13	0x00000000	generic	Nm3T/210	RADG_0013	An unexpected problem has occurred while communicating with the {rf} server.\nCODE:RADG_0013
+CMD_WATCH_PUNCHING_DATA	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_TEXTCHAT	ERR_CHATENABLE	44	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_TEXTCHAT	ERR_ISNOTGM	45	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_TEXTCHAT	ERR_ROOMSTATNOTMATCH	57	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)
+CMD_WATCH_TURN_ADDRESS_DATA	ERR_DATABASE	13	0xffffffff	silent			(no dialog from the command layer; the calling screen decides)

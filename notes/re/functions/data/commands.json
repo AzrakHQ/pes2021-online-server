@@ -1,0 +1,10300 @@
+[
+{
+"cmd": "CMD_ACCEPT_CLAN_ENTRY",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ACCEPT_CLAN_INVITE",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ADD_FOUL",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"card_pid",
+"card_side",
+"card_gameplayer_id_info",
+"gameplayer_unique_id",
+"gameplayer_id",
+"card_kind",
+"injury_pid",
+"injury_side",
+"injury_gameplayer_id",
+"injury_data",
+"part",
+"symptom",
+"level",
+"mcount_left",
+"injury_all",
+"injury_one",
+"gtimer"
+],
+"reply": [],
+"status": "acked",
+"seen": 112
+},
+{
+"cmd": "CMD_ADD_MYCLUB_AUCTION_WATCH_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"product_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ADD_MYCLUB_AUCTION_WISH_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"agent",
+"wishlist_id",
+"skill",
+"skill_category",
+"skill_id",
+"grade",
+"is_exhibited"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ADD_MYCLUB_SUBSCRIPTION_GAMEPLAYER",
+"area": "myClub",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ADD_SCORE",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"goal_side",
+"goal_gameplayer_id_info",
+"gameplayer_unique_id",
+"gameplayer_id",
+"goal_player_side",
+"goal_player_pid",
+"assist_side",
+"assist_gameplayer_id_info",
+"assist_player_side",
+"assist_player_pid",
+"gtimer"
+],
+"reply": [],
+"status": "acked",
+"seen": 8
+},
+{
+"cmd": "CMD_ADD_SELECTING_PLAYER_NUM",
+"area": "News & info",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_AUTH_STEAM",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"ticket",
+"steamid",
+"package_type"
+],
+"reply": [],
+"status": "handled",
+"seen": 114
+},
+{
+"cmd": "CMD_BL_DATA_SYNC",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_BUY_MYCLUB_MARKET_COACH",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coach_id",
+"use_pes_point",
+"is_coach_texture_use"
+],
+"reply": [
+"adaptability_rate",
+"attacking_area",
+"build_up",
+"coach",
+"coach_id",
+"coach_unique_id",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"current_point_division",
+"current_point_sim",
+"current_point_vscom",
+"defence_compact",
+"defence_line",
+"defence_num",
+"defence_type",
+"defensive_main_concept",
+"first_df",
+"formation_data",
+"gp",
+"is_coach_texture_use",
+"is_first",
+"is_use_variable_formation",
+"management",
+"mobility",
+"nation_id",
+"offence_num",
+"offensive_main_concept",
+"overall",
+"passsupport_dist",
+"pes_point",
+"press_rule",
+"sell_gp",
+"team_id",
+"transition"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CANCEL_CLAN_ENTRY",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CANCEL_CLAN_INVITE",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CANCEL_COOP_GROUP_MATCHING",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CANCEL_COOP_MATCHING",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CANCEL_MATCHDAY_ENTRY_PICKUP_MATCH",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CANCEL_MATCHING",
+"area": "Matchmaking",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "handled",
+"seen": 0
+},
+{
+"cmd": "CMD_CHANGE_GAMEPHASE",
+"area": "Match",
+"transport": "gate",
+"request": [
+"phase",
+"gtimer"
+],
+"reply": [],
+"status": "acked",
+"seen": 720
+},
+{
+"cmd": "CMD_CHECK_CHEAT",
+"area": "Fair play",
+"transport": "gate",
+"request": [
+"pid",
+"dlc_version",
+"dlc_type",
+"param_check_sum",
+"entry_check_sum"
+],
+"reply": [],
+"status": "acked",
+"seen": 96
+},
+{
+"cmd": "CMD_CHECK_LOCAL_GAMERELAY_PLAYER",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [
+"pid",
+"np_account_id"
+],
+"reply": [
+"build_gamerelay_num_for_11vs11",
+"build_gamerelay_num_for_1vs1",
+"build_gamerelay_num_for_3vs3",
+"gamerelay_register_url_data",
+"is_local_gamerelay_player",
+"type",
+"url"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CHECK_MYCLUB_STORE",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"is_enable_myclub_coin",
+"is_enable_subscription"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CHECK_STRING",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"str"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_COMPLETE_TEAM_SELECT",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CONFIRM_CLAN_REQUEST",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"request_list",
+"type",
+"status",
+"is_new",
+"appliciant_user_id",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"is_follow",
+"date",
+"applicant_clan_name"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_COPY_MYCLUB_SQUAD",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"copy_squad_id",
+"name"
+],
+"reply": [
+"squad_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CREATE_CLAN",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"clan_name"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CREATEJOIN_COOP_ROOM",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"basic_settings",
+"room_id",
+"room_name",
+"clan_name",
+"clan_owner_info",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"is_follow",
+"is_com_match",
+"is_use_chat",
+"is_same_level",
+"team_level",
+"coop_level",
+"is_same_manner",
+"coop_manner",
+"room_entry_restriction",
+"password",
+"lang",
+"match_settings",
+"user_team_id",
+"enemy_team_id",
+"cpu_level",
+"kind"
+],
+"reply": [
+"room_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CREATEJOIN_ROOM",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"name",
+"match_type",
+"lang",
+"max_players",
+"is_invite_limit",
+"password",
+"enable_guest",
+"vs_com",
+"use_original_player",
+"is_anyplayers",
+"is_select_gk",
+"auto_start_num",
+"game_rating_limit"
+],
+"reply": [
+"room_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CREATE_MYCLUB_SQUAD",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coach_unique_id",
+"name"
+],
+"reply": [
+"squad_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CREATE_MYCLUB_STAFF",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"player_info_list",
+"gameplayer_unique_id",
+"gameplayer_base_id",
+"gameplayer_id",
+"gameplayer_level",
+"registared_position",
+"position",
+"stronger_foot",
+"overall",
+"ability",
+"play_style",
+"nation_id",
+"club_team_id",
+"is_use_cloud_match"
+],
+"reply": [
+"ability",
+"base_exp",
+"base_player_info",
+"club_team_id",
+"gameplayer_base_id",
+"gameplayer_id",
+"gameplayer_level",
+"gameplayer_unique_id",
+"id",
+"nation_id",
+"overall",
+"play_style",
+"position",
+"registared_position",
+"staff_info_list",
+"stronger_foot"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CREATE_MYCLUB_TEAM",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"team_name",
+"team_name_short",
+"base_team_id",
+"coach_id",
+"rental_gameplayer_id",
+"is_check_team_name",
+"is_check_team_name_short",
+"is_coach_texture_use",
+"team_name_commentary_id",
+"home_town",
+"nation_id",
+"label",
+"name"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_CREATE_PLAYER",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"name"
+],
+"reply": [],
+"status": "handled",
+"seen": 10
+},
+{
+"cmd": "CMD_DELETE_MYCLUB_AUCTION_WATCH_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"product_id",
+"is_all"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_DELETE_MYCLUB_AUCTION_WISH_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"agent",
+"wishlist_id",
+"skill",
+"skill_category",
+"skill_id",
+"grade",
+"is_exhibited"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_DELETE_MYCLUB_SQUAD",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"squad_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_DEMOCHAT",
+"area": "Social",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_DISCONNECT",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"logoutstat"
+],
+"reply": [],
+"status": "handled",
+"seen": 182
+},
+{
+"cmd": "CMD_END_STEAM_STORE",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"ticket",
+"steamid",
+"package_type",
+"orderid",
+"itemid",
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_END_STORE_TRANSACTION",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid",
+"product_id",
+"transaction_id"
+],
+"reply": [
+"subscription_active",
+"subscription_expire_date"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ENTRY_CLAN",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ENTRY_GAME",
+"area": "Match",
+"transport": "gate",
+"request": [
+"entry",
+"side"
+],
+"reply": [
+"entryflag",
+"gameNum"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ENTRY_MYCLUB_WEEKLY_RANKING",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"is_entry"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ERR",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_EXCHANGE_E_FOOTBALL_POINT",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"pid",
+"product_id"
+],
+"reply": [
+"e_football_point_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_EXPEL_CLAN_MEMBER",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_EXTEND_MYCLUB_COACH",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coach_unique_id",
+"use_pes_point"
+],
+"reply": [
+"contract_term",
+"gp",
+"pes_point"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_EXTEND_MYCLUB_GAMEPLAYER",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer_unique_id_list",
+"use_pes_point"
+],
+"reply": [
+"contract_term",
+"contract_term_list",
+"gameplayer_id",
+"gameplayer_unique_id",
+"gp",
+"pes_point"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_EXTEND_MYCLUB_ITEM_GAMEPLAYER",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer_unique_id"
+],
+"reply": [
+"contract_term",
+"extend_ticket",
+"gameplayer_id",
+"gameplayer_unique_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_FINISH_SEASON",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_FOLLOW_USER",
+"area": "Social",
+"transport": "gate",
+"request": [
+"pid",
+"follow_user_id_list",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"unfollow_user_id_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_AGING_REVISION",
+"area": "Login & account",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_AVATAR_HTTP",
+"area": "Login & account",
+"transport": "HTTP",
+"request": [
+"pid"
+],
+"reply": [
+"avatar_data",
+"avatar_data_size",
+"avatar_md5"
+],
+"status": "acked",
+"seen": 205
+},
+{
+"cmd": "CMD_GET_BLOCKLIST",
+"area": "Social",
+"transport": "gate",
+"request": [],
+"reply": [
+"bklist",
+"block_id",
+"count",
+"max_player_num",
+"name",
+"player_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_CHALLENGECODE",
+"area": "Login & account",
+"transport": "gate",
+"request": [],
+"reply": [
+"challenge_code"
+],
+"status": "handled",
+"seen": 76
+},
+{
+"cmd": "CMD_GET_CLAN_INFO",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"owner_id",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted"
+],
+"reply": [
+"account_id",
+"basic_settings",
+"clan_comment",
+"clan_info",
+"clan_member_num",
+"clan_members",
+"clan_name",
+"clan_stats_myclub",
+"clan_stats_online",
+"coop_level",
+"current_division",
+"current_online_mode",
+"current_rating",
+"draw_count",
+"enable_request",
+"goal",
+"is_banned",
+"is_deleted",
+"is_follow",
+"is_join_online_mode",
+"is_valid_cache",
+"last_login",
+"lose_count",
+"lost_goal",
+"match_count",
+"name",
+"online_id",
+"owner_info",
+"pid",
+"pname",
+"psn_user_id",
+"residual_div_first_count",
+"season_match_stats",
+"season_win_count",
+"total_match_stats",
+"user_id",
+"win_count",
+"win_s",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_CLAN_LIST",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"search_options",
+"clan_name",
+"enable_request",
+"is_joined_clan",
+"start_index"
+],
+"reply": [
+"account_id",
+"all_list_num",
+"basic_settings",
+"clan_comment",
+"clan_list",
+"clan_list_num",
+"clan_member_num",
+"clan_members",
+"clan_name",
+"clan_stats_myclub",
+"clan_stats_online",
+"coop_level",
+"current_division",
+"current_online_mode",
+"current_rating",
+"draw_count",
+"enable_request",
+"goal",
+"is_banned",
+"is_deleted",
+"is_follow",
+"is_join_online_mode",
+"is_valid_cache",
+"last_login",
+"lose_count",
+"lost_goal",
+"match_count",
+"name",
+"online_id",
+"owner_info",
+"pid",
+"pname",
+"psn_user_id",
+"residual_div_first_count",
+"season_match_stats",
+"season_win_count",
+"start_index",
+"total_match_stats",
+"user_id",
+"win_count",
+"win_s",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_CLAN_MEMBER_MODE",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"clan_member_num",
+"clan_members",
+"coop_level",
+"current_online_mode",
+"is_deleted",
+"is_follow",
+"is_join_online_mode",
+"is_valid_cache",
+"last_login",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"user_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_CLAN_PENDING_LIST",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"applicant_clan_name",
+"appliciant_user_id",
+"date",
+"is_deleted",
+"is_follow",
+"is_new",
+"is_valid_cache",
+"name",
+"online_id",
+"pending_info_list",
+"pending_info_list_num",
+"pid",
+"pname",
+"psn_user_id",
+"status",
+"type",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_CLAN_RANKING",
+"area": "Clans",
+"transport": "HTTP",
+"request": [
+"pid",
+"is_old_season",
+"view_num",
+"division",
+"start_index",
+"is_myclub"
+],
+"reply": [
+"account_id",
+"basic_settings",
+"clan_comment",
+"clan_name",
+"clan_ranking",
+"clan_ranking_all_list_num",
+"clan_ranking_num",
+"coop_level",
+"current_online_mode",
+"date",
+"division_change_type",
+"draw_count",
+"enable_request",
+"goal",
+"is_banned",
+"is_deleted",
+"is_follow",
+"is_join_online_mode",
+"is_valid_cache",
+"last_login",
+"lose_count",
+"lost_goal",
+"match_count",
+"match_stats",
+"name",
+"online_id",
+"owner_info",
+"pid",
+"pname",
+"psn_user_id",
+"rank",
+"rating",
+"user_id",
+"win_count",
+"win_s",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_CLAN_REQUEST_LIST",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"applicant_clan_name",
+"appliciant_user_id",
+"date",
+"is_deleted",
+"is_follow",
+"is_new",
+"is_valid_cache",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"request_info_list",
+"request_info_list_num",
+"status",
+"type",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_CLAN_SETTINGS",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"clan_basic_settings",
+"clan_comment",
+"clan_name",
+"coop_level",
+"current_online_mode",
+"enable_request",
+"is_banned",
+"is_deleted",
+"is_follow",
+"is_join_online_mode",
+"is_valid_cache",
+"last_login",
+"name",
+"online_id",
+"owner_info",
+"pid",
+"pname",
+"psn_user_id",
+"user_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_CLAN_SIMPLE_INFO_LIST",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"owner_pid_list"
+],
+"reply": [
+"account_id",
+"clan_name",
+"clan_simple_info_list",
+"clan_simple_info_list_num",
+"coop_level",
+"current_online_mode",
+"is_deleted",
+"is_follow",
+"is_join_online_mode",
+"is_valid_cache",
+"last_login",
+"name",
+"online_id",
+"owner_info",
+"pid",
+"pname",
+"psn_user_id",
+"user_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COMPEV_INFO",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid",
+"compe_mode",
+"compe_id"
+],
+"reply": [
+"ad_file_name",
+"add_limit_match_num_max",
+"add_limit_match_num_min",
+"add_limit_rating_max",
+"add_limit_rating_min",
+"add_limit_vscom_win_rate",
+"banner_file_info",
+"body",
+"clear_match_num",
+"clear_win_point",
+"cleared_count",
+"compe_cpu_level",
+"compe_data",
+"compe_end_time",
+"compe_id",
+"compe_info",
+"compe_kind",
+"compe_name",
+"compe_reward",
+"compe_start_time",
+"contract_term",
+"count",
+"difficulty",
+"entity_id",
+"entry_coach_id",
+"entry_national_id",
+"entry_player_num",
+"entry_team_id",
+"entry_teamspirit_max",
+"entry_teamspirit_min",
+"entry_teamstrength_max",
+"entry_teamstrength_min",
+"entry_type",
+"event_compe_reward_list",
+"filename",
+"grade",
+"hash_str",
+"is_cleared",
+"is_compe_reward_exist",
+"is_coop_match",
+"is_efootball_pro_stadium",
+"is_exist_unlocked_compe_by_cleared",
+"is_limited_matching_target",
+"is_locked",
+"is_pesleague_stadium",
+"is_same_team_power_level",
+"is_squad_bonus",
+"is_squad_bonus_reward_exist",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"list_banner_file_info",
+"logo_file_name",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"player_num",
+"precondition_compe_id",
+"precondition_compe_name",
+"present_id",
+"present_type",
+"receipt_deadline",
+"reward",
+"skill",
+"skill_category",
+"skill_id",
+"squad_bonus",
+"squad_bonus_rate",
+"team_id",
+"title",
+"type",
+"usable_ball_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COMPEV_LIST",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid",
+"compe_list_kind",
+"compe_mode"
+],
+"reply": [
+"add_limit_match_num_max",
+"add_limit_match_num_min",
+"add_limit_rating_max",
+"add_limit_rating_min",
+"add_limit_vscom_win_rate",
+"banner_file_info",
+"compe_cpu_level",
+"compe_end_time",
+"compe_id",
+"compe_kind",
+"compe_list",
+"compe_list_kind",
+"compe_name",
+"compe_num",
+"compe_start_time",
+"difficulty",
+"entry_coach_id",
+"entry_national_id",
+"entry_player_num",
+"entry_team_id",
+"entry_teamspirit_max",
+"entry_teamspirit_min",
+"entry_teamstrength_max",
+"entry_teamstrength_min",
+"entry_type",
+"filename",
+"hash_str",
+"is_cleared",
+"is_coop_match",
+"is_locked",
+"is_squad_bonus",
+"list_banner_file_info",
+"player_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COMPEV_MAINMENU_INFO",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid",
+"compe_mode",
+"compe_id",
+"target_pid"
+],
+"reply": [
+"clear_count",
+"compe_result",
+"cpu_level",
+"progress_game_count",
+"status",
+"vscom_team_id",
+"win_point"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COMPEV_MYENTRY_COMPEID",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid",
+"compe_mode"
+],
+"reply": [
+"compe_cpu_level",
+"compe_id",
+"compe_mode",
+"progress_game_count"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COMPLG_MYENTRY_COMPEID",
+"area": "PES League",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_LEVEL_RESULT",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"match_id"
+],
+"reply": [
+"account_id",
+"after_level",
+"after_point",
+"before_level",
+"before_point",
+"coop_level_user_list",
+"evalution",
+"is_clan_owner",
+"is_deleted",
+"is_follow",
+"is_valid_cache",
+"name",
+"online_id",
+"pid",
+"pname",
+"point",
+"psn_user_id",
+"reference",
+"status",
+"user_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_MAINMENU_INFO",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"online_mode",
+"is_check_season_end"
+],
+"reply": [
+"division",
+"division_change_type",
+"is_coop_banned",
+"is_exist_new_pending",
+"is_exist_new_request",
+"is_exist_owner_clan",
+"is_season_end",
+"pre_season_rank",
+"pre_season_rank_all_clan_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_MATCH_DATA",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"match_data",
+"match_data_size"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_PROFILE",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"coop_level",
+"coop_level_point",
+"coop_manner",
+"coop_profile_data",
+"follower",
+"is_deleted",
+"is_follow",
+"is_valid_cache",
+"match_data",
+"match_data_size",
+"name",
+"online_id",
+"online_match",
+"pid",
+"pname",
+"psn_user_id",
+"user_info",
+"vscom_match",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_QUICKMATCHOPTION",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"cpu_level_max",
+"cpu_level_min",
+"force_alone",
+"is_vscom"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_REJECT_LIST",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"is_deleted",
+"is_valid_cache",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"reject_list",
+"reject_list_num",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_ROOMLIST",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"search_options",
+"room_id",
+"use_password",
+"vs_setting",
+"team_level",
+"coop_level",
+"coop_manner",
+"cpu_level_min",
+"cpu_level_max",
+"can_entry",
+"kind",
+"compe_id",
+"start_index"
+],
+"reply": [
+"account_id",
+"all_room_num",
+"basic_settings",
+"clan_name",
+"clan_owner_info",
+"compe_id",
+"coop_level",
+"coop_manner",
+"cpu_level",
+"enemy_team_id",
+"is_com_match",
+"is_deleted",
+"is_follow",
+"is_game",
+"is_same_level",
+"is_same_manner",
+"is_use_chat",
+"is_valid_cache",
+"kind",
+"lang",
+"match_settings",
+"name",
+"online_id",
+"password",
+"pid",
+"pname",
+"psn_user_id",
+"room_entry_restriction",
+"room_id",
+"room_list",
+"room_list_num",
+"room_name",
+"team_level",
+"user_num",
+"user_team_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_ROOM_MEMBER",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id"
+],
+"reply": [
+"account_id",
+"coop_level",
+"guest_info",
+"is_clan_member",
+"is_deleted",
+"is_follow",
+"is_guest",
+"is_owner",
+"is_platform_guest",
+"is_ready",
+"is_valid_cache",
+"list_data",
+"list_num",
+"name",
+"online_id",
+"pid",
+"player_index",
+"pname",
+"psn_user_id",
+"user_info",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_ROOM_OPTION",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id"
+],
+"reply": [
+"account_id",
+"basic_settings",
+"clan_name",
+"clan_owner_info",
+"coop_level",
+"coop_manner",
+"countdown_end_time",
+"cpu_level",
+"enemy_team_id",
+"is_com_match",
+"is_deleted",
+"is_follow",
+"is_game",
+"is_same_level",
+"is_same_manner",
+"is_start_count_down",
+"is_start_matching",
+"is_stop_countdown",
+"is_use_chat",
+"is_valid_cache",
+"lang",
+"match_settings",
+"name",
+"online_id",
+"password",
+"pid",
+"pname",
+"psn_user_id",
+"room_entry_restriction",
+"room_id",
+"room_name",
+"room_phase",
+"team_level",
+"user_team_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_COOP_ROOM_PLATFORM_SESSION",
+"area": "Co-op",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_DIVISION_INFO",
+"area": "Divisions & rankings",
+"transport": "gate",
+"request": [
+"pid",
+"is_season_end"
+],
+"reply": [
+"account_id",
+"away_score",
+"demotion_point",
+"division",
+"division_info",
+"division_point",
+"doublerank_promotion_point",
+"draw_count",
+"enemy_cpu_level",
+"enemy_name",
+"enemy_side",
+"enemy_team_id",
+"home_score",
+"is_deleted",
+"is_finished_match",
+"is_valid_cache",
+"lose_count",
+"match_history_list",
+"match_record",
+"name",
+"online_id",
+"other_match_num",
+"pname",
+"promotion_point",
+"psn_user_id",
+"rating",
+"win_count",
+"win_lose",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_DIVISION_POINT_INFO",
+"area": "Divisions & rankings",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"division_list",
+"division_type",
+"point",
+"rank",
+"server_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_DIVISION_RANKING",
+"area": "Divisions & rankings",
+"transport": "HTTP",
+"request": [
+"start_index",
+"view_num",
+"division"
+],
+"reply": [
+"account_id",
+"date",
+"division",
+"draw_count",
+"favoritePlayer",
+"favoriteTeam",
+"intro",
+"is_deleted",
+"is_valid_cache",
+"lose_count",
+"manner",
+"match_record",
+"name",
+"online_id",
+"pid",
+"pname",
+"point",
+"psn_user_id",
+"rank",
+"rank_list",
+"rating",
+"total_rank_num",
+"user",
+"win_count",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_DIVISION_RANKING_BYID",
+"area": "Divisions & rankings",
+"transport": "HTTP",
+"request": [
+"pid",
+"xuid_one",
+"np_account_id",
+"view_num",
+"division"
+],
+"reply": [
+"account_id",
+"date",
+"division",
+"draw_count",
+"favoritePlayer",
+"favoriteTeam",
+"intro",
+"is_deleted",
+"is_valid_cache",
+"lose_count",
+"manner",
+"match_record",
+"name",
+"online_id",
+"pid",
+"pname",
+"point",
+"psn_user_id",
+"rank",
+"rank_list",
+"rating",
+"total_rank_num",
+"user",
+"win_count",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_DLC_FILELIST",
+"area": "Login & account",
+"transport": "HTTP",
+"request": [
+"file_type",
+"region",
+"pid"
+],
+"reply": [
+"dlc_version",
+"dlcfile_list",
+"dlcfile_list_count",
+"extra_file_list",
+"extra_file_list_count",
+"hash",
+"name",
+"required_program_version",
+"size",
+"url",
+"variation_file_list",
+"variation_file_list_count"
+],
+"status": "handled",
+"seen": 144
+},
+{
+"cmd": "CMD_GET_DMM_NOTIFICATION",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid",
+"lang",
+"region",
+"package_type"
+],
+"reply": [
+"body",
+"club_team_id",
+"date",
+"default_overall",
+"default_rarity",
+"evoked_text",
+"filename",
+"gameplayer_id",
+"gameplayer_list",
+"gameplayer_list_num",
+"hash_str",
+"header_text",
+"id",
+"info_list",
+"info_list_num",
+"is_watch",
+"link",
+"link_url",
+"movie_url",
+"nation_id",
+"position",
+"service_id",
+"storelinkinfo",
+"thumbnail_info",
+"title",
+"type"
+],
+"status": "acked",
+"seen": 96
+},
+{
+"cmd": "CMD_GET_DMM_PLAYERINFO",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"is_present_inbox"
+],
+"status": "acked",
+"seen": 96
+},
+{
+"cmd": "CMD_GET_E_FOOTBALL_POINT",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"pid"
+],
+"reply": [
+"e_football_point_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_EFP_MOST_RECENTLY_EXPIRED_POINTS",
+"area": "Connectivity / relay",
+"transport": "HTTP",
+"request": [
+"pid",
+"is_warning"
+],
+"reply": [
+"expired_point_list",
+"expired_point_list_num",
+"is_show_dialog",
+"point",
+"time"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_ENTRY_GAME",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"entryNum",
+"entry_count",
+"entrygame",
+"gameNum",
+"pid"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_EULA_NATION_CODE",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [],
+"reply": [
+"area_code",
+"nation_code"
+],
+"status": "handled",
+"seen": 2
+},
+{
+"cmd": "CMD_GET_EULA_NATION_LIST",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [
+"lang"
+],
+"reply": [
+"has_area",
+"name",
+"nation_code",
+"nation_list",
+"nation_list_num",
+"privacy_kind"
+],
+"status": "handled",
+"seen": 74
+},
+{
+"cmd": "CMD_GET_EVENT_CATEGORY_LIST",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"banner_file_info",
+"compe_db_id",
+"event_category",
+"event_category_list",
+"filename",
+"hash_str",
+"is_auto_make_compe_name",
+"is_use_emblem",
+"matchday_emblem_info",
+"matchday_group_type",
+"not_cleared_event_num",
+"open_event_num",
+"recent_event_start_time",
+"team_list_group_a",
+"team_list_group_b"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_FOLLOW_LIST",
+"area": "Social",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"follow_list",
+"follow_list_num",
+"is_clan_member",
+"is_deleted",
+"is_locked",
+"is_valid_cache",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"user_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_GAMERELAY",
+"area": "Connectivity / relay",
+"transport": "HTTP",
+"request": [
+"pid"
+],
+"reply": [
+"game_sycom",
+"gamerelay_index",
+"grid",
+"ip_addr",
+"port"
+],
+"status": "handled",
+"seen": 75
+},
+{
+"cmd": "CMD_GET_GAMERELAY_QUALITYCHECKLIST",
+"area": "Connectivity / relay",
+"transport": "HTTP",
+"request": [
+"pid"
+],
+"reply": [
+"gamerelay_index",
+"grid",
+"ip_addr",
+"last_update",
+"port",
+"quality",
+"quality_check_data_list",
+"quality_check_data_num",
+"quality_list",
+"quality_list_num",
+"quality_threshold_1",
+"quality_threshold_2"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_GAMERESULTS",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"game_res_type",
+"pesleague_compe_id"
+],
+"reply": [
+"account_id",
+"cpu_level",
+"date",
+"ex_type",
+"gameend_reason",
+"is_com",
+"is_deleted",
+"is_follow",
+"is_guest",
+"is_valid_cache",
+"match_category",
+"name",
+"no_match",
+"online_id",
+"pid",
+"pk_flag",
+"player",
+"pname",
+"psn_user_id",
+"rlist",
+"rlist_num",
+"score",
+"score_1st",
+"score_2nd",
+"score_ex1st",
+"score_ex2nd",
+"score_pk",
+"side",
+"team",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_GAME_SCORE",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"score",
+"score_1st",
+"score_2nd",
+"score_ex1st",
+"score_ex2nd",
+"score_pk",
+"team"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_GAME_TEAM_LIST",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"division_point",
+"team_class",
+"team_id",
+"team_list",
+"team_list_num"
+],
+"status": "handled",
+"seen": 114
+},
+{
+"cmd": "CMD_GET_GLOBALINFOTITLELIST",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"lang",
+"region",
+"package_type",
+"kind"
+],
+"reply": [
+"annnounce_info_list_num",
+"announce_id",
+"announce_info_list",
+"announce_type",
+"compe_db_id",
+"date",
+"event_id",
+"evoked_text",
+"filename",
+"hash_str",
+"is_auto_make_compe_name",
+"is_use_emblem",
+"list_banner_file_info",
+"matchday_emblem_info",
+"matchday_group_type",
+"popup_type",
+"priority",
+"team_list_group_a",
+"team_list_group_b",
+"title",
+"weekly_info_type"
+],
+"status": "acked",
+"seen": 156
+},
+{
+"cmd": "CMD_GET_GP_ACHIEVEMENT",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"all_achievement_bit_array",
+"all_gp",
+"pes_point"
+],
+"status": "acked",
+"seen": 236
+},
+{
+"cmd": "CMD_GET_HEROSTATS",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"division_match_num",
+"division_win_num",
+"is_current_match_lose",
+"is_current_match_win",
+"myclub_division_match_num",
+"myclub_division_sim_match_num",
+"myclub_division_sim_win_num",
+"myclub_division_win_num",
+"total_goal_num",
+"total_lose_num",
+"total_lostgoal_num",
+"total_match_num",
+"total_win_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_INFOBODY",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"pid",
+"announce_id",
+"is_private",
+"lang",
+"region"
+],
+"reply": [
+"announce_basic_info",
+"announce_id",
+"announce_info",
+"announce_type",
+"banner_file_info",
+"body",
+"compe_db_id",
+"compe_name",
+"compe_start_time",
+"date",
+"direct_move",
+"event_id",
+"evoked_text",
+"filename",
+"hash_str",
+"is_auto_make_compe_name",
+"is_use_emblem",
+"link_url",
+"list_banner_file_info",
+"matchday_emblem_info",
+"matchday_group_type",
+"popup_type",
+"priority",
+"team_list_group_a",
+"team_list_group_b",
+"template_id",
+"title",
+"use_template",
+"weekly_info_type"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_IPANDPORT_NTL",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"address_family",
+"host_addr",
+"ntl_nat_type",
+"pid",
+"reflexive_addr",
+"relayed_addr",
+"sa_data"
+],
+"status": "handled",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_IS_JOIN_COOP_ROOM",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"is_join_coop_room"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_IS_KONAMIID_COOPERATION",
+"area": "Co-op",
+"transport": "HTTP",
+"request": [
+"steam_id",
+"xuid",
+"xuid_one",
+"account_id",
+"platform",
+"region"
+],
+"reply": [
+"is_cooperation",
+"is_reagree",
+"reagree_url"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_KONAMIID_FUNCTIONAL_BLOCKADE",
+"area": "Social",
+"transport": "HTTP",
+"request": [],
+"reply": [
+"is_blocked"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_KONAMIID_LINK_URL",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"steam_id",
+"xuid",
+"xuid_one",
+"account_id",
+"platform",
+"region"
+],
+"reply": [
+"link_url",
+"qr_expiration_date"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_LOBBYINFO",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"lobby_id"
+],
+"reply": [
+"has_info",
+"sentence_info",
+"sentence_intro",
+"title"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_LOBBYLIST",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"lobby_type",
+"lang"
+],
+"reply": [
+"gamerelay_index",
+"lobby_id",
+"lobby_list",
+"lobby_list_num",
+"name",
+"player_num",
+"player_num_max"
+],
+"status": "handled",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MAINTENANCE_INFO",
+"area": "News & info",
+"transport": "gate",
+"request": [],
+"reply": [
+"maintenance_time",
+"maintenance_warn"
+],
+"status": "acked",
+"seen": 144
+},
+{
+"cmd": "CMD_GET_MANNER_WARN",
+"area": "Fair play",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"warn_kind"
+],
+"status": "acked",
+"seen": 180
+},
+{
+"cmd": "CMD_GET_MATCH_ANALYZE",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid",
+"analyze_data_type"
+],
+"reply": [
+"analyze_data_list",
+"analyze_data_size",
+"attack_area_left",
+"attack_area_middle",
+"attack_area_right",
+"attack_time",
+"concept_arrange_defence_first",
+"concept_arrange_defence_second",
+"concept_arrange_offence_first",
+"concept_arrange_offence_second",
+"cross_count",
+"cross_success_count",
+"deffence_time",
+"dribble_distance",
+"favorite_play_defence_first",
+"favorite_play_defence_second",
+"favorite_play_defence_third",
+"favorite_play_offence_first",
+"favorite_play_offence_second",
+"favorite_play_offence_third",
+"foul_count",
+"game_res",
+"inframe_shoot_count",
+"intercept_area",
+"match_up_distance",
+"offside_count",
+"pass_count",
+"pass_cut_count",
+"pass_distance",
+"pass_success_count",
+"posession",
+"score_cross_count",
+"score_dribble_count",
+"score_loss_cross_count",
+"score_loss_dribble_count",
+"score_loss_other",
+"score_loss_pass_count",
+"score_loss_set_play_count",
+"score_loss_through_pass_count",
+"score_other",
+"score_pass_count",
+"score_set_play_count",
+"score_through_pass_count",
+"shoot_count",
+"suffer_inframe_shoot_count",
+"suffer_shoot_count",
+"tackle_count",
+"tackle_success_count"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCH_ANALYZE_ENV",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"deffence",
+"favorite_play",
+"favorite_play_rate",
+"match_up",
+"passtype",
+"posession"
+],
+"status": "acked",
+"seen": 128
+},
+{
+"cmd": "CMD_GET_MATCHDAY_ACHIEVEMENT_REWARD",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"achievement_reward_list",
+"add_matchday_point",
+"body",
+"contract_term",
+"count",
+"entity_id",
+"gameplay_quality",
+"grade",
+"is_repeat",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"present_id",
+"present_type",
+"receipt_deadline",
+"require_point",
+"reward_list",
+"skill",
+"skill_category",
+"skill_id",
+"squad_rating",
+"team_id",
+"title",
+"type"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_FINAL_RESULT_INFO",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"final_result_info",
+"gameend_reason",
+"is_exist_watch_match_data",
+"score_group_a",
+"score_group_b",
+"score_pk_group_a",
+"score_pk_group_b"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_INFO",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"achievement_reward_list",
+"all_reward_info",
+"ball_id",
+"banner_file_info",
+"base_id",
+"body",
+"compe_db_id",
+"compe_id",
+"compe_info",
+"compe_name",
+"contract_term",
+"count",
+"end_date",
+"end_group_match_date",
+"entity_id",
+"entry_limit_date",
+"entry_pickup_match_start_date",
+"entry_user_max",
+"entry_user_num",
+"eula_url",
+"filename",
+"fixed_season",
+"fixed_timezone",
+"fixed_weather",
+"grade",
+"group_desc",
+"group_info_a",
+"group_info_b",
+"group_match_time",
+"group_name",
+"group_type",
+"hash_str",
+"info_overview",
+"is_check_eula",
+"is_disp_compe_name",
+"is_efootball_pro_stadium",
+"is_end",
+"is_entry",
+"is_entry_restricted",
+"is_equalization",
+"is_fix_condition",
+"is_pesleague_stadium",
+"is_possible_watch",
+"is_repeat",
+"is_use_emblem",
+"is_use_emblem_list",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"joined_matchday_group",
+"list_banner_file_info",
+"match_type",
+"name",
+"name_jp",
+"pes_point_price",
+"pickup_cut_off_rank",
+"pickup_match_time",
+"pickup_member_date",
+"pickup_select",
+"player_level",
+"pre_pickup_users_pid_list",
+"present_id",
+"present_type",
+"rating_rank",
+"receipt_deadline",
+"require_point",
+"required_point_final_reward",
+"reward_list",
+"skill",
+"skill_category",
+"skill_id",
+"squad_type",
+"start_date",
+"start_match_limit_date",
+"team_id",
+"team_list",
+"team_list_num",
+"title",
+"type",
+"use_stadium_id",
+"watch_match_reward_state",
+"watch_match_start_date",
+"watch_wait_time",
+"win_reward_list"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_LIST",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"is_myclub",
+"start_index"
+],
+"reply": [
+"add_limit_rating",
+"banner_file_info",
+"base_id",
+"compe_db_id",
+"compe_id",
+"compe_list",
+"compe_name",
+"end_date",
+"end_group_match_date",
+"entry_limit_date",
+"entry_user_max",
+"entry_user_num",
+"filename",
+"group_desc",
+"group_info_a",
+"group_info_b",
+"group_name",
+"group_type",
+"hash_str",
+"is_disp_compe_name",
+"is_end",
+"is_entry",
+"is_entry_restricted",
+"is_no_check",
+"is_possible_watch",
+"is_use_emblem",
+"is_use_emblem_list",
+"list_banner_file_info",
+"list_max",
+"list_num",
+"match_type",
+"pickup_member_date",
+"pre_pickup_users_pid_list",
+"rating_rank",
+"squad_type",
+"start_date",
+"team_list",
+"team_list_num",
+"watch_match_reward_state"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_MAINMENU_INFO",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"account_id",
+"body",
+"contract_term",
+"count",
+"entity_id",
+"final_reward_list",
+"grade",
+"group_match_info",
+"group_result",
+"is_deleted",
+"is_failed_pickup_users",
+"is_final_reward",
+"is_get_final_reward",
+"is_hide_graph",
+"is_valid_cache",
+"is_watch_match",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"mainmenu_info",
+"matchday_point",
+"matchday_progress",
+"matchday_rank",
+"matchday_ranking_user_num",
+"matchday_ratio",
+"name",
+"name_jp",
+"online_id",
+"pes_point_price",
+"pickup_match_score_group_a",
+"pickup_match_score_group_b",
+"pickup_reward_list",
+"pickup_reward_type",
+"pickup_user_group_a_num",
+"pickup_user_group_b_num",
+"pickup_user_info",
+"pickup_users_group_a",
+"pickup_users_group_b",
+"pid",
+"player_level",
+"pname",
+"present_id",
+"present_type",
+"psn_user_id",
+"receipt_deadline",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"total_matchday_point_group_a",
+"total_matchday_point_group_b",
+"type",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_RANKING",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id",
+"start_index",
+"view_num"
+],
+"reply": [
+"account_id",
+"entry_name",
+"is_deleted",
+"is_valid_cache",
+"list_max",
+"list_num",
+"matchday_point",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"rank",
+"rank_list",
+"recode_date",
+"team_id",
+"update_date",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_RANKING_BYID",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id",
+"view_num"
+],
+"reply": [
+"account_id",
+"entry_name",
+"is_deleted",
+"is_valid_cache",
+"list_max",
+"list_num",
+"matchday_point",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"rank",
+"rank_list",
+"recode_date",
+"team_id",
+"update_date",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_SP_ALL_COOP_MEMBER_LIST",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"coop_player_list"
+],
+"reply": [
+"coop_memberlist",
+"coop_memberlist_num",
+"gameplayer_id",
+"nation_id",
+"parameters",
+"pid",
+"team_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_SP_CONFIRM_COOP_SQUAD",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"base_team_id",
+"elected_myplayer_id_list",
+"elected_myplayer_id_list_num",
+"elected_myplayerlist",
+"elected_myplayerlist_num",
+"gameplan_data",
+"gameplan_data_size",
+"gameplayer_id",
+"my_team",
+"nation_id",
+"parameters",
+"pid",
+"team_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_SP_GAMEPLAN",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"gameplan_data",
+"gameplan_data_size",
+"sp_member_list"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHDAY_WATCH_MATCH_REWARD",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"body",
+"contract_term",
+"count",
+"entity_id",
+"grade",
+"is_exist_watch_match_reward",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"present_id",
+"present_type",
+"receipt_deadline",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"type",
+"watch_match_reward_list"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MATCHID",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [
+"match_id",
+"upload"
+],
+"status": "handled",
+"seen": 98
+},
+{
+"cmd": "CMD_GET_MATCHREJECTLIST",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"is_deleted",
+"is_valid_cache",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"reject_list",
+"reject_list_num",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_ACHIEVEMENTLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"achievement_category",
+"achievement_list",
+"achievement_list_num",
+"body",
+"contract_term",
+"count",
+"entity_id",
+"grade",
+"is_new",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"milestone_list",
+"milestone_list_num",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"present",
+"present_id",
+"present_type",
+"receipt_deadline",
+"received_all",
+"received_milestone_level",
+"skill",
+"skill_category",
+"skill_id",
+"target_value",
+"team_id",
+"title",
+"type",
+"value"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_AGENT_BOX_INFO",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"agent_id"
+],
+"reply": [
+"agent",
+"agent_end_time",
+"agent_id",
+"agent_info",
+"agent_token_end_time",
+"banner_file_info",
+"bgm_id",
+"box_pack_num",
+"box_size",
+"count",
+"filename",
+"get_player_num",
+"gp",
+"hash_str",
+"is_buy_gp_pes_point",
+"is_draw_checked",
+"is_use_reset",
+"level",
+"limit_count",
+"main_player_rarity_info",
+"name",
+"name_jp",
+"pes_point",
+"rarity",
+"reset_remain_count",
+"skill",
+"skill_category",
+"skill_id",
+"sub1_player_rarity_info",
+"sub2_player_rarity_info",
+"target_level",
+"token_list",
+"token_list_num",
+"type",
+"uniform",
+"use_count"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_AGENT_DRAW_RATE",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"agent_id"
+],
+"reply": [
+"main",
+"rate_player_num",
+"rate_table",
+"sub1",
+"sub2"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_ALL_COOP_MEMBER_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coop_player_list"
+],
+"reply": [
+"coop_memberlist",
+"coop_memberlist_num",
+"gameplayer_id",
+"gameplayer_unique_id",
+"matchday_select_team_id",
+"nation_id",
+"parameters",
+"pid",
+"team_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_AUCTION_PRICE_RANKING",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"ranking_kind"
+],
+"reply": [
+"auction_price_ranking",
+"auction_price_ranking_num",
+"end_time",
+"grade",
+"price",
+"product_id",
+"rank",
+"scout_id",
+"skill",
+"skill_category",
+"skill_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_AUCTION_REPORT_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"auction_report_list",
+"auction_state",
+"bid_num",
+"finalround_end_time",
+"grade",
+"is_bid",
+"is_bid_user_max",
+"is_highest_bider",
+"is_register_watchlist",
+"price_now",
+"product_id",
+"scout_id",
+"skill",
+"skill_category",
+"skill_id",
+"time_limit",
+"total_auction_report_list_num",
+"update_time"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_AUCTION_SCOUT_DETAIL",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"product_id"
+],
+"reply": [
+"auction_end_time",
+"auction_scout_detail",
+"auction_start_time",
+"auction_state",
+"bid_num",
+"finalround_end_time",
+"grade",
+"is_bid",
+"is_bid_user_max",
+"is_highest_bidder",
+"is_reservation",
+"my_price",
+"price_now",
+"price_start",
+"product_id",
+"reservation_price",
+"scout_id",
+"second_price",
+"skill",
+"skill_category",
+"skill_id",
+"third_price"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_AUCTION_SCOUT_TENDER_USERINFOLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"product_id"
+],
+"reply": [
+"account_id",
+"auction_tender_userlist",
+"auction_tender_userlist_num",
+"is_deleted",
+"is_valid_cache",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_AUCTION_SUCCESSFUL_BID_INFO",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"scout_id",
+"grade",
+"skill",
+"skill_category",
+"skill_id"
+],
+"reply": [
+"auction_successful_bid_list",
+"auction_successful_bid_list_num",
+"average_bid_price",
+"best_bid_amount_day",
+"best_bid_amount_price"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_AUCTION_WATCH_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"is_auction_state_changed"
+],
+"reply": [
+"auction_info_list",
+"auction_state",
+"bid_num",
+"finalround_end_time",
+"grade",
+"is_bid",
+"is_bid_user_max",
+"is_highest_bider",
+"is_register_watchlist",
+"price_now",
+"product_id",
+"scout_id",
+"skill",
+"skill_category",
+"skill_id",
+"time_limit",
+"total_auction_info_list_num",
+"update_time"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_AUCTION_WISH_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"start_index"
+],
+"reply": [
+"grade",
+"is_exhibited",
+"skill",
+"skill_category",
+"skill_id",
+"total_wish_info_list_num",
+"wish_info_list",
+"wishlist_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_CLOUDMATCH_BONUS",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"body",
+"cloud_bonus",
+"contract_term",
+"count",
+"cpu_level",
+"date",
+"draw_num",
+"entity_id",
+"ex_type",
+"gameend_reason",
+"grade",
+"is_com",
+"is_deleted",
+"is_follow",
+"is_guest",
+"is_valid_cache",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"lose_num",
+"match_category",
+"match_list",
+"match_list_num",
+"match_num",
+"name",
+"name_jp",
+"no_match",
+"online_id",
+"pes_point_price",
+"pid",
+"pk_flag",
+"player",
+"player_level",
+"pname",
+"present_id",
+"present_type",
+"psn_user_id",
+"receipt_deadline",
+"score",
+"score_1st",
+"score_2nd",
+"score_ex1st",
+"score_ex2nd",
+"score_pk",
+"side",
+"skill",
+"skill_category",
+"skill_id",
+"team",
+"team_id",
+"title",
+"type",
+"win_num",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_CLOUD_SQUADID",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"squad_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_COACH_CONTRACT_NORMA",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coach_unique_id"
+],
+"reply": [
+"current_point_division",
+"current_point_sim",
+"current_point_vscom",
+"is_contract_end",
+"norma_point_division",
+"norma_point_sim",
+"norma_point_vscom"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_COACHLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"adaptability_rate",
+"attacking_area",
+"build_up",
+"coach_id",
+"coach_list",
+"coach_list_num",
+"coach_unique_id",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"current_point_division",
+"current_point_sim",
+"current_point_vscom",
+"defence_compact",
+"defence_line",
+"defence_num",
+"defence_type",
+"defensive_main_concept",
+"first_df",
+"formation_data",
+"is_coach_texture_use",
+"is_use_variable_formation",
+"management",
+"mobility",
+"nation_id",
+"offence_num",
+"offensive_main_concept",
+"overall",
+"passsupport_dist",
+"press_rule",
+"sell_gp",
+"team_id",
+"transition"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_COM_MATCH_INFO",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"contWinMax_num",
+"contWin_num",
+"current_weekly_point",
+"division",
+"draw_num",
+"goal",
+"lose_num",
+"lostGoal",
+"match_num",
+"match_stats",
+"max_weekly_point",
+"rating",
+"win_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_COMMENTARY_INFO",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"match_category",
+"team_spirit",
+"team_power_level"
+],
+"reply": [
+"coach_extended",
+"coach_match_num",
+"cont_win_max",
+"cont_win_num",
+"demotion",
+"division",
+"division_num",
+"division_stats",
+"draw_num",
+"gameplayer_extended_list",
+"gameplayer_id",
+"gameplayer_unique_id",
+"get_player_result",
+"is_coach_norma_clear",
+"lose_num",
+"num",
+"promotion",
+"team_power_level_prematch",
+"team_spirit_prematch",
+"total_match_num",
+"win_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_CONFIRM_COOP_SQUAD",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"base_team_id",
+"club_edition_type",
+"coach_id_list",
+"coach_unique_id_list",
+"default_rarity",
+"elected_myplayerlist",
+"elected_myplayerlist_num",
+"gameplan_data",
+"gameplan_data_size",
+"gameplayer_id",
+"gameplayer_unique_id",
+"is_club_edition",
+"is_entry_compe",
+"matchday_condition_list",
+"member_list",
+"member_num",
+"my_team",
+"name",
+"parameters",
+"player_level",
+"squad_id",
+"team_data",
+"team_name",
+"team_name_commentary_id",
+"team_name_short",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_DEFAULT_COACHLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"adaptability_rate",
+"attacking_area",
+"build_up",
+"coach_id",
+"default_coach_list",
+"default_coach_list_num",
+"defence_compact",
+"defence_line",
+"defence_num",
+"defence_type",
+"defensive_main_concept",
+"first_df",
+"formation_data",
+"gp",
+"is_locked",
+"is_use_variable_formation",
+"management",
+"mobility",
+"offence_num",
+"offensive_main_concept",
+"overall",
+"passsupport_dist",
+"pes_point",
+"press_rule",
+"transition"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_DEFAULT_RENTAL_GAMEPLAYERLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"add_skill_id",
+"assist",
+"attacking_area_center",
+"attacking_area_side",
+"build_up_long",
+"build_up_short",
+"close_date",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"default_overall",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"enhanced_parameters",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df_aggressive",
+"first_df_safety",
+"gameplayer",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_unique_id",
+"games",
+"goal",
+"gp",
+"is_protected",
+"is_rental",
+"is_subscription",
+"level",
+"level_info",
+"level_limit",
+"mcountLeft",
+"mobility_fix",
+"mobility_float",
+"nation_id",
+"open_date",
+"parameters",
+"pes_point",
+"player_level_need_exp",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"redcard_game_kind",
+"redcard_info_list",
+"rental_gameplayer_list",
+"rental_gameplayer_list_num",
+"sell_gp",
+"team_id",
+"tiredness",
+"transition_counter",
+"transition_possession",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_EFP_EXCHANGE_STORELIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"body",
+"contract_term",
+"count",
+"entity_id",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"limit_count",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"player_level_limit",
+"present_type",
+"price",
+"product_id",
+"receipt_deadline",
+"store_list",
+"store_list_num",
+"team_id",
+"title",
+"use_count"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_FEATURE_PLAYER_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"gameplayer_list",
+"gameplayer_list_num",
+"hold_gameplayer_list",
+"hold_gameplayer_list_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_GAME_BONUS",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"agent_id",
+"base_gp",
+"body",
+"bonus_kind",
+"bonus_rate",
+"contract_term",
+"count",
+"entity_id",
+"gain_gp",
+"game_res",
+"gp",
+"gp_bonus_elected_myplayer_num",
+"gp_bonus_list",
+"gp_bonus_list_num",
+"grade",
+"is_first_win",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"match_num",
+"name",
+"name_jp",
+"new_cpu_level",
+"old_cpu_level",
+"pes_point_price",
+"player_level",
+"present_id",
+"present_type",
+"rate",
+"rate_player_num",
+"rate_table",
+"receipt_deadline",
+"scout",
+"sell_gp",
+"skill",
+"skill_category",
+"skill_id",
+"special_match_bonus_list",
+"squad_bonus_item_list",
+"target_level",
+"team_id",
+"title",
+"type"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_GAMEPLAYER_EXPERIENCE",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"add_skill_id",
+"enhanced_parameters",
+"exp_current_level",
+"exp_info_postmatch",
+"exp_info_prematch",
+"exp_list",
+"exp_list_num",
+"exp_match",
+"exp_to_next_level",
+"exp_total",
+"gameplayer_unique_id",
+"level",
+"level_limit",
+"parameters"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_GAMEPLAYERLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"add_skill_id",
+"assist",
+"attacking_area_center",
+"attacking_area_side",
+"build_up_long",
+"build_up_short",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"default_overall",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"enhanced_parameters",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df_aggressive",
+"first_df_safety",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_list",
+"gameplayer_list_max",
+"gameplayer_list_num",
+"gameplayer_unique_id",
+"games",
+"goal",
+"is_protected",
+"is_rental",
+"is_subscription",
+"level",
+"level_info",
+"level_limit",
+"main_edition_gameplayer_list",
+"main_edition_gameplayer_list_num",
+"mcountLeft",
+"mobility_fix",
+"mobility_float",
+"nation_id",
+"parameters",
+"player_level_need_exp",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"redcard_game_kind",
+"redcard_info_list",
+"sell_gp",
+"team_id",
+"tiredness",
+"transition_counter",
+"transition_possession",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_GAMEPLAYER_NEED_EXPERIENCELIST",
+"area": "myClub",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_HISTORYLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"start_index"
+],
+"reply": [
+"count",
+"data_type",
+"date",
+"entity_id",
+"history_data_in",
+"history_data_kind",
+"history_data_out",
+"index",
+"item_data",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"myclub_history_list",
+"myclub_history_list_num",
+"myclub_history_list_total",
+"name",
+"pes_point_price"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_INCREASED_COINLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"start_index"
+],
+"reply": [
+"expiration_date",
+"gain_date",
+"increased_coin_list_total",
+"increased_pes_point_list",
+"increased_pes_point_list_num",
+"index",
+"no_use_pes_point",
+"pes_point",
+"pes_point_buy",
+"pes_point_free",
+"pes_point_type",
+"use_expiration_date"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_IS_FIRST_AGENT_MULTIPLE",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"is_first"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_IS_FIRST_MEMBERLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"is_first"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_IS_MARKET_COACH_AVAILABLE",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coach_id"
+],
+"reply": [
+"is_get"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_ITEMLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"count",
+"item_effect_arg",
+"item_list",
+"item_list_num",
+"item_type",
+"item_variation",
+"pes_point_price"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_LEGEND_GAMEPLAYERLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"add_skill_id",
+"assist",
+"attacking_area_center",
+"attacking_area_side",
+"build_up_long",
+"build_up_short",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"default_overall",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"enhanced_parameters",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df_aggressive",
+"first_df_safety",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_list",
+"gameplayer_list_num",
+"gameplayer_unique_id",
+"games",
+"goal",
+"is_protected",
+"is_rental",
+"is_subscription",
+"level",
+"level_info",
+"level_limit",
+"mcountLeft",
+"mobility_fix",
+"mobility_float",
+"nation_id",
+"parameters",
+"player_level_need_exp",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"redcard_game_kind",
+"redcard_info_list",
+"sell_gp",
+"team_id",
+"tiredness",
+"transition_counter",
+"transition_possession",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_LOGIN_BONUS",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"body",
+"contract_term",
+"count",
+"entity_id",
+"grade",
+"is_bonus",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"login_bonus_list",
+"login_bonus_list_num",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"present_id",
+"present_type",
+"receipt_deadline",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"today_bonus_number",
+"type"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_MAINMENU_INFO",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"achievement_info",
+"achievement_not_recieved_num",
+"achievement_num",
+"achievement_total_num",
+"agent_panel_file_info",
+"com_countWin_num",
+"com_match_num",
+"compe_db_id",
+"cpu_level",
+"filename",
+"game_result",
+"game_result_wdl",
+"hash_str",
+"is_auction_state_changed",
+"is_auto_make_compe_name",
+"is_coop_enable",
+"is_free_enable",
+"is_use_emblem",
+"liveevent_panel_file_info",
+"matchday_emblem_info",
+"matchday_group_type",
+"oppo_level",
+"present_num",
+"rank",
+"rank_coach",
+"rank_coach_total_num",
+"rank_total_num",
+"scount_num",
+"staff_num",
+"team_id",
+"team_list_group_a",
+"team_list_group_b",
+"weekly_group_rank",
+"weekly_group_rank_total_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_MAIN_SQUAD",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid"
+],
+"reply": [
+"adaptability_rate",
+"add_skill_id",
+"assist",
+"attacking_area",
+"attacking_area_center",
+"attacking_area_side",
+"base_team_id",
+"build_up",
+"build_up_long",
+"build_up_short",
+"club_edition_type",
+"coach_id",
+"coach_id_list",
+"coach_list",
+"coach_list_num",
+"coach_unique_id",
+"coach_unique_id_list",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"current_point_division",
+"current_point_sim",
+"current_point_vscom",
+"default_overall",
+"default_rarity",
+"defence_compact",
+"defence_line",
+"defence_num",
+"defence_type",
+"defence_type_forecheck",
+"defence_type_retreat",
+"defensive_main_concept",
+"enhanced_parameters",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df",
+"first_df_aggressive",
+"first_df_safety",
+"formation_data",
+"gameplan_data",
+"gameplan_data_size",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_list",
+"gameplayer_list_num",
+"gameplayer_unique_id",
+"games",
+"goal",
+"is_club_edition",
+"is_coach_texture_use",
+"is_entry_compe",
+"is_protected",
+"is_rental",
+"is_subscription",
+"is_use_variable_formation",
+"level",
+"level_info",
+"level_limit",
+"management",
+"mcountLeft",
+"member_list",
+"member_num",
+"mobility",
+"mobility_fix",
+"mobility_float",
+"name",
+"nation_id",
+"offence_num",
+"offensive_main_concept",
+"overall",
+"parameters",
+"passsupport_dist",
+"player_level",
+"player_level_need_exp",
+"press_rule",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"redcard_game_kind",
+"redcard_info_list",
+"sell_gp",
+"squad",
+"squad_id",
+"team_id",
+"team_name",
+"tiredness",
+"transition",
+"transition_counter",
+"transition_possession",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_MARKET_AGENTLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"agent",
+"agent_end_time",
+"agent_id",
+"agent_token_end_time",
+"banner_file_info",
+"bgm_id",
+"count",
+"end_time",
+"filename",
+"get_player_num",
+"gp",
+"hash_str",
+"is_buy_gp_pes_point",
+"is_draw_checked",
+"level",
+"limit_count",
+"market_agent_list",
+"market_agent_list_num",
+"market_subscription",
+"name",
+"name_jp",
+"pes_point",
+"skill",
+"skill_category",
+"skill_id",
+"target_level",
+"token_list",
+"token_list_num",
+"type",
+"uniform",
+"use_count"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_MARKET_COACHLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"adaptability_rate",
+"attacking_area",
+"build_up",
+"coach_id",
+"defence_compact",
+"defence_line",
+"defence_num",
+"defence_type",
+"defensive_main_concept",
+"end_time",
+"first_df",
+"formation_data",
+"gp",
+"is_locked",
+"is_use_variable_formation",
+"management",
+"market_coach_list",
+"market_coach_list_num",
+"mobility",
+"now_time",
+"offence_num",
+"offensive_main_concept",
+"overall",
+"passsupport_dist",
+"pes_point",
+"press_rule",
+"transition"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_PLAYER_NUMBER_FIXATION",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"number",
+"player_id",
+"player_number_list",
+"player_number_list_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_PRESENTLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"body",
+"contract_term",
+"count",
+"entity_id",
+"grade",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"present_id",
+"present_list",
+"present_list_num",
+"present_type",
+"receipt_deadline",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"type"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"is_top_agent",
+"agent_id",
+"is_subscription"
+],
+"reply": [
+"gameplayer_id",
+"gameplayer_list",
+"gameplayer_list_num",
+"is_draw",
+"level_limit",
+"team_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST_RARITY",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"rarity"
+],
+"reply": [
+"gameplayer_id",
+"gameplayer_list",
+"gameplayer_list_num",
+"is_draw",
+"level_limit",
+"team_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST_SCOUT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"scout_list",
+"agent_id",
+"skill",
+"skill_category",
+"skill_id",
+"grade",
+"count",
+"rate",
+"rate_table",
+"rate_player_num",
+"target_level",
+"sell_gp",
+"scout_list_num"
+],
+"reply": [
+"gameplayer_id",
+"gameplayer_list",
+"gameplayer_list_num",
+"is_draw",
+"level_limit",
+"rate",
+"rate_player_num",
+"rate_table",
+"team_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_PROCURABLE_SCOUTLIST_GAMEPLAYER",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer"
+],
+"reply": [
+"agent_id",
+"count",
+"grade",
+"rate",
+"rate_player_num",
+"rate_table",
+"scout_list",
+"scout_list_num",
+"sell_gp",
+"skill",
+"skill_category",
+"skill_id",
+"target_level"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_RANKING",
+"area": "myClub",
+"transport": "HTTP",
+"request": [
+"start_index",
+"sort",
+"order",
+"view_num",
+"is_coach"
+],
+"reply": [
+"account_id",
+"date",
+"division",
+"draw_count",
+"favoritePlayer",
+"favoriteTeam",
+"intro",
+"is_deleted",
+"is_valid_cache",
+"lose_count",
+"manner",
+"match_record",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"rank",
+"rank_list",
+"rating",
+"team_id",
+"team_name",
+"total_rank_num",
+"user",
+"win_count",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_RANKING_BYID",
+"area": "myClub",
+"transport": "HTTP",
+"request": [
+"pid",
+"xuid_one",
+"np_account_id",
+"sort",
+"order",
+"view_num",
+"is_coach"
+],
+"reply": [
+"account_id",
+"date",
+"division",
+"draw_count",
+"favoritePlayer",
+"favoriteTeam",
+"intro",
+"is_deleted",
+"is_valid_cache",
+"lose_count",
+"manner",
+"match_record",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"rank",
+"rank_list",
+"rating",
+"team_id",
+"team_name",
+"total_rank_num",
+"user",
+"win_count",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_REFINE_SEARCH_AUCTION_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"refine_search_auction",
+"grade_list",
+"is_settings_rarity",
+"price_min",
+"price_max",
+"is_settings_price",
+"time_limit_min",
+"time_limit_max",
+"is_settings_time_limit",
+"bid_min",
+"bid_max",
+"is_settings_tender",
+"skill_list",
+"skill_category",
+"skill_id",
+"skill_list_num",
+"is_settings_agent_skill",
+"start_index",
+"is_auction_state_changed"
+],
+"reply": [
+"auction_info_list",
+"auction_state",
+"bid_num",
+"finalround_end_time",
+"grade",
+"is_bid",
+"is_bid_user_max",
+"is_highest_bider",
+"is_register_watchlist",
+"price_now",
+"product_id",
+"scout_id",
+"skill",
+"skill_category",
+"skill_id",
+"time_limit",
+"total_auction_info_list_num",
+"update_time"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_RENTAL_GAMEPLAYERLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"add_skill_id",
+"assist",
+"attacking_area_center",
+"attacking_area_side",
+"build_up_long",
+"build_up_short",
+"close_date",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"default_overall",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"enhanced_parameters",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df_aggressive",
+"first_df_safety",
+"gameplayer",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_unique_id",
+"games",
+"goal",
+"gp",
+"is_protected",
+"is_rental",
+"is_subscription",
+"level",
+"level_info",
+"level_limit",
+"mcountLeft",
+"mobility_fix",
+"mobility_float",
+"nation_id",
+"open_date",
+"parameters",
+"pes_point",
+"player_level_need_exp",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"redcard_game_kind",
+"redcard_info_list",
+"rental_gameplayer_list",
+"rental_gameplayer_list_num",
+"sell_gp",
+"team_id",
+"tiredness",
+"transition_counter",
+"transition_possession",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_SCOUTLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"agent_id",
+"count",
+"grade",
+"rate",
+"rate_player_num",
+"rate_table",
+"scout_list",
+"scout_list_num",
+"sell_gp",
+"skill",
+"skill_category",
+"skill_id",
+"target_level"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_SERVER_ENV",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"get_club_edition_list"
+],
+"reply": [
+"agent_id",
+"count",
+"grade",
+"is_all_club_edition_set",
+"license_out_coach_list",
+"license_out_player_list",
+"market_scout_list",
+"rate",
+"rate_player_num",
+"rate_table",
+"sell_gp",
+"skill",
+"skill_category",
+"skill_id",
+"target_level"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_SQUAD_BONUS_TARGET_PLAYERLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"gameplayer_id",
+"gameplayer_id_list",
+"gameplayer_id_list_num",
+"is_draw",
+"level_limit",
+"need_player_num",
+"team_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_SQUAD_GAMEPLAN",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"squad_id"
+],
+"reply": [
+"gameplan_data",
+"gameplan_data_size"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_SQUADLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"cloud_squad_id",
+"club_edition_type",
+"coach_id_list",
+"coach_unique_id_list",
+"default_rarity",
+"edition_squad_list",
+"edition_squad_list_num",
+"gameplan_data",
+"gameplan_data_size",
+"gameplayer_id",
+"gameplayer_unique_id",
+"is_club_edition",
+"is_entry_compe",
+"main_squad_id",
+"member_list",
+"member_num",
+"name",
+"parameters",
+"player_level",
+"squad_id",
+"squad_list",
+"squad_list_num",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_STAFF_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"player_info",
+"gameplayer_unique_id",
+"gameplayer_base_id",
+"gameplayer_id",
+"gameplayer_level",
+"registared_position",
+"position",
+"stronger_foot",
+"overall",
+"ability",
+"play_style",
+"nation_id",
+"club_team_id"
+],
+"reply": [
+"ability",
+"base_exp",
+"base_player_info",
+"club_team_id",
+"gameplayer_base_id",
+"gameplayer_id",
+"gameplayer_level",
+"gameplayer_unique_id",
+"id",
+"nation_id",
+"overall",
+"play_style",
+"position",
+"registared_position",
+"staff_list",
+"staff_list_num",
+"stronger_foot"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_SUBSCRIPTION_MY_GAMEPLAYERLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_USER_INFO",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"add_uniform_list",
+"base_team_id",
+"gp",
+"home_town",
+"is_iconic_moment_view",
+"label",
+"name",
+"nation_id",
+"norma_point_division",
+"norma_point_sim",
+"norma_point_vscom",
+"pes_point",
+"progress_status",
+"select_add_uniform_id",
+"team_name",
+"team_name_commentary_id",
+"team_name_short",
+"user_base_team_id",
+"user_team_name",
+"user_team_name_commentary_id",
+"user_team_name_short"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_VSCOM_OPPONENT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"is_coach_mode",
+"is_team_power_lv"
+],
+"reply": [
+"account_id",
+"attacking_area_center",
+"attacking_area_side",
+"base_team_id",
+"build_up_long",
+"build_up_short",
+"club_edition_type",
+"coach_adaptability_rate",
+"coach_id_list",
+"coach_unique_id_list",
+"concept",
+"concept_data",
+"cpu_level",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"first_df_aggressive",
+"first_df_safety",
+"gameplan_data",
+"gameplan_data_size",
+"gameplayer_id",
+"gameplayer_unique_id",
+"is_club_edition",
+"is_deleted",
+"is_entry_compe",
+"is_valid_cache",
+"member_list",
+"member_num",
+"mobility_fix",
+"mobility_float",
+"name",
+"online_id",
+"parameters",
+"pes_pname",
+"pid",
+"player_level",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"psn_user_id",
+"side",
+"squad_id",
+"team_data",
+"team_name",
+"team_name_commentary_id",
+"team_name_short",
+"transition_counter",
+"transition_possession",
+"uniform_number",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_WEEKLYPOINT_RESULT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"oppo_pid"
+],
+"reply": [
+"gain_point_by_skill_rank",
+"gain_point_by_weekly_point",
+"hi_score",
+"hi_score_rank",
+"is_entry_weekly_myclub",
+"is_hi_score",
+"old_hi_score",
+"old_hi_score_rank",
+"old_weekly_point",
+"oppo_skill_rank",
+"weekly_point",
+"weekly_point_info",
+"weekly_point_rate"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_WEEKLY_RANKING",
+"area": "myClub",
+"transport": "HTTP",
+"request": [
+"group_search_target_pid",
+"start_index",
+"view_num",
+"is_group_ranking",
+"is_old_season"
+],
+"reply": [
+"account_id",
+"body",
+"contract_term",
+"count",
+"date",
+"division",
+"entity_id",
+"grade",
+"group_number",
+"is_deleted",
+"is_valid_cache",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"max_weekly_point",
+"name",
+"name_jp",
+"online_id",
+"pes_point_price",
+"pid",
+"player_level",
+"pname",
+"present_id",
+"present_type",
+"psn_user_id",
+"rank",
+"rank_list",
+"receipt_deadline",
+"reward",
+"reward_list",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"total_rank_num",
+"type",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_WEEKLY_RANKING_BASIC_INFO",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"basic_info",
+"body",
+"contract_term",
+"count",
+"division",
+"division_change_type",
+"entity_id",
+"eura_url",
+"grade",
+"is_beginner",
+"is_group_rank_1st",
+"is_join",
+"is_no_play_season",
+"is_rejected",
+"is_season_end",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"present_id",
+"present_type",
+"receipt_deadline",
+"reward",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"type"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_MYCLUB_WEEKLY_RANKING_BYID",
+"area": "myClub",
+"transport": "HTTP",
+"request": [
+"pid",
+"xuid_one",
+"np_account_id",
+"view_num",
+"is_group_ranking",
+"is_old_season"
+],
+"reply": [
+"account_id",
+"body",
+"contract_term",
+"count",
+"date",
+"division",
+"entity_id",
+"grade",
+"group_number",
+"is_deleted",
+"is_valid_cache",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"max_weekly_point",
+"name",
+"name_jp",
+"online_id",
+"pes_point_price",
+"pid",
+"player_level",
+"pname",
+"present_id",
+"present_type",
+"psn_user_id",
+"rank",
+"rank_list",
+"receipt_deadline",
+"reward",
+"reward_list",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"total_rank_num",
+"type",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_OFFMODE_PLAYER_PARAMETERLIST",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"pid",
+"home_player_list",
+"gameplayer_unique_id",
+"gameplayer_id",
+"away_player_list",
+"is_equalization"
+],
+"reply": [
+"away_param_playerlist",
+"gameplayer_id",
+"gameplayer_id_info",
+"gameplayer_unique_id",
+"home_param_playerlist",
+"parameters"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_OFTEN_USED_TEAM_LIST",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"last_used_team_id",
+"used_team_id_list",
+"used_team_id_list_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_ONLINE_AD_FILE",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"pid",
+"ad_match_kind",
+"compe_id"
+],
+"reply": [
+"ad_banner_file_name",
+"ad_signage_file_name"
+],
+"status": "acked",
+"seen": 16
+},
+{
+"cmd": "CMD_GET_ONLINE_ID",
+"area": "Store & platform",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_ONLINE_ID_CLIENT",
+"area": "Store & platform",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_1VS1_MAINMENU_INFO",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"compe_end_time",
+"draw_count",
+"lose_count",
+"match_num",
+"matching_first_date",
+"matching_interval",
+"matching_time",
+"point",
+"rank_type",
+"regulation_match_num",
+"team_id",
+"team_name",
+"win_count"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_INFO",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"account_id",
+"banner_file_info",
+"basic_settings",
+"clan_comment",
+"clan_info",
+"clan_member_num",
+"clan_members",
+"clan_name",
+"clan_stats_myclub",
+"clan_stats_online",
+"compe_data",
+"compe_db_id",
+"compe_id",
+"compe_name",
+"compe_regulation",
+"condition",
+"coop_level",
+"current_division",
+"current_online_mode",
+"current_rating",
+"draw_count",
+"enable_request",
+"end_date",
+"entry_compe",
+"entry_limit_date",
+"entry_limit_division",
+"entry_limit_division_max",
+"entry_limit_division_min",
+"entry_user_limit",
+"entry_user_max",
+"entry_user_num",
+"extra_time",
+"filename",
+"goal",
+"guest",
+"hash_str",
+"is_banned",
+"is_deleted",
+"is_e_sports",
+"is_efootball_pro_stadium",
+"is_exist_overview_info",
+"is_exist_participation_right",
+"is_exist_rewardInfo",
+"is_follow",
+"is_join_online_mode",
+"is_myclub",
+"is_pesleague_stadium",
+"is_valid_cache",
+"last_login",
+"lose_count",
+"lost_goal",
+"match_count",
+"match_end_date",
+"match_time",
+"match_type",
+"name",
+"online_id",
+"owner_info",
+"pid",
+"pk",
+"pname",
+"psn_user_id",
+"ranking_match_num",
+"residual_div_first_count",
+"season_match_stats",
+"season_win_count",
+"start_date",
+"team_id",
+"total_match_stats",
+"trade_num",
+"use_ball_id",
+"user_id",
+"win_count",
+"win_s",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_LIST",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"mode",
+"start_index",
+"is_end",
+"is_join_only"
+],
+"reply": [
+"banner_file_info",
+"compe_db_id",
+"compe_id",
+"compe_list",
+"compe_name",
+"end_date",
+"entry_limit_date",
+"entry_limit_division",
+"entry_limit_division_max",
+"entry_limit_division_min",
+"entry_user_limit",
+"entry_user_max",
+"entry_user_num",
+"filename",
+"hash_str",
+"is_end",
+"is_entry",
+"is_gm_account",
+"is_myclub",
+"is_no_check",
+"list_banner_file_info",
+"list_max",
+"list_num",
+"match_end_date",
+"match_type",
+"mode",
+"start_date"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_OVERVIEW_INFO",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"overview_info"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_PARTICIPATION_RIGHT",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"account_id",
+"banner_file_info",
+"clan_name",
+"clan_owner_name",
+"clan_owner_pid",
+"compe_id",
+"compe_name",
+"end_date",
+"filename",
+"hash_str",
+"is_deleted",
+"is_get",
+"is_valid_cache",
+"name",
+"need_match_num",
+"need_point",
+"online_id",
+"participation_right",
+"player_point",
+"psn_user_id",
+"start_date",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_RANKING",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id",
+"start_index",
+"view_num"
+],
+"reply": [
+"account_id",
+"clan_owner_name",
+"continuous_win",
+"diff_score",
+"draw_count",
+"entry_name",
+"get_score",
+"is_deleted",
+"is_get_participation_right",
+"is_mydata",
+"is_valid_cache",
+"list_max",
+"list_num",
+"lose_count",
+"lose_score",
+"match_num",
+"name",
+"online_id",
+"pid",
+"point",
+"psn_user_id",
+"rank",
+"rank_list",
+"rank_type",
+"recode_date",
+"team_id",
+"update_date",
+"win_count",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_RANKING_BYID",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id",
+"view_num"
+],
+"reply": [
+"account_id",
+"clan_owner_name",
+"continuous_win",
+"diff_score",
+"draw_count",
+"entry_name",
+"get_score",
+"is_deleted",
+"is_get_participation_right",
+"is_mydata",
+"is_valid_cache",
+"list_max",
+"list_num",
+"lose_count",
+"lose_score",
+"match_num",
+"name",
+"online_id",
+"pid",
+"point",
+"psn_user_id",
+"rank",
+"rank_list",
+"rank_type",
+"recode_date",
+"team_id",
+"update_date",
+"win_count",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_RESULT_LIST",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id",
+"is_unconfirm_list"
+],
+"reply": [
+"account_id",
+"banner_file_info",
+"before_division",
+"clan_name",
+"clan_owner_name",
+"clan_owner_pid",
+"compe_db_id",
+"compe_id",
+"compe_name",
+"end_date",
+"entry_user_num",
+"filename",
+"hash_str",
+"is_confirm",
+"is_deleted",
+"is_get_reward",
+"is_participation_get",
+"is_valid_cache",
+"name",
+"online_id",
+"player_rank",
+"psn_user_id",
+"result_list",
+"result_list_num",
+"start_date",
+"update_division",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_REWARD_INFO",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"reward_info"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_REWARD_LIST",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"body",
+"contract_term",
+"count",
+"entity_id",
+"grade",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"present_id",
+"present_type",
+"receipt_deadline",
+"reward_list",
+"reward_list_num",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"type"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_COMPE_TEAM_LIST",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"team_list",
+"team_list_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PESLEAGUE_MAINMENU_INFO",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"mode"
+],
+"reply": [
+"division",
+"new_result"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PLATFORM_SESSION",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid",
+"room_id"
+],
+"reply": [
+"data_size",
+"session"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PLAYER_DATA",
+"area": "Login & account",
+"transport": "gate",
+"request": [],
+"reply": [
+"account_id",
+"has_data",
+"is_deleted",
+"is_valid_cache",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"xuid_one"
+],
+"status": "handled",
+"seen": 86
+},
+{
+"cmd": "CMD_GET_PLAYERINFO",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"pid",
+"user_id",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted"
+],
+"reply": [
+"account_id",
+"active_squad_level",
+"active_squad_power",
+"base_team_id",
+"best_rank",
+"cloud_squad_level",
+"cloud_squad_power",
+"contWinMax_num",
+"contWin_num",
+"coop_level",
+"coop_level_point",
+"coop_manner",
+"coop_profile_data",
+"current_weekly_point",
+"disconnect_rate",
+"division",
+"draw_count",
+"draw_num",
+"entry_count",
+"favoritePlayer",
+"favoriteTeam",
+"follower",
+"game_count",
+"goal",
+"group_win_count",
+"hometown",
+"intro",
+"is_deleted",
+"is_follow",
+"is_valid_cache",
+"label",
+"lose_count",
+"lose_num",
+"lostGoal",
+"manner",
+"match_data",
+"match_data_size",
+"match_num",
+"matchday_rating_rank",
+"matchday_stats_coop",
+"matchday_stats_single",
+"max_weekly_point",
+"myclub_coach_stats",
+"myclub_matchday_rating_rank",
+"myclub_stats",
+"name",
+"nation_id",
+"online_id",
+"online_match",
+"pickup_count",
+"pid",
+"pname",
+"position",
+"position_rating",
+"psn_user_id",
+"rankmatch_stats",
+"rankmatch_teamLog",
+"rating",
+"regist_team_info",
+"skill_rank",
+"team_name",
+"total_position_match_num",
+"total_position_rating",
+"vscom_match",
+"win_count",
+"win_num",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PLAYER_PARAMETERLIST",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"pid",
+"player_list",
+"gameplayer_unique_id",
+"gameplayer_id",
+"is_equalization"
+],
+"reply": [
+"gameplayer_id",
+"gameplayer_id_info",
+"gameplayer_unique_id",
+"is_cost_over",
+"param_playerlist",
+"parameters"
+],
+"status": "acked",
+"seen": 88
+},
+{
+"cmd": "CMD_GET_POSITION_RATING",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid"
+],
+"reply": [
+"game_count",
+"pos_rating_list",
+"position",
+"rating",
+"total_position_match_num",
+"total_position_rating"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_PRIVATEINFOTITLELIST",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"pid",
+"lang",
+"region"
+],
+"reply": [
+"annnounce_info_list_num",
+"announce_id",
+"announce_info_list",
+"announce_type",
+"compe_db_id",
+"date",
+"event_id",
+"evoked_text",
+"filename",
+"hash_str",
+"is_auto_make_compe_name",
+"is_use_emblem",
+"list_banner_file_info",
+"matchday_emblem_info",
+"matchday_group_type",
+"popup_type",
+"priority",
+"team_list_group_a",
+"team_list_group_b",
+"title",
+"weekly_info_type"
+],
+"status": "acked",
+"seen": 192
+},
+{
+"cmd": "CMD_GET_QUICKMATCHOPTION",
+"area": "Matchmaking",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"is_league",
+"is_pass_level",
+"is_team_power_lv",
+"ping_level",
+"rating_level",
+"team_class"
+],
+"status": "handled",
+"seen": 76
+},
+{
+"cmd": "CMD_GET_RANDOMSELECTION_LOTTERY_LIST",
+"area": "Random Selection",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [
+"gameplayer_list",
+"gameplayer_list_num",
+"trade_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_RANKING",
+"area": "Divisions & rankings",
+"transport": "HTTP",
+"request": [
+"start_index",
+"view_num",
+"sort",
+"order"
+],
+"reply": [
+"account_id",
+"date",
+"division",
+"draw_count",
+"favoritePlayer",
+"favoriteTeam",
+"intro",
+"is_deleted",
+"is_valid_cache",
+"lose_count",
+"manner",
+"match_record",
+"name",
+"online_id",
+"pid",
+"pname",
+"point",
+"psn_user_id",
+"rank",
+"rank_list",
+"rating",
+"total_rank_num",
+"user",
+"win_count",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_RANKING_BYID",
+"area": "Divisions & rankings",
+"transport": "HTTP",
+"request": [
+"pid",
+"xuid_one",
+"np_account_id",
+"view_num",
+"sort",
+"order"
+],
+"reply": [
+"account_id",
+"date",
+"division",
+"draw_count",
+"favoritePlayer",
+"favoriteTeam",
+"intro",
+"is_deleted",
+"is_valid_cache",
+"lose_count",
+"manner",
+"match_record",
+"name",
+"online_id",
+"pid",
+"pname",
+"point",
+"psn_user_id",
+"rank",
+"rank_list",
+"rating",
+"total_rank_num",
+"user",
+"win_count",
+"win_s_max",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_ROOM_BESTPLAYER",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"pid",
+"room_id"
+],
+"reply": [
+"game_count",
+"pid",
+"position_best_player",
+"rating"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_SERVER_ENV",
+"area": "Login & account",
+"transport": "gate",
+"request": [],
+"reply": [
+"is_check_myclub_level",
+"is_revision_check",
+"konamiid_api_retry_sec",
+"lobby_ping_good",
+"lobby_ping_normal",
+"log_update_level",
+"match_client_timeout_cmd_lack",
+"match_client_timeout_init_not_end",
+"match_client_timeout_load_timeout",
+"match_client_timeout_long_outofplay",
+"matchrejectpid_max",
+"max_division",
+"proto_opt",
+"quality_check_wait_sec",
+"quick_ping_good",
+"quick_ping_normal",
+"teamlobby_game_rating_border_hard",
+"teamlobby_game_rating_border_normal",
+"trigger_keep_alive"
+],
+"status": "handled",
+"seen": 206
+},
+{
+"cmd": "CMD_GET_STEAM_STORE_STATE",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"pid",
+"ticket",
+"steamid",
+"package_type",
+"orderid"
+],
+"reply": [
+"state"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_STORELINK",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"region"
+],
+"reply": [
+"storelinkinfo"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_STORE_PRODUCT_LIST",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"license_area"
+],
+"reply": [
+"base_point",
+"bonus_point",
+"expiration_date",
+"is_consumable",
+"is_purchasable",
+"is_subscription",
+"live_asset_id",
+"live_offer_id",
+"live_product_id",
+"product_id",
+"product_list",
+"product_list_num",
+"psn_entitlement_id",
+"psn_product_id",
+"steam_dlc_id",
+"steam_item_id",
+"total_point"
+],
+"status": "acked",
+"seen": 148
+},
+{
+"cmd": "CMD_GET_STORE_TRANSACTION_STATE",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"live_transaction_id",
+"possession_num",
+"product_id",
+"state",
+"steam_order_id",
+"transaction_id",
+"use_num",
+"used_present_product_id_list",
+"used_present_product_id_list_num"
+],
+"status": "acked",
+"seen": 148
+},
+{
+"cmd": "CMD_GET_SVRLIST",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"timeout",
+"lang",
+"patch_version",
+"dlc_version"
+],
+"reply": [
+"max_player_num",
+"player_num",
+"server_num",
+"svraddr",
+"svrgid",
+"svrlist",
+"svrport",
+"svrtype"
+],
+"status": "handled",
+"seen": 74
+},
+{
+"cmd": "CMD_GET_SVRTIME",
+"area": "Login & account",
+"transport": "gate",
+"request": [],
+"reply": [
+"date"
+],
+"status": "handled",
+"seen": 74
+},
+{
+"cmd": "CMD_GET_SVRVERSION",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"patch_version",
+"dlc_version",
+"livedata_version"
+],
+"reply": [
+"dlc_version",
+"eula_myclub_version",
+"eula_privacy_notice_version",
+"eula_privacy_policy_california_version",
+"eula_privacy_policy_version",
+"eula_version",
+"livedata_version",
+"patch_version",
+"version"
+],
+"status": "handled",
+"seen": 74
+},
+{
+"cmd": "CMD_GET_TRIAL_URLLIST",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"lang",
+"platform",
+"region",
+"type"
+],
+"reply": [
+"type",
+"ulist",
+"url",
+"url_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_GET_TURN_SERVER_LIST",
+"area": "Connectivity / relay",
+"transport": "HTTP",
+"request": [
+"pid",
+"turn_account_param",
+"turn_time_limit"
+],
+"reply": [
+"address",
+"id",
+"origin",
+"port",
+"pw",
+"server_certificate",
+"server_certificate_data_size",
+"tls_port",
+"turn_server_list",
+"zone"
+],
+"status": "acked",
+"seen": 250
+},
+{
+"cmd": "CMD_GET_URGENT_ANNOUNCEMENT",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"pid",
+"package_type",
+"online_mode",
+"announcement_type",
+"lang",
+"region"
+],
+"reply": [
+"announcement_data",
+"announcement_id",
+"announcement_type",
+"body",
+"is_announcement",
+"online_mode",
+"read_check",
+"title"
+],
+"status": "acked",
+"seen": 96
+},
+{
+"cmd": "CMD_GET_URLLIST",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"lang",
+"region",
+"patch_version",
+"dlc_version"
+],
+"reply": [
+"type",
+"ulist",
+"url",
+"url_num"
+],
+"status": "handled",
+"seen": 104
+},
+{
+"cmd": "CMD_GET_WATCHING_MATCH_LIST",
+"area": "Spectating",
+"transport": "gate",
+"request": [
+"pid",
+"match_category",
+"compe_id",
+"index"
+],
+"reply": [
+"account_id",
+"cpu_level",
+"date",
+"ex_type",
+"game_phase",
+"game_result",
+"gameend_reason",
+"is_com",
+"is_deleted",
+"is_follow",
+"is_guest",
+"is_valid_cache",
+"match_category",
+"match_id",
+"match_list",
+"match_list_num",
+"name",
+"no_match",
+"online_id",
+"pid",
+"pk_flag",
+"player",
+"pname",
+"psn_user_id",
+"score",
+"score_1st",
+"score_2nd",
+"score_ex1st",
+"score_ex2nd",
+"score_pk",
+"side",
+"team",
+"total_match_num",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_INVITE_CLAN",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"pid",
+"target_id",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_BLOCK",
+"area": "Social",
+"transport": "gate",
+"request": [
+"block_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_COMPEV",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid",
+"compe_mode",
+"compe_id",
+"compe_cpu_level"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_COMPEV_MODE",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid",
+"compe_mode"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_COOP_ROOM",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id",
+"password",
+"is_invite"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_LOBBY",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"lobby_id"
+],
+"reply": [
+"gamerelay_web_url"
+],
+"status": "handled",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_MATCHDAY",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id",
+"entry_matchday_group",
+"team_id",
+"sp_gameplan_data",
+"sp_gameplan_data_size",
+"sp_member_list"
+],
+"reply": [
+"evaluation_a",
+"evaluation_b",
+"rating_kind_player_bonus_value_list",
+"sp_squad_rating",
+"squad_rating_info"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_MATCHDAY_MODE",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_OFFLINE_MODE",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"pid",
+"offline_mode"
+],
+"reply": [],
+"status": "acked",
+"seen": 12
+},
+{
+"cmd": "CMD_JOIN_ONLINE_MODE",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"pid",
+"online_mode",
+"patch_version",
+"dlc_version",
+"livedata_version",
+"extradata_version"
+],
+"reply": [],
+"status": "acked",
+"seen": 96
+},
+{
+"cmd": "CMD_JOIN_PESLEAGUE_COMPE",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id",
+"team_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_PESLEAGUE_COMPE_MODE",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid",
+"compe_mode"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_JOIN_ROOM_NTL",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"room_id",
+"is_invited",
+"password"
+],
+"reply": [
+"account_id",
+"address_family",
+"host_addr",
+"is_deleted",
+"is_valid_cache",
+"name",
+"ntl_nat_type",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"reflexive_addr",
+"relayed_addr",
+"room_owner",
+"room_stat",
+"sa_data",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LACK",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_BLOCK",
+"area": "Social",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_CLAN",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"owner_pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_COMPEV",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid",
+"compe_mode"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_COMPEV_MODE",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_COOP_ROOM",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_GAME",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_LOBBY",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "handled",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_MATCHDAY",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_MATCHDAY_MODE",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_MYCLUB_AUCTION_SCOUT_DETAIL",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_OFFLINE_MODE",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"pid",
+"offline_mode"
+],
+"reply": [],
+"status": "acked",
+"seen": 12
+},
+{
+"cmd": "CMD_LEAVE_ONLINE_MODE",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"pid",
+"online_mode"
+],
+"reply": [],
+"status": "acked",
+"seen": 6
+},
+{
+"cmd": "CMD_LEAVE_PESLEAGUE_COMPE",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_PESLEAGUE_COMPE_MODE",
+"area": "PES League",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LEAVE_ROOM",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"error_code"
+],
+"reply": [],
+"status": "acked",
+"seen": 68
+},
+{
+"cmd": "CMD_LOCK_FOLLOW_USER",
+"area": "Social",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid",
+"is_lock"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LOGIN",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"username",
+"hash",
+"platform",
+"patch_version",
+"dlc_version",
+"livedata_version",
+"extradata_version",
+"package_type",
+"sku",
+"net_link_type",
+"np_account_id",
+"pairwise_id"
+],
+"reply": [],
+"status": "handled",
+"seen": 152
+},
+{
+"cmd": "CMD_LOGIN_TRIAL",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"steam_id",
+"xuid",
+"xuid_one",
+"account_id",
+"platform",
+"region",
+"lang",
+"type"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_LOST_GUEST",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_MATCH_MENU_STADIUM_LIST",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_MATCH_MENU_UPDATE",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RECONNECT",
+"area": "In-match sync",
+"transport": "gate",
+"request": [
+"pid",
+"platform",
+"patch_version",
+"dlc_version",
+"online_mode"
+],
+"reply": [
+"key",
+"key_size"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RECV_MYCLUB_ACHIEVEMENT_BONUS",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"achievement_category",
+"is_all"
+],
+"reply": [
+"achievement_bonus",
+"achievement_category",
+"achievement_id",
+"body",
+"contract_term",
+"count",
+"entity_id",
+"grade",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"present",
+"present_id",
+"present_type",
+"receipt_deadline",
+"received_all",
+"received_milestone_level",
+"recv_achievement_list",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"type"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RECV_MYCLUB_PRESENT",
+"area": "myClub",
+"transport": "HTTP",
+"request": [
+"pid",
+"present_id",
+"is_all"
+],
+"reply": [
+"body",
+"contract_term",
+"count",
+"entity_id",
+"grade",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"name",
+"name_jp",
+"pes_point_price",
+"player_level",
+"present_id",
+"present_type",
+"receipt_deadline",
+"receive_result_list",
+"receive_result_list_num",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"title",
+"type"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REENTRY_COMPEV",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REJECT_CLAN_REQUEST",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"request_list",
+"type",
+"status",
+"is_new",
+"appliciant_user_id",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"is_follow",
+"date",
+"applicant_clan_name"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RENT_MYCLUB_GAMEPLAYER",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer_id",
+"use_pes_point"
+],
+"reply": [
+"add_skill_id",
+"assist",
+"attacking_area_center",
+"attacking_area_side",
+"build_up_long",
+"build_up_short",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"default_overall",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"enhanced_parameters",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df_aggressive",
+"first_df_safety",
+"gameplayer",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_unique_id",
+"games",
+"goal",
+"gp",
+"is_protected",
+"is_rental",
+"is_subscription",
+"level",
+"level_info",
+"level_limit",
+"mcountLeft",
+"mobility_fix",
+"mobility_float",
+"nation_id",
+"parameters",
+"pes_point",
+"player_level_need_exp",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"redcard_game_kind",
+"redcard_info_list",
+"sell_gp",
+"team_id",
+"tiredness",
+"transition_counter",
+"transition_possession",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REQ_GAMEADDPOINT",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "acked",
+"seen": 64
+},
+{
+"cmd": "CMD_REQWATCH_ERROR_COOP_ROOM_TO_MATCHING",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id"
+],
+"reply": [
+"error_kind",
+"is_error"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REQWATCHL_BLOCK_MATCH_LIST",
+"area": "Social",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"away",
+"game_phase",
+"home",
+"is_deleted",
+"is_valid_cache",
+"list_data",
+"list_key_name",
+"list_num",
+"list_type",
+"match_id",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"room_id",
+"room_name",
+"room_number",
+"score",
+"score_1st",
+"score_2nd",
+"score_ex1st",
+"score_ex2nd",
+"score_pk",
+"team_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REQWATCHL_COOP_ROOM_MEMBER",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id"
+],
+"reply": [
+"account_id",
+"coop_level",
+"guest_info",
+"is_clan_member",
+"is_deleted",
+"is_follow",
+"is_guest",
+"is_owner",
+"is_platform_guest",
+"is_ready",
+"is_valid_cache",
+"list_data",
+"list_key_name",
+"list_num",
+"list_type",
+"name",
+"online_id",
+"pid",
+"player_index",
+"pname",
+"psn_user_id",
+"user_info",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REQWATCHL_ROOMLIST",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [],
+"reply": [
+"account_id",
+"auto_start_num",
+"ball_type",
+"cpuLevel",
+"dlcontent",
+"enter_no",
+"exGame",
+"exSubstitution",
+"game_no",
+"game_phase",
+"game_rating_limit",
+"gameenv",
+"gamer",
+"gamer_num",
+"gametime",
+"injury",
+"is_anyplayers",
+"is_deleted",
+"is_invite_limit",
+"is_original_player",
+"is_passwd",
+"is_room_owner",
+"is_select_gk",
+"is_valid_cache",
+"limitTime",
+"list_data",
+"list_key_name",
+"list_num",
+"list_type",
+"max_players",
+"name",
+"online_id",
+"owner_lang",
+"owner_pname",
+"pid",
+"pkOnOff",
+"psn_user_id",
+"room_id",
+"room_number",
+"room_user_count",
+"side",
+"status",
+"substitution",
+"vs_com",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REQWATCHL_ROOMPLAYERLIST_NTL",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"room_id"
+],
+"reply": [
+"account_id",
+"address_family",
+"game_entry_no",
+"guest_info",
+"has_guest",
+"host_addr",
+"is_deleted",
+"is_owner",
+"is_platform_guest",
+"is_quality_bad",
+"is_valid_cache",
+"lang",
+"list_data",
+"list_key_name",
+"list_num",
+"list_type",
+"name",
+"ntl_nat_type",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"reflexive_addr",
+"relayed_addr",
+"room_entry_no",
+"room_player_id",
+"sa_data",
+"side",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REQWATCH_MYCLUB_AUCTION_REFUNDED_GP",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"gp",
+"product_id",
+"refunded_gp_list",
+"skill",
+"skill_category",
+"skill_id",
+"total_gp"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REQWATCH_ROOM_XUIDONE_LIST",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"pid",
+"room_id"
+],
+"reply": [
+"list_size",
+"xuid_one_list"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RESET_MYCLUB_AGENT_BOX",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"agent_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RESET_MYCLUB_TEAM",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RESULT_RANDOMSELECTION_LOTTERY",
+"area": "Random Selection",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RESULT_RANDOMSELECTION_TRADE",
+"area": "Random Selection",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RESULT_SELECTING_PLAYER_NUM",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RESULT_SIDE",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_RETURN_COOP_ROOM",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_REVISION_CHECK",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_ROLLBACK_STORE_TRANSACTION",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid",
+"transaction_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SELECT_SIDE",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SELL_MYCLUB_COACH",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coach_unique_id"
+],
+"reply": [
+"gain_gp",
+"gp"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SELL_MYCLUB_GAMEPLAYER",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer_unique_id_list",
+"is_use_cloud_match"
+],
+"reply": [
+"gain_gp",
+"gp"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SELL_MYCLUB_SCOUT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"scout_list",
+"agent_id",
+"skill",
+"skill_category",
+"skill_id",
+"grade",
+"count",
+"rate",
+"rate_table",
+"rate_player_num",
+"target_level",
+"sell_gp"
+],
+"reply": [
+"gain_gp",
+"gp"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_ABNORMALEND",
+"area": "Match",
+"transport": "gate",
+"request": [
+"reason",
+"error_code"
+],
+"reply": [],
+"status": "acked",
+"seen": 80
+},
+{
+"cmd": "CMD_SEND_ALIVE",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"reason"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_ALIVEPLAYER",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"pid_list",
+"pid_list_num"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_AUTHORIZATION_CODE",
+"area": "Login & account",
+"transport": "HTTP",
+"request": [
+"authorization_code",
+"issuer_id",
+"pid",
+"onlineid_data",
+"onlineid_term",
+"region",
+"package_type"
+],
+"reply": [
+"account_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_COOP_ALIVE",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"group_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_DOWNLOAD_STATS_DATA",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"filename",
+"file_hash",
+"download_type",
+"download_time",
+"downloaded_size",
+"average_bps",
+"max_bps",
+"min_bps",
+"result_kind"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SENDFAILED",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_GAME_RESULT",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"gameend_reason",
+"error_code",
+"game_phase",
+"side",
+"home_score",
+"away_score",
+"home_team_id",
+"away_team_id",
+"is_cheat",
+"abnormalend_reason",
+"communication_time",
+"link_type",
+"rtt_max",
+"rtt_mean",
+"rtt_var",
+"rx_packet_loss_rate_max",
+"rx_packet_loss_rate_mean",
+"rx_recently_packet_loss_rate_max",
+"rx_recently_packet_loss_rate_mean",
+"receive_idle_time",
+"transport_rtt_max",
+"transport_rtt_mean",
+"transport_rtt_var",
+"match_time",
+"cursor_data_list",
+"cursor_id",
+"name",
+"cursor_executed_command_count",
+"cursor_executed_command_count_in_mc_active",
+"input_delay_in_mc_active_mean",
+"input_delay_in_mc_active_max",
+"input_delay_buffer_fatal_cond_determn_time_max",
+"match_delay_mean",
+"match_delay_max",
+"match_delay_mean_inactive",
+"match_delay_max_inactive",
+"match_stop_count_self_buffer_empty_in_mc_active",
+"cursor_data_list_num",
+"match_stop_count_buffer_empty_in_mc_active",
+"executed_command_count",
+"executed_command_count_in_mc_active",
+"match_hz_min",
+"match_hz_mean",
+"match_hz_variance",
+"base_private_network_quality",
+"base_network_quality",
+"private_network_quality",
+"network_quality",
+"is_quality_bad",
+"is_quality_check_failed",
+"is_degrade_private_network",
+"is_degrade_network",
+"pes_srv_rtt_nums",
+"pes_srv_rtt_mean",
+"pes_srv_rtt_variance",
+"pes_srv_rtt_min",
+"pes_srv_rtt_max"
+],
+"reply": [],
+"status": "acked",
+"seen": 72
+},
+{
+"cmd": "CMD_SEND_GAME_SEQUENCE_DATA",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"match_id",
+"game_seq_data",
+"type",
+"fromId",
+"channelId",
+"sequenceNumber",
+"data",
+"data_len",
+"game_seq_data_num"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_HEARTBEAT",
+"area": "Login & account",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "handled",
+"seen": 3845
+},
+{
+"cmd": "CMD_SEND_IPANDPORT_NTL",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [
+"host_addr",
+"address_family",
+"sa_data",
+"reflexive_addr",
+"relayed_addr",
+"ntl_nat_type",
+"file_hash_list",
+"file_hash_list_num"
+],
+"reply": [],
+"status": "handled",
+"seen": 90
+},
+{
+"cmd": "CMD_SEND_KICK_REQUEST",
+"area": "Fair play",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_LOG",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"pid",
+"title",
+"log"
+],
+"reply": [],
+"status": "acked",
+"seen": 192
+},
+{
+"cmd": "CMD_SEND_MATCH_ANALYZE",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"analyze_data_type",
+"analyze_data",
+"game_res",
+"favorite_play_offence_first",
+"favorite_play_offence_second",
+"favorite_play_offence_third",
+"favorite_play_defence_first",
+"favorite_play_defence_second",
+"favorite_play_defence_third",
+"posession",
+"pass_count",
+"pass_success_count",
+"cross_count",
+"cross_success_count",
+"pass_cut_count",
+"tackle_count",
+"tackle_success_count",
+"dribble_distance",
+"attack_time",
+"deffence_time",
+"pass_distance",
+"match_up_distance",
+"foul_count",
+"offside_count",
+"shoot_count",
+"inframe_shoot_count",
+"suffer_shoot_count",
+"suffer_inframe_shoot_count",
+"score_dribble_count",
+"score_pass_count",
+"score_cross_count",
+"score_through_pass_count",
+"score_set_play_count",
+"score_other",
+"score_loss_dribble_count",
+"score_loss_pass_count",
+"score_loss_cross_count",
+"score_loss_through_pass_count",
+"score_loss_set_play_count",
+"score_loss_other",
+"attack_area_left",
+"attack_area_middle",
+"attack_area_right",
+"intercept_area",
+"concept_arrange_offence_first",
+"concept_arrange_offence_second",
+"concept_arrange_defence_first",
+"concept_arrange_defence_second"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_MATCHING_RESULT",
+"area": "Matchmaking",
+"transport": "gate",
+"request": [
+"member",
+"pid",
+"host_addr",
+"address_family",
+"sa_data",
+"reflexive_addr",
+"relayed_addr",
+"ntl_nat_type",
+"vs_member",
+"error_code",
+"game_sycom",
+"gamerelay_ip_addr",
+"gamerelay_ip_port",
+"quality_select_kind",
+"quality_antenna"
+],
+"reply": [],
+"status": "acked",
+"seen": 108
+},
+{
+"cmd": "CMD_SEND_MATCH_TEAM_INFO",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"pid",
+"match_team_info",
+"team_spirit",
+"cpu_level",
+"is_cost_over",
+"chemistry",
+"player_role_list",
+"role",
+"is_use_variable_formation",
+"starting_order",
+"gameplayer_id_info",
+"gameplayer_unique_id",
+"gameplayer_id",
+"level",
+"condition",
+"stamina"
+],
+"reply": [],
+"status": "acked",
+"seen": 72
+},
+{
+"cmd": "CMD_SEND_MYCLUB_MATCH_RATING",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"rating_list",
+"gameplayer_id_info",
+"gameplayer_unique_id",
+"gameplayer_id",
+"rating",
+"opponent_rating_list",
+"rating_num",
+"opponent_rating_num"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_MYCLUB_PROGRESS_STATUS",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"status"
+],
+"reply": [
+"next_status"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_MYCLUB_READ_ACHIEVEMENTLIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"achievement_category_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_NOTICE",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid_list_num",
+"pid_list",
+"data"
+],
+"reply": [],
+"status": "handled",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_PSID",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"psid_high",
+"psid_low",
+"xb1_device_id"
+],
+"reply": [],
+"status": "handled",
+"seen": 76
+},
+{
+"cmd": "CMD_SEND_STATS_DATA",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"match_id",
+"stats",
+"side",
+"inframe_shoot_num",
+"freekick_num",
+"cornerkick_num",
+"tackle_success_num",
+"save_num",
+"pass_success_num",
+"cut_num",
+"possesion"
+],
+"reply": [],
+"status": "acked",
+"seen": 72
+},
+{
+"cmd": "CMD_SEND_STORE_TRANSACTION_ERROR_INFO",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid",
+"error_code",
+"transaction_id",
+"product_id",
+"use_num",
+"possession_num",
+"psn_service_entitlement_id",
+"live_asset_id",
+"live_product_id",
+"live_transaction_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_SYNC_NOTICE",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid_list_num",
+"pid_list",
+"data"
+],
+"reply": [],
+"status": "handled",
+"seen": 54
+},
+{
+"cmd": "CMD_SEND_SYSTEM_NOTICE",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid_list_num",
+"pid_list",
+"data"
+],
+"reply": [],
+"status": "handled",
+"seen": 98
+},
+{
+"cmd": "CMD_SEND_TAMPER_DATA",
+"area": "Fair play",
+"transport": "gate",
+"request": [
+"pid",
+"match_category",
+"data",
+"error_code"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_TEXTCHAT",
+"area": "Social",
+"transport": "gate",
+"request": [
+"channel",
+"statement",
+"list_flg",
+"list_pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_TRIAL_AUTHORIZATION_CODE",
+"area": "Store & platform",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_TRIAL_AUTHORIZATION_CODE_CLIENT",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"authorization_code",
+"issuer_id",
+"onlineid_data",
+"onlineid_term",
+"platform",
+"region",
+"type"
+],
+"reply": [
+"account_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_TRIAL_ID",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"steam_id",
+"xuid",
+"xuid_one",
+"account_id",
+"platform",
+"region",
+"type"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_TURN_ADDRESS_DATA",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [
+"pid",
+"address",
+"address_data_size"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SEND_WATCHING_RESULT",
+"area": "Spectating",
+"transport": "gate",
+"request": [
+"pid",
+"match_id",
+"is_connect",
+"phase",
+"error_code",
+"reason"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_AVATAR",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"pid",
+"avatar_data_size",
+"avatar_data",
+"avatar_md5"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_CLAN_SETTINGS",
+"area": "Clans",
+"transport": "gate",
+"request": [
+"pid",
+"clan_basic_settings",
+"clan_name",
+"owner_info",
+"user_id",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"coop_level",
+"is_follow",
+"last_login",
+"current_online_mode",
+"is_join_online_mode",
+"enable_request",
+"clan_comment",
+"is_banned"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_COOP_MATCH_DATA",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"match_stats",
+"grade",
+"match_data_size",
+"match_data"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_COOP_MATCH_READY",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id",
+"is_ready"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_COOP_PLAYER_GRADE",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"grade_list",
+"grade",
+"oppo_grade_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_COOP_QUICKMATCHOPTION",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"is_vscom",
+"cpu_level_min",
+"cpu_level_max"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_COOP_REJECT",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"set_reject_pid_list",
+"unset_reject_pid_list"
+],
+"reply": [
+"account_id",
+"is_deleted",
+"is_valid_cache",
+"name",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"reject_list",
+"reject_list_num",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_COOP_ROOM_GUEST",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id",
+"guest_info_list",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"is_platform_guest"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_COOP_ROOM_OPTION",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id",
+"basic_settings",
+"room_name",
+"clan_name",
+"clan_owner_info",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"is_follow",
+"is_com_match",
+"is_use_chat",
+"is_same_level",
+"team_level",
+"coop_level",
+"is_same_manner",
+"coop_manner",
+"room_entry_restriction",
+"password",
+"lang",
+"match_settings",
+"user_team_id",
+"enemy_team_id",
+"cpu_level"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_COOP_ROOM_PLATFORM_SESSION",
+"area": "Co-op",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_COOP_ROOM_TO_MATCHING",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"room_id",
+"to_match_pid_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_CURRENTPLAYER",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"region",
+"lang",
+"pcspec",
+"np_account_id",
+"xuid_one",
+"name",
+"dlc_dl_status",
+"abnormal_disocn",
+"discon_game_mode",
+"cmd_err",
+"discon_kind",
+"rtt_nums",
+"rtt_mean",
+"rtt_variance",
+"rtt_min",
+"rtt_max",
+"disconnect_utc_unixtime",
+"dp_file_list",
+"dp_file_list_num",
+"nation_code_ip",
+"nation_code_select",
+"area_code_ip",
+"area_code_select",
+"stun_addr",
+"stun_time"
+],
+"reply": [
+"area_code_server",
+"area_name_server",
+"chat_probi",
+"is_select_code_changed",
+"key",
+"key_size",
+"nation_code_server",
+"nation_name_server",
+"subscription_active",
+"subscription_expire_date"
+],
+"status": "handled",
+"seen": 78
+},
+{
+"cmd": "CMD_SET_DMM_NOTIFICATION_ACTION",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid",
+"notification_id",
+"action_kind"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_GAMEENV",
+"area": "Match",
+"transport": "gate",
+"request": [
+"game_env",
+"cpuLevel",
+"gametime",
+"injury",
+"ball_type",
+"exGame",
+"pkOnOff",
+"substitution",
+"exSubstitution",
+"limitTime"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_GAMEMEMBER",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "acked",
+"seen": 52
+},
+{
+"cmd": "CMD_SET_GAMEMEMBERENV",
+"area": "Match",
+"transport": "gate",
+"request": [
+"list_num",
+"envlist",
+"pid",
+"side",
+"sideLeader"
+],
+"reply": [],
+"status": "acked",
+"seen": 52
+},
+{
+"cmd": "CMD_SET_GAMEPLAYER_PLAYTIME",
+"area": "Match",
+"transport": "gate",
+"request": [
+"player_list_num",
+"player_list",
+"gameplayer_id_info",
+"gameplayer_unique_id",
+"gameplayer_id",
+"play_time",
+"position",
+"opponent_player_list_num",
+"opponent_player_list"
+],
+"reply": [],
+"status": "acked",
+"seen": 16
+},
+{
+"cmd": "CMD_SET_GAMERELAY_CHECK_RES",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [
+"pid",
+"game_sycom",
+"error_code",
+"gamerelay",
+"gamerelay_index",
+"ip_addr",
+"port",
+"grid",
+"failed_reason",
+"is_special_match_confirm"
+],
+"reply": [],
+"status": "handled",
+"seen": 81
+},
+{
+"cmd": "CMD_SET_GAMERELAY_MATCH_QUALITY",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [
+"pid",
+"match_quality"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_GAMERELAY_QUALITY",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [
+"pid",
+"quality_list",
+"gamerelay_index",
+"quality",
+"last_update"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_GAMETEAM",
+"area": "Match",
+"transport": "gate",
+"request": [
+"home_team_id",
+"away_team_id"
+],
+"reply": [],
+"status": "acked",
+"seen": 88
+},
+{
+"cmd": "CMD_SET_GP_ACHIEVEMENT",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid",
+"new_achievement_bit_array"
+],
+"reply": [
+"all_achievement_bit_array",
+"all_gp"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_GUEST",
+"area": "In-match sync",
+"transport": "gate",
+"request": [
+"has_guestplayer",
+"guest_info",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"is_platform_guest"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_LANGUAGE",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"lang"
+],
+"reply": [],
+"status": "acked",
+"seen": 152
+},
+{
+"cmd": "CMD_SET_LOCAL_GAMERELAY_LIST",
+"area": "Connectivity / relay",
+"transport": "HTTP",
+"request": [
+"pid",
+"np_account_id",
+"ip_addr"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MATCHDAY_SP_COOP_MEMBER_LIST",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"member_list",
+"gameplayer_id",
+"parameters",
+"team_id",
+"nation_id",
+"member_list_num"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MATCHDAY_SP_GAMEPLAN",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id",
+"gameplan_data_size",
+"gameplan_data",
+"sp_member_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MATCHDAY_START_WATCH_MATCH",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MATCHREJECTPID",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"reject_pid",
+"is_reject"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_ACHIEVEMENT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"achievement_category"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_ADD_UNIFORM_ID",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"add_uniform_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_CLOUD_SQUAD",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"cloud_squad_id",
+"team_power",
+"team_level",
+"is_use_cloud_match"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_CLUB_EDITION_INFO",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"club_edhition_info_list",
+"club_edition_type",
+"team_id",
+"coach_id",
+"name",
+"gameplan_data_size",
+"gameplan_data",
+"squad_member_list",
+"team_member_list",
+"member_list_num",
+"is_over_cost",
+"team_power",
+"team_level",
+"team_spirit"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_COOP_MEMBER_LIST",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"member_list",
+"gameplayer_unique_id",
+"gameplayer_id",
+"parameters",
+"team_id",
+"nation_id",
+"member_list_num",
+"matchday_condition_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_HOMETOWN",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"home_town",
+"nation_id",
+"label",
+"name"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_ICONIC_MOMENT_VIEW",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"is_iconic_moment_view"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_MAIN_SQUAD",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"squad_id",
+"team_power",
+"team_level",
+"team_spirit",
+"matchday_squad_rating_info",
+"squad_rating",
+"squad_rating_kind_player_num_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_PLAYER_NUMBER_FIXATION",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"player_number_list",
+"player_id",
+"number",
+"player_number_list_num"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_PROTECTED_DISABLE",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer_unique_id_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_PROTECTED_ENABLE",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer_unique_id_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_SQUAD_COACH",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"squad_id",
+"coach_unique_id",
+"tacticsPlanKind",
+"gameplan_data_size",
+"gameplan_data"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_SQUAD_GAMEPLAN",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"squad_id",
+"gameplan_data_size",
+"gameplan_data"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_SQUAD_GAMEPLAYER",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"squad_id",
+"member_list",
+"gameplayer_unique_id",
+"gameplayer_id",
+"uniform_number",
+"player_level",
+"parameters",
+"default_rarity",
+"member_list_num",
+"is_over_cost",
+"team_power",
+"team_level",
+"team_spirit",
+"matchday_squad_rating_info",
+"squad_rating",
+"squad_rating_kind_player_num_list"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_SQUAD_NAME",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"squad_id",
+"name"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_TEAM_BASE",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"base_team_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_TEAM_NAME",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"team_name",
+"team_name_short",
+"is_check_team_name",
+"is_check_team_name_short",
+"team_name_commentary_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_VSCOM_GAMERESULT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"cpu_level",
+"gameend_reason",
+"winner_side",
+"ex_flag",
+"pk_flag",
+"team",
+"score",
+"score_1st",
+"score_2nd",
+"score_ex1st",
+"score_ex2nd",
+"score_pk",
+"goal_player_list",
+"gameplayer_unique_id",
+"gameplayer_id",
+"assist_player_list",
+"yellow_player_list",
+"red_player_list",
+"injury_player_list",
+"gameplayer_id_info",
+"injury_data",
+"part",
+"symptom",
+"level",
+"mcount_left",
+"injury_all",
+"injury_one",
+"gameplayer_played_info_list",
+"play_time",
+"rating",
+"position",
+"is_coach_mode",
+"error_code",
+"pes_srv_rtt_nums",
+"pes_srv_rtt_mean",
+"pes_srv_rtt_variance",
+"pes_srv_rtt_min",
+"pes_srv_rtt_max",
+"past_game_played_pid",
+"is_interrupt"
+],
+"reply": [
+"account_id",
+"contWin_num",
+"gameend_reason",
+"is_deleted",
+"is_first",
+"is_first_skillrank",
+"is_rankup_skill_rank",
+"is_valid_cache",
+"name",
+"oldrating",
+"online_id",
+"pes_pname",
+"pid",
+"player_data",
+"psn_user_id",
+"rating",
+"rating_boost_rate",
+"rating_boost_type",
+"rating_compe",
+"rating_type",
+"side",
+"skill_rank",
+"team_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_MYCLUB_WISHLIST_AT_TOP",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"wishlist_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_PLATFORM_SESSION",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid",
+"data_size",
+"session"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_PLAYDATA_MATCH",
+"area": "Match",
+"transport": "HTTP",
+"request": [
+"pid",
+"play_data"
+],
+"reply": [],
+"status": "acked",
+"seen": 15
+},
+{
+"cmd": "CMD_SET_PLAYERPROFILE",
+"area": "Login & account",
+"transport": "gate",
+"request": [
+"profile",
+"date",
+"favorite_team",
+"favorite_player",
+"intro",
+"is_enable_myPES"
+],
+"reply": [
+"error_favorite_player",
+"error_favorite_team",
+"error_intro"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_POSITION_RATING",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid",
+"position",
+"rating"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_QUICKMATCHOPTION",
+"area": "Matchmaking",
+"transport": "gate",
+"request": [
+"pid",
+"is_pass_level",
+"rating_level",
+"ping_level",
+"team_class",
+"is_league",
+"is_team_power_lv"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_ROOM_OPTION",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [
+"pid",
+"name",
+"password",
+"is_anyplayers",
+"auto_start_num",
+"game_rating_limit"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_TRACKRECORD",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_TRIAL_MATCH_DATA",
+"area": "Store & platform",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SET_WEEKLY_INFORMATION_ACTION",
+"area": "News & info",
+"transport": "gate",
+"request": [
+"pid",
+"announce_id",
+"action_kind"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_START_COOP_GROUP_MATCHING",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"matching_type",
+"is_good_reputation",
+"com_level_min",
+"com_level_max",
+"retry_num"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_START_COOP_MATCHING",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"matching_type",
+"coop_player_info_list",
+"is_good_reputation",
+"guest_kind",
+"user_id",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"owner_pid",
+"use_team_id",
+"retry_num"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_START_COOP_VSCOM_OPPONENT",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid",
+"is_myclub_mode",
+"com_level_min",
+"com_level_max",
+"user_data",
+"guest_kind",
+"owner_pid",
+"my_team_id",
+"vs_team_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_START_MATCHDAY_ENTRY_PICKUP_MATCH",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_START_MATCHDAY_PICKUP_MATCHING",
+"area": "Matchday",
+"transport": "gate",
+"request": [
+"pid",
+"compe_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_START_MATCHING",
+"area": "Matchmaking",
+"transport": "gate",
+"request": [
+"pid",
+"matching_type",
+"has_guestplayer",
+"guest_info",
+"pname",
+"name",
+"xuid_one",
+"psn_user_id",
+"account_id",
+"online_id",
+"is_valid_cache",
+"is_deleted",
+"is_platform_guest",
+"pass_level",
+"is_pass_level",
+"is_coach_mode",
+"rating_level",
+"ping_level",
+"class_type",
+"use_team_class_type",
+"is_team_power_lv",
+"retry_num",
+"is_good_reputation"
+],
+"reply": [],
+"status": "handled",
+"seen": 74
+},
+{
+"cmd": "CMD_START_SEND_GAME_SEQUENCE_DATA",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_START_STEAM_STORE",
+"area": "Store & platform",
+"transport": "HTTP",
+"request": [
+"ticket",
+"steamid",
+"package_type",
+"pid",
+"itemid",
+"language"
+],
+"reply": [
+"orderid"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_START_STORE_TRANSACTION",
+"area": "Store & platform",
+"transport": "gate",
+"request": [
+"pid",
+"product_id",
+"use_num",
+"possession_num",
+"live_transaction_id",
+"np_ticket",
+"np_ticket_size",
+"steam_order_id"
+],
+"reply": [
+"transaction_id"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SUB_SELECTING_PLAYER_NUM",
+"area": "Login & account",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SYNC_COMMENTARY",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SYNC_COMPEV_PROGRESS",
+"area": "Events & competitions",
+"transport": "gate",
+"request": [
+"pid",
+"target_pid",
+"room_id"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SYNC_MATCHPLAN_DATA_SINGLE",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_SYNC_RANDOMSELECTION_TRADE",
+"area": "Random Selection",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_TEAM_DATA_SYNC",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_TENDER_MYCLUB_AUCTION_SCOUT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"product_id",
+"tender_gp",
+"is_finalround"
+],
+"reply": [
+"auction_end_time",
+"auction_scout_detail",
+"auction_start_time",
+"auction_state",
+"bid_num",
+"finalround_end_time",
+"gp",
+"grade",
+"is_bid",
+"is_bid_user_max",
+"is_highest_bidder",
+"is_reservation",
+"my_price",
+"price_now",
+"price_start",
+"product_id",
+"reservation_price",
+"scout_id",
+"second_price",
+"skill",
+"skill_category",
+"skill_id",
+"third_price"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"product_id",
+"tender_gp"
+],
+"reply": [
+"auction_end_time",
+"auction_scout_detail",
+"auction_start_time",
+"auction_state",
+"bid_num",
+"finalround_end_time",
+"gp",
+"grade",
+"is_bid",
+"is_bid_user_max",
+"is_highest_bidder",
+"is_reservation",
+"my_price",
+"price_now",
+"price_start",
+"product_id",
+"reservation_price",
+"scout_id",
+"second_price",
+"skill",
+"skill_category",
+"skill_id",
+"third_price"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION_CANCEL",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"product_id"
+],
+"reply": [
+"auction_end_time",
+"auction_scout_detail",
+"auction_start_time",
+"auction_state",
+"bid_num",
+"finalround_end_time",
+"gain_gp",
+"gp",
+"grade",
+"is_bid",
+"is_bid_user_max",
+"is_highest_bidder",
+"is_reservation",
+"my_price",
+"price_now",
+"price_start",
+"product_id",
+"reservation_price",
+"scout_id",
+"second_price",
+"skill",
+"skill_category",
+"skill_id",
+"third_price"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_TRADE_MYCLUB_GAMEPLAYER",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"my_player_trade_list",
+"target_trade_player"
+],
+"reply": [
+"add_skill_id",
+"assist",
+"attacking_area_center",
+"attacking_area_side",
+"build_up_long",
+"build_up_short",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"default_overall",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"enhanced_parameters",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df_aggressive",
+"first_df_safety",
+"gameplayer",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_unique_id",
+"games",
+"goal",
+"is_protected",
+"is_rental",
+"is_subscription",
+"level",
+"level_info",
+"level_limit",
+"mcountLeft",
+"mobility_fix",
+"mobility_float",
+"nation_id",
+"parameters",
+"player_level_need_exp",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"redcard_game_kind",
+"redcard_info_list",
+"sell_gp",
+"team_id",
+"tiredness",
+"transition_counter",
+"transition_possession",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_UPDATE_MYCLUB_COACH_CONTRACT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coach_unique_id"
+],
+"reply": [
+"contract_term",
+"next_norma"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_UPDATE_TEAM_SELECT",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USE_MYCLUB_ADAPTABILITY_RATE_ITEM",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coach_unique_id",
+"use_count"
+],
+"reply": [
+"adaptability_rate",
+"attacking_area",
+"build_up",
+"coach",
+"coach_id",
+"coach_unique_id",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"current_point_division",
+"current_point_sim",
+"current_point_vscom",
+"defence_compact",
+"defence_line",
+"defence_num",
+"defence_type",
+"defensive_main_concept",
+"first_df",
+"formation_data",
+"is_coach_texture_use",
+"is_use_variable_formation",
+"management",
+"mobility",
+"nation_id",
+"offence_num",
+"offensive_main_concept",
+"overall",
+"passsupport_dist",
+"press_rule",
+"sell_gp",
+"team_id",
+"transition"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USE_MYCLUB_ADD_POSITION_APTITUDE_ITEM",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer_unique_id",
+"use_count"
+],
+"reply": [
+"result_parameters"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USE_MYCLUB_ADD_SKILL_ITEM",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer_unique_id"
+],
+"reply": [
+"add_skill_id",
+"result_parameters"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USE_MYCLUB_AGENT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"agent_id",
+"use_pes_point",
+"use_token",
+"use_token_level"
+],
+"reply": [
+"add_skill_id",
+"agent_bonus_item_list",
+"assist",
+"attacking_area_center",
+"attacking_area_side",
+"body",
+"build_up_long",
+"build_up_short",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"count",
+"default_overall",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"enhanced_parameters",
+"entity_id",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df_aggressive",
+"first_df_safety",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_list",
+"gameplayer_list_num",
+"gameplayer_unique_id",
+"games",
+"goal",
+"gp",
+"grade",
+"is_protected",
+"is_rental",
+"is_subscription",
+"item",
+"item_effect_arg",
+"item_type",
+"item_variation",
+"level",
+"level_info",
+"level_limit",
+"mcountLeft",
+"mobility_fix",
+"mobility_float",
+"name",
+"name_jp",
+"nation_id",
+"parameters",
+"pes_point",
+"pes_point_price",
+"player_level",
+"player_level_need_exp",
+"present_id",
+"present_type",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"receipt_deadline",
+"redcard_game_kind",
+"redcard_info_list",
+"sell_gp",
+"skill",
+"skill_category",
+"skill_id",
+"team_id",
+"tiredness",
+"title",
+"transition_counter",
+"transition_possession",
+"type",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USE_MYCLUB_ITEM_RECOVERY",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"gameplayer_unique_id_list",
+"is_all",
+"use_pes_point"
+],
+"reply": [
+"pes_point"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USE_MYCLUB_MANAGEMENT_ITEM",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"coach_unique_id",
+"use_count"
+],
+"reply": [
+"adaptability_rate",
+"attacking_area",
+"build_up",
+"coach",
+"coach_id",
+"coach_unique_id",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"current_point_division",
+"current_point_sim",
+"current_point_vscom",
+"defence_compact",
+"defence_line",
+"defence_num",
+"defence_type",
+"defensive_main_concept",
+"first_df",
+"formation_data",
+"is_coach_texture_use",
+"is_use_variable_formation",
+"management",
+"mobility",
+"nation_id",
+"offence_num",
+"offensive_main_concept",
+"overall",
+"passsupport_dist",
+"press_rule",
+"sell_gp",
+"team_id",
+"transition"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USE_MYCLUB_SCOUT",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"scout_list",
+"agent_id",
+"skill",
+"skill_category",
+"skill_id",
+"grade",
+"count",
+"rate",
+"rate_table",
+"rate_player_num",
+"target_level",
+"sell_gp",
+"scout_list_num"
+],
+"reply": [
+"add_skill_id",
+"assist",
+"attacking_area_center",
+"attacking_area_side",
+"build_up_long",
+"build_up_short",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"default_overall",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"enhanced_parameters",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df_aggressive",
+"first_df_safety",
+"gameplayer",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_unique_id",
+"games",
+"goal",
+"is_protected",
+"is_rental",
+"is_subscription",
+"level",
+"level_info",
+"level_limit",
+"mcountLeft",
+"mobility_fix",
+"mobility_float",
+"nation_id",
+"parameters",
+"player_level_need_exp",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"redcard_game_kind",
+"redcard_info_list",
+"sell_gp",
+"team_id",
+"tiredness",
+"transition_counter",
+"transition_possession",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USE_MYCLUB_STAFF",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"player_info",
+"gameplayer_unique_id",
+"gameplayer_base_id",
+"gameplayer_id",
+"gameplayer_level",
+"registared_position",
+"position",
+"stronger_foot",
+"overall",
+"ability",
+"play_style",
+"nation_id",
+"club_team_id",
+"staff_info_list",
+"base_player_info",
+"base_exp",
+"use_item_list",
+"item_variation",
+"count"
+],
+"reply": [
+"add_skill_id",
+"contract_gp",
+"contract_pes_point",
+"enhanced_parameters",
+"exp_added",
+"exp_current_level",
+"exp_info_post",
+"exp_info_pre",
+"exp_to_next_level",
+"exp_total",
+"gameplayer_unique_id",
+"level",
+"level_limit",
+"m_aggressiveness",
+"m_agility",
+"m_ball_spin_control",
+"m_ball_touch",
+"m_body_balance",
+"m_body_control",
+"m_catching",
+"m_clearances",
+"m_collapsing",
+"m_defense_decision",
+"m_deflecting",
+"m_dribble",
+"m_gk_decision",
+"m_heading",
+"m_intercept",
+"m_jump",
+"m_kick_power",
+"m_long_pass",
+"m_offense_decision",
+"m_place_kicking",
+"m_short_pass",
+"m_shot",
+"m_speed",
+"m_stamina",
+"m_trap",
+"parameters",
+"sell_gp",
+"traning_result",
+"traning_result_num"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USE_MYCLUB_TACTICAL_TRAINING",
+"area": "myClub",
+"transport": "gate",
+"request": [
+"pid",
+"squad_id",
+"coach_unique_id",
+"is_offensive_formation",
+"use_count"
+],
+"reply": [
+"add_skill_id",
+"assist",
+"attacking_area_center",
+"attacking_area_side",
+"build_up_long",
+"build_up_short",
+"concept",
+"contract_gp",
+"contract_pes_point",
+"contract_term",
+"default_overall",
+"default_rarity",
+"defence_type_forecheck",
+"defence_type_retreat",
+"enhanced_parameters",
+"exp_current_level",
+"exp_to_next_level",
+"exp_total",
+"first_df_aggressive",
+"first_df_safety",
+"gameplayer_cost",
+"gameplayer_id",
+"gameplayer_list",
+"gameplayer_unique_id",
+"games",
+"goal",
+"is_protected",
+"is_rental",
+"is_subscription",
+"level",
+"level_info",
+"level_limit",
+"mcountLeft",
+"mobility_fix",
+"mobility_float",
+"nation_id",
+"parameters",
+"player_level_need_exp",
+"press_rule_net_defence",
+"press_rule_seal_off",
+"rating",
+"redcard_game_kind",
+"redcard_info_list",
+"sell_gp",
+"team_id",
+"tiredness",
+"transition_counter",
+"transition_possession",
+"uniform_number"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_USER_DATA_SYNC",
+"area": "In-match sync",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_BREAKUP_COOP_ROOM",
+"area": "Co-op",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_CHECK_ALIVE_PLAYER",
+"area": "Match",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_COOP_GROUP_MATCHING",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"address_family",
+"base_team_id",
+"com_level_max",
+"com_level_min",
+"coop_level",
+"coop_manner",
+"division",
+"game_result",
+"game_result_wdl",
+"guest_info",
+"guest_kind",
+"has_guestplayer",
+"hometown_info",
+"host_addr",
+"is_deleted",
+"is_entry_weekly_myclub",
+"is_follow",
+"is_owner",
+"is_pes_league_mode",
+"is_platform_guest",
+"is_valid_cache",
+"join_compe_rating",
+"label",
+"manner",
+"matching_order",
+"matching_state",
+"member",
+"member_list",
+"member_list_num",
+"name",
+"nation_id",
+"ntl_nat_type",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"rating",
+"reflexive_addr",
+"relayed_addr",
+"retry_num",
+"sa_data",
+"side",
+"skill_rank",
+"team_id",
+"team_name",
+"team_power_lv",
+"weekly_point",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_COOP_MATCHING",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"address_family",
+"base_team_id",
+"coop_level",
+"coop_manner",
+"division",
+"game_result",
+"game_result_wdl",
+"group_list",
+"guest_info",
+"guest_kind",
+"has_guestplayer",
+"hometown_info",
+"host_addr",
+"is_deleted",
+"is_entry_weekly_myclub",
+"is_follow",
+"is_owner",
+"is_pes_league_mode",
+"is_platform_guest",
+"is_valid_cache",
+"join_compe_rating",
+"label",
+"manner",
+"matching_order",
+"member",
+"member_list",
+"member_list_num",
+"name",
+"nation_id",
+"ntl_nat_type",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"rating",
+"reflexive_addr",
+"relayed_addr",
+"retry_num",
+"sa_data",
+"side",
+"skill_rank",
+"team_id",
+"team_name",
+"team_power_lv",
+"weekly_point",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_COOP_MATCHING_CONDITION",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"coop_play_level_max",
+"coop_play_level_min",
+"manner_max",
+"manner_min",
+"team_power_level_max",
+"team_power_level_min"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_COOP_ROOM_OPTION",
+"area": "Co-op",
+"transport": "gate",
+"request": [],
+"reply": [
+"account_id",
+"basic_settings",
+"clan_name",
+"clan_owner_info",
+"coop_level",
+"coop_manner",
+"countdown_end_time",
+"cpu_level",
+"enemy_team_id",
+"is_com_match",
+"is_deleted",
+"is_follow",
+"is_game",
+"is_same_level",
+"is_same_manner",
+"is_start_count_down",
+"is_start_matching",
+"is_stop_countdown",
+"is_use_chat",
+"is_valid_cache",
+"lang",
+"match_settings",
+"name",
+"online_id",
+"password",
+"pid",
+"pname",
+"psn_user_id",
+"room_entry_restriction",
+"room_id",
+"room_name",
+"room_phase",
+"team_level",
+"user_team_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_COOP_ROOM_TO_MATCHING_MEMBER",
+"area": "Co-op",
+"transport": "gate",
+"request": [],
+"reply": [
+"player_index_list"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_COOP_VSCOM_OPPONENT",
+"area": "Co-op",
+"transport": "gate",
+"request": [
+"pid"
+],
+"reply": [
+"account_id",
+"base_team_id",
+"club_edition_type",
+"coach_id_list",
+"coach_unique_id_list",
+"com_level",
+"com_team",
+"default_rarity",
+"gameplan_data",
+"gameplan_data_size",
+"gameplayer_id",
+"gameplayer_unique_id",
+"is_club_edition",
+"is_deleted",
+"is_entry_compe",
+"is_valid_cache",
+"member_list",
+"member_num",
+"my_team",
+"name",
+"online_id",
+"owner_pid",
+"parameters",
+"pes_pname",
+"pid",
+"player_level",
+"psn_user_id",
+"side",
+"squad_id",
+"team_data",
+"team_name",
+"team_name_commentary_id",
+"team_name_short",
+"uniform_number",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_DECIDE_GAMEENV",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [
+"ball_type",
+"cpuLevel",
+"exGame",
+"exSubstitution",
+"game_env",
+"gametime",
+"injury",
+"limitTime",
+"pkOnOff",
+"substitution"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCHEND_LOBBY_MATCH_LIST",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [],
+"reply": [],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_ENTRY_GAME",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [
+"entryNum",
+"entry_count",
+"entrygame",
+"gameNum",
+"pid"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_GAMEADDPOINT",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [
+"account_id",
+"contWin_num",
+"gameend_reason",
+"is_deleted",
+"is_first_skillrank",
+"is_pk",
+"is_rankup_skill_rank",
+"is_valid_cache",
+"name",
+"oldrating",
+"online_id",
+"pes_pname",
+"pid",
+"player_count",
+"player_list",
+"psn_user_id",
+"rating",
+"rating_boost_rate",
+"rating_boost_type",
+"rating_compe",
+"rating_type",
+"side",
+"skill_rank",
+"team_id",
+"winner_side",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_GAMERELAY_CHECK_RES",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [],
+"reply": [
+"error_code"
+],
+"status": "acked",
+"seen": 26
+},
+{
+"cmd": "CMD_WATCH_MATCHDAY_PICKUP_MATCHING",
+"area": "Matchday",
+"transport": "gate",
+"request": [],
+"reply": [
+"account_id",
+"address_family",
+"group_list",
+"group_list_num",
+"host_addr",
+"is_deleted",
+"is_valid_cache",
+"matching_state",
+"member_list",
+"name",
+"ntl_nat_type",
+"online_id",
+"pid",
+"pname",
+"psn_user_id",
+"reflexive_addr",
+"relayed_addr",
+"sa_data",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_MATCHDAY_PICKUP_USER",
+"area": "Matchday",
+"transport": "gate",
+"request": [],
+"reply": [
+"account_id",
+"is_deleted",
+"is_failed_pickup_users",
+"is_valid_cache",
+"name",
+"online_id",
+"pickup_user_group_a_num",
+"pickup_user_group_b_num",
+"pickup_user_info",
+"pickup_users_group_a",
+"pickup_users_group_b",
+"pid",
+"pname",
+"psn_user_id",
+"xuid_one"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_MATCHING",
+"area": "Matchmaking",
+"transport": "gate",
+"request": [],
+"reply": [
+"account_id",
+"address_family",
+"base_team_id",
+"division",
+"game_result",
+"game_result_wdl",
+"guest_info",
+"has_guestplayer",
+"hometown_info",
+"host_addr",
+"is_deleted",
+"is_entry_weekly_myclub",
+"is_first_rookie_match",
+"is_owner",
+"is_pes_league_mode",
+"is_platform_guest",
+"is_same_group_match",
+"is_special_match",
+"is_valid_cache",
+"join_compe_rating",
+"label",
+"manner",
+"matching_order",
+"matching_state",
+"member",
+"name",
+"nation_id",
+"ntl_nat_type",
+"online_id",
+"pid",
+"ping",
+"player_num",
+"pname",
+"psn_user_id",
+"rating",
+"reflexive_addr",
+"relayed_addr",
+"retry_num",
+"sa_data",
+"side",
+"skill_rank",
+"special_match_rate",
+"team_id",
+"team_name",
+"team_power_lv",
+"weekly_point",
+"xuid_one"
+],
+"status": "handled",
+"seen": 76
+},
+{
+"cmd": "CMD_WATCH_MATCHING_CONDITION",
+"area": "Matchmaking",
+"transport": "gate",
+"request": [],
+"reply": [
+"manner_max",
+"manner_min",
+"rating_max",
+"rating_min"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_MYCLUB_AUCTION_SCOUT_DETAIL",
+"area": "myClub",
+"transport": "gate",
+"request": [],
+"reply": [
+"auction_agent_id",
+"auction_state",
+"bid_num",
+"is_bid_user_max",
+"is_finished",
+"my_price",
+"price_now",
+"reservation_price",
+"second_price",
+"successful_bid_pid",
+"third_price",
+"update_auction_scout_detail"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_NOTICE",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [
+"data"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_PUNCHING_DATA",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [],
+"reply": [
+"address_family",
+"host_addr",
+"ntl_nat_type",
+"reflexive_addr",
+"sa_data"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_ROOMSTATE",
+"area": "Lobby & rooms",
+"transport": "gate",
+"request": [],
+"reply": [
+"event",
+"owner_pid",
+"password",
+"state"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_SYNC_NOTICE",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [
+"data"
+],
+"status": "acked",
+"seen": 77
+},
+{
+"cmd": "CMD_WATCH_SYSTEM_NOTICE",
+"area": "Match",
+"transport": "gate",
+"request": [],
+"reply": [
+"data"
+],
+"status": "acked",
+"seen": 90
+},
+{
+"cmd": "CMD_WATCH_TEXTCHAT",
+"area": "Social",
+"transport": "gate",
+"request": [],
+"reply": [
+"channel",
+"from_pid",
+"name",
+"statement"
+],
+"status": "unseen",
+"seen": 0
+},
+{
+"cmd": "CMD_WATCH_TURN_ADDRESS_DATA",
+"area": "Connectivity / relay",
+"transport": "gate",
+"request": [],
+"reply": [
+"address",
+"address_data_size"
+],
+"status": "unseen",
+"seen": 0
+}
+]

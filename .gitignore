@@ -16,6 +16,7 @@
 !/notes/re/captures/
 !/notes/re/errcode.py
 !/notes/re/extract_schemas.py
+!/notes/re/functions/
 
 # runtime data / secrets
 server-data/

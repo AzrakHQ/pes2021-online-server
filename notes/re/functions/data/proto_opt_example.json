@@ -1,0 +1,13 @@
+{
+  "P2P": {
+    "Network": {
+      "NetworkIoConnectionTimeoutUs": 30000000,
+      "ChangeoverPeerReceiveIdleTimeMsThreshold": 5000,
+      "ChangeoverToTurnBufferCriticalConditionTimeMsThreshold": 8000,
+      "P2pModeTurnSendEnable": true,
+      "P2pModeTurnSendIntervalMs": 5000,
+      "TurnNetworkIoTcpConnectionTimeoutMs": 10000,
+      "TurnNetworkIoConnectionTimeoutMs": 10000
+    }
+  }
+}
