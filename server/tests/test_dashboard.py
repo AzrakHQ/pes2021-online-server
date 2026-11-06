@@ -147,3 +147,20 @@ def test_form_run_and_week_cover_all_matches(tmp_path):
     wk = snap["week"]
     assert wk["wins"]["n"] == 2 and [w[1] for w in wk["wins"]["who"]] == ["Ann"]
     assert wk["goals"]["n"] == 9 and wk["goals"]["who"][0][1] == "Ann"
+
+
+def test_leaving_a_result_out_of_the_table(tmp_path):
+    svc = _svc(tmp_path); _seed(svc)
+    mid = events.results_page(svc, early=True)[0][0]["id"]             # Ann 6-0 Cid, ended early
+    assert events.results_page(svc, early=True)[1] == 1
+    ann = lambda: next(p for p in events.snapshot(svc)["players"] if p["name"] == "Ann")
+    assert ann()["won"] == 2
+    assert events.set_counted(svc, mid, False)["home_name"] == "Ann"
+    assert ann()["won"] == 1 and ann()["gf"] == 3                      # left out of the table and the form
+    snap = events.snapshot(svc)
+    assert snap["played_total"] == 5 and next(r for r in snap["results"] if r["id"] == mid)["voided"] == 1   # still listed
+    assert "left a result out" in snap["feed"][0]["text"]
+    assert next(m for m in events.player_detail(svc, 1)["matches"] if m["id"] == mid)["voided"] == 1
+    events.set_counted(svc, mid, True)
+    assert ann()["won"] == 2
+    assert events.set_counted(svc, 999, True) is None

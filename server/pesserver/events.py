@@ -21,6 +21,9 @@ def _st(svc):
                 home_pid INTEGER, away_pid INTEGER, home_name TEXT, away_name TEXT,
                 home_score INTEGER, away_score INTEGER, reason TEXT)""")
             db.execute("CREATE TABLE IF NOT EXISTS pes_feed(id INTEGER PRIMARY KEY, t REAL, kind TEXT, text TEXT)")
+            # the host can leave an unfair result (e.g. a dropped connection) out of the table
+            if "voided" not in {r[1] for r in db.execute("PRAGMA table_info(pes_matches)")}:
+                db.execute("ALTER TABLE pes_matches ADD COLUMN voided INTEGER NOT NULL DEFAULT 0")
             rows = db.execute("SELECT t, kind, text FROM pes_feed ORDER BY id DESC LIMIT 200").fetchall()
         svc.pes_events["feed"].extend({"t": t, "kind": k, "text": x} for t, k, x in rows)
     return svc.pes_events
@@ -157,7 +160,7 @@ def _week(db, now):
     most wins and most goals, with everyone tied at the top."""
     wins, goals, names = {}, {}, {}
     for hp, ap, hn, an, hs, as_ in db.execute("SELECT home_pid, away_pid, home_name, away_name, home_score, away_score"
-                                              " FROM pes_matches WHERE ended >= ?", (now - 7 * 86400,)):
+                                              " FROM pes_matches WHERE ended >= ? AND voided = 0", (now - 7 * 86400,)):
         if hs is None or as_ is None:
             continue
         for pid, name, f, a in ((hp, hn, hs, as_), (ap, an, as_, hs)):
@@ -182,13 +185,14 @@ def snapshot(svc):
     now = time.time()
     online = [{"pid": pid, "name": name_of(svc, pid), "ip": getattr(s, "peer_ip", ""),
                "since": getattr(s, "connected_at", now),
-               "status": "In a match" if pid in in_match else "Searching" if pid in queued else "In menus"}
+               "status": "In a match" if pid in in_match else "Searching" if pid in queued else "In menus",
+               "searching_since": mm.get("qsince", {}).get(pid) if pid in queued else None}
               for pid, s in sorted(svc.online.items()) if isinstance(pid, int)]
     db = svc.accounts.db
     results = [dict(zip(("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason",
-                         "home_pid", "away_pid"), r))
+                         "home_pid", "away_pid", "voided"), r))
                for r in db.execute("SELECT id, started, ended, home_name, away_name, home_score, away_score, reason,"
-                                   " home_pid, away_pid"
+                                   " home_pid, away_pid, voided"
                                    " FROM pes_matches ORDER BY id DESC LIMIT 100")]
     played_total, goals_total, abandoned = db.execute(
         "SELECT COUNT(*), COALESCE(SUM(home_score + away_score), 0), COALESCE(SUM(COALESCE(reason, '') != ''), 0)"
@@ -199,7 +203,7 @@ def snapshot(svc):
                                            " COALESCE(reason, '') != '' FROM pes_matches"
                                            " WHERE COALESCE(started, ended) > ? ORDER BY 1", (now - 31 * 86400,))]
     big = db.execute("SELECT home_name, away_name, home_score, away_score, ended FROM pes_matches"
-                     " WHERE COALESCE(reason, '') = '' AND home_score IS NOT NULL AND away_score IS NOT NULL"
+                     " WHERE COALESCE(reason, '') = '' AND voided = 0 AND home_score IS NOT NULL AND away_score IS NOT NULL"
                      " AND home_score != away_score ORDER BY ABS(home_score - away_score) DESC, home_score + away_score DESC,"
                      " ended DESC LIMIT 1").fetchone()
     players = []
@@ -213,7 +217,7 @@ def snapshot(svc):
         w = d = l = gf = ga = 0
         form, run, running = [], 0, True          # newest first while reading
         for hp, ap, hs, as_ in db.execute("SELECT home_pid, away_pid, home_score, away_score FROM pes_matches"
-                                          " WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid)):
+                                          " WHERE (home_pid=? OR away_pid=?) AND voided = 0 ORDER BY id DESC", (pid, pid)):
             mine, theirs = (hs, as_) if hp == pid else (as_, hs)
             if mine is None or theirs is None:
                 continue
@@ -244,7 +248,8 @@ def player_detail(svc, pid):
     r = db.execute("SELECT pid, name, created, last_login, rating, win_streak FROM pes_players WHERE pid=?", (pid,)).fetchone()
     if r is None:
         return None
-    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason")
+    _st(svc)
+    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason", "voided")
     matches = [dict(zip(keys, m)) for m in db.execute(
         "SELECT " + ", ".join(keys) + " FROM pes_matches WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid))]
     name = r[1] or f"Player {pid}"
@@ -255,11 +260,28 @@ def player_detail(svc, pid):
             "feed": [f for f in _st(svc)["feed"] if name in f["text"]][:40]}
 
 
-def results_page(svc, q="", since=0, limit=25, until=None):
+def set_counted(svc, mid, counted):
+    """Count a finished match in the league table again, or leave it out (it stays in Results, marked).
+    Returns the match's names and score, or None when there's no such match."""
+    db = svc.accounts.db
+    _st(svc)
+    with svc.accounts.lock, db:
+        r = db.execute("SELECT home_name, away_name, home_score, away_score FROM pes_matches WHERE id=?", (int(mid),)).fetchone()
+        if r is None:
+            return None
+        db.execute("UPDATE pes_matches SET voided=? WHERE id=?", (0 if counted else 1, int(mid)))
+    score = f"{r[0]} {r[2] if r[2] is not None else '?'}–{r[3] if r[3] is not None else '?'} {r[1]}"
+    feed(svc, f"{'The admin counted a result again' if counted else 'The admin left a result out of the table'}: {score}", "info")
+    return {"home_name": r[0], "away_name": r[1], "home_score": r[2], "away_score": r[3]}
+
+
+def results_page(svc, q="", since=0, limit=25, until=None, early=False):
     """Finished matches for the admin page's Results list: newest first, optionally only one player's
     (name contains q) or only since a time. Returns (rows, how many match in all)."""
     q = str(q or "").strip().lower()
     where, args = ["ended >= ?"], [float(since or 0)]
+    if early:
+        where.append("COALESCE(reason, '') != ''")
     if until:
         where.append("ended < ?"); args.append(float(until))
     if q:
@@ -269,7 +291,7 @@ def results_page(svc, q="", since=0, limit=25, until=None):
     w = " WHERE " + " AND ".join(where)
     db = svc.accounts.db
     _st(svc)
-    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid")
+    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid", "voided")
     rows = [dict(zip(keys, r)) for r in db.execute("SELECT " + ", ".join(keys) + " FROM pes_matches" + w +
                                                    " ORDER BY id DESC LIMIT ?", (*args, max(1, min(int(limit), 1000))))]
     return rows, db.execute("SELECT COUNT(*) FROM pes_matches" + w, args).fetchone()[0]

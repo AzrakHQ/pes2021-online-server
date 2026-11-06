@@ -117,6 +117,8 @@ def leave_lobby(svc, sess, req):
 def start_matching(svc, sess, req):
     st = _state(svc)
     pid = _pid(sess)
+    if pid not in {p for p, _ in st["queue"]}:
+        st.setdefault("qsince", {})[pid] = time.time()      # the admin page flags a friend waiting alone
     st["queue"] = [(p, s) for p, s in st["queue"] if p != pid] + [(pid, sess)]
     sess.pes_match_req = {k: v for k, v in req.items() if not k.startswith("_")}
     log.info("MATCH queue += pid %s  (queue=%s)", pid, [p for p, _ in st["queue"]])

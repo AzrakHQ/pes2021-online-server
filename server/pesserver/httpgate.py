@@ -488,10 +488,20 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         try:
             req = json.loads(body or b"{}")
             rows, total = events.results_page(service, req.get("q", ""), req.get("since") or 0, req.get("limit") or 25,
-                                               req.get("until") or None)
+                                               req.get("until") or None, bool(req.get("early")))
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"bad request"}', "application/json"
         return "200 OK", json.dumps({"rows": rows, "total": total}).encode(), "application/json"
+    if route == "/admin/api/match/count" and method == "POST":
+        try:
+            req = json.loads(body or b"{}")
+            mid, counted = int(req.get("id")), bool(req.get("counted"))
+        except (ValueError, TypeError, AttributeError):
+            return "400 Bad Request", b'{"error":"id"}', "application/json"
+        m = events.set_counted(service, mid, counted)
+        if m is None:
+            return "404 Not Found", b'{"error":"That match is gone."}', "application/json"
+        return "200 OK", json.dumps(m).encode(), "application/json"
     if route == "/admin/api/player" and method == "POST":
         try:
             pid = int(json.loads(body or b"{}").get("pid"))
