@@ -80,6 +80,7 @@ def test_message_to_one_player(tmp_path):
     r = announce.urgent(svc, SimpleNamespace(pes_pid=2), {"pid": 2})
     assert r["is_announcement"] == "YES" and announce.snapshot(svc)["pending"] == 0
     assert events._st(svc)["feed"][0]["text"] == "Bob saw your message “Hi again”"
+    assert announce.snapshot(svc)["seen_notes"][0]["title"] == "Hi again"
     assert announce.urgent(svc, SimpleNamespace(pes_pid=2), {"pid": 2}) == {"result": "NOERR"}   # once only
     announce.tell(svc, 3, "Hey", "x", kind="note")
     assert announce.untell(svc, 3) and not announce.untell(svc, 3)
@@ -90,3 +91,48 @@ def test_message_to_one_player(tmp_path):
         assert False, "too long for one frame"
     except announce.TooLong:
         pass
+
+
+def test_admin_page_structure():
+    """Every view sits inside #content (a stray closing tag once pushed two views into the sidebar column),
+    tags balance, and ids are unique."""
+    import os, collections
+    from html.parser import HTMLParser
+    VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
+
+    class P(HTMLParser):
+        def __init__(self):
+            super().__init__(); self.stack, self.views, self.ids, self.errors = [], {}, collections.Counter(), []
+        def handle_starttag(self, tag, attrs):
+            a = dict(attrs)
+            if a.get("id"):
+                self.ids[a["id"]] += 1
+            if tag == "section" and "view" in (a.get("class") or "").split():
+                self.views[a.get("id")] = [x[1].get("id") for x in self.stack]
+            if tag not in VOID:
+                self.stack.append((tag, a))
+        def handle_endtag(self, tag):
+            if tag in VOID:
+                return
+            if not self.stack or self.stack[-1][0] != tag:
+                self.errors.append(f"</{tag}> closes <{self.stack[-1][0] if self.stack else None}> at line {self.getpos()[0]}")
+                return
+            self.stack.pop()
+
+    html = open(os.path.join(os.path.dirname(__file__), "..", "pesserver", "web", "admin.html"), encoding="utf-8").read()
+    html = html[:html.index("<script>", html.index("</style>"))] + html[html.rindex("</script>") + 9:]   # markup only
+    p = P(); p.feed(html)
+    assert not p.errors, p.errors[:3]
+    assert set(p.views) == {"v-overview", "v-players", "v-matches", "v-activity", "v-messages", "v-invite", "v-server"}
+    for v, parents in p.views.items():
+        assert "content" in parents and "app" in parents, (v, parents)
+    assert [i for i, n in p.ids.items() if n > 1] == []
+
+
+def test_earlier_messages_to_everyone(tmp_path):
+    svc = _svc(tmp_path); announce._STATE.clear()
+    announce.set_news(svc, "Cup", "Friday 9 pm")
+    announce.set_news(svc, "Cup moved", "Saturday 9 pm")
+    announce.clear_news(svc)
+    snap = announce.snapshot(svc)
+    assert snap["news"] is None and [h["title"] for h in snap["history"]] == ["Cup moved", "Cup"]

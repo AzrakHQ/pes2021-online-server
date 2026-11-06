@@ -40,6 +40,8 @@ def _load(svc):
         st.setdefault("seen", [])            # pids that got the news box before Quick Match
         st.setdefault("restart", None)       # unix time
         st.setdefault("personal", {})        # str(pid) -> {id, title, body}
+        st.setdefault("seen_notes", [])      # notes players have seen, newest first (the admin page lists them)
+        st.setdefault("history", [])         # earlier messages to everyone, newest first
         if st["restart"] and st["restart"] < time.time():
             st["restart"] = None             # starting up after the planned time: the restart happened
         _STATE[key] = st
@@ -78,6 +80,7 @@ def snapshot(svc):
         n = st["news"]
         return {"news": n and {"title": n["title"], "body": n["body"], "date": n["date"], "seen": len(st["seen"])},
                 "restart": r, "pending": len(st["personal"]),
+                "seen_notes": st["seen_notes"][:8], "history": st["history"][:6],
                 "personal": sorted(({"pid": int(k), "title": v["title"], "body": v["body"], "sent": v.get("sent"),
                                      "kind": v.get("kind", "note")} for k, v in st["personal"].items()),
                                    key=lambda x: -(x["sent"] or 0))}
@@ -117,13 +120,24 @@ def set_news(svc, title, body):
         news = {"id": max(now % 2_000_000_000, (st["news"] or {}).get("id", 0) + 1),
                 "title": title, "body": body, "date": now}
         _check_size(_body_reply(news))            # the biggest of the three replies
+        _archive(st)
         st["news"] = news
         st["seen"] = []
         _save(svc)
 
 
+def _archive(st):
+    """Keep the message being replaced or removed, so the admin page can show it and reuse it."""
+    n = st["news"]
+    if n:
+        st["history"].insert(0, {"title": n["title"], "body": n["body"], "date": n["date"], "until": int(time.time()),
+                                 "seen": len(st["seen"])})
+        del st["history"][6:]
+
+
 def clear_news(svc):
     with _lock:
+        _archive(_load(svc))
         _load(svc)["news"] = None
         _load(svc)["seen"] = []
         _save(svc)
@@ -214,7 +228,11 @@ def urgent(svc, sess, req):
             return {"result": NOERR}
         _save(svc)
     log.info("showing %r to pid %s", msg["title"], pid)
-    if msg.get("kind") == "note":                 # the admin page's activity shows that it arrived
+    if msg.get("kind") == "note":                 # the admin page shows that it arrived
+        with _lock:
+            st["seen_notes"].insert(0, {"pid": pid, "title": msg["title"], "seen": time.time(), "sent": msg.get("sent")})
+            del st["seen_notes"][8:]
+            _save(svc)
         from . import events
         events.feed(svc, f"{events.name_of(svc, pid)} saw your message “{msg['title']}”", "msg")
     return _urgent_reply(msg, req)

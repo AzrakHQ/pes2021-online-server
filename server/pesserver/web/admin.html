@@ -163,6 +163,12 @@
   .stack > .card { margin-bottom:0; }
   .row-gap { margin-bottom:16px; }
   @media (max-width: 820px) { .grid-ov { grid-template-columns:minmax(0,1fr); } }
+  @media (max-width: 760px) {
+    #v-overview:not([hidden]) { display:flex; flex-direction:column; }
+    #ov-charts { order:1; margin-top:16px; } #ov-info { order:2; }
+    #ov-cards { display:flex; flex-direction:column; gap:16px; } #ov-cards > .stack { display:contents; }
+    #c-ovlive { order:1; } #c-ovonline { order:2; } #c-ovhl { order:3; } #c-ovfeed { order:4; } #c-ovtop { order:5; }
+  }
   @media (max-width: 760px) { .grid2 { grid-template-columns:minmax(0,1fr); } }
 
   /* tiles */
@@ -320,7 +326,7 @@
   .feed { list-style:none; margin:0; padding:0; }
   .feed li { display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:14px; align-items:baseline; }
   .feed li:last-child { border-bottom:0; }
-  .feed li time { flex:none; min-width:58px; color:var(--muted); font-size:13px; }
+  .feed li time { flex:none; min-width:58px; white-space:nowrap; color:var(--muted); font-size:13px; }
   .feed li > span:last-child { min-width:0; overflow-wrap:break-word; }
   .feed .ico { flex:none; width:22px; height:22px; border-radius:6px; display:grid; place-items:center; background:var(--code); color:var(--muted); align-self:center; }
   .feed .ico svg { width:13px; height:13px; }
@@ -329,7 +335,7 @@
   .feed .ico.k-msg { background:var(--accent2); color:var(--accent); }
   .feed .ico.k-match { background:var(--accent2); color:var(--accent); }
   .feed .ico.k-result, .feed .ico.k-goal { box-shadow:inset 0 0 0 1px var(--accent); }
-  .feed .pname { font-weight:600; }
+  .feed .pname { font-weight:600; text-decoration:underline dotted var(--field); text-underline-offset:3px; }
   h3.day { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:14px 0 2px; }
   h3.day:first-child { margin-top:0; }
   .empty { color:var(--muted); font-size:14px; padding:4px 0; margin:0; }
@@ -543,7 +549,7 @@
         <div class="stack">
           <section class="card" id="c-ovlive" aria-labelledby="h-ovlive"><div class="card-h"><h2 id="h-ovlive">Live matches</h2><span class="grow"></span><a href="#matches">All matches →</a></div><div id="ov-live"><div class="skel"></div></div></section>
           <section class="card" id="c-ovhl" aria-labelledby="h-ovhl"><div class="card-h"><h2 id="h-ovhl">This week</h2><span class="grow"></span><span class="small muted">last 7 days</span></div><div id="ov-hl"></div></section>
-          <section class="card" aria-labelledby="h-ovfeed"><div class="card-h"><h2 id="h-ovfeed">Recent activity</h2><span class="grow"></span><a href="#activity">Full activity →</a></div><div id="ov-feed"><div class="skel"></div><div class="skel short"></div></div></section>
+          <section class="card" id="c-ovfeed" aria-labelledby="h-ovfeed"><div class="card-h"><h2 id="h-ovfeed">Recent activity</h2><span class="grow"></span><a href="#activity">Full activity →</a></div><div id="ov-feed"><div class="skel"></div><div class="skel short"></div></div></section>
         </div>
         <div class="stack">
           <section class="card" id="c-ovonline" aria-labelledby="h-ovonline"><div class="card-h"><h2 id="h-ovonline">Online now</h2><span class="grow"></span><a href="#players">Manage players →</a></div><div id="ov-online"><div class="skel"></div></div></section>
@@ -610,10 +616,11 @@
             <div id="msg-prev" style="margin-top:12px" aria-hidden="true"></div>
             <div class="row"><button class="primary needs-server" type="submit" id="msg-send">Show in the game</button><button type="button" id="msg-edit" hidden>Edit current message</button><button type="button" class="needs-server danger" id="msg-clear" hidden>Remove message</button></div>
           </form>
+          <div id="msg-hist"></div>
         </section>
         <div class="stack">
         <section class="card msgf" aria-labelledby="h-dm"><h2 id="h-dm" tabindex="-1">To one player</h2>
-          <p class="small muted" style="margin:-6px 0 4px">They see it in a box the next time they open an online mode, such as Quick Match. The game can't show it sooner. A newer message replaces one they haven't seen.</p>
+          <p class="small muted" style="margin:-6px 0 4px">They see it in a box the next time they open an online mode, such as Quick Match. The game can't show it sooner. A newer message replaces one they haven't seen. This card shows when they've seen it.</p>
           <form id="dmform">
             <label for="dm-to">Player</label><select id="dm-to" class="needs-server"></select>
             <label for="dm-title">Title</label><input id="dm-title" maxlength="60" autocomplete="off" placeholder="Your match tonight">
@@ -622,6 +629,7 @@
             <div class="row"><button class="primary needs-server" type="submit" id="dm-send">Send</button></div>
           </form>
           <div id="dm-list"></div>
+          <div id="dm-seen"></div>
         </section>
         <section class="card msgf" aria-labelledby="h-rs"><h2 id="h-rs" tabindex="-1">Maintenance or restart warning</h2>
           <form id="rsform">
@@ -635,9 +643,6 @@
         </div>
       </div>
     </section>
-        </div>
-      </div>
-    </section>
 
     <!-- INVITE -->
     <section class="view" id="v-invite" aria-labelledby="t-invite" hidden>
@@ -648,6 +653,7 @@
           <div class="small" id="inv-reach" style="margin:0 0 10px"></div>
           <a class="dl needs-server" id="dl" href="/mod/dinput8.dll?from=admin" download="dinput8.dll"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"/></svg> Download the mod for friends</a>
           <p class="small" id="dl-done" aria-live="polite" style="margin:8px 0 0"></p>
+          <div id="inv-send">
           <p class="small muted" style="margin:8px 0 0">One file, <code>dinput8.dll</code>. Send it on Discord, WhatsApp or Telegram; email usually blocks this kind of file.</p>
           <div class="small" style="margin-top:16px"><b>Or send this link.</b> It opens a page with the download and the same steps<span id="jp-note"></span>:</div>
           <div class="linkrow"><code id="jp">Loading…</code><button type="button" id="copy" disabled>Copy link</button></div>
@@ -655,6 +661,7 @@
             Ask your friend to run <code>Get-FileHash .\dinput8.dll</code> in the game folder (Linux: <code>sha256sum dinput8.dll</code>). The result should be:
             <span class="linkrow"><code id="ssha" style="letter-spacing:.04em;white-space:normal;overflow-wrap:anywhere;text-overflow:clip">…</code><button type="button" class="small" id="copy-sha" data-copied="Hash copied">Copy</button></span>
             Capital or small letters and spaces don't matter. That proves the file is exactly the one your server hands out. In the mod's log file (<code>pes2021-online.log</code>), the line <code id="skey">key …</code> shows which server it connects to.</details>
+          </div>
         </section>
         <section class="card friend" aria-labelledby="h-friend"><h2 id="h-friend">What your friend does</h2>
           <ol>
@@ -700,7 +707,7 @@
   </form>
 </dialog>
 <dialog id="sheet" class="sheet" aria-labelledby="sh-t">
-  <div class="sh"><button type="button" id="sh-back" class="small" hidden></button><span id="sh-av"></span><h2 id="sh-t"></h2><button type="button" id="sh-x" aria-label="Close">Close</button></div>
+  <div class="sh"><button type="button" id="sh-back" class="small" hidden></button><span id="sh-av"></span><h2 id="sh-t"></h2><button type="button" id="sh-x" class="iconbtn" aria-label="Close"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
   <div class="sb" id="sh-b"></div>
   <div class="sf" id="sh-f"></div>
 </dialog>
@@ -745,6 +752,7 @@ const RUN_SH = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pe
 const RUN_PS = "irm https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.ps1 | iex";
 const FAQ_FAR = "https://mohamedalirashad.github.io/pes2021-private-server/#faq-far";
 const runCmd = () => platform === "win32" ? RUN_PS : RUN_SH;
+const inMin = s => s < 3600 ? Math.max(1, Math.ceil(s / 60)) + " min" : dur(s);
 const midCut = (t, n) => t.length > n ? t.slice(0, Math.floor(n * .35)) + "…" + t.slice(-Math.floor(n * .6)) : t;
 const copyRow = (t, what, shownText) => `<div class="linkrow"><code title="${esc(t)}">${esc(shownText || t)}</code><button type="button" class="small" data-copytext="${esc(t)}" data-copied="${what} copied">Copy</button></div>`;
 const isTs = a => /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(a || "") || String(a || "").toLowerCase().startsWith("fd7a:115c:a1e0:");
@@ -1060,15 +1068,23 @@ function renderMsg(a) {
   if (!a) return;
   lastAnnounce = a;
   const names = new Map((last ? last.players : []).map(p => [p.pid, p.name])), pend = a.personal || [];
+  const seen = a.seen_notes || [];
+  put("dm-seen", seen.length ? `<h3 class="day" style="margin-top:16px">Seen</h3>` + seen.slice(0, 5).map(m => `<div class="dmrow"><span class="ok" aria-hidden="true">${I.ok}</span><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”<br><span class="small muted">seen ${esc(ago(m.seen, Date.now() / 1000))}</span></span></div>`).join("") : "");
+  const hist = a.history || [];
+  put("msg-hist", hist.length ? `<details class="keycheck" data-key="hist" style="margin-top:16px"><summary>Earlier messages (${hist.length})</summary>` + hist.map((h, i) => `<div class="dmrow"><span class="grow"><b>${esc(h.title)}</b><br><span class="small muted">${esc(dShort.format(new Date(h.date * 1000)))} – ${esc(dShort.format(new Date(h.until * 1000)))}${h.seen ? ` · seen before Quick Match by ${plural(h.seen, "player")}` : ""}</span></span><button type="button" class="small" data-reuse="${i}">Use again</button></div>`).join("") + `</details>` : "");
   put("dm-list", pend.length ? `<h3 class="day" style="margin-top:16px">Waiting to be seen</h3>` + pend.map(m => `<div class="dmrow"><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”${m.kind === "kick" ? ' <span class="pill neutral tag">kick note</span>' : ""}<br><span class="small muted">sent ${esc(m.sent ? ago(m.sent, Date.now() / 1000) : "earlier")}</span></span><button type="button" class="small danger needs-server" data-untell="${m.pid}" data-name="${esc(names.get(m.pid) || "this player")}" data-key="untell-${m.pid}">Take back</button></div>`).join("") : "");
   put("msgnow", a.news ? `<div class="preview"><div class="ph"><span class="pill tag"><span class="dot"></span>Showing now</span><span>since ${esc(fmt.format(new Date(a.news.date * 1000)))}${a.news.seen ? ` · seen before Quick Match by ${plural(a.news.seen, "player")}` : ""}</span></div><div class="pb"><b>${esc(a.news.title)}</b>${esc(a.news.body)}</div></div>`
     : `<p class="empty" style="margin-bottom:4px">No message is showing in the game right now.</p>`);
   $("msg-clear").hidden = !a.news; $("msg-edit").hidden = !a.news; text("msg-send", a.news ? "Replace message" : "Show in the game");
   const left = a.restart ? a.restart - Date.now() / 1000 : 0;
-  text("rsnow", a.restart ? (left > 0 ? `Warning players about a restart at ${hm.format(new Date(a.restart * 1000))}, in ${dur(left)} (their own clock shows their local time).`
+  text("rsnow", a.restart ? (left > 0 ? `Warning players about a restart at ${hm.format(new Date(a.restart * 1000))}, in ${inMin(left)} (their own clock shows their local time).`
                                      : `The restart time (${hm.format(new Date(a.restart * 1000))}) has passed. Restart the server, or cancel the warning.`) : "No restart planned.");
   $("rsnow").className = "small " + (a.restart ? "warn" : "muted");
-  $("rs-cancel").hidden = !a.restart; text("rs-set", a.restart ? "Change time" : "Warn players");
+  $("rs-cancel").hidden = !a.restart; text("rs-set", a.restart ? "Move the warning" : "Warn players");
+  if (a.restart && left > 0 && document.activeElement !== $("rs-min") && !$("rs-min").dataset.touched) {
+    const opts = [...$("rs-min").options].map(o => +o.value), m = left / 60;
+    $("rs-min").value = String(opts.reduce((b, o) => Math.abs(o - m) < Math.abs(b - m) ? o : b, opts[0]));
+  }
 }
 
 function render(d) {
@@ -1090,6 +1106,7 @@ function render(d) {
   if (s.has_mod === false && !downSince) {
     $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").dataset.label || "x";
     if ($("dl").textContent !== "No mod in this server build") $("dl").textContent = "No mod in this server build";
+    $("inv-send").hidden = true;
     text("dl-done", "This copy of the server was built without the mod, so there's nothing to send yet. Start the official server (Server → Start or update) and the download appears here.");
   }
   $("remote-pill").hidden = !s.remote_admin;
@@ -1105,10 +1122,10 @@ function render(d) {
   mc.className = "pill " + (down ? "bad" : srvIssues ? "warn" : "");
   const rsAt = d.announce && d.announce.restart, rsLeft = rsAt ? rsAt - Date.now() / 1000 : 0;
   $("rs-pill").hidden = !rsAt;
-  if (rsAt) { put("rs-pill", `${I.warn} ${rsLeft > 0 ? `Restart at ${hm.format(new Date(rsAt * 1000))} · in ${dur(rsLeft)}` : "Restart time has passed"}`); $("rs-pill").title = "Players are being warned. Change or cancel it in Messages."; }
-  put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} Online · ${srvIssues} to fix` : rsAt && rsLeft > 0 ? `${I.warn} Restart in ${dur(rsLeft)}` : `<span class="dot"></span>Online`);
+  if (rsAt) { put("rs-pill", `${I.warn} ${rsLeft > 0 ? `Restart at ${hm.format(new Date(rsAt * 1000))} · in ${inMin(rsLeft)}` : "Restart time has passed"}`); $("rs-pill").title = "Players are being warned. Change or cancel it in Messages."; }
+  put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} Online · ${srvIssues} to fix` : rsAt && rsLeft > 0 ? `${I.warn} Restart in ${inMin(rsLeft)}` : `<span class="dot"></span>Online`);
   if (!down && !srvIssues && rsAt) { mc.className = "pill warn"; mc.href = "#messages/h-rs"; }
-  mc.href = srvIssues ? "#overview" : "#server";
+  if (!(rsAt && !srvIssues && !down)) mc.href = srvIssues ? "#overview" : "#server";
   badge("nb-players", d.online.length, `${d.online.length} online now`);
   badge("nb-matches", playing, `${playing} live now`);
   badge("nb-messages", d.announce && (d.announce.news || d.announce.restart) ? "on" : 0, "a message or restart warning is active");
@@ -1175,7 +1192,9 @@ function indexNames(players) {
 let linkN = 0;
 const linkNames = t => nameRe ? esc(t).replace(nameRe, n => pname(n, nameIdx.get(n), "fd-" + nameIdx.get(n) + "-" + (linkN++ % 1000)).replace(nm(n), n)) : nm(t);
 function feedHtml(items, grouped) {
-  const row = f => `<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${hm.format(new Date(f.t * 1000))}</time><span class="ico k-${esc(f.kind)}" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="t-${esc(f.kind)}">${linkNames(f.text)}</span></li>`;
+  const tl = t => { const d = new Date(t * 1000); if (grouped || d.toDateString() === new Date().toDateString()) return hm.format(d);
+    return (dayLabel(t) === "Yesterday" ? "Yesterday" : dShort.format(d)) + ", " + hm.format(d); };
+  const row = f => `<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${tl(f.t)}</time><span class="ico k-${esc(f.kind)}" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="t-${esc(f.kind)}">${linkNames(f.text)}</span></li>`;
   if (!grouped) return `<ul class="feed">${items.map(row).join("")}</ul>`;
   const groups = [];
   for (const f of items) { const day = dayLabel(f.t); if (!groups.length || groups[groups.length - 1].day !== day) groups.push({day, rows: []}); groups[groups.length - 1].rows.push(row(f)); }
@@ -1241,9 +1260,10 @@ function renderOverview(d, r, pn, playing, ready) {
             : st(r.ok && !r.neutral, !r.ok, r.ok ? (r.neutral ? "Friends can reach it on " + esc(r.short.replace(/^Friends use /, "")) : "Friends can reach it from anywhere") : "Friends outside your home can't reach it yet",
          r.ok ? (r.neutral && /Home network/.test(r.short) ? `Friends on your Wi-Fi can join. For friends elsewhere, <a href="${FAQ_FAR}">use Tailscale</a>.` : "The mod you send already knows the address.")
               : `${s.cgnat ? "Your internet provider shares one address between homes (CGNAT). " : "Your router hasn't opened the ports. "}<a href="#server/h-net">See how to fix it</a>, or invite friends on your Wi-Fi for now.`)) +
+      (!joined && s.has_mod === false ? st(false, true, "Get the mod first", "This copy of the server was built without the mod, so there's nothing to send yet. Start the official server and the mod comes with it.", `<a href="#server/h-cmd">Show the start command</a>`) :
       st(joined > 0, false, joined ? `${joined === 1 ? "1 friend has" : joined + " friends have"} joined` : dl ? "Someone downloaded the mod" : "Send friends the mod",
          joined ? andList(d.players.slice(0, 4).map(p => nm(p.name))) + (joined > 4 ? ` and ${joined - 4} more` : "") + "." : dl ? "They appear here as soon as they start PES 2021 and open Quick Match." : "One file, sent once. They appear here within seconds of starting PES 2021.",
-         joined ? "" : `<a class="dl" style="padding:7px 14px;font-size:14px" href="#invite">Invite friends</a>`) +
+         joined ? "" : `<a class="dl" style="padding:7px 14px;font-size:14px" href="#invite">Invite friends</a>`)) +
       st(false, false, "Play the first match", "A match starts when two friends choose Quick Match at the same time. Results, charts and the league table fill in from there."));
   }
 
@@ -1311,7 +1331,7 @@ function renderPlayers(d) {
           : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
       <td class="num hide-lg">${p.rating ?? "–"}</td><td class="num hide-sm">${p.played}</td><td class="num hide-sm">${p.won}</td><td class="num hide-sm">${p.drawn}</td><td class="num hide-sm">${p.lost}</td>
       <td class="num hide-md">${p.played ? signed(gd(p)) : "–"}</td><td class="num"><b>${pts(p)}</b></td><td class="hide-lg">${formHtml(formOf(d.results, p.pid))}</td>
-      <td class="act">${o ? `<button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button>` : ""}</td></tr>`; }).join("") +
+      <td class="act"><button type="button" class="small needs-server" data-dm="${p.pid}" data-key="dm-${p.pid}" aria-label="Message ${esc(p.name)}">Message</button>${o ? `<button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button>` : ""}</td></tr>`; }).join("") +
     `</tbody></table></div>`);
 }
 
@@ -1432,9 +1452,9 @@ async function loadPlayer() {
     `<h3>Matches</h3>` + (ms.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${pname(m.opp, m.oppPid, "pm-" + m.r.id)}${m.r.reason ? ' <span class="pill neutral tag">abandoned</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (ms.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${ms.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
     (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true) : "");
-  $("sh-f").innerHTML = `<button type="button" class="needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
-      `<span class="small muted" style="flex:1;min-width:10em">${p.online ? "Kick disconnects them now; they can come back." : "Delete removes their name, rating and table row; results stay."}</span>` +
-      `<button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button>`;
+  $("sh-f").innerHTML = `<button type="button" class="primary needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
+      `<span class="small muted" style="flex:1;min-width:10em">${p.online ? "Kick disconnects them now; they can come back." : "The message waits until they next open an online mode."}</span>`;
+  $("sh-b").insertAdjacentHTML("beforeend", `<h3>Remove this player</h3><div class="dmrow"><span class="grow small muted">Deletes their name, rating and table row; past results stay. If they play again, the game asks them for a name like on their first visit.</span><button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button></div>`);
 }
 function cachedPlayer(pid) {
   const c = last && last.players.find(x => x.pid === pid);
@@ -1610,10 +1630,11 @@ async function loadGames(force, focusMsg, focusKey) {
   const rows = need && done.length >= 1
     ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}<details class="pcready" data-key="pc-ready" style="margin-top:8px"><summary>${I.ok} ${done.length} other ${done.length === 1 ? "copy is" : "copies are"} ${done.some(skipped) ? "ready or skipped" : "ready"}</summary><div class="games">${done.map(gameRow).join("")}</div></details>`
     : moreTodo.length ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}` : `<div class="games">${gs.map(gameRow).join("")}</div>`;
-  const html = need === 0 && !Object.keys(rowMsg).length && !gs.some(g => justMarked.has(g.path))
+  let html = need === 0 && !Object.keys(rowMsg).length && !gs.some(g => justMarked.has(g.path))
     ? `<details class="pcready${okCnt ? "" : " none-ready"}" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this computer is ready to play (${plural(gs.length, "copy", "copies")})` : `${okCnt ? `PES 2021 on this computer: ${okCnt} ready, ${gs.length - okCnt} skipped` : "PES 2021 on this computer: skipped (set it up any time)"}`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
         : `${gs.length > 1 ? (need === gs.length ? `All ${need} copies need setup` : `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup`) : (gs[0].mod === "ours" ? "One step left" : "Not set up yet")}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
+  if (pcError) html = html.replace(/<p class="pc-intro">[\s\S]*?<\/p>/, "");   // its "use the button" advice doesn't apply
   put("games", (pcError ? `<div class="banner remote" style="margin:0 0 8px">${I.warn} <b>Installing isn't possible with this copy of the server:</b> it was built without the mod. <a href="#server/h-cmd">Start the official server</a> to set up PES 2021 here and to give friends the mod.</div>` : "") + html, force);
   if (pcError) $("games").querySelectorAll('[data-act="install"], [data-act="switch"]').forEach(b => b.setAttribute("aria-disabled", "true"));
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }
@@ -1699,6 +1720,10 @@ document.addEventListener("click", async e => {
   if (ct) return copyText(ct.dataset.copytext, ct, ct.parentElement && ct.parentElement.querySelector("code"), "Copy", ct.dataset.copied || "Copied");
   const a = e.target.closest('a[href^="#"]');
   if (a && a.getAttribute("href") === location.hash) { e.preventDefault(); route(true); return; }   // same link again: still jump
+  const ru = e.target.closest("[data-reuse]");
+  if (ru) { const h = lastAnnounce && lastAnnounce.history[+ru.dataset.reuse]; if (!h) return;
+    if (($("msg-title").value.trim() || $("msg-body").value.trim()) && await ask({title: "Replace what you wrote?", body: "The earlier message replaces the title and message in the form.", ok: "Replace"}) === null) return;
+    $("msg-title").value = h.title; $("msg-body").value = h.body; msgCount(); $("msg-body").focus(); return; }
   const tp = e.target.closest("[data-tpl]");
   if (tp) return useTemplate(tp.dataset.tpl);
   const un = e.target.closest("[data-untell]");
@@ -1822,7 +1847,7 @@ document.querySelector(".side").addEventListener("scroll", navFade, {passive: tr
 addEventListener("scroll", () => document.querySelector("header.top").classList.toggle("scrolled", scrollY > 4), {passive: true}); addEventListener("resize", navFade);
 
 async function msgCall(path, body, done) {
-  try { renderMsg(await api(path, {method: "POST", body: JSON.stringify(body)})); toast(done); return true; }
+  try { const a = await api(path, {method: "POST", body: JSON.stringify(body)}); renderMsg(a); if (last) { last.announce = a; render(last); } toast(done); refreshNow(); return true; }
   catch (err) { if (err.status === 401) { signedOut(); return false; }
     toast(err.message === "too long" ? "That's too long for the game's message box. Shorten the message (non-Latin letters take more room)."
           : err.status === 400 ? "Write a title and a message first." : "Couldn't reach the server. Try again.", true); return false; }
@@ -1879,10 +1904,11 @@ $("dmform").onsubmit = async e => {
   if (!title || !body) { toast("Write a title and a message first.", true); return (title ? $("dm-body") : $("dm-title")).focus(); }
   const waiting = lastAnnounce && (lastAnnounce.personal || []).find(m => m.pid === pid);
   if (waiting && await ask({title: `Replace the message ${who} hasn't seen yet?`, body: `“${waiting.title}” is still waiting. They only get one at a time.`, ok: "Replace it"}) === null) return;
-  if (await msgCall("/admin/api/message/player", {pid, title, body}, `Sent. ${who} sees it the next time they open an online mode.`)) { $("dm-title").value = ""; $("dm-body").value = ""; dmCount(); }
+  if (await msgCall("/admin/api/message/player", {pid, title, body}, `Sent. ${who} sees it the next time they open an online mode; this page shows when they have.`)) { $("dm-title").value = ""; $("dm-body").value = ""; dmCount(); }
 };
 $("msg-clear").onclick = async () => { if (await ask({title: "Remove the message?", body: "Players stop seeing it in the game.", ok: "Remove", danger: true}) !== null) msgCall("/admin/api/message", {clear: true}, "Message removed."); };
-$("rsform").onsubmit = e => { e.preventDefault(); msgCall("/admin/api/restart", {minutes: +$("rs-min").value}, "Restart warning set."); };
+$("rs-min").addEventListener("change", () => { $("rs-min").dataset.touched = "1"; });
+$("rsform").onsubmit = e => { delete $("rs-min").dataset.touched; e.preventDefault(); msgCall("/admin/api/restart", {minutes: +$("rs-min").value}, "Restart warning set."); };
 $("rs-cancel").onclick = () => msgCall("/admin/api/restart", {minutes: 0}, "Restart warning cancelled.");
 
 $("lf").onsubmit = async e => {
