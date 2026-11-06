@@ -79,6 +79,7 @@
   .main { min-width:0; padding:0 28px 40px; }
   header.top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:14px 0; position:sticky; top:0; z-index:15; background:var(--bg); }
   header.top .grow { flex:1; }
+  header.top.scrolled { box-shadow:0 1px 0 var(--line), 0 6px 12px -8px rgba(0,0,0,.35); }
   header.top .mbrand { display:none; font-weight:800; font-size:16px; }
   #reach { max-width:min(36ch, 60vw); } #reach .rt { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
   #reach:hover, #reach:focus-visible { text-decoration:underline dotted; text-underline-offset:3px; }
@@ -106,6 +107,14 @@
     .side.fade-l.fade-r { -webkit-mask-image:linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image:linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
   }
   @media (min-width: 961px) { .m-only { display:none !important; } }
+  @media (min-width: 961px) and (max-width: 1200px) {
+    .shell { grid-template-columns:68px minmax(0,1fr); background:linear-gradient(to right, var(--side) 67px, var(--line) 67px 68px, transparent 68px); }
+    .side { padding:14px 8px; } .brand { padding:2px 0 14px; justify-content:center; } .brand > div { display:none; }
+    .nav > a, .sec > a { justify-content:center; padding:10px 0; position:relative; }
+    .nav .lbl { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+    .nav .badge { position:absolute; top:1px; right:2px; margin:0; font-size:10px; padding:0 5px; min-width:16px; line-height:16px; }
+    .main { padding:0 22px 40px; }
+  }
   @media (max-width: 760px) {
     .side, .side.fade-l, .side.fade-r { position:fixed; top:auto; bottom:0; left:0; right:0; z-index:30; padding:4px 4px calc(4px + env(safe-area-inset-bottom)); border-bottom:0; border-top:1px solid var(--line); overflow:visible; -webkit-mask-image:none; mask-image:none; box-shadow:0 -4px 16px rgba(0,0,0,.06); }
     .nav { width:100%; }
@@ -134,7 +143,7 @@
   .banner.down b { color:var(--live); }
   .banner.remote { background:var(--warnbg); color:var(--fg); border:1px solid var(--warn); }
   body.stale .needs-server { pointer-events:none; opacity:.55; filter:grayscale(1); }
-  body.stale .tiles, body.stale .chart, body.stale #ov-online, body.stale #ov-live, body.stale #live, body.stale #players { filter:grayscale(1); opacity:.6; }
+  body.stale .tiles, body.stale .chart, body.stale #ov-online, body.stale #ov-live, body.stale #live, body.stale #plist { filter:grayscale(1); opacity:.6; }
 
   /* cards and grids */
   .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:16px; min-width:0; }
@@ -192,7 +201,7 @@
   .seg button[aria-pressed="true"] { background:var(--accent2); color:var(--accent); font-weight:700; }
   .chart { position:relative; }
   .plot { position:relative; height:168px; margin:0 14px 0 30px; }
-  .chart:focus-visible { outline:3px solid var(--accent); outline-offset:6px; border-radius:6px; }
+  .chart:focus-visible { outline:3px solid var(--accent); outline-offset:2px; border-radius:6px; }
   .gl { position:absolute; left:0; right:0; border-top:1px solid var(--line); }
   .gl span { position:absolute; right:calc(100% + 6px); top:-8px; font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums; }
   .gl.base { border-top-color:var(--field); }
@@ -201,13 +210,16 @@
   .bars .c i { display:block; width:100%; max-width:30px; background:var(--bar); border-radius:4px 4px 0 0; min-height:0; }
   .bars .c.zero i { height:0 !important; }
   .bars .c.today i { opacity:.55; }
-  .bars .c:hover i, .bars .c.on i { filter:brightness(1.15); }
-  .bars .c:hover::before, .bars .c.on::before { content:""; position:absolute; inset:0; background:var(--hover); border-radius:4px; z-index:-1; }
+  .bars .c { cursor:pointer; }
+  .bars.has-on .c:not(.on) i { opacity:.4; }
+  .bars .c.on i { opacity:1; box-shadow:0 0 0 2px var(--card), 0 0 0 4px var(--fg); }
+  @media (hover: hover) { .bars:not(.has-on) .c:hover i { filter:brightness(1.15); } }
+  .readout { min-height:24px; font-size:13px; color:var(--muted); margin:0 0 6px 30px; display:flex; flex-wrap:wrap; gap:2px 8px; align-items:baseline; }
+  .readout.on { color:var(--fg); }
+  .readout b { font-weight:700; }
+  .readout b::after { content:" ·"; font-weight:400; color:var(--muted); }
   .xl { display:flex; gap:2px; margin:4px 14px 0 30px; }
   .xl span { flex:1; text-align:center; font-size:11px; color:var(--muted); white-space:nowrap; min-width:0; overflow:visible; }
-  .tip.below { transform:translate(-50%, 0); }
-  .tip { position:absolute; z-index:5; pointer-events:none; background:var(--fg); color:var(--bg); border-radius:8px; padding:6px 10px; font-size:12px; line-height:1.4; white-space:nowrap; transform:translate(-50%, calc(-100% - 8px)); box-shadow:0 4px 12px rgba(0,0,0,.2); }
-  .tip b { display:block; font-size:13px; }
   .chart-sum { font-size:13px; color:var(--muted); margin:10px 0 0; }
   .chart-empty { height:168px; display:grid; place-items:center; color:var(--muted); font-size:14px; border:1px dashed var(--line); border-radius:10px; text-align:center; padding:12px; }
   table.data { margin-top:4px; }
@@ -222,7 +234,7 @@
   th button.sort:hover { color:var(--fg); }
   th[aria-sort] { color:var(--fg); }
   td { padding:9px 8px; border-bottom:1px solid var(--line); overflow-wrap:break-word; vertical-align:middle; }
-  tbody tr:hover td { background:var(--hover); }
+  @media (hover: hover) { tbody tr:hover td { background:var(--hover); } }
   tr:last-child td { border-bottom:0; }
   td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
   td.name { font-weight:600; min-width:9em; max-width:20em; }
@@ -235,6 +247,7 @@
   .form { display:inline-flex; gap:3px; }
   .form span { width:19px; height:19px; border-radius:4px; font-size:11px; font-weight:800; display:grid; place-items:center; background:var(--code); color:var(--muted); }
   .form .W { background:var(--accent-fill); color:var(--on-accent); }
+  .form .D { background:transparent; border:1px solid var(--field); color:var(--fg); }
   .form .L { background:var(--live); color:var(--on-live); }
   .who { display:inline-flex; align-items:center; gap:8px; }
   .av { width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:800; letter-spacing:.02em; background:var(--code); color:var(--muted); flex:none; position:relative; }
@@ -278,7 +291,9 @@
   .stuck { display:block; margin-top:4px; overflow-wrap:anywhere; }
   @media (max-width: 420px) { .match { gap:4px 8px; padding:10px; } .score { font-size:18px; } }
   .finished { font-size:14px; color:var(--muted); margin:8px 0 0; overflow-wrap:anywhere; }
-  table.res { table-layout:fixed; } table.res col.w { width:150px; } table.res col.s { width:110px; } table.res col.l { width:110px; }
+  table.res { table-layout:fixed; } table.res col.w { width:150px; } table.res col.s { width:110px; } table.res col.hm, table.res col.aw { width:30%; }
+  table.res td { vertical-align:baseline; }
+  .len-m { display:none; }
   @media (max-width: 760px) { table.res col.l { width:0; } }
   td.sc .pill { display:block; width:fit-content; margin:3px auto 0; font-weight:600; }
   @media (max-width: 520px) {
@@ -287,6 +302,7 @@
     table.res tr:last-child { border-bottom:0; }
     table.res td { display:block; padding:0; border:0; }
     table.res td.when { grid-column:1 / -1; }
+    table.res td.hide-md { display:none; } .len-m { display:inline; }
     td.when .t { display:inline !important; }
     td.h .pname, td.a .pname { max-width:100%; }
   }
@@ -313,7 +329,7 @@
   .feed .ico.k-goal, .feed .ico.k-result { background:var(--accent2); color:var(--accent); }
   .feed .ico.k-warn { background:var(--warnbg); color:var(--warn); }
   .feed .ico.k-match { background:var(--accent2); color:var(--accent); }
-  .t-result { color:var(--accent); } .t-warn { color:var(--warn); }
+  .feed .ico.k-result, .feed .ico.k-goal { box-shadow:inset 0 0 0 1px var(--accent); }
   .feed .pname { font-weight:600; }
   h3.day { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:14px 0 2px; }
   h3.day:first-child { margin-top:0; }
@@ -390,6 +406,7 @@
   dialog.sheet .sb { padding:16px 20px 20px; }
   dialog.sheet .sf { position:sticky; bottom:0; background:var(--card); border-top:1px solid var(--line); padding:12px 20px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   dialog.sheet .sf:empty { display:none; }
+  dialog.sheet { max-width:100vw; }
   @media (max-width: 520px) { dialog.sheet { width:100vw; border:0; } }
   .switch { display:flex; align-items:center; gap:12px; }
   .switch .lbl { flex:1; font-weight:600; }
@@ -469,15 +486,15 @@
   <aside class="side">
     <div class="brand"><span class="logo" aria-hidden="true">⚽</span><div>PES 2021 Server<small>Admin</small></div></div>
     <nav class="nav" aria-label="Sections">
-      <a href="#overview" data-view="overview"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2.5h5v5H2zM9 2.5h5v3H9zM9 7.5h5v6H9zM2 9.5h5v4H2z"/></svg>Overview</a>
-      <a href="#players" data-view="players"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"/></svg>Players<span class="badge ok" id="nb-players" hidden></span></a>
-      <a href="#matches" data-view="matches"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 5.2l2.4 1.7-.9 2.8h-3l-.9-2.8z"/></svg>Matches<span class="badge live" id="nb-matches" hidden></span></a>
-      <a href="#activity" data-view="activity"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg>Activity</a>
+      <a href="#overview" data-view="overview"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2.5h5v5H2zM9 2.5h5v3H9zM9 7.5h5v6H9zM2 9.5h5v4H2z"/></svg><span class="lbl">Overview</span></a>
+      <a href="#players" data-view="players"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"/></svg><span class="lbl">Players</span><span class="badge ok" id="nb-players" hidden></span></a>
+      <a href="#matches" data-view="matches"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 5.2l2.4 1.7-.9 2.8h-3l-.9-2.8z"/></svg><span class="lbl">Matches</span><span class="badge live" id="nb-matches" hidden></span></a>
+      <a href="#activity" data-view="activity"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg><span class="lbl">Activity</span></a>
       <button type="button" class="more-btn" id="nav-more" aria-expanded="false" aria-controls="nav-sec"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="12.5" cy="8" r="1" fill="currentColor"/></svg>More<span class="badge warn" id="nb-more" hidden></span></button>
       <div class="sec" id="nav-sec">
-      <a href="#messages" data-view="messages"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H6l-3 2.5V11H2z"/></svg>Messages<span class="badge ok" id="nb-messages" hidden></span></a>
-      <a href="#invite" data-view="invite"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4 1.2 0 2.3.4 3 1.2M12.5 8.5v5M10 11h5"/></svg><span class="lg">Invite friends</span><span class="st">Invite</span></a>
-      <a href="#server" data-view="server"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.01M4.5 11.25h.01"/></svg>Server<span class="badge warn" id="nb-server" hidden></span></a>
+      <a href="#messages" data-view="messages"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H6l-3 2.5V11H2z"/></svg><span class="lbl">Messages</span><span class="badge ok" id="nb-messages" hidden></span></a>
+      <a href="#invite" data-view="invite"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4 1.2 0 2.3.4 3 1.2M12.5 8.5v5M10 11h5"/></svg><span class="lbl"><span class="lg">Invite friends</span><span class="st">Invite</span></span></a>
+      <a href="#server" data-view="server"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.01M4.5 11.25h.01"/></svg><span class="lbl">Server</span><span class="badge warn" id="nb-server" hidden></span></a>
         <button type="button" class="so-m" id="logout-m"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3H3v10h3M7 8h7M11 5l3 3-3 3"/></svg>Sign out</button>
       </div>
     </nav>
@@ -528,6 +545,7 @@
           <section class="card" id="c-ovtop" aria-labelledby="h-ovtop"><div class="card-h"><h2 id="h-ovtop">Top of the table</h2><span class="grow"></span><a href="#players">Full table →</a></div><div id="ov-top"><div class="skel"></div></div></section>
         </div>
       </div>
+      <ul class="attn" id="ov-info" aria-label="Tips" hidden style="margin-top:16px"></ul>
     </section>
 
     <!-- PLAYERS -->
@@ -541,7 +559,7 @@
           <div class="chips" role="group" aria-label="Show" id="p-filter"></div>
           <span class="grow"></span><span class="count" id="p-count" aria-live="polite"></span>
         </div>
-        <div id="players"><div class="skel"></div><div class="skel short"></div></div>
+        <div id="plist"><div class="skel"></div><div class="skel short"></div></div>
         <p class="note" id="p-note">Select a name for their matches, head-to-head record and the Delete option. Kick disconnects someone now; they can reconnect and see your reason when they do. There's no ban yet: anyone who has the mod file or your server's address can join.</p>
       </section>
     </section>
@@ -667,7 +685,7 @@
   </form>
 </dialog>
 <dialog id="sheet" class="sheet" aria-labelledby="sh-t">
-  <div class="sh"><span id="sh-av"></span><h2 id="sh-t"></h2><button type="button" id="sh-x" aria-label="Close">Close</button></div>
+  <div class="sh"><button type="button" id="sh-back" class="small" hidden></button><span id="sh-av"></span><h2 id="sh-t"></h2><button type="button" id="sh-x" aria-label="Close">Close</button></div>
   <div class="sb" id="sh-b"></div>
   <div class="sf" id="sh-f"></div>
 </dialog>
@@ -693,6 +711,7 @@ function setTheme(light) {
 }
 document.querySelectorAll(".theme-btn").forEach(b => b.addEventListener("click", () => setTheme(document.documentElement.dataset.theme !== "light")));
 paintThemeButtons();
+document.querySelectorAll(".nav a[data-view]").forEach(a => { a.title = {invite: "Invite friends"}[a.dataset.view] || a.textContent.replace(/\d+|●|On/g, "").trim(); });
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store = {
   get() { try { return localStorage.getItem("pes-admin-token") || sessionStorage.getItem("pes-admin-token") || ""; } catch (e) { return ""; } },
@@ -916,44 +935,50 @@ function barChart(id, bars, summary, desc) {
   const max = Math.max(0, ...bars.map(b => b.v));
   if (!max) return put(id, `<div class="chart-empty">${esc(summary)}</div>`);
   const {top, step} = niceScale(max), grid = []; for (let g = 0; g <= top; g += step) grid.push(g);
-  const html = `<div class="chart" tabindex="0" role="group" data-key="chart-${id}" aria-label="${esc(desc)} Use the left and right arrow keys to read each bar."><div class="plot" aria-hidden="true">` +
+  const hint = matchMedia("(hover: hover)").matches ? "Point at a bar for its numbers." : "Tap a bar for its numbers.";
+  const html = `<div class="chart" tabindex="0" role="group" data-key="chart-${id}" aria-label="${esc(desc)} Use the left and right arrow keys to read each bar${bars.some(b => b.day) ? ", Enter to list that day's matches" : ""}.">` +
+    `<div class="readout" data-hint="${esc(hint)}">${esc(hint)}</div><div class="plot" aria-hidden="true">` +
     grid.map(g => `<div class="gl${g ? "" : " base"}" style="top:${100 - g / top * 100}%"><span>${g}</span></div>`).join("") +
-    `<div class="bars">` + bars.map((b, i) => `<div class="c${b.v ? "" : " zero"} ${b.cls || ""}" data-i="${i}" data-tip="${esc(b.tip)}"><i style="height:${b.v / top * 100}%"></i></div>`).join("") +
+    `<div class="bars">` + bars.map((b, i) => `<div class="c${b.v ? "" : " zero"} ${b.cls || ""}" data-i="${i}" data-v="${b.v}"${b.day ? ` data-day="${b.day}"` : ""} data-tip="${esc(b.tip)}"><i style="height:${b.v / top * 100}%"></i></div>`).join("") +
     `</div></div><div class="xl" aria-hidden="true">` + bars.map(b => `<span>${esc(b.x)}</span>`).join("") + `</div><span class="sr" aria-live="polite"></span></div>` +
     `<p class="chart-sum">${summary}</p>`;
   put(id, html);
 }
 function showTip(chart, c) {
   chart.querySelectorAll(".c.on").forEach(x => x.classList.remove("on"));
-  if (!c) { chart.querySelector(".tip")?.remove(); return; }
+  chart.querySelector(".bars").classList.toggle("has-on", !!c);
+  const ro = chart.querySelector(".readout");
+  ro.classList.toggle("on", !!c);
+  if (!c) { ro.textContent = ro.dataset.hint; delete chart.dataset.sticky; return; }
   c.classList.add("on");
-  let tip = chart.querySelector(".tip"); if (!tip) { tip = document.createElement("div"); tip.className = "tip"; tip.setAttribute("aria-hidden", "true"); chart.appendChild(tip); }
-  tip.innerHTML = c.dataset.tip;
-  const cr = chart.getBoundingClientRect(), br = c.getBoundingClientRect(), bar = c.querySelector("i").getBoundingClientRect();
-  const w = tip.offsetWidth, h = tip.offsetHeight;
-  const x = Math.max(w / 2, Math.min(cr.width - w / 2, br.left + br.width / 2 - cr.left));
-  const barTop = Math.min(bar.top, br.bottom - 4) - cr.top, side = barTop - h - 8 < 0;   // no room above: put it beside the bar
-  tip.classList.toggle("below", side);
-  let sx = br.right - cr.left + 6 + w / 2;
-  if (sx + w / 2 > cr.width) sx = br.left - cr.left - 6 - w / 2;
-  tip.style.left = (side ? sx : x) + "px"; tip.style.top = (side ? Math.max(0, barTop) : barTop) + "px";
+  ro.innerHTML = c.dataset.tip + (c.dataset.day && +c.dataset.v ? ` <button type="button" class="linkbtn" data-dayfilter="${c.dataset.day}">See these matches</button>` : "");
 }
 document.addEventListener("pointerover", e => {
-  const c = e.target.closest(".bars .c"), chart = c && c.closest(".chart");
-  document.querySelectorAll(".chart").forEach(ch => { if (ch !== chart && ch !== document.activeElement) showTip(ch, null); });
-  if (c) showTip(chart, c);
+  if (e.pointerType === "touch") return;
+  const c = e.target.closest(".bars .c"), inChart = e.target.closest(".chart");
+  document.querySelectorAll(".chart").forEach(ch => { if (ch !== inChart && ch !== document.activeElement && !ch.dataset.sticky) showTip(ch, null); });
+  if (c) showTip(inChart, c);
 });
-document.addEventListener("pointerleave", () => document.querySelectorAll(".chart").forEach(ch => { if (ch !== document.activeElement) showTip(ch, null); }));
+document.addEventListener("click", e => {             // a tap or click keeps a bar selected (touch has no hover)
+  const c = e.target.closest(".bars .c"), inChart = e.target.closest(".chart");
+  document.querySelectorAll(".chart").forEach(ch => { if (ch !== inChart && ch.dataset.sticky) showTip(ch, null); });
+  if (c) { showTip(inChart, c); inChart.dataset.sticky = "1"; }
+});
 document.addEventListener("keydown", e => {
   const chart = e.target.closest && e.target.closest(".chart");
-  if (!chart || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
-  e.preventDefault();
+  if (!chart || e.target !== chart) return;
   const cols = [...chart.querySelectorAll(".bars .c")], cur = cols.findIndex(c => c.classList.contains("on"));
+  if (e.key === "Enter" && cur >= 0 && cols[cur].dataset.day && +cols[cur].dataset.v) { e.preventDefault(); return dayFilter(+cols[cur].dataset.day); }
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+  e.preventDefault();
   const i = e.key === "Home" ? 0 : e.key === "End" ? cols.length - 1 : Math.max(0, Math.min(cols.length - 1, (cur < 0 ? cols.length : cur) + (e.key === "ArrowLeft" ? -1 : 1)));
-  showTip(chart, cols[i]);
+  showTip(chart, cols[i]); chart.dataset.sticky = "1";
   chart.querySelector(".sr").textContent = cols[i].dataset.tip.replace(/<b>(.*?)<\/b>/, "$1: ").replace(/<[^>]+>/g, "");
 });
-document.addEventListener("focusout", e => { if (e.target.classList && e.target.classList.contains("chart")) showTip(e.target, null); });
+function dayFilter(ts) {
+  ui.rr = "d" + ts; ui.rq = ""; ui.rN = 25; $("r-q").value = "";
+  location.hash = "#matches/h-results"; loadResults(true);
+}
 
 function charts(d) {
   const hist = d.stats ? d.stats.history : [], n = ui.range, today = new Date(); today.setHours(0, 0, 0, 0);
@@ -971,7 +996,7 @@ function charts(d) {
   const total = days.reduce((s, x) => s + x.m, 0), goals = days.reduce((s, x) => s + x.g, 0);
   const best = days.reduce((b, x) => x.m > b.m ? x : b, days[0]);
   barChart("chart-days", days.map((x, i) => ({x: i === n - 1 ? "Today" : (n - 1 - i) % step === 0 && i < n - 2 ? (n <= 7 ? wdShort.format(x.d) : dShort.format(x.d)) : "", v: x.m, cls: i === n - 1 ? "today" : "",
-      tip: `<b>${i === n - 1 ? "Today (so far)" : dLong.format(x.d)}</b>${plural(x.m, "match", "matches")}${x.m ? ` · ${plural(x.g, "goal")}` : ""}${x.a ? ` · ${x.a} abandoned` : ""}`})),
+      day: x.d.getTime() / 1000, tip: `<b>${i === n - 1 ? "Today (so far)" : dLong.format(x.d)}</b>${plural(x.m, "match", "matches")}${x.m ? ` · ${plural(x.g, "goal")}` : ""}${x.a ? ` · ${x.a} abandoned` : ""}`})),
     total ? `${plural(total, "match", "matches")} and ${plural(goals, "goal")} in the last ${n} days. Busiest day: ${dLong.format(best.d)} (${best.m}). Today's bar is lighter because the day isn't over.` : `No matches in the last ${n} days.`,
     `Matches per day over the last ${n} days.`);
   const htot = hours.reduce((a, b) => a + b, 0), top = Math.max(...hours);
@@ -1033,6 +1058,7 @@ function render(d) {
   if (s.key) text("skey", "key " + s.key.replace(" ", ""));
   if (s.mod_sha256) { $("copy-sha").dataset.copytext = s.mod_sha256; text("ssha", s.mod_sha256.toUpperCase().match(/.{1,8}/g).join(" ")); }
   text("jp-note", s.link_home_only ? " (works on your Wi-Fi only)" : "");
+  if (s.has_mod === false && !pcError) { pcError = "This server was built without the mod."; if (ui.view === "server") loadGames(true); }
   if (s.has_mod === false && !downSince) {
     $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").dataset.label || "x";
     if ($("dl").textContent !== "No mod in this server build") $("dl").textContent = "No mod in this server build";
@@ -1071,7 +1097,7 @@ function render(d) {
 function badge(id, v, label) {
   if (downSince && (id === "nb-players" || id === "nb-matches")) v = 0;   // live counts aren't known while the server is silent
   const b = $(id); b.hidden = !v;
-  const t = v === "on" ? "On" : id === "nb-players" ? "● " + v : String(v);
+  const t = !v ? "" : v === "on" ? "On" : id === "nb-players" ? "● " + v : String(v);
   if (b.textContent !== t) { b.textContent = t; }
   b.setAttribute("aria-label", label); b.title = label;
 }
@@ -1161,10 +1187,12 @@ function renderOverview(d, r, pn, playing, ready) {
   const attn = [];
   if (!r.ok && !starting) attn.push(`<li><span>${I.warn} <b>Friends outside your home can't join yet.</b> ${s.cgnat ? "Your internet provider shares one address between homes (CGNAT)." : "Your router hasn't opened the ports."}</span><a href="#server/h-net">Fix it ${I.right}</a></li>`);
   let hintOff = false; try { hintOff = localStorage.getItem("pes-pc-hint") === "off"; } catch (e) {}
-  if (pn && lastGames.length && !hintOff && !starting) attn.push(`<li class="info"><span><b>Optional:</b> play on the server computer too. Its PES 2021 isn't set up for your server yet.</span><a href="#server/pc-h">Set it up ${I.right}</a><button type="button" class="linkbtn" data-hidepc="1" style="color:var(--muted)">Hide</button></li>`);
+  const info = [];
+  if (pn && lastGames.length && !hintOff && !starting) info.push(`<li class="info"><span><b>Optional:</b> play on the server computer too. Its PES 2021 isn't set up for your server yet.</span><a href="#server/pc-h">Set it up ${I.right}</a><button type="button" class="linkbtn" data-hidepc="1" style="color:var(--muted)">Hide</button></li>`);
   if (s.update) attn.push(`<li><span>${I.warn} <b>A newer server version is out</b> (${esc(s.update)}).</span><a href="#server/h-cmd">How to update ${I.right}</a></li>`);
   if (d.announce && d.announce.restart) attn.push(`<li class="info"><span>Players are being warned about a restart at <b>${hm.format(new Date(d.announce.restart * 1000))}</b>.</span><a href="#messages">Change ${I.right}</a></li>`);
   $("attn").hidden = !attn.length; put("attn", attn.join(""));
+  $("ov-info").hidden = !info.length || down; put("ov-info", info.join(""));
   text("ov-lead", starting ? "A few steps and your friends are playing." : "What's happening on your server right now.");
 
   // get started, until the first match
@@ -1192,7 +1220,11 @@ function renderOverview(d, r, pn, playing, ready) {
   const weekAgo = now - 7 * 86400, newPlayers = d.players.filter(p => p.created > weekAgo).length;
   const searcher = d.searching === 1 ? d.online.find(p => /search/i.test(p.status)) : null;
   $("tiles").hidden = fresh;
-  if (!fresh) put("tiles", `<div class="tiles t6">` +
+  if (!fresh && starting) put("tiles", `<div class="tiles">` +
+    tile("#players", ICON.online, "Online now", d.online.length, d.searching ? `${d.searching} looking for a match` : "") +
+    tile("#matches/h-live", ICON.match, "Live matches", playing, ready ? `${ready} getting ready` : "") +
+    tile("#players", ICON.users, "Players", d.players.length, newPlayers ? `${newPlayers} new this week` : "") + `</div>`);
+  else if (!fresh) put("tiles", `<div class="tiles t6">` +
     tile("#players", ICON.online, "Online now", d.online.length, d.searching ? `${d.searching} looking for a match` : d.online.length ? "nobody searching" : "", searcher ? ` title="${esc(searcher.name)} is looking for a match"` : "") +
     tile("#matches/h-live", ICON.match, "Live matches", playing, ready ? `${ready} getting ready` : "") +
     tile("#matches/h-results", ICON.cal, "Matches today", todayN, `${yN} yesterday`) +
@@ -1220,7 +1252,7 @@ function renderPlayers(d) {
   const onlineBy = new Map(d.online.map(p => [p.pid, p]));
   const none = !d.players.length;
   $("p-filter").closest(".toolbar").hidden = none; $("p-note").hidden = none;
-  if (none) return put("players", `<p class="empty">Nobody has joined yet. <a href="#invite">Invite friends</a>: they appear here within seconds of signing in.</p>`);
+  if (none) return put("plist", `<p class="empty">Nobody has joined yet. <a href="#invite">Invite friends</a>: they appear here within seconds of signing in.</p>`);
   const counts = {all: d.players.length, online: d.players.filter(p => p.online).length, idle: d.players.filter(p => !p.played).length};
   put("p-filter", [["all", "All"], ["online", "Online"], ["idle", "Not played yet"]].map(([k, l]) =>
     `<button type="button" data-pf="${k}" data-key="pf-${k}" aria-pressed="${ui.pf === k}">${l} <span class="n">${counts[k]}</span></button>`).join(""));
@@ -1231,9 +1263,9 @@ function renderPlayers(d) {
   list.sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * ui.dir || (rankOf.get(a.pid) || 1e9) - (rankOf.get(b.pid) || 1e9) || a.name.localeCompare(b.name); });
   text("p-count", list.length === d.players.length ? plural(list.length, "player") : `${list.length} of ${d.players.length}`);
   const SORTN = {rank: "rank", name: "name", rating: "rating", played: "matches played", won: "wins", drawn: "draws", lost: "losses", gd: "goal difference", pts: "points", seen: "status and last seen"};
-  const th = (k, label, cls, abbr) => `<th scope="col" class="${cls || ""}"${ui.sort === k ? ` aria-sort="${ui.dir > 0 ? "ascending" : "descending"}"` : ""}><button type="button" class="sort" data-sort="${k}" data-key="sort-${k}" aria-label="Sort by ${SORTN[k]}">${abbr ? `<abbr title="${abbr}">${label}</abbr>` : label}${ui.sort === k ? (ui.dir > 0 ? " ▲" : " ▼") : ""}</button></th>`;
-  if (!list.length) return put("players", `<p class="empty">No players match${ui.pq ? ` "${esc(ui.pq)}"` : ""}. <button type="button" class="linkbtn" data-clear="players">Show everyone</button></p>`);
-  put("players", `<div class="tablewrap"><table><caption class="sr">Players, sorted by ${esc(SORTN[ui.sort] || ui.sort)}</caption><thead><tr>` +
+  const th = (k, label, cls, abbr) => `<th scope="col" class="${cls || ""}"${ui.sort === k ? ` aria-sort="${ui.dir > 0 ? "ascending" : "descending"}"` : ""}><button type="button" class="sort" data-sort="${k}" data-key="sort-${k}" >${abbr ? `<abbr title="${abbr}">${label}</abbr>${label.length <= 3 ? `<span class="sr"> (${SORTN[k]})</span>` : ""}` : label}${ui.sort === k ? (ui.dir > 0 ? " ▲" : " ▼") : ""}</button></th>`;
+  if (!list.length) return put("plist", `<p class="empty">No players match${ui.pq ? ` "${esc(ui.pq)}"` : ""}. <button type="button" class="linkbtn" data-clear="players">Show everyone</button></p>`);
+  put("plist", `<div class="tablewrap"><table><caption class="sr">Players, sorted by ${esc(SORTN[ui.sort] || ui.sort)}</caption><thead><tr>` +
     th("rank", "#", "num") + th("name", "Player") + th("seen", "Status", "hide-md") + th("rating", "Rating", "num hide-lg", "The game's matchmaking rating. It doesn't change the table order.") +
     th("played", "P", "num hide-sm", "Played") + th("won", "W", "num hide-sm", "Won") + th("drawn", "D", "num hide-sm", "Drawn") + th("lost", "L", "num hide-sm", "Lost") +
     th("gd", "GD", "num hide-md", "Goal difference") + th("pts", "Pts", "num", "Points") + `<th scope="col" class="hide-lg"><span title="Last 5 results, newest on the right">Form</span></th>` +
@@ -1250,14 +1282,19 @@ function renderPlayers(d) {
 }
 
 const res = {data: null, key: "", busy: false};
+function untilOf(k) {
+  if (k[0] !== "d") return null;
+  const d = new Date(+k.slice(1) * 1000); d.setDate(d.getDate() + 1); return d.getTime() / 1000;
+}
 function sinceOf(k) {
   if (k === "all") return 0;
+  if (k[0] === "d") return +k.slice(1);
   const start = new Date(); start.setHours(0, 0, 0, 0);
   if (k !== "today") start.setDate(start.getDate() - (+k - 1));
   return start.getTime() / 1000;
 }
 async function loadResults(force) {
-  const body = {q: ui.rq, since: sinceOf(ui.rr), limit: ui.rN}, key = JSON.stringify(body);
+  const body = {q: ui.rq, since: sinceOf(ui.rr), until: untilOf(ui.rr), limit: ui.rN}, key = JSON.stringify(body);
   if (res.busy && !force) return;
   res.busy = true;
   try { const j = await api("/admin/api/results", {method: "POST", body: key}); res.data = j; res.key = key; }
@@ -1287,15 +1324,16 @@ function renderMatches(d, playing, ready, fromLoad) {
     tile("#matches/h-results", ICON.trophy, "Biggest win", big ? `${big.home_score}–${big.away_score}` : "–", big ? esc(big.home_score > big.away_score ? big.home_name : big.away_name) + " · " + dShort.format(new Date(big.ended * 1000)) : "") + `</div>`);
   put("live", liveHtml(d, now, false));
   if (!fromLoad) loadResults();
-  put("r-range", RRANGE.map(([k, l]) => `<button type="button" data-rr="${k}" data-key="rr-${k}" aria-pressed="${ui.rr === k}">${l}</button>`).join(""));
+  put("r-range", RRANGE.map(([k, l]) => `<button type="button" data-rr="${k}" data-key="rr-${k}" aria-pressed="${ui.rr === k}">${l}</button>`).join("") +
+    (ui.rr[0] === "d" ? `<button type="button" data-rr="all" data-key="rr-day" aria-pressed="true" aria-label="${esc(dLong.format(new Date(+ui.rr.slice(1) * 1000)))}: remove this filter">${esc(dLong.format(new Date(+ui.rr.slice(1) * 1000)))} ✕</button>` : ""));
   if (!res.data) return;
   const q = ui.rq, shownRs = res.data.rows, total = res.data.total;
   text("r-count", none ? "" : shownRs.length < total ? `Showing ${shownRs.length} of ${total}` : plural(total, "result"));
   const rs = {length: total};
   put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results ${q ? `with "${esc(ui.rq)}" ` : ""}${ui.rr !== "all" ? "in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
-    `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col><col class="s"><col><col class="l"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th><th scope="col" class="num hide-md">Length</th></tr></thead><tbody>` +
+    `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col class="hm"><col class="s"><col class="aw"><col class="l"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th><th scope="col" class="num hide-md">Length</th></tr></thead><tbody>` +
     shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
-      return `<tr><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time></td>
+      return `<tr><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}</td>
         <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.reason ? `<span class="pill neutral tag" title="Ended early (${esc(r.reason)}); counted with the score when it ended">abandoned</span>` : ""}</td>
         <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}</td><td class="num muted small hide-md">${r.started && r.ended > r.started ? Math.max(1, Math.round((r.ended - r.started) / 60)) + " min" : "–"}</td></tr>`; }).join("") +
     `</tbody></table></div>` +
@@ -1314,9 +1352,16 @@ function renderFeed(d) {
 }
 
 // ---- player panel -----------------------------------------------------------------------------------
-let sheetPid = null, sheetBack = null, sheetAll = false;
+let sheetPid = null, sheetBack = null, sheetAll = false, sheetStack = [];
+function paintBack() {
+  const prev = sheetStack[sheetStack.length - 1], p = prev != null && last && last.players.find(x => x.pid === prev);
+  $("sh-back").hidden = prev == null; $("sh-back").textContent = "← " + (p ? p.name : "Back");
+  $("sh-back").setAttribute("aria-label", "Back to " + (p ? p.name : "the previous player"));
+}
 async function openPlayer(pid, opener) {
+  if ($("sheet").open && sheetPid != null && sheetPid !== pid) sheetStack.push(sheetPid); else if (!$("sheet").open) sheetStack = [];
   sheetPid = pid; sheetAll = false; if (!$("sheet").open) sheetBack = opener || document.activeElement;   // h2h links keep the first opener
+  paintBack();
   const p0 = last && last.players.find(p => p.pid === pid);
   $("sh-t").textContent = p0 ? p0.name : "Player"; $("sh-av").innerHTML = p0 ? avatar(p0) : "";
   $("sh-b").innerHTML = `<div class="skel"></div><div class="skel short"></div><div class="skel"></div>`; $("sh-f").innerHTML = "";
@@ -1331,7 +1376,7 @@ async function loadPlayer() {
   catch (e) { if (e.status === 401) { $("sheet").close(); return signedOut(); }
     if (sheetPid === pid) $("sh-f").innerHTML = "";
     if (sheetPid === pid) $("sh-b").innerHTML = e.status === 404 ? `<p class="empty">This player was deleted.</p>`
-      : `<p class="empty">Couldn't load this player: the server isn't answering. This panel reloads by itself when it's back.</p><button type="button" data-sheetretry="1" style="margin-top:10px">Try again</button>`; return; }
+      : cachedPlayer(pid) + `<p class="empty">The server isn't answering. This panel reloads by itself when it's back.</p><button type="button" data-sheetretry="1" style="margin-top:10px">Try again</button>`; return; }
   if (sheetPid !== pid || !$("sheet").open) return;
   const now = Date.now() / 1000, ms = myMatches(p.matches, pid);
   const w = ms.filter(m => m.res === "W").length, dr = ms.filter(m => m.res === "D").length, l = ms.length - w - dr;
@@ -1352,14 +1397,22 @@ async function loadPlayer() {
     `<h3>Matches</h3>` + (ms.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${pname(m.opp, m.oppPid, "pm-" + m.r.id)}${m.r.reason ? ' <span class="pill neutral tag">abandoned</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (ms.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${ms.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
     (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true) : "");
-  $("sh-f").innerHTML = (p.online ? `<button type="button" class="danger needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
-      `<button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button>` +
-      `<span class="small muted" style="flex:1;min-width:12em">${p.online ? "Kick disconnects them now; they can come back." : "Delete removes their name, rating and table row; results stay."}</span>`;
+  $("sh-f").innerHTML = (p.online ? `<button type="button" class="needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
+      `<span class="small muted" style="flex:1;min-width:10em">${p.online ? "Kick disconnects them now; they can come back." : "Delete removes their name, rating and table row; results stay."}</span>` +
+      `<button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button>`;
+}
+function cachedPlayer(pid) {
+  const c = last && last.players.find(x => x.pid === pid);
+  if (!c) return "";
+  return `<p class="small warn" style="margin:0 0 10px">Last known numbers (the server isn't answering):</p>` +
+    `<div class="mstats"><div><b>${c.played}</b><span>played</span></div><div><b>${c.won}–${c.drawn}–${c.lost}</b><span>won–drawn–lost</span></div><div><b>${c.gf}:${c.ga}</b><span>goals for:against</span></div><div><b>${pts(c)}</b><span>points</span></div></div>` +
+    `<h3>Form <span class="small muted" style="font-weight:400">oldest → newest</span></h3>${formHtml(formOf(last.results, pid, 10))}`;
 }
 function closeSheet() { if ($("sheet").open) $("sheet").close(); }
 $("sheet").addEventListener("close", () => { sheetPid = null; const b = sheetBack; sheetBack = null;
   if (b && document.contains(b) && b.offsetParent !== null) b.focus(); else $("t-" + ui.view).focus(); });
 $("sh-x").onclick = closeSheet;
+$("sh-back").onclick = () => { const prev = sheetStack.pop(); if (prev == null) return; sheetPid = prev; sheetAll = false; paintBack(); loadPlayer(); (sheetStack.length ? $("sh-back") : $("sh-x")).focus(); };
 $("sheet").addEventListener("click", e => { const r = $("sheet").getBoundingClientRect(); if (e.target === $("sheet") && e.clientX < r.left) closeSheet(); });   // the backdrop
 
 function renderInvite(d) {
@@ -1379,7 +1432,7 @@ function renderServer(d, s) {
     `<div>Signed in here${untilText ? ` until ${esc(untilText)}` : ""}. <button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
   put("cmds", `<dt>Stop</dt><dd>Press <b>Ctrl+C</b> in the server's window, or close the window.</dd>
     <dt>Start or update</dt><dd id="install-cmd">${copyRow(runCmd(), "Start command")}<span class="small muted">${platform === "win32" ? "In PowerShell. " : "In a terminal. "}Always starts the newest version; players, results and friends' mod files keep working.</span></dd>
-    ${dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", midCut(dataDir, 46))}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : ""}`);
+    ${dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", midCut(dataDir, innerWidth > 1300 ? 90 : 46))}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : ""}`);
 }
 
 function remoteHtml(s) {
@@ -1457,6 +1510,7 @@ function gameRow(g) {
   if (!ready && skipped(g)) { st = `<span class="pill neutral tag">Skipped</span>` + st.replace(/^<span class="pill[^>]*>.*?<\/span>/, ""); btn = btn.replace(/class="primary/g, 'class="'); }
   if (!ready && skipped(g)) info = `<span class="muted small">Skipped in this browser.</span> <button type="button" class="linkbtn" data-unskip="${esc(g.path)}" data-key="unskip-${esc(g.id)}" aria-label="Set up ${esc(name)} after all">Set it up after all</button>`;
   else if (!ready) skipb = `<button type="button" class="linkbtn skipbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}" aria-label="Skip ${esc(name)}: I don't play on this copy">Skip this copy</button>`;
+  if (pcError && !ready && ["none", "other-server"].includes(g.mod)) btn = btn.replace(/class="primary/g, 'class="').replace(/<button /g, '<button aria-disabled="true" ');
   const msg = rowMsg[g.id] ? rowMsg[g.id].html : pcError && !ready && ["none", "other-server"].includes(g.mod)
     ? `<span class="err">Can't install: this copy of the server was built without the mod.</span> <a href="#server/h-cmd">Start the official server instead</a>` : "";
   const retry = failed ? `<button type="button" class="${rowMsg[g.id].act === "remove" ? "" : "primary"}" data-game="${esc(g.id)}" data-act="${rowMsg[g.id].act}" data-key="retry-${esc(g.id)}" data-retry="1" aria-label="Try again: ${esc(name)}">${{remove: "Try removing again", switch: "Try switching again"}[rowMsg[g.id].act] || "Try installing again"}</button>` : "";
@@ -1528,7 +1582,6 @@ async function loadGames(force, focusMsg, focusKey) {
         : `${gs.length > 1 ? (need === gs.length ? `All ${need} copies need setup` : `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup`) : (gs[0].mod === "ours" ? "One step left" : "Not set up yet")}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
   put("games", html, force);
   if (pcError) $("games").querySelectorAll('[data-act="install"], [data-act="switch"]').forEach(b => b.setAttribute("aria-disabled", "true"));
-  [...$("games").querySelectorAll(".act button.primary")].slice(1).forEach(x => x.classList.remove("primary"));
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }
   if (focusMsg) { const rb = $("games").querySelector(`[data-key="retry-${CSS.escape(focusMsg)}"], [data-key^="game-${CSS.escape(focusMsg)}-"]`);
     const m = $("games").querySelector(`[data-key="msg-${CSS.escape(focusMsg)}"]`); (rb || (m && m.textContent.trim() ? m : $("pc-h"))).focus(); }
@@ -1614,6 +1667,8 @@ document.addEventListener("click", async e => {
   if (a && a.getAttribute("href") === location.hash) { e.preventDefault(); route(true); return; }   // same link again: still jump
   if (e.target.closest("[data-hidepc]")) { try { localStorage.setItem("pes-pc-hint", "off"); } catch (_) {} if (last) render(last); $("t-overview").focus(); return toast("Hidden. The setup stays under Server → PES 2021 on this computer."); }
   if (e.target.closest("[data-sheetretry]")) return loadPlayer();
+  const df = e.target.closest("[data-dayfilter]");
+  if (df) return dayFilter(+df.dataset.dayfilter);
   const pl = e.target.closest("[data-player]");
   if (pl) return openPlayer(+pl.dataset.player, pl);
   if (e.target.closest("[data-sheetall]")) { sheetAll = true; return loadPlayer(); }
@@ -1722,7 +1777,8 @@ function navFade() {
   sd.classList.toggle("fade-r", strip && sd.scrollLeft + sd.clientWidth < sd.scrollWidth - 2);
   sd.classList.toggle("fade-l", strip && sd.scrollLeft > 2);
 }
-document.querySelector(".side").addEventListener("scroll", navFade, {passive: true}); addEventListener("resize", navFade);
+document.querySelector(".side").addEventListener("scroll", navFade, {passive: true});
+addEventListener("scroll", () => document.querySelector("header.top").classList.toggle("scrolled", scrollY > 4), {passive: true}); addEventListener("resize", navFade);
 
 async function msgCall(path, body, done) {
   try { renderMsg(await api(path, {method: "POST", body: JSON.stringify(body)})); toast(done); return true; }

@@ -461,7 +461,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
     if route == "/admin/api/results" and method == "POST":
         try:
             req = json.loads(body or b"{}")
-            rows, total = events.results_page(service, req.get("q", ""), req.get("since") or 0, req.get("limit") or 25)
+            rows, total = events.results_page(service, req.get("q", ""), req.get("since") or 0, req.get("limit") or 25,
+                                               req.get("until") or None)
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"bad request"}', "application/json"
         return "200 OK", json.dumps({"rows": rows, "total": total}).encode(), "application/json"

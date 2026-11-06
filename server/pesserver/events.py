@@ -227,11 +227,13 @@ def player_detail(svc, pid):
             "feed": [f for f in _st(svc)["feed"] if name in f["text"]][:40]}
 
 
-def results_page(svc, q="", since=0, limit=25):
+def results_page(svc, q="", since=0, limit=25, until=None):
     """Finished matches for the admin page's Results list: newest first, optionally only one player's
     (name contains q) or only since a time. Returns (rows, how many match in all)."""
     q = str(q or "").strip().lower()
     where, args = ["ended >= ?"], [float(since or 0)]
+    if until:
+        where.append("ended < ?"); args.append(float(until))
     if q:
         like = "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
         where.append("(LOWER(home_name) LIKE ? ESCAPE '\\' OR LOWER(away_name) LIKE ? ESCAPE '\\')")
