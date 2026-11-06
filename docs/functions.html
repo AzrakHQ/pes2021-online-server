@@ -897,6 +897,13 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
   <li><b>Different player data, check off:</b> the match stayed in sync past minute 15 (identical minimaps on both copies); no SYNC_FAILED. <span class="tag t-ok">LIVE</span></li>
   <li><b>"Server full" login</b> (LOGIN → <code>ERR_FREE_TO_PLAY_FULL</code>): "Due to excessive traffic on the PES 2021 server, login is currently restricted. Please try reconnecting again later." <span class="tag t-ok">LIVE</span></li>
 </ul>
+<h3>Online Divisions, Team Play Lobby, room counters (2026-11-06 evening)</h3>
+<ul>
+  <li><b>Online Divisions</b> is Quick Match plus a division screen. The season is just a count of matches left (<code>other_match_num</code>, 10 per season); with today's bare <code>GET_DIVISION_INFO</code> it is 0, so every visit runs the season-end screens and then hangs. With a <code>division_info</code> blob (division, thresholds, matches left, a <code>match_history_list</code> whose <code>division_point</code> values add up to the points) the Divisions screen shows the badge, the chart and each result; the search then sends <code>START_MATCHING {matching_type "OC_RANK"}</code> and reached "View Opponent" on both copies. A spec for a 10-division server is in <code>modes2.md</code>. <span class="tag t-ok">LIVE</span></li>
+  <li><b>Team Play Lobby</b>: two humans can start a room, but this lobby only connects through Konami's own game relay ("SC"), which we don't have; the direct path used by the Friendly Match Lobby is switched off for it in the game (<code>lobby2.md</code>). <span class="tag t-static">STATIC</span></li>
+  <li><b>Room counters</b> ("N Match(es)", Wins) only count the end-of-match verdict push; the server now sends it at the final whistle of every lobby match. <b>Room chat</b>: the game prints only lines it receives, so our echo to the sender shows once. <span class="tag t-static">STATIC</span></li>
+  <li><b>Events / Matchday</b>: events have no menu of their own (they come from myClub and co-op); Matchday's group stage looks possible with one fake event (<code>modes2.md</code>). <span class="tag t-static">STATIC</span></li>
+</ul>
 <p>Full details: <code>notes/re/functions/livetests.md</code>.</p>
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 
