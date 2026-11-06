@@ -176,6 +176,17 @@ static LRESULT WINAPI hk_DispatchMessageA(const MSG *m) { probe_drain_gcalls(); 
 static BOOL WINAPI hk_TranslateMessage(const MSG *m) { probe_drain_gcalls(); return o_TranslateMessage(m); }
 static LRESULT WINAPI hk_DispatchMessageW(const MSG *m) { probe_drain_gcalls(); return o_DispatchMessageW(m); }
 
+/* The game's window thread only pumps when a message arrives: post WM_NULL to our windows to wake it. */
+static BOOL CALLBACK wake_one(HWND h, LPARAM lp)
+{
+    DWORD pid = 0;
+    GetWindowThreadProcessId(h, &pid);
+    if (pid == GetCurrentProcessId()) PostMessageW(h, WM_NULL, 0, 0);
+    (void)lp;
+    return TRUE;
+}
+static void wake_game_thread(void) { EnumWindows(wake_one, 0); }
+
 static uint64_t parse_va(const char *s, BOOL *abs)
 {
     *abs = s[0] == '@';
@@ -237,6 +248,7 @@ static void probe_command(SOCKET c, char *line)
         for (int i = 0; i < 16; i++)
             if (InterlockedCompareExchange(&g_gcall[i].state, 3, 0) == 0) {
                 g_gcall[i].fn = fn; memcpy(g_gcall[i].a, a, sizeof a); InterlockedExchange(&g_gcall[i].state, 1);
+                wake_game_thread();
                 probe_reply(c, "ok queued"); return;
             }
         probe_reply(c, "err queue full"); return;
