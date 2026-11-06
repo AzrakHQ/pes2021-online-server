@@ -2,7 +2,10 @@
 
 What the game's TURN client ("ktc", seen live against coturn) does: TLS over TCP to tls_port, Allocate ->
 401 -> Allocate with long-term credentials and MOBILITY-TICKET -> then permissions/channels to the
-opponent's relayed address. This module answers exactly that, relays UDP for each allocation, and hands
+opponent's relayed address. With a DTLS port (turndtls.py), every TLS-leg Allocate/Refresh success carries the
+SOFTWARE "dual route" directive "HOST:PORT,pes,0" that the game requires: it then moves to TURN over DTLS on
+that port and closes the TLS connection. Without the directive it restarts TURN every second.
+This module answers exactly that, relays UDP for each allocation, and hands
 traffic between two of its own allocations over in memory (both players on the same server is the normal
 case; going out to our own public address would need NAT loopback on the host's router).
 
@@ -22,6 +25,7 @@ REQUEST, INDICATION, SUCCESS, ERROR = 0, 1, 2, 3
 A_USERNAME, A_MESSAGE_INTEGRITY, A_ERROR_CODE, A_CHANNEL_NUMBER, A_LIFETIME = 0x0006, 0x0008, 0x0009, 0x000C, 0x000D
 A_XOR_PEER, A_DATA, A_REALM, A_NONCE, A_XOR_RELAYED = 0x0012, 0x0013, 0x0014, 0x0015, 0x0016
 A_REQUESTED_TRANSPORT, A_XOR_MAPPED, A_FINGERPRINT, A_MOBILITY_TICKET = 0x0019, 0x0020, 0x8028, 0x8030
+A_SOFTWARE = 0x8022
 
 DEFAULT_LIFETIME, MAX_LIFETIME = 600, 3600
 PERMISSION_LIFETIME, CHANNEL_LIFETIME = 300, 600
@@ -122,7 +126,7 @@ class Allocation:
         ch = self.channel_for(peer)
         if ch is not None:
             frame = struct.pack("!HH", ch, len(data)) + data
-            self.conn.write(frame + b"\0" * (-len(frame) % 4))
+            self.conn.write(frame if self.conn.datagram else frame + b"\0" * (-len(frame) % 4))
         else:
             self.conn.write(build(DATA, INDICATION, os.urandom(12),
                                   [(A_XOR_PEER, xor_addr(*peer)), (A_DATA, data)], fingerprint=False))
@@ -158,19 +162,30 @@ class TurnServer:
         self.allocations = {}                               # relay port -> Allocation
         self.tickets = {}                                   # mobility ticket -> Allocation
         self.server = None
+        self.dtls, self.dtls_port = None, None              # second leg (turndtls.DtlsLeg) and its UDP port
+        self.dtls_local = {}                                # client ip -> our address it was told for DTLS
 
     # -- lifecycle
-    async def start(self, host, port, certfile, keyfile):
+    async def start(self, host, port, certfile, keyfile, dtls_port=None):
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ctx.load_cert_chain(certfile, keyfile)
         self.server = await asyncio.start_server(self._client, host, port, ssl=ctx)
         self._sweeper = asyncio.get_running_loop().create_task(self._sweep())
+        if dtls_port is not None:
+            from . import turndtls
+            if not turndtls.available():
+                log.error("TURN: pyOpenSSL with DTLS is missing; the game will keep restarting TURN")
+            else:
+                self.dtls = await turndtls.start(self, host, dtls_port, certfile, keyfile)
+                self.dtls_port = self.dtls.local[1]
         return self.server
 
     def close(self):
         if self.server is not None:
             self.server.close()
             self._sweeper.cancel()
+        if self.dtls is not None:
+            self.dtls.close()
         for a in list(self.allocations.values()):
             self._free(a)
 
@@ -220,6 +235,7 @@ class TurnServer:
 class _Conn:
     def __init__(self, server, writer):
         self.s, self.writer = server, writer
+        self.datagram = getattr(writer, "datagram", False)  # the DTLS leg: no 4-byte padding, no directive
         self.peer = writer.get_extra_info("peername")[:2]
         self.local = writer.get_extra_info("sockname")[:2]
         self.nonce = base64.b16encode(os.urandom(12)).decode().lower()
@@ -353,9 +369,18 @@ class _Conn:
             a.ticket = os.urandom(16)
             self.s.tickets[a.ticket] = a
             out.append((A_MOBILITY_TICKET, a.ticket))
+        out += self._directive()
         log.info("TURN allocation %s:%d for %s (%s)%s", ip, port, username, self.peer[0],
                  " mobile" if a.ticket else "")
         self._reply(tid, build(ALLOCATE, SUCCESS, tid, out, key))
+
+    def _directive(self):
+        """SOFTWARE "HOST:PORT,pes,0" on the TLS leg: where the game opens its DTLS leg (third field must be 0)."""
+        if self.datagram or self.s.dtls_port is None:
+            return []
+        host = self.s.advertise(self.local[0], self.peer[0])
+        self.s.dtls_local[self.peer[0]] = self.local[0]
+        return [(A_SOFTWARE, f"{host}:{self.s.dtls_port},pes,0".encode())]
 
     def _lifetime(self, get):
         v = get.get(A_LIFETIME)
@@ -382,6 +407,7 @@ class _Conn:
         out = [(A_LIFETIME, struct.pack("!I", lifetime))]
         if a.ticket and ticket is not None:
             out.append((A_MOBILITY_TICKET, a.ticket))
+        out += self._directive()
         if lifetime == 0:
             self.alloc = None
             self.s._free(a)

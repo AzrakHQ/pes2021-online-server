@@ -8,7 +8,7 @@ server from source, building the program, and how the code is laid out.
 Requires Python 3.10+.
 
 ```bash
-pip install msgpack cryptography
+pip install msgpack cryptography pyopenssl
 cd server
 sh mod/build.sh mod/dinput8.dll          # the mod (needs gcc-mingw-w64-x86-64); optional
 python3 -m pesserver --data data         # same as the downloaded program: banner, admin page, feed
@@ -45,6 +45,7 @@ Environment variables:
 | `PESSERVER_HTTP_PORT` | port used in URL lists (default 8080) |
 | `PESSERVER_RXLOG` | path of a JSONL log of every decoded message (optional) |
 | `UPNP` | `0` = don't open router ports |
+| `TURN` | `1` = run the built-in relay for players who can't connect directly (TLS 5349 + DTLS UDP 5350 + relay UDP 49160–49179; needs pyOpenSSL) |
 | `UPDATE_CHECK` | `0` = don't ask GitHub whether a newer server is out |
 | `ADMIN_PASSWORD` | fixed admin password (default: random, saved in `<data>/admin_password`) |
 | `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
@@ -58,6 +59,7 @@ Environment variables:
 | `pesserver/pesmatch.py` | Quick Match queue and pairing, `CMD_WATCH_MATCHING` push, game relay info, peer notice relay |
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |
+| `pesserver/turn.py`, `turnrelay.py`, `turndtls.py` | the relay: TURN list and credentials; TURN over TLS (first leg, sends the dual-route directive); TURN over DTLS with the game's framing (second leg, the one the match uses). Details: `notes/re/functions/ktcdtls.md`, `turncycle.md`, `turnlinkup.md` |
 | `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner |
 | `pesserver/identity.py` | the server's Ed25519 identity, signed notes and hellos for the mod, writing settings into the mod DLL |
 | `pesserver/gamesetup.py` | admin page "The server computer" card: finds PES copies on this computer and installs the mod |

@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install msgpack==1.1.0 cryptography==44.0.1 pytest && cd server && python -m pytest -q
+      - run: pip install msgpack==1.1.0 cryptography==44.0.1 pyopenssl==25.1.0 pytest && cd server && python -m pytest -q
 
   mod:
     needs: test
@@ -79,7 +79,7 @@ jobs:
         with: { python-version: "3.12" }
       - uses: actions/download-artifact@v4
         with: { name: mod, path: server/mod }
-      - run: pip install pyinstaller==6.22.3 msgpack==1.1.0 cryptography==44.0.1
+      - run: pip install pyinstaller==6.22.3 msgpack==1.1.0 cryptography==44.0.1 pyopenssl==25.1.0
       - name: Version stamp
         run: |
           v="$(git log -1 --format=%cd --date=format:%Y-%m-%d) ($(git rev-parse --short=7 HEAD))"
