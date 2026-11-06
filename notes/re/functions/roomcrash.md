@@ -74,7 +74,9 @@ game was gone by then [log server-lobby*.log]. **So state 2 can never succeed as
    enough.
 
 ## Still unknown
-- The mechanism that ends the process. A Wine log that keeps everything (+seh, plus the exit code of the
+> Item 2 answered live: with the room-list fix and no duplicate player-list push, the owner sends ENTRY_GAME (livetests.md).
+
+- The mechanism that ends the process (now: why a duplicate player list before ENTRY_GAME ends it). A Wine log that keeps everything (+seh, plus the exit code of the
   process) from the next run would settle it.
 - Whether the room-list fix alone stops the exit. Test: push the ADD with CREATEJOIN, then watch for
   ENTRY_GAME, or for LEAVE_ROOM (which would mean error 130 still happens).

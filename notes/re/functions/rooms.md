@@ -366,6 +366,8 @@ shared TaskConnectMatchSession/TaskMatchSession. So `_member`'s address/pname co
 notice relay, game relay, relay-check and match-id handlers are reusable as-is; only the room/list layer is new.
 
 ## 4. Still unknown (needs a live test, two clients)
+> **Answered live (2026-11-05/06, livetests.md):** 1. yes, REQWATCHL_ROOMLIST and REQWATCHL_ROOMPLAYERLIST_NTL are real requests; 2. CREATEJOIN_ROOM first, then SET_GAMEENV with the 9 settings inside a `game_env` blob; 3. `online_mode` "FREE", `lobby_type` "FREE"; 4. after SETENV: GET_MATCHID, SEND_SYNC_NOTICE, GET_SERVER_ENV, P2P START/END, DATASYNC, SET_GAMEMEMBERENV, TEAMSELECT (no GET_GAMERELAY / SEND_MATCHING_RESULT seen). Kept below as written.
+
 1. Whether `REQWATCHL_*` requests actually appear on the wire (strong inference: yes). The spec covers both
    (reply + proactive pushes). Check `RX CMD_REQWATCHL_ROOMLIST` after JOIN_BLOCK.
 2. Order of SET_GAMEENV vs CREATEJOIN_ROOM and the `game_env` request field's real shape (packer key without source).

@@ -124,5 +124,5 @@ and the owner's ENTRY_GAME.
   player opened Refine Search.
 - What the owner_lang code (0x1410526a0 → enum function 0x141b99e80, an obfuscated jump) maps "en" vs. "US" to.
   It is display only.
-- Live check: send the corrected UPDATE after SET_GAMEENV. Copy 2 should then show "Number of rooms 1" and the row.
-  That is the first proving signal; stop the test there.
+- ~~Live check~~ done 2026-11-06: copy 2 showed "Number of rooms 1" and the row. The "EN" tag appeared for
+  owner_lang "en".

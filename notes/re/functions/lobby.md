@@ -148,8 +148,8 @@ US-English string dump from dt80, asm dumps `topmenu_build.asm`, `aaf280.asm`, `
   WatchMatch (see spectate.md).
 
 ## Still unknown
-- The AFP slot count of `p_subMenu`, i.e. that exactly 7 rows show. A 10-second live test settles it: scroll Kick
-  Off past Cup.
+- ~~The AFP slot count of `p_subMenu`~~ answered live: Kick Off scrolls past Cup to Friendly Match Lobby
+  (5 rows visible at a time on the screenshot).
 - The exact reply field that fills the PES League competition's +0x34. It is probably `match_type` in
   GET_PESLEAGUE_COMPE_LIST, possibly also in GET_PESLEAGUE_COMPE_INFO. Settle it by reading 0x14109a4e0 /
   0x14109cd10 to where the enum is stored, or by a live test with a fake competition.
