@@ -20,6 +20,7 @@ summary is [docs/functions.html](../../../docs/functions.html); these files keep
 | [lobby.md](lobby.md) | where the room lobbies are in the menu (Kick Off list), how the menu table is built, other entry points |
 | [roomcrash.md](roomcrash.md) | room creation requirements: own room in the room list first, player-list field types, no duplicate player-list push (solved live) |
 | [roomlist.md](roomlist.md) | room-list entry: field types, where each is stored, every filter; why a room shows as "0 rooms" (limitTime NOSET) |
+| [gncx_labels.md](gncx_labels.md) | GNCX_0006 = the DATAPACK compare; desync path (SYNC_FAILED); the address-label rule that picks the active side, and the deadlock risk in our reflexive-address rewrite |
 | [turnlinkup.md](turnlinkup.md) | how the match link-up uses TURN; the address-label rule that decides which side opens the link (relay-only match works) |
 | [coop2.md](coop2.md) | why Online Co-op stopped after matching (peer list never handed to the P2P layer); fixed by mod 0.5.0 + pescoop.py |
 | [turncycle.md](turncycle.md) | why TURN restarted every 21 s (DTLS socket re-created every 10 s) and the fix |

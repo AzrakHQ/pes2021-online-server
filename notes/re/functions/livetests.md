@@ -326,7 +326,7 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
   - `is_revision_check` absent (= YES): the room start ran GET_MATCHID … SYSTEM_NOTICE START/END, then both
     copies sent `LEAVE_ROOM {error_code GNCX_0006}` 2 s later and showed "Unable to connect." GNCX_0006 is
     GNCX556 (OnlineModeMultiplay.cpp line 556, fn 0x1410001f0), **not the MXNV_0017 "DATAPACK error" that
-    datacheck.md predicted**; which check at line 556 fires is not read yet. It depends on the same switch.
+    datacheck.md predicted**. Code reading later (gncx_labels.md): it is the same sum compare, reported by the multiplay object one tick before the match task. It depends on the same switch.
   - `is_revision_check "NO"` (same two copies, new room): DATASYNC, SET_GAMEMEMBERENV, TEAMSELECT — both reached
     team selection. So a sum mismatch blocks the match only while `is_revision_check` is YES, as datacheck.md Q1 says. (Playing a
     whole match with different data was not tried; datacheck.md warns of desync.)
