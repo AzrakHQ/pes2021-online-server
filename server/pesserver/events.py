@@ -225,3 +225,21 @@ def player_detail(svc, pid):
             "online": sess is not None, "ip": getattr(sess, "peer_ip", "") if sess else "",
             "since": getattr(sess, "connected_at", None) if sess else None, "matches": matches,
             "feed": [f for f in _st(svc)["feed"] if name in f["text"]][:40]}
+
+
+def results_page(svc, q="", since=0, limit=25):
+    """Finished matches for the admin page's Results list: newest first, optionally only one player's
+    (name contains q) or only since a time. Returns (rows, how many match in all)."""
+    q = str(q or "").strip().lower()
+    where, args = ["ended >= ?"], [float(since or 0)]
+    if q:
+        like = "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+        where.append("(LOWER(home_name) LIKE ? ESCAPE '\\' OR LOWER(away_name) LIKE ? ESCAPE '\\')")
+        args += [like, like]
+    w = " WHERE " + " AND ".join(where)
+    db = svc.accounts.db
+    _st(svc)
+    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid")
+    rows = [dict(zip(keys, r)) for r in db.execute("SELECT " + ", ".join(keys) + " FROM pes_matches" + w +
+                                                   " ORDER BY id DESC LIMIT ?", (*args, max(1, min(int(limit), 1000))))]
+    return rows, db.execute("SELECT COUNT(*) FROM pes_matches" + w, args).fetchone()[0]

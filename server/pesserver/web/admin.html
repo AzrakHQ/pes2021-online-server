@@ -61,11 +61,14 @@
   .nav a[aria-current="page"] { background:var(--accent2); color:var(--accent); font-weight:700; }
   .nav a[aria-current="page"] svg { color:var(--accent); }
   .nav .badge { margin-left:auto; font-size:12px; font-weight:700; padding:0 7px; border-radius:99px; background:var(--code); color:var(--muted); min-width:20px; text-align:center; font-variant-numeric:tabular-nums; }
-  .nav .badge.live { background:var(--live); color:var(--on-live); }
+  .nav .badge.live { background:var(--code); color:var(--fg); display:inline-flex; align-items:center; gap:4px; }
+  .nav .badge.live::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--live); }
+  .nav .badge.ok { background:var(--accent2); color:var(--accent); }
+  .sec { display:contents; }
+  .more-btn, .so-m { display:none; }
+  .nav .st { display:none; }
   .nav .badge.warn { background:var(--warnbg); color:var(--warn); }
   .nav .badge.on { background:var(--accent-fill); color:var(--on-accent); }
-  .side-foot { margin-top:auto; font-size:12px; color:var(--muted); padding:10px; border-top:1px solid var(--line); }
-  .side-foot .linkbtn { font-size:13px; padding:4px 0; color:var(--muted); }
 
   .main { min-width:0; padding:0 28px 40px; }
   header.top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:14px 0; position:sticky; top:0; z-index:15; background:var(--bg); }
@@ -83,7 +86,8 @@
     .side { background:var(--side); }
     .side { position:sticky; top:0; z-index:20; height:auto; flex-direction:row; align-items:center; padding:6px 10px; border-right:0; border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:none; }
     .side::-webkit-scrollbar { display:none; }
-    .brand, .side-foot { display:none; }
+    .brand { display:none; }
+    .nav a svg { display:none; } .nav .lg { display:none; } .nav .st { display:inline; }
     .nav { flex-direction:row; gap:2px; }
     .nav a { padding:7px 10px; }
     .nav .badge { margin-left:2px; }
@@ -96,7 +100,27 @@
     .side.fade-l.fade-r { -webkit-mask-image:linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image:linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
   }
   @media (min-width: 961px) { .m-only { display:none !important; } }
-  @media (max-width: 520px) { .nav a svg { display:none; } header.top .until { display:none; } .view > h1 { font-size:21px; } }
+  @media (max-width: 760px) {
+    .side, .side.fade-l, .side.fade-r { position:fixed; top:auto; bottom:0; left:0; right:0; z-index:30; padding:4px 4px calc(4px + env(safe-area-inset-bottom)); border-bottom:0; border-top:1px solid var(--line); overflow:visible; -webkit-mask-image:none; mask-image:none; box-shadow:0 -4px 16px rgba(0,0,0,.06); }
+    .nav { width:100%; }
+    .nav > a, .more-btn { flex:1; flex-direction:column; justify-content:center; align-items:center; gap:1px; padding:6px 2px; font-size:11px; font-weight:600; min-width:0; position:relative; border-radius:8px; }
+    .more-btn { display:flex; border:0; background:none; color:var(--fg); font:inherit; font-size:11px; font-weight:600; }
+    .more-btn:hover { color:var(--accent); }
+    .nav > a svg, .more-btn svg { display:block; width:20px; height:20px; color:inherit; }
+    .nav > a .badge, .more-btn .badge { position:absolute; top:1px; left:calc(50% + 7px); margin:0; font-size:10px; padding:0 5px; min-width:16px; line-height:16px; }
+    .sec { display:none; position:fixed; right:8px; bottom:calc(64px + env(safe-area-inset-bottom)); background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:6px; flex-direction:column; min-width:210px; }
+    .nav.open .sec { display:flex; }
+    .sec a { font-size:15px; padding:11px 12px; }
+    .sec .so-m { display:flex; align-items:center; gap:10px; border:0; border-top:1px solid var(--line); border-radius:0 0 8px 8px; background:none; color:var(--muted); font:inherit; font-size:15px; padding:11px 12px; text-align:left; }
+    .sec .so-m svg { width:18px; height:18px; }
+    #logout { display:none; }
+    .sec a svg { display:block !important; }
+    .sec .lg { display:inline !important; } .sec .st { display:none !important; }
+    .more-btn[aria-expanded="true"], .more-btn.cur { color:var(--accent); }
+    .main { padding-bottom:88px; }
+    .toast { top:12px; }
+  }
+  @media (max-width: 520px) { .view > h1 { font-size:21px; } input[type=search] { flex:1 1 100%; } }
 
   /* banners */
   .banner { border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:14px; }
@@ -174,7 +198,7 @@
   .bars .c:hover::before, .bars .c.on::before { content:""; position:absolute; inset:0; background:var(--hover); border-radius:4px; z-index:-1; }
   .xl { display:flex; gap:2px; margin:4px 14px 0 30px; }
   .xl span { flex:1; text-align:center; font-size:11px; color:var(--muted); white-space:nowrap; min-width:0; overflow:visible; }
-  .tip.below { transform:translate(-50%, 8px); }
+  .tip.below { transform:translate(-50%, 0); }
   .tip { position:absolute; z-index:5; pointer-events:none; background:var(--fg); color:var(--bg); border-radius:8px; padding:6px 10px; font-size:12px; line-height:1.4; white-space:nowrap; transform:translate(-50%, calc(-100% - 8px)); box-shadow:0 4px 12px rgba(0,0,0,.2); }
   .tip b { display:block; font-size:13px; }
   .chart-sum { font-size:13px; color:var(--muted); margin:10px 0 0; }
@@ -195,13 +219,14 @@
   tr:last-child td { border-bottom:0; }
   td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
   td.name { font-weight:600; min-width:9em; max-width:20em; }
+  td.name .pname, td.h .pname, td.a .pname, .st-cell .nw { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:16em; display:inline-block; vertical-align:bottom; }
   td.name small { display:block; font-weight:400; color:var(--muted); font-size:12px; }
   td.act { width:1%; white-space:nowrap; text-align:right; }
   td.act button + button { margin-left:6px; }
   td.nw, .nw { white-space:nowrap; }
   abbr[title] { text-decoration:none; cursor:help; }
   .form { display:inline-flex; gap:3px; }
-  .form span { width:18px; height:18px; border-radius:4px; font-size:10px; font-weight:800; display:grid; place-items:center; background:var(--code); color:var(--muted); }
+  .form span { width:19px; height:19px; border-radius:4px; font-size:11px; font-weight:800; display:grid; place-items:center; background:var(--code); color:var(--muted); }
   .form .W { background:var(--accent-fill); color:var(--on-accent); }
   .form .L { background:var(--live); color:var(--on-live); }
   .who { display:inline-flex; align-items:center; gap:8px; }
@@ -213,7 +238,6 @@
   .pname:hover { text-decoration:underline; text-underline-offset:3px; color:var(--accent); }
   .pname:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   td.when .t { color:var(--muted); }
-  @media (max-width: 520px) { td.when { white-space:normal; } td.when .t { display:block; } }
   @media (max-width: 760px) { .hide-md { display:none; } }
   @media (max-width: 520px) { .hide-sm { display:none; } td.name { max-width:46vw; min-width:7em; }
     td.act button { display:block; width:100%; } td.act button + button { margin:6px 0 0; } td, th { padding-left:5px; padding-right:5px; } }
@@ -244,8 +268,17 @@
   @media (max-width: 420px) { .match { gap:4px 10px; padding:10px; grid-template-columns:minmax(0,1fr) auto; } .score { font-size:20px; grid-column:2; grid-row:1 / span 2; }
     .match .side-n { display:block; grid-column:1; text-align:left !important; } .match .side-n.away { grid-row:2; } .phase { grid-column:1 / -1; text-align:left; } }
   .finished { font-size:14px; color:var(--muted); margin:8px 0 0; overflow-wrap:anywhere; }
-  table.res { table-layout:fixed; } table.res col.w { width:150px; } table.res col.s { width:84px; }
-  @media (max-width: 520px) { table.res col.w { width:76px; } table.res col.s { width:60px; } }
+  table.res { table-layout:fixed; max-width:820px; } table.res col.w { width:140px; } table.res col.s { width:96px; }
+  td.sc .pill { display:block; width:fit-content; margin:3px auto 0; font-weight:600; }
+  @media (max-width: 520px) {
+    table.res, table.res tbody { display:block; } table.res thead, table.res colgroup { display:none; }
+    table.res tr { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:2px 10px; padding:9px 0; border-bottom:1px solid var(--line); }
+    table.res tr:last-child { border-bottom:0; }
+    table.res td { display:block; padding:0; border:0; }
+    table.res td.when { grid-column:1 / -1; }
+    td.when .t { display:inline !important; }
+    td.h .pname, td.a .pname { max-width:100%; }
+  }
   td.sc { text-align:center; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; width:1%; }
   td.h { text-align:right; }
   td.h, td.a { overflow-wrap:anywhere; min-width:6em; }
@@ -269,7 +302,8 @@
   .feed .ico.k-goal, .feed .ico.k-result { background:var(--accent2); color:var(--accent); }
   .feed .ico.k-warn { background:var(--warnbg); color:var(--warn); }
   .feed .ico.k-match { background:var(--accent2); color:var(--accent); }
-  .t-goal { font-weight:600; } .t-result { color:var(--accent); font-weight:600; } .t-warn { color:var(--warn); }
+  .t-result { color:var(--accent); } .t-warn { color:var(--warn); }
+  .feed .pname { font-weight:600; }
   h3.day { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:14px 0 2px; }
   h3.day:first-child { margin-top:0; }
   .empty { color:var(--muted); font-size:14px; padding:4px 0; margin:0; }
@@ -334,7 +368,24 @@
   dialog.sheet { margin:0 0 0 auto; height:100dvh; max-height:100dvh; width:min(600px, 100vw); border-radius:0; border-width:0 0 0 1px; }
   dialog.sheet .sh { position:sticky; top:0; background:var(--card); z-index:2; display:flex; gap:12px; align-items:center; padding:16px 20px; border-bottom:1px solid var(--line); }
   dialog.sheet .sh h2 { margin:0; font-size:18px; flex:1; min-width:0; overflow-wrap:anywhere; }
-  dialog.sheet .sb { padding:16px 20px 28px; }
+  dialog.sheet .sb { padding:16px 20px 20px; }
+  dialog.sheet .sf { position:sticky; bottom:0; background:var(--card); border-top:1px solid var(--line); padding:12px 20px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  dialog.sheet .sf:empty { display:none; }
+  @media (max-width: 520px) { dialog.sheet { width:100vw; border:0; } }
+  .switch { display:flex; align-items:center; gap:12px; }
+  .switch .lbl { flex:1; font-weight:600; }
+  button[role="switch"] { width:46px; height:26px; min-height:26px; border-radius:99px; padding:0; position:relative; background:var(--code); border:1px solid var(--field); flex:none; }
+  button[role="switch"]::after { content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--card); box-shadow:0 1px 3px rgba(0,0,0,.3); transition:left .15s; }
+  button[role="switch"][aria-checked="true"] { background:var(--accent-fill); border-color:var(--accent-fill); }
+  button[role="switch"][aria-checked="true"]::after { left:22px; }
+  .kv .linkrow { margin-top:0; }
+  .hl { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
+  .hl > div { background:var(--bg); border-radius:10px; padding:10px 12px; min-width:0; }
+  .hl .k { font-size:12px; color:var(--muted); display:block; }
+  .hl b { display:block; overflow-wrap:anywhere; }
+  .hl .s { font-size:12px; color:var(--muted); }
+  @media (max-width: 420px) { .hl { grid-template-columns:minmax(0,1fr); } }
+  .delta { font-weight:700; } .delta.up { color:var(--accent); } .delta.down { color:var(--warn); }
   dialog.sheet .sb h3 { font-size:14px; margin:20px 0 8px; }
   dialog.sheet .av { width:40px; height:40px; font-size:14px; }
   .mstats { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; }
@@ -399,14 +450,17 @@
     <div class="brand"><span class="logo" aria-hidden="true">⚽</span><div>PES 2021 Server<small>Admin</small></div></div>
     <nav class="nav" aria-label="Sections">
       <a href="#overview" data-view="overview"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2.5h5v5H2zM9 2.5h5v3H9zM9 7.5h5v6H9zM2 9.5h5v4H2z"/></svg>Overview</a>
-      <a href="#players" data-view="players"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"/></svg>Players<span class="badge" id="nb-players" hidden></span></a>
+      <a href="#players" data-view="players"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"/></svg>Players<span class="badge ok" id="nb-players" hidden></span></a>
       <a href="#matches" data-view="matches"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 5.2l2.4 1.7-.9 2.8h-3l-.9-2.8z"/></svg>Matches<span class="badge live" id="nb-matches" hidden></span></a>
       <a href="#activity" data-view="activity"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg>Activity</a>
-      <a href="#messages" data-view="messages"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H6l-3 2.5V11H2z"/></svg>Messages<span class="badge on" id="nb-messages" hidden></span></a>
-      <a href="#invite" data-view="invite"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4 1.2 0 2.3.4 3 1.2M12.5 8.5v5M10 11h5"/></svg>Invite friends</a>
+      <button type="button" class="more-btn" id="nav-more" aria-expanded="false" aria-controls="nav-sec"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="12.5" cy="8" r="1" fill="currentColor"/></svg>More<span class="badge warn" id="nb-more" hidden></span></button>
+      <div class="sec" id="nav-sec">
+      <a href="#messages" data-view="messages"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H6l-3 2.5V11H2z"/></svg>Messages<span class="badge ok" id="nb-messages" hidden></span></a>
+      <a href="#invite" data-view="invite"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4 1.2 0 2.3.4 3 1.2M12.5 8.5v5M10 11h5"/></svg><span class="lg">Invite friends</span><span class="st">Invite</span></a>
       <a href="#server" data-view="server"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.01M4.5 11.25h.01"/></svg>Server<span class="badge warn" id="nb-server" hidden></span></a>
+        <button type="button" class="so-m" id="logout-m"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3H3v10h3M7 8h7M11 5l3 3-3 3"/></svg>Sign out</button>
+      </div>
     </nav>
-    <div class="side-foot"><div id="until"></div><button class="linkbtn" id="logout2" type="button">Sign out</button></div>
   </aside>
 
   <div class="main">
@@ -417,7 +471,7 @@
       <a class="pill warn" id="remote-pill" href="#server/h-access" hidden title="The admin page can be opened from the internet (encrypted, with the password)">Internet access on</a>
       <a class="pill warn m-only" id="attn-pill" href="#overview" hidden></a>
       <span class="grow"></span>
-      <button class="linkbtn m-only" id="logout" type="button" style="color:var(--muted)">Sign out</button>
+      <button class="linkbtn" id="logout" type="button" style="color:var(--muted)">Sign out</button>
     </header>
 
     <div id="down" class="banner down" role="alert" hidden></div>
@@ -442,6 +496,7 @@
       <div class="grid-ov" id="ov-cards">
         <div class="stack">
           <section class="card" id="c-ovlive" aria-labelledby="h-ovlive"><div class="card-h"><h2 id="h-ovlive">Live matches</h2><span class="grow"></span><a href="#matches">All matches →</a></div><div id="ov-live"><div class="skel"></div></div></section>
+          <section class="card" id="c-ovhl" aria-labelledby="h-ovhl"><div class="card-h"><h2 id="h-ovhl">This week</h2><span class="grow"></span><span class="small muted">last 7 days</span></div><div id="ov-hl"></div></section>
           <section class="card" aria-labelledby="h-ovfeed"><div class="card-h"><h2 id="h-ovfeed">Recent activity</h2><span class="grow"></span><a href="#activity">Full activity →</a></div><div id="ov-feed"><div class="skel"></div><div class="skel short"></div></div></section>
         </div>
         <div class="stack">
@@ -538,11 +593,12 @@
         </section>
         <section class="card friend" aria-labelledby="h-friend"><h2 id="h-friend">What your friend does</h2>
           <ol>
-            <li>In Steam, right-click <b>PES 2021</b> → Manage → <b>Browse local files</b>, and put the file next to <code>PES2021.exe</code>.</li>
-            <li><details><summary>Steam Deck / Linux only</summary>PES 2021 → Properties → Launch options: <code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code></details></li>
+            <li>In Steam, right-click <b>PES 2021</b> → Manage → <b>Browse local files</b>, and put the file next to <code>PES2021.exe</code>.
+              <div class="small muted" style="margin-top:6px"><b>Steam Deck / Linux:</b> also set PES 2021 → Properties → Launch options to <code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code></div></li>
             <li>Start the game → <b>eFootball → Quick Match → Go to Matchmaking</b>. The first time, they pick a region and a player name.</li>
           </ol>
-          <p class="small muted" style="margin:8px 0 0">To stop playing on your server, they just delete the file. They show up under <a href="#players">Players</a> within seconds of signing in.</p>
+          <p class="small muted" style="margin:8px 0 0">To stop playing on your server, they just delete the file.</p>
+          <h2 id="h-joins" style="margin:20px 0 8px">Who has joined</h2><div id="joins"></div>
         </section>
       </div>
     </section>
@@ -557,12 +613,12 @@
       </div>
       <div class="grid2 row-gap">
         <section class="card" aria-labelledby="h-access"><h2 id="h-access" tabindex="-1">Admin access</h2><div class="net" id="access"></div></section>
-        <section class="card" aria-labelledby="h-cmd"><h2 id="h-cmd" tabindex="-1">Start, stop and update</h2><ul class="cmds" id="cmds"></ul></section>
+        <section class="card" aria-labelledby="h-cmd"><h2 id="h-cmd" tabindex="-1">Start, stop and update</h2><dl class="kv" id="cmds"></dl></section>
       </div>
-      <section class="card" id="thispc" aria-labelledby="pc-h" hidden>
+      <section class="card" id="thispc" aria-labelledby="pc-h">
         <h2 id="pc-h" tabindex="-1">PES 2021 on this computer</h2>
         <p class="small muted" style="margin:-6px 0 8px">Want to play on the server computer too? Set up its copy of PES 2021 here.</p>
-        <div id="games"></div>
+        <div id="games"><div class="skel"></div></div>
         <span class="sr" id="pc-live" aria-live="polite"></span>
       </section>
     </section>
@@ -581,6 +637,7 @@
 <dialog id="sheet" class="sheet" aria-labelledby="sh-t">
   <div class="sh"><span id="sh-av"></span><h2 id="sh-t"></h2><button type="button" id="sh-x" aria-label="Close">Close</button></div>
   <div class="sb" id="sh-b"></div>
+  <div class="sf" id="sh-f"></div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <span class="sr" id="copy-live" aria-live="polite"></span>
@@ -713,6 +770,7 @@ function route(focus) {
   VIEWS.forEach(x => { $("v-" + x).hidden = x !== v; });
   document.querySelectorAll(".nav a").forEach(a => a.dataset.view === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   document.title = TITLES[v] + " · PES 2021 Server";
+  $("nav-more").classList.toggle("cur", ["messages", "invite", "server"].includes(v)); setMore(false);
   if (last) render(last);
   if (v === "server" && changed) loadGames();
   navFade();
@@ -738,7 +796,9 @@ function showLogin(msg) {
 function signedOut() {
   if (!token) return;
   let until = 0; try { until = +(localStorage.getItem("pes-admin-until") || sessionStorage.getItem("pes-admin-until") || 0); } catch (e) {}
-  token = ""; store.clear(); showLogin(until && until * 1000 < Date.now() ? "Your sign-in expired. Sign in again." : "You were signed out. Sign in again.");
+  token = ""; store.clear();
+  const msg = until && until * 1000 < Date.now() ? "Your sign-in expired. Sign in again." : "You were signed out. Sign in again.";
+  fetch("/admin/api/info").then(r => r.json()).then(i => i.same_pc ? localSignIn() : Promise.reject()).catch(() => showLogin(msg));
 }
 
 function setDown(on) {
@@ -797,12 +857,15 @@ async function refresh() {
 async function refreshNow() { while (inflight) await new Promise(r => setTimeout(r, 100)); await refresh(); }
 
 // ---- charts ---------------------------------------------------------------------------------------
-function niceMax(v) { if (v <= 2) return 2; if (v <= 4) return 4; const p = 10 ** Math.floor(Math.log10(v)); for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= v) return m * p; return v; }
+function niceScale(v) {
+  for (const st of [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000]) if (Math.ceil(v / st) <= 4) return {top: Math.ceil(v / st) * st, step: st};
+  return {top: v, step: v};
+}
 // bars: [{x: axis label or "", v: value, tip: "<b>…</b>…", cls}]. Keyboard: focus the chart, then ← → Home End.
 function barChart(id, bars, summary, desc) {
   const max = Math.max(0, ...bars.map(b => b.v));
   if (!max) return put(id, `<div class="chart-empty">${esc(summary)}</div>`);
-  const top = niceMax(max), grid = top % 2 ? [0, top] : [0, top / 2, top];
+  const {top, step} = niceScale(max), grid = []; for (let g = 0; g <= top; g += step) grid.push(g);
   const html = `<div class="chart" tabindex="0" role="group" data-key="chart-${id}" aria-label="${esc(desc)} Use the left and right arrow keys to read each bar."><div class="plot" aria-hidden="true">` +
     grid.map(g => `<div class="gl${g ? "" : " base"}" style="top:${100 - g / top * 100}%"><span>${g}</span></div>`).join("") +
     `<div class="bars">` + bars.map((b, i) => `<div class="c${b.v ? "" : " zero"} ${b.cls || ""}" data-i="${i}" data-tip="${esc(b.tip)}"><i style="height:${b.v / top * 100}%"></i></div>`).join("") +
@@ -819,9 +882,11 @@ function showTip(chart, c) {
   const cr = chart.getBoundingClientRect(), br = c.getBoundingClientRect(), bar = c.querySelector("i").getBoundingClientRect();
   const w = tip.offsetWidth, h = tip.offsetHeight;
   const x = Math.max(w / 2, Math.min(cr.width - w / 2, br.left + br.width / 2 - cr.left));
-  const barTop = Math.min(bar.top, br.bottom - 4) - cr.top, below = barTop - h - 8 < 0;   // no room above: show it inside the plot
-  tip.classList.toggle("below", below);
-  tip.style.left = x + "px"; tip.style.top = (below ? Math.max(0, barTop) : barTop) + "px";
+  const barTop = Math.min(bar.top, br.bottom - 4) - cr.top, side = barTop - h - 8 < 0;   // no room above: put it beside the bar
+  tip.classList.toggle("below", side);
+  let sx = br.right - cr.left + 6 + w / 2;
+  if (sx + w / 2 > cr.width) sx = br.left - cr.left - 6 - w / 2;
+  tip.style.left = (side ? sx : x) + "px"; tip.style.top = (side ? Math.max(0, barTop) : barTop) + "px";
 }
 document.addEventListener("pointerover", e => {
   const c = e.target.closest(".bars .c"), chart = c && c.closest(".chart");
@@ -926,23 +991,26 @@ function render(d) {
   // nav badges
   const playing = d.live.filter(m => m.kickoff && m.phase !== "Full time").length, ready = d.live.filter(m => !m.kickoff && m.phase !== "Full time").length;
   const pn = pcNeeds(), srvIssues = (r.ok ? 0 : 1) + (pn ? 1 : 0) + (s.update ? 1 : 0);
-  badge("nb-players", d.online.length, `${d.online.length} online`);
-  badge("nb-matches", playing, `${playing} live`);
+  badge("nb-players", d.online.length, `${d.online.length} online now`);
+  badge("nb-matches", playing, `${playing} live now`);
   badge("nb-messages", d.announce && (d.announce.news || d.announce.restart) ? "on" : 0, "a message or restart warning is active");
   badge("nb-server", srvIssues, `${plural(srvIssues, "thing needs", "things need")} attention`);
+  badge("nb-more", srvIssues, `Server: ${plural(srvIssues, "thing needs", "things need")} attention`);
   $("attn-pill").hidden = !srvIssues || ui.view === "overview";
   put("attn-pill", `${I.warn} ${plural(srvIssues, "thing", "things")} to fix`);
 
+  indexNames(d.players);
   if (ui.view === "overview") renderOverview(d, r, pn, playing, ready);
   if (ui.view === "players") renderPlayers(d);
   if (ui.view === "matches") renderMatches(d, playing, ready);
   if (ui.view === "activity") renderFeed(d);
   if (ui.view === "server") renderServer(d, s);
+  if (ui.view === "invite") renderInvite(d);
   navFade();
 }
 function badge(id, v, label) {
   const b = $(id); b.hidden = !v;
-  const t = v === "on" ? "On" : String(v);
+  const t = v === "on" ? "On" : id === "nb-players" ? "● " + v : String(v);
   if (b.textContent !== t) { b.textContent = t; }
   b.setAttribute("aria-label", label); b.title = label;
 }
@@ -974,8 +1042,19 @@ const ICON = {login: svg('<path d="M10 3h3v10h-3M2 8h7M6 5l3 3-3 3"/>'), logout:
   users: svg('<circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"/>'),
   net: svg('<path d="M2 13.5V4.5h12v9M2 7.5h12M5 4.5v9M8 4.5v9M11 4.5v9"/>'),
   trophy: svg('<path d="M5 2.5h6v3.5a3 3 0 01-6 0zM5 3.5H2.5a2.5 2.5 0 002.7 3M11 3.5h2.5a2.5 2.5 0 01-2.7 3M8 9v2.5M5.5 13.5h5M6.5 11.5h3v2h-3z"/>')};
+let nameRe = null, nameIdx = new Map(), nameKey = "";
+function indexNames(players) {
+  const k = players.map(p => p.pid + ":" + p.name).join("|");
+  if (k === nameKey) return;
+  nameKey = k; nameIdx = new Map();
+  for (const p of players) if (!nameIdx.has(esc(p.name))) nameIdx.set(esc(p.name), p.pid);
+  const alts = [...nameIdx.keys()].sort((a, b) => b.length - a.length).map(n => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  nameRe = alts.length ? new RegExp(`(?<![\\w])(${alts.join("|")})(?![\\w])`, "g") : null;
+}
+let linkN = 0;
+const linkNames = t => nameRe ? esc(t).replace(nameRe, n => pname(n, nameIdx.get(n), "fd-" + nameIdx.get(n) + "-" + (linkN++ % 1000)).replace(nm(n), n)) : nm(t);
 function feedHtml(items, grouped) {
-  const row = f => `<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${hm.format(new Date(f.t * 1000))}</time><span class="ico k-${esc(f.kind)}" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="t-${esc(f.kind)}">${nm(f.text)}</span></li>`;
+  const row = f => `<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${hm.format(new Date(f.t * 1000))}</time><span class="ico k-${esc(f.kind)}" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="t-${esc(f.kind)}">${linkNames(f.text)}</span></li>`;
   if (!grouped) return `<ul class="feed">${items.map(row).join("")}</ul>`;
   const groups = [];
   for (const f of items) { const day = dayLabel(f.t); if (!groups.length || groups[groups.length - 1].day !== day) groups.push({day, rows: []}); groups[groups.length - 1].rows.push(row(f)); }
@@ -984,6 +1063,35 @@ function feedHtml(items, grouped) {
 
 function tile(href, icon, k, v, sub, attrs) {
   return `<a class="tile" href="${href}"${attrs || ""}><span class="k">${icon}${k}</span><b>${v}</b><span class="s">${sub || "&nbsp;"}</span></a>`;
+}
+// "12 this week ↑ 20%": matches in the last 7 days against the 7 before
+function weekDelta(hist, now) {
+  const a = hist.filter(h => h[0] > now - 7 * 86400).length, b = hist.filter(h => h[0] > now - 14 * 86400 && h[0] <= now - 7 * 86400).length;
+  if (!b) return `${a} this week`;
+  const pct = Math.round(100 * (a - b) / b);
+  return `${a} this week <span class="delta ${pct >= 0 ? "up" : "down"}" title="${b} the week before">${pct >= 0 ? "↑" : "↓"} ${Math.abs(pct)}%</span><span class="sr"> compared with ${b} the week before</span>`;
+}
+function highlights(d) {
+  const since = d.now - 7 * 86400, wins = new Map(), goals = new Map(), names = new Map();
+  for (const r of d.results) {
+    if (r.ended < since || r.home_score == null || r.away_score == null) continue;
+    for (const [pid, name, f, a] of [[r.home_pid, r.home_name, r.home_score, r.away_score], [r.away_pid, r.away_name, r.away_score, r.home_score]]) {
+      if (pid == null) continue;
+      names.set(pid, name); goals.set(pid, (goals.get(pid) || 0) + f); if (f > a) wins.set(pid, (wins.get(pid) || 0) + 1);
+    }
+  }
+  const best = m => [...m.entries()].sort((x, y) => y[1] - x[1] || names.get(x[0]).localeCompare(names.get(y[0])))[0];
+  const w = best(wins), g = best(goals);
+  const streak = [...d.players].filter(p => p.streak >= 2).sort((a, b) => b.streak - a.streak)[0];
+  const form = !streak && [...d.players].filter(p => p.played).map(p => ({p, f: formOf(d.results, p.pid)})).filter(x => x.f.length >= 3)
+    .sort((a, b) => b.f.filter(x => x === "W").length * 3 + b.f.filter(x => x === "D").length - a.f.filter(x => x === "W").length * 3 - a.f.filter(x => x === "D").length)[0];
+  const cell = (k, who, sub) => `<div><span class="k">${k}</span>${who}<span class="s">${sub}</span></div>`;
+  if (!w && !g && !streak && !form) return `<p class="empty">No finished matches this week yet.</p>`;
+  return `<div class="hl">` +
+    cell("Most wins", w ? `<b>${pname(names.get(w[0]), w[0], "hlw-" + w[0])}</b>` : "<b>–</b>", w ? plural(w[1], "win") : "") +
+    cell("Most goals", g ? `<b>${pname(names.get(g[0]), g[0], "hlg-" + g[0])}</b>` : "<b>–</b>", g ? plural(g[1], "goal") : "") +
+    (streak ? cell("On a streak", `<b>${pname(streak.name, streak.pid, "hls-" + streak.pid)}</b>`, `${streak.streak} wins in a row`)
+            : cell("Best form", form ? `<b>${pname(form.p.name, form.p.pid, "hlf-" + form.p.pid)}</b>` : "<b>–</b>", form ? formHtml(form.f) : "")) + `</div>`;
 }
 function renderOverview(d, r, pn, playing, ready) {
   const now = d.now, s = d.server, down = !!downSince;
@@ -995,13 +1103,14 @@ function renderOverview(d, r, pn, playing, ready) {
   if (s.update) attn.push(`<li><span>${I.warn} <b>A newer server version is out</b> (${esc(s.update)}).</span><a href="#server/h-cmd">How to update ${I.right}</a></li>`);
   if (d.announce && d.announce.restart) attn.push(`<li class="info"><span>Players are being warned about a restart at <b>${hm.format(new Date(d.announce.restart * 1000))}</b>.</span><a href="#messages">Change ${I.right}</a></li>`);
   $("attn").hidden = !attn.length; put("attn", attn.join(""));
-  text("ov-lead", fresh ? "Three steps and your friends are playing." : "What's happening on your server right now.");
+  text("ov-lead", starting ? "A few steps and your friends are playing." : "What's happening on your server right now.");
 
   // get started, until the first match
   const joined = d.players.length, dl = d.feed.some(f => f.kind === "web");
   $("c-start").hidden = !starting;
   if (starting) {
-    const st = (done, todo, title, desc, acts) => `<li class="${done ? "done" : todo ? "todo" : ""}"><span class="n" aria-hidden="true">${done ? "✓" : todo ? "!" : "·"}</span><div><b>${title}${done ? '<span class="sr"> (done)</span>' : todo ? '<span class="sr"> (needs attention)</span>' : ""}</b><div class="d">${desc}</div>${acts ? `<div class="acts">${acts}</div>` : ""}</div></li>`;
+    let k = 0;
+    const st = (done, todo, title, desc, acts) => `<li class="${done ? "done" : todo ? "todo" : ""}"><span class="n" aria-hidden="true">${++k, done ? "✓" : todo ? "!" : k}</span><div><b>${title}${done ? '<span class="sr"> (done)</span>' : todo ? '<span class="sr"> (needs attention)</span>' : ""}</b><div class="d">${desc}</div>${acts ? `<div class="acts">${acts}</div>` : ""}</div></li>`;
     put("steps", (down ? st(false, true, "Your server isn't answering", "Is the server computer on, with the server's window open? This page keeps trying.")
                        : st(true, false, "Your server is running", "Keep its window open while you play.")) +
       (down ? st(false, false, "Friends can reach it", "Checked again when the server answers.")
@@ -1025,14 +1134,15 @@ function renderOverview(d, r, pn, playing, ready) {
     tile("#players", ICON.online, "Online now", d.online.length, d.searching ? `${d.searching} looking for a match` : d.online.length ? "nobody searching" : "", searcher ? ` title="${esc(searcher.name)} is looking for a match"` : "") +
     tile("#matches/h-live", ICON.match, "Live matches", playing, ready ? `${ready} getting ready` : "") +
     tile("#matches/h-results", ICON.cal, "Matches today", todayN, `${yN} yesterday`) +
-    tile("#matches/h-results", ICON.result, "Matches played", d.played_total, d.stats.abandoned ? `${d.stats.abandoned} abandoned` : "all time") +
+    tile("#matches/h-results", ICON.result, "Matches played", d.played_total, weekDelta(hist, now)) +
     tile("#matches/h-results", ICON.goal, "Goals", d.stats.goals, d.played_total ? `${(d.stats.goals / d.played_total).toFixed(1)} a match` : "") +
     tile("#players", ICON.users, "Players", d.players.length, newPlayers ? `${newPlayers} new this week` : "") + `</div>`);
 
   $("ov-charts").hidden = starting;
   if (!starting) { charts(d); document.querySelectorAll("[data-range]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.range === ui.range))); }
   $("ov-cards").hidden = fresh && !d.feed.length;
-  $("c-ovlive").hidden = $("c-ovonline").hidden = fresh; $("c-ovtop").hidden = starting;
+  $("c-ovlive").hidden = $("c-ovonline").hidden = fresh; $("c-ovtop").hidden = $("c-ovhl").hidden = starting;
+  if (!starting) put("ov-hl", highlights(d));
   put("ov-live", liveHtml(d, now, true));
   put("ov-online", d.online.length ? `<ul class="list-plain mini">` + d.online.slice(0, 8).map(p => `<li>${avatar({name: p.name, online: true})}<span class="grow">${pname(p.name, p.pid, "ovo-" + p.pid)}<br><span class="small muted">${statusOf(d, p)}</span></span><span class="r">${dur(now - p.since)}</span></li>`).join("") + `</ul>` +
       (d.online.length > 8 ? `<p class="note"><a href="#players">${d.online.length - 8} more online</a></p>` : "")
@@ -1058,25 +1168,42 @@ function renderPlayers(d) {
     gd: p => gd(p), pts: p => pts(p), seen: p => p.online ? 1e12 : (p.last_login || 0), joined: p => p.created || 0}[ui.sort] || (p => pts(p));
   list.sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * ui.dir || (rankOf.get(a.pid) || 1e9) - (rankOf.get(b.pid) || 1e9) || a.name.localeCompare(b.name); });
   text("p-count", list.length === d.players.length ? plural(list.length, "player") : `${list.length} of ${d.players.length}`);
-  const SORTN = {rank: "rank", name: "name", rating: "rating", played: "matches played", won: "wins", drawn: "draws", lost: "losses", gd: "goal difference", pts: "points", seen: "last seen"};
+  const SORTN = {rank: "rank", name: "name", rating: "rating", played: "matches played", won: "wins", drawn: "draws", lost: "losses", gd: "goal difference", pts: "points", seen: "status and last seen"};
   const th = (k, label, cls, abbr) => `<th scope="col" class="${cls || ""}"${ui.sort === k ? ` aria-sort="${ui.dir > 0 ? "ascending" : "descending"}"` : ""}><button type="button" class="sort" data-sort="${k}" data-key="sort-${k}" aria-label="Sort by ${SORTN[k]}">${abbr ? `<abbr title="${abbr}">${label}</abbr>` : label}${ui.sort === k ? (ui.dir > 0 ? " ▲" : " ▼") : ""}</button></th>`;
   if (!list.length) return put("players", `<p class="empty">No players match${ui.pq ? ` "${esc(ui.pq)}"` : ""}. <button type="button" class="linkbtn" data-clear="players">Show everyone</button></p>`);
   put("players", `<div class="tablewrap"><table><caption class="sr">Players, sorted by ${esc(SORTN[ui.sort] || ui.sort)}</caption><thead><tr>` +
-    th("rank", "#", "num") + th("name", "Player") + `<th scope="col" class="hide-md">Status</th>` + th("rating", "Rating", "num hide-lg") +
+    th("rank", "#", "num") + th("name", "Player") + th("seen", "Status", "hide-md") + th("rating", "Rating", "num hide-lg") +
     th("played", "P", "num hide-sm", "Played") + th("won", "W", "num hide-sm", "Won") + th("drawn", "D", "num hide-sm", "Drawn") + th("lost", "L", "num hide-sm", "Lost") +
-    th("gd", "GD", "num hide-md", "Goal difference") + th("pts", "Pts", "num", "Points") + `<th scope="col" class="hide-lg"><span title="Last 5 results, newest on the right">Form</span></th>` + th("seen", "Last seen", "hide-md") +
+    th("gd", "GD", "num hide-md", "Goal difference") + th("pts", "Pts", "num", "Points") + `<th scope="col" class="hide-lg"><span title="Last 5 results, newest on the right">Form</span></th>` +
     `<th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
     list.map(p => { const o = onlineBy.get(p.pid);
       return `<tr><td class="num muted">${rankOf.get(p.pid) || "–"}</td>
       <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · ${p.won}W ${p.drawn}D ${p.lost}L</small></span></span></td>
-      <td class="hide-md">${o ? statusOf(d, o) + `<small class="muted hide-900" style="display:block">${where(o.ip)} · ${dur(now - o.since)}</small>` : `<span class="muted">Offline</span>`}</td>
+      <td class="hide-md st-cell">${o ? `<span class="pill tag"><span class="dot"></span>online</span> ` + statusOf(d, o) + `<small class="muted hide-900" style="display:block">${where(o.ip)} · for ${dur(now - o.since)}</small>`
+          : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
       <td class="num hide-lg">${p.rating ?? "–"}</td><td class="num hide-sm">${p.played}</td><td class="num hide-sm">${p.won}</td><td class="num hide-sm">${p.drawn}</td><td class="num hide-sm">${p.lost}</td>
       <td class="num hide-md">${p.played ? signed(gd(p)) : "–"}</td><td class="num"><b>${pts(p)}</b></td><td class="hide-lg">${formHtml(formOf(d.results, p.pid))}</td>
-      <td class="hide-md nw">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span>` : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">${ago(p.last_login, now)}</span>` : "–"}</td>
       <td class="act">${o ? `<button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button>` : ""}</td></tr>`; }).join("") +
     `</tbody></table></div>`);
 }
 
+const res = {data: null, key: "", busy: false};
+function sinceOf(k) {
+  if (k === "all") return 0;
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  if (k !== "today") start.setDate(start.getDate() - (+k - 1));
+  return start.getTime() / 1000;
+}
+async function loadResults(force) {
+  const body = {q: ui.rq, since: sinceOf(ui.rr), limit: ui.rN}, key = JSON.stringify(body);
+  if (res.busy && !force) return;
+  res.busy = true;
+  try { const j = await api("/admin/api/results", {method: "POST", body: key}); res.data = j; res.key = key; }
+  catch (e) { if (e.status === 401) return signedOut(); }
+  finally { res.busy = false; }
+  if (last && ui.view === "matches") renderMatches(last, ...liveCounts(last), true);
+}
+const liveCounts = d => [d.live.filter(m => m.kickoff && m.phase !== "Full time").length, d.live.filter(m => !m.kickoff && m.phase !== "Full time").length];
 const RRANGE = [["all", "All time", 0], ["today", "Today", -1], ["7", "7 days", 7], ["30", "30 days", 30]];
 function inRange(t, k) {
   if (k === "all") return true;
@@ -1088,7 +1215,7 @@ function whenCell(t, now) {
   const dt = new Date(t * 1000);
   return now - t < 86400 ? esc(ago(t, now)) : `<span class="d">${dShort.format(dt)}</span> <span class="t">${hm.format(dt)}</span>`;
 }
-function renderMatches(d, playing, ready) {
+function renderMatches(d, playing, ready, fromLoad) {
   const now = d.now, st = d.stats || {goals: 0, abandoned: 0}, big = st.biggest, none = !d.results.length;
   $("m-tiles").hidden = !d.played_total && !playing; $("r-tools").hidden = none;
   put("m-tiles", `<div class="tiles t4">` +
@@ -1097,20 +1224,20 @@ function renderMatches(d, playing, ready) {
     tile("#matches/h-results", ICON.goal, "Goals", st.goals, d.played_total ? `${(st.goals / d.played_total).toFixed(1)} a match` : "") +
     tile("#matches/h-results", ICON.trophy, "Biggest win", big ? `${big.home_score}–${big.away_score}` : "–", big ? esc(big.home_score > big.away_score ? big.home_name : big.away_name) + " · " + dShort.format(new Date(big.ended * 1000)) : "") + `</div>`);
   put("live", liveHtml(d, now, false));
+  if (!fromLoad) loadResults();
   put("r-range", RRANGE.map(([k, l]) => `<button type="button" data-rr="${k}" data-key="rr-${k}" aria-pressed="${ui.rr === k}">${l}</button>`).join(""));
-  const q = ui.rq.toLowerCase();
-  const rs = d.results.filter(r => inRange(r.ended, ui.rr) && (!q || r.home_name.toLowerCase().includes(q) || r.away_name.toLowerCase().includes(q)));
-  text("r-count", none ? "" : `${plural(rs.length, "result")}${q || ui.rr !== "all" ? " match" : ""}`);
-  const shownRs = rs.slice(0, ui.rN);
-  put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !rs.length ? `<p class="empty">No results ${q ? `with "${esc(ui.rq)}" ` : ""}${ui.rr !== "all" ? "in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
+  if (!res.data) return;
+  const q = ui.rq, shownRs = res.data.rows, total = res.data.total;
+  text("r-count", none ? "" : shownRs.length < total ? `Showing ${shownRs.length} of ${total}` : plural(total, "result"));
+  const rs = {length: total};
+  put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results ${q ? `with "${esc(ui.rq)}" ` : ""}${ui.rr !== "all" ? "in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
     `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col><col class="s"><col></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th></tr></thead><tbody>` +
     shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
       return `<tr><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time></td>
-        <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}</td>
-        <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}${r.reason ? ` <span class="pill neutral tag" title="Ended early (${esc(r.reason)}); counted with the score when it ended">abandoned</span>` : ""}</td></tr>`; }).join("") +
+        <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.reason ? `<span class="pill neutral tag" title="Ended early (${esc(r.reason)}); counted with the score when it ended">abandoned</span>` : ""}</td>
+        <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}</td></tr>`; }).join("") +
     `</tbody></table></div>` +
-    (rs.length > ui.rN ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">Show ${Math.min(25, rs.length - ui.rN)} more</button>` : "") +
-    (d.results.length < d.played_total && rs.length <= ui.rN ? `<p class="note">The latest ${d.results.length} results are listed here. Every match still counts in the table and the totals; select a player to see all of theirs.</p>` : ""));
+    (total > shownRs.length ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">Show ${Math.min(25, total - shownRs.length)} more</button>` : ""));
 }
 
 const FKINDS = [["all", "All", () => true], ["players", "Sign-ins", f => f.kind === "login" || f.kind === "logout"], ["matches", "Matches & goals", f => ["match", "goal", "result", "search"].includes(f.kind)],
@@ -1130,7 +1257,7 @@ async function openPlayer(pid, opener) {
   sheetPid = pid; sheetAll = false; if (!$("sheet").open) sheetBack = opener || document.activeElement;   // h2h links keep the first opener
   const p0 = last && last.players.find(p => p.pid === pid);
   $("sh-t").textContent = p0 ? p0.name : "Player"; $("sh-av").innerHTML = p0 ? avatar(p0) : "";
-  $("sh-b").innerHTML = `<div class="skel"></div><div class="skel short"></div><div class="skel"></div>`;
+  $("sh-b").innerHTML = `<div class="skel"></div><div class="skel short"></div><div class="skel"></div>`; $("sh-f").innerHTML = "";
   if (!$("sheet").open) $("sheet").showModal();
   $("sh-x").focus();
   await loadPlayer();
@@ -1140,6 +1267,7 @@ async function loadPlayer() {
   let p;
   try { p = await api("/admin/api/player", {method: "POST", body: JSON.stringify({pid})}); }
   catch (e) { if (e.status === 401) { $("sheet").close(); return signedOut(); }
+    if (sheetPid === pid) $("sh-f").innerHTML = "";
     if (sheetPid === pid) $("sh-b").innerHTML = `<p class="empty">${e.status === 404 ? "This player was deleted." : "Couldn't load this player. Try again in a moment."}</p>`; return; }
   if (sheetPid !== pid || !$("sheet").open) return;
   const now = Date.now() / 1000, ms = myMatches(p.matches, pid);
@@ -1155,16 +1283,15 @@ async function loadPlayer() {
     `<p class="small muted" style="margin:0 0 12px">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span> for ${dur(now - p.since)} · ${where(p.ip)} (${esc(p.ip)})` : p.last_login ? "Last seen " + esc(ago(p.last_login, now)) : "Never signed in"}` +
       ` · joined ${esc(dShort.format(new Date(p.created * 1000)))} · rating ${esc(p.rating ?? "–")}${rank ? ` · #${rank} in the table` : ""}${p.streak > 1 ? ` · ${p.streak} wins in a row` : ""}</p>` +
     `<div class="mstats"><div><b>${ms.length}</b><span>played</span></div><div><b>${w}–${dr}–${l}</b><span>won–drawn–lost</span></div><div><b>${gf}:${ga}</b><span>goals for:against</span></div><div><b>${ms.length ? Math.round(100 * w / ms.length) + "%" : "–"}</b><span>win rate</span></div></div>` +
-    `<h3>Form</h3>${formHtml(ms.slice(0, 10).map(m => m.res).reverse())}` +
+    `<h3>Form <span class="small muted" style="font-weight:400">last ${Math.min(10, ms.length)}, oldest → newest</span></h3>${formHtml(ms.slice(0, 10).map(m => m.res).reverse())}` +
     (rows.length ? `<h3>Head to head</h3><div class="tablewrap"><table><caption class="sr">Head to head</caption><thead><tr><th scope="col">Opponent</th><th scope="col" class="num">P</th><th scope="col" class="num">W</th><th scope="col" class="num">D</th><th scope="col" class="num">L</th><th scope="col" class="num">Goals</th></tr></thead><tbody>` +
       rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td></tr>`).join("") + `</tbody></table></div>` : "") +
     `<h3>Matches</h3>` + (ms.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${pname(m.opp, m.oppPid, "pm-" + m.r.id)}${m.r.reason ? ' <span class="pill neutral tag">abandoned</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (ms.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${ms.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
-    (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), false) : "") +
-    `<h3>Manage</h3><div class="row" style="display:flex;gap:8px;flex-wrap:wrap">` +
-      (p.online ? `<button type="button" class="danger needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick ${esc(p.name)}</button>` : "") +
-      `<button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button></div>` +
-    `<p class="note">Delete removes their name, rating and table row; past results stay. If they play again, the game asks them for a name like on their first visit.</p>`;
+    (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true) : "");
+  $("sh-f").innerHTML = (p.online ? `<button type="button" class="danger needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
+      `<button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button>` +
+      `<span class="small muted" style="flex:1;min-width:12em">${p.online ? "Kick disconnects them now; they can come back." : "Delete removes their name, rating and table row; results stay."}</span>`;
 }
 function closeSheet() { if ($("sheet").open) $("sheet").close(); }
 $("sheet").addEventListener("close", () => { sheetPid = null; const b = sheetBack; sheetBack = null;
@@ -1172,6 +1299,13 @@ $("sheet").addEventListener("close", () => { sheetPid = null; const b = sheetBac
 $("sh-x").onclick = closeSheet;
 $("sheet").addEventListener("click", e => { const r = $("sheet").getBoundingClientRect(); if (e.target === $("sheet") && e.clientX < r.left) closeSheet(); });   // the backdrop
 
+function renderInvite(d) {
+  const now = d.now, dls = d.feed.filter(f => f.kind === "web").length, ps = [...d.players].sort((a, b) => (b.created || 0) - (a.created || 0));
+  put("joins", (ps.length ? `<ul class="list-plain mini">` + ps.slice(0, 6).map(p => `<li>${avatar(p)}<span class="grow">${pname(p.name, p.pid, "jn-" + p.pid)}</span><span class="r">joined ${esc(ago(p.created, now))}</span></li>`).join("") + `</ul>` +
+      (ps.length > 6 ? `<p class="note"><a href="#players">All ${ps.length} players</a></p>` : "")
+    : `<p class="empty">Nobody yet. Friends appear here within seconds of opening Quick Match with the mod.</p>`) +
+    (dls ? `<p class="note">The mod was downloaded ${plural(dls, "time")} recently (from this page or the link).</p>` : ""));
+}
 function renderServer(d, s) {
   const kv = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
   put("srv-status", kv("Version", esc(s.version || "?") + (s.update ? ` <span class="pill warn tag">${esc(s.update)} is out</span>` : "")) +
@@ -1180,16 +1314,17 @@ function renderServer(d, s) {
   put("net", netHtml(s));
   put("access", remoteHtml(s) + `<div style="margin-top:6px">${location.protocol === "https:" ? "Opened over the internet, encrypted." : s.same_pc ? "Opened on the server's computer." : "On your home network the admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale."}</div>` +
     `<div>${plural(s.sessions || 1, "active sign-in")}${untilText ? `; this one lasts until ${esc(untilText)}` : ""}. <button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
-  put("cmds", `<li>The server runs in a window on the server computer: its address and password are shown there. Stop it with <b>Ctrl+C</b> or by closing the window.</li>
-    <li id="install-cmd">Start it again, always with the newest version (players, results and friends' mod files keep working)${platform === "win32" ? ", in PowerShell" : ", in a terminal"}:${copyRow(runCmd(), "Start command")}</li>
-    ${dataDir ? `<li>Players, results and the detailed log (server.log) are in <code>${esc(dataDir)}</code></li>` : ""}`);
+  put("cmds", `<dt>Stop</dt><dd>Press <b>Ctrl+C</b> in the server's window, or close the window.</dd>
+    <dt>Start or update</dt><dd id="install-cmd">${copyRow(runCmd(), "Start command")}<span class="small muted">${platform === "win32" ? "In PowerShell. " : "In a terminal. "}Always starts the newest version; players, results and friends' mod files keep working.</span></dd>
+    ${dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path")}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : ""}`);
 }
 
 function remoteHtml(s) {
   const fp = (s.admin_fp || "").split(":").slice(0, 8).join(":");
-  if (s.remote_admin) return `<div class="ok">${I.ok} Admin page from the internet: on <button type="button" class="small needs-server" data-remote="0">Turn off</button></div>
+  const sw = on => `<div class="switch"><span class="lbl" id="ra-l">Admin page from the internet</span><span class="small ${on ? "ok" : "muted"}">${on ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${on}" aria-labelledby="ra-l" class="needs-server" data-remote="${on ? 0 : 1}"></button></div>`;
+  if (s.remote_admin) return sw(true) + `
     <div class="small muted">Open <b>${esc(s.remote_url || "https://<your internet address>:8080/admin")}</b> anywhere and sign in with the password. The browser warns once because the certificate is this server's own: continue if its SHA-256 fingerprint starts with <code>${esc(fp)}</code>.${s.cgnat || (!s.ports_open.length && !s.pinned) ? " It works once your server can be reached from outside your home (router ports open)." : ""}</div>`;
-  return `<div>Admin page from the internet: <b>off</b> <button type="button" class="small needs-server" data-remote="1">Turn on</button></div>
+  return sw(false) + `
     <div class="small muted">Turn it on to open this page from anywhere, encrypted (HTTPS) and with the password. Home network and Tailscale work without it.</div>`;
 }
 function netHtml(s) {
@@ -1270,6 +1405,7 @@ function libraryOf(path) {
   return "/" + (i > 0 ? p.slice(0, i) : p.slice(0, -2)).join("/");
 }
 const justMarked = new Set(), rowOrder = new Map(), shownPaths = new Set();
+let pcError = "";   // a problem that stops every install (e.g. a server built without the mod)
 function skipped(g) { try { return localStorage.getItem("pes-pc-skip:" + g.path) === "1"; } catch (e) { return false; } }
 function doneOption(g) { try { return localStorage.getItem("pes-optdone:" + g.path) === "1"; } catch (e) { return false; } }
 function pcNeeds() { return lastGames.filter(g => !skipped(g) && !(g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g))))).length; }
@@ -1286,9 +1422,8 @@ async function loadGames(force, focusMsg, focusKey) {
     const g = gs.find(x => x.id === id);
     if (!g || rowMsg[id].state !== stateOf(g) || Date.now() > rowMsg[id].until) delete rowMsg[id];
   }
-  $("thispc").hidden = !gs.length;
   if (last) render(last);
-  if (!gs.length) return;
+  if (!gs.length) return put("games", `<p class="empty">No PES 2021 found on this computer. That's fine: it's only needed if you want to play on the server computer too. Install PES 2021 (Steam, Heroic or Lutris), then start the server again so it looks for it.</p>`);
   const okNow = g => g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g)));
   const need = gs.filter(g => !okNow(g) && !skipped(g)).length, okCnt = gs.filter(okNow).length;
   const actionable = gs.filter(g => g.mod === "none" || g.mod === "other-server" || (g.mod === "ours" && g.override === false)).length;
@@ -1327,10 +1462,12 @@ async function loadGames(force, focusMsg, focusKey) {
     ? `<details class="pcready${okCnt ? "" : " none-ready"}" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this computer is ready to play (${plural(gs.length, "copy", "copies")})` : `${okCnt ? `PES 2021 on this computer: ${okCnt} ready, ${gs.length - okCnt} skipped` : "PES 2021 on this computer: skipped (set it up any time)"}`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
         : `${gs.length > 1 ? (need === gs.length ? `All ${need} copies need setup` : `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup`) : (gs[0].mod === "ours" ? "One step left" : "Not set up yet")}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
-  put("games", html, force);
+  put("games", (pcError ? `<p class="err" style="margin:0 0 8px">${esc(pcError)}</p>` : "") + html, force);
+  if (pcError) $("games").querySelectorAll('[data-act="install"], [data-act="switch"]').forEach(b => b.setAttribute("aria-disabled", "true"));
   [...$("games").querySelectorAll(".act button.primary")].slice(1).forEach(x => x.classList.remove("primary"));
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }
-  if (focusMsg) { const m = $("games").querySelector(`[data-key="msg-${CSS.escape(focusMsg)}"]`); (m && m.textContent.trim() ? m : $("pc-h")).focus(); }
+  if (focusMsg) { const rb = $("games").querySelector(`[data-key="retry-${CSS.escape(focusMsg)}"], [data-key^="game-${CSS.escape(focusMsg)}-"]`);
+    const m = $("games").querySelector(`[data-key="msg-${CSS.escape(focusMsg)}"]`); (rb || (m && m.textContent.trim() ? m : $("pc-h"))).focus(); }
 }
 function doneMsg(act, ng) {
   justMarked.add(ng.path);
@@ -1351,7 +1488,7 @@ async function gameAction(btn) {
     if (box) box.innerHTML = `<span class="warn">The server isn't answering, so this can't run right now.</span>`;
     $("pc-live").textContent = "The server isn't answering, so this can't run right now."; return;
   }
-  if (btn.getAttribute("aria-disabled") === "true") return;
+  if (btn.getAttribute("aria-disabled") === "true") { if (pcError && act !== "remove") $("pc-live").textContent = pcError; return; }
   const nameG = g ? (g.label || label(g.path)) : "this copy";
   if (!btn.dataset.retry && act === "remove" && await ask({title: `Remove the mod from ${nameG}?`, body: `Folder: ${g.path}\n\nThis copy can't play online until you install it again.`, ok: "Remove the mod", danger: true}) === null) return;
   if (!btn.dataset.retry && act === "switch" && await ask({title: `Switch ${nameG} to this server?`, body: "It stops connecting to the other server and uses this one.", ok: "Use this server"}) === null) return;
@@ -1379,6 +1516,11 @@ async function gameAction(btn) {
     const t = e.name === "TimeoutError" ? "The server didn't finish in time. Check that PES 2021 is closed, then try again."
       : e.message === "failed" ? "That didn't work. Close the game and try again." : e.message;
     const needsInstall = /Start the server again/.test(t);
+    if (e.status === 404 && /without the mod/.test(t)) {      // not about this copy: say it once, for the whole card
+      pcError = t + " Use the official download (the start command below) to get a server that can install it.";
+      $("pc-live").textContent = pcError; delete rowMsg[id];
+      return loadGames(true, null, `game-${id}-${act}`);
+    }
     $("pc-live").textContent = t;
     msg = {html: `<span class="err">${esc(t)}</span>${needsInstall ? ` <a href="#server/install-cmd">Show the start command</a>` : ""}`,
            state: g ? stateOf(g) : "", until: Date.now() + 120000, error: true, act};
@@ -1410,10 +1552,10 @@ document.addEventListener("click", async e => {
   if (pl) return openPlayer(+pl.dataset.player, pl);
   if (e.target.closest("[data-sheetall]")) { sheetAll = true; return loadPlayer(); }
   const rr = e.target.closest("[data-rr]");
-  if (rr) { ui.rr = rr.dataset.rr; ui.rN = 25; if (last) render(last); return; }
+  if (rr) { ui.rr = rr.dataset.rr; ui.rN = 25; if (last) render(last); loadResults(true); return; }
   const cl = e.target.closest("[data-clear]");
   if (cl) { const w = cl.dataset.clear;
-    if (w === "players") { ui.pq = ""; ui.pf = "all"; $("p-q").value = ""; } else if (w === "results") { ui.rq = ""; ui.rr = "all"; $("r-q").value = ""; } else { ui.fq = ""; ui.ff = "all"; $("f-q").value = ""; }
+    if (w === "players") { ui.pq = ""; ui.pf = "all"; $("p-q").value = ""; } else if (w === "results") { ui.rq = ""; ui.rr = "all"; $("r-q").value = ""; loadResults(true); } else { ui.fq = ""; ui.ff = "all"; $("f-q").value = ""; }
     if (last) render(last); ($(w === "players" ? "p-q" : w === "results" ? "r-q" : "f-q")).focus(); return; }
   const rg = e.target.closest("[data-range]");
   if (rg) { ui.range = +rg.dataset.range; try { localStorage.setItem("pes-admin-range", ui.range); } catch (_) {} if (last) render(last); return; }
@@ -1439,7 +1581,7 @@ document.addEventListener("click", async e => {
     token = ""; store.clear(); showLogin("Signed out on all devices."); return;
   }
   const more = e.target.closest("[data-more]");
-  if (more) { if (more.dataset.more === "results") ui.rN += 25; else ui.fN += 50; if (last) render(last); return; }
+  if (more) { if (more.dataset.more === "results") { ui.rN += 25; loadResults(true); } else { ui.fN += 50; if (last) render(last); } return; }
   const rl = e.target.closest("[data-reload]");
   if (rl) {
     const id = rl.dataset.reload; await loadGames(true);
@@ -1501,12 +1643,18 @@ document.addEventListener("click", async e => {
   }
 });
 $("p-q").addEventListener("input", e => { ui.pq = e.target.value.trim(); if (last) render(last); });
-$("r-q").addEventListener("input", e => { ui.rq = e.target.value.trim(); ui.rN = 25; if (last) render(last); });
+let rqT = 0;
+$("r-q").addEventListener("input", e => { ui.rq = e.target.value.trim(); ui.rN = 25; clearTimeout(rqT); rqT = setTimeout(() => loadResults(true), 200); });
+function setMore(open) { document.querySelector(".nav").classList.toggle("open", open); $("nav-more").setAttribute("aria-expanded", String(open)); }
+$("nav-more").onclick = e => { e.stopPropagation(); const open = !document.querySelector(".nav").classList.contains("open"); setMore(open); if (open) $("nav-sec").querySelector("a").focus(); };
+document.addEventListener("click", e => { if (!e.target.closest(".nav")) setMore(false); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && document.querySelector(".nav.open")) { setMore(false); $("nav-more").focus(); } });
 $("f-q").addEventListener("input", e => { ui.fq = e.target.value.trim(); ui.fN = 50; if (last) render(last); });
 function navFade() {
   const sd = document.querySelector(".side"), narrow = matchMedia("(max-width: 960px)").matches;
-  sd.classList.toggle("fade-r", narrow && sd.scrollLeft + sd.clientWidth < sd.scrollWidth - 2);
-  sd.classList.toggle("fade-l", narrow && sd.scrollLeft > 2);
+  const strip = narrow && !matchMedia("(max-width: 760px)").matches;
+  sd.classList.toggle("fade-r", strip && sd.scrollLeft + sd.clientWidth < sd.scrollWidth - 2);
+  sd.classList.toggle("fade-l", strip && sd.scrollLeft > 2);
 }
 document.querySelector(".side").addEventListener("scroll", navFade, {passive: true}); addEventListener("resize", navFade);
 
@@ -1603,11 +1751,11 @@ async function logout() {
   token = ""; store.clear(); $("pw").value = "";
   showLogin(ok ? "Signed out here." : "Signed out in this browser. The server couldn't be reached, so this sign-in may still work on other devices until it expires. Sign in again later and use 'Sign out on all devices' if you're worried.");
 }
-$("logout").onclick = logout; $("logout2").onclick = logout;
+$("logout").onclick = logout; $("logout-m").onclick = logout;
 
 function statusOf(d, p) {
   const vs = opponent(d, p.name) || pending(d, p.name);
-  return `<span class="nw">${pending(d, p.name) ? "Getting ready" : esc(p.status)}</span>${vs ? ` vs ${nm(vs)}` : ""}`;
+  return `<span class="nw">${pending(d, p.name) ? "Getting ready" : esc(p.status)}</span>${vs ? ` vs <span class="nw">${esc(vs)}</span>` : ""}`;
 }
 function pending(d, name) {
   const m = d.live.find(m => !m.kickoff && m.phase !== "Full time" && (m.home_name === name || m.away_name === name));
@@ -1622,7 +1770,6 @@ function start(focus) {
   $("login").hidden = true; $("app").hidden = false;
   let until = 0; try { until = +(localStorage.getItem("pes-admin-until") || sessionStorage.getItem("pes-admin-until") || 0); } catch (e) {}
   untilText = until ? new Intl.DateTimeFormat([], until * 1000 - Date.now() < 86400000 ? {hour: "numeric", minute: "2-digit"} : {month: "short", day: "numeric"}).format(new Date(until * 1000)) : "";
-  text("until", untilText ? "Signed in until " + untilText : "");
   route(focus);
   refresh(); loadGames();
   timer = setInterval(refresh, 3000); gamesTimer = setInterval(loadGames, 15000);
