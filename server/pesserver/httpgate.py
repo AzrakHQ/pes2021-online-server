@@ -395,17 +395,18 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
                     return "200 OK", json.dumps({"pct": announce.fits(req.get("title"), req.get("body"), bool(req.get("personal")))}).encode(), "application/json"
                 if req.get("clear"):
                     announce.clear_news(service)
-                    events.feed(service, "The message to players was removed", "info")
+                    events.feed(service, "The message to everyone was removed", "msg")
                 else:
                     announce.set_news(service, req.get("title"), req.get("body"))
-                    events.feed(service, "A message to players was posted", "info")
+                    events.feed(service, f"Message to everyone: “{announce.clean(req.get('title'), announce.TITLE_MAX, False)}”", "msg")
             else:
                 minutes = int(req.get("minutes") or 0)
                 if not 0 <= minutes <= 24 * 60:
                     raise ValueError("minutes")
                 announce.set_restart(service, minutes)
-                events.feed(service, f"Restart warning set for {minutes} minutes from now" if minutes
-                            else "Restart warning cancelled", "info")
+                events.feed(service, "Restart warning cancelled" if not minutes
+                            else f"Restart warning: the server goes down in {minutes} minutes" if minutes < 120
+                            else f"Restart warning: the server goes down in {minutes // 60} hours", "msg")
         except announce.TooLong:
             return "400 Bad Request", b'{"error":"too long"}', "application/json"
         except (ValueError, TypeError, AttributeError):
@@ -423,7 +424,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         name = events.name_of(service, pid)
         if req.get("cancel"):
             if announce.untell(service, pid):
-                events.feed(service, f"The message to {name} was taken back", "info")
+                events.feed(service, f"The message to {name} was taken back", "msg")
             return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
         try:
             announce.tell(service, pid, req.get("title"), req.get("body"), kind="note")
@@ -431,7 +432,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             return "400 Bad Request", b'{"error":"too long"}', "application/json"
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"Write a title and a message."}', "application/json"
-        events.feed(service, f"Message sent to {name}: “{announce.clean(req.get('title'), announce.TITLE_MAX, False)}”", "info")
+        events.feed(service, f"Message sent to {name}: “{announce.clean(req.get('title'), announce.TITLE_MAX, False)}”", "msg")
         return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
     if route == "/admin/api/games":
         from . import gamesetup

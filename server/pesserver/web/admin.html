@@ -68,7 +68,7 @@
   .nav a[aria-current="page"] svg { color:var(--accent); }
   .nav .badge { margin-left:auto; font-size:12px; font-weight:700; padding:0 7px; border-radius:99px; background:var(--code); color:var(--muted); min-width:20px; text-align:center; font-variant-numeric:tabular-nums; }
   .nav .badge.live { background:var(--code); color:var(--fg); display:inline-flex; align-items:center; gap:4px; }
-  .nav .badge.live::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--live); }
+  .nav .badge.live::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--accent); }
   .nav .badge.ok { background:var(--accent2); color:var(--accent); }
   .sec { display:contents; }
   .more-btn, .so-m { display:none; }
@@ -115,12 +115,12 @@
     .nav .badge { position:absolute; top:1px; right:2px; margin:0; font-size:10px; padding:0 5px; min-width:16px; line-height:16px; }
     .main { padding:0 22px 40px; }
   }
-  @media (max-width: 760px) {
+  @media (max-width: 960px) {
     .side, .side.fade-l, .side.fade-r { position:fixed; top:auto; bottom:0; left:0; right:0; z-index:30; padding:4px 4px calc(4px + env(safe-area-inset-bottom)); border-bottom:0; border-top:1px solid var(--line); overflow:visible; -webkit-mask-image:none; mask-image:none; box-shadow:0 -4px 16px rgba(0,0,0,.06); }
     .nav { width:100%; }
     .nav > a, .more-btn { flex:1; flex-direction:column; justify-content:center; align-items:center; gap:1px; padding:6px 2px; font-size:11px; font-weight:600; min-width:0; position:relative; border-radius:8px; }
     .more-btn { display:flex; border:0; background:none; color:var(--fg); font:inherit; font-size:11px; font-weight:600; }
-    .more-btn:hover { color:var(--accent); }
+    @media (hover: hover) { .more-btn:hover { color:var(--accent); } }
     .nav > a svg, .more-btn svg { display:block; width:20px; height:20px; color:inherit; }
     .nav > a .badge, .more-btn .badge { position:absolute; top:1px; left:calc(50% + 7px); margin:0; font-size:10px; padding:0 5px; min-width:16px; line-height:16px; }
     .sec { display:none; position:fixed; right:8px; bottom:calc(64px + env(safe-area-inset-bottom)); background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.25); padding:6px; flex-direction:column; min-width:210px; }
@@ -214,7 +214,7 @@
   .bars.has-on .c:not(.on) i { opacity:.4; }
   .bars .c.on i { opacity:1; box-shadow:0 0 0 2px var(--card), 0 0 0 4px var(--fg); }
   @media (hover: hover) { .bars:not(.has-on) .c:hover i { filter:brightness(1.15); } }
-  .readout { min-height:24px; font-size:13px; color:var(--muted); margin:0 0 6px 30px; display:flex; flex-wrap:wrap; gap:2px 8px; align-items:baseline; }
+  .readout { min-height:2.9em; align-content:flex-start; font-size:13px; color:var(--muted); margin:0 0 6px 30px; display:flex; flex-wrap:wrap; gap:2px 8px; align-items:baseline; }
   .readout.on { color:var(--fg); }
   .readout b { font-weight:700; }
   .readout b::after { content:" ·"; font-weight:400; color:var(--muted); }
@@ -277,21 +277,19 @@
 
   /* matches */
   .list-plain { list-style:none; margin:0; padding:0; }
-  .match { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) minmax(150px, auto); align-items:center; gap:6px 14px; padding:10px 14px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; }
+  .match { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:6px 14px; padding:12px 14px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; }
   .match:last-child { margin-bottom:0; }
   .match .side-n { font-weight:600; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow-wrap:break-word; min-width:6ch; }
   .match .side-n:not(.away) { text-align:right; }
   .score { font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; text-align:center; }
   .score.vs { font-size:15px; color:var(--muted); font-weight:600; }
-  .phase { text-align:right; font-size:13px; }
-  .phase .muted { display:block; margin-top:2px; }
-  .ov-live .match, #ov-live .match { grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); }
-  #ov-live .phase { grid-column:1 / -1; text-align:center; } #ov-live .phase .muted { display:inline; }
-  @media (max-width: 700px) { .match { grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); } .phase { grid-column:1 / -1; text-align:center; } .phase .muted { display:inline; } }
+  .phase { grid-column:1 / -1; text-align:center; font-size:13px; }
+  #live .list-plain { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:10px; }
+  #live .match { margin:0; }
   .stuck { display:block; margin-top:4px; overflow-wrap:anywhere; }
   @media (max-width: 420px) { .match { gap:4px 8px; padding:10px; } .score { font-size:18px; } }
   .finished { font-size:14px; color:var(--muted); margin:8px 0 0; overflow-wrap:anywhere; }
-  table.res { table-layout:fixed; } table.res col.w { width:150px; } table.res col.s { width:110px; } table.res col.hm, table.res col.aw { width:30%; }
+  table.res { table-layout:fixed; } table.res col.w { width:150px; } table.res col.s { width:110px; } table.res col.hm, table.res col.aw { width:24%; }
   table.res td { vertical-align:baseline; }
   .len-m { display:none; }
   @media (max-width: 760px) { table.res col.l { width:0; } }
@@ -328,6 +326,7 @@
   .feed .ico svg { width:13px; height:13px; }
   .feed .ico.k-goal, .feed .ico.k-result { background:var(--accent2); color:var(--accent); }
   .feed .ico.k-warn { background:var(--warnbg); color:var(--warn); }
+  .feed .ico.k-msg { background:var(--accent2); color:var(--accent); }
   .feed .ico.k-match { background:var(--accent2); color:var(--accent); }
   .feed .ico.k-result, .feed .ico.k-goal { box-shadow:inset 0 0 0 1px var(--accent); }
   .feed .pname { font-weight:600; }
@@ -346,6 +345,9 @@
   .msgf textarea { min-height:96px; resize:vertical; }
   .msgf select { width:auto; }
   .msgf .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
+  .tpl { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; margin:12px 0 2px; }
+  .dmrow { display:flex; gap:10px; align-items:center; padding:9px 0; border-top:1px solid var(--line); font-size:14px; }
+  .dmrow .grow { flex:1; min-width:0; overflow-wrap:anywhere; }
   .msgf .cnt { margin-left:auto; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
   .preview { border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:6px; }
   .preview .ph { background:var(--code); padding:6px 12px; font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; }
@@ -372,7 +374,8 @@
   .grid2.eq { align-items:stretch; }
   .dl[aria-disabled="true"] { background:var(--code); color:var(--muted); border-color:var(--line); pointer-events:none; }
   #mchip { display:none; }
-  @media (max-width: 760px) { #status, #reach, #remote-pill, #attn-pill { display:none !important; } #mchip { display:inline-flex; } header.top { flex-wrap:nowrap; } .mbrand { white-space:nowrap; } }
+  #rs-pill { font-variant-numeric:tabular-nums; }
+  @media (max-width: 960px) { #status, #reach, #remote-pill, #attn-pill, #rs-pill { display:none !important; } #mchip { display:inline-flex; } header.top { flex-wrap:nowrap; } .mbrand { white-space:nowrap; } }
   @media (pointer: coarse) { .pname { padding:10px 0; margin:-10px 0; } header.top .pill { min-height:32px; } }
   .h2h-bal { font-weight:700; } .h2h-bal.up { color:var(--accent); } .h2h-bal.down { color:var(--live); }
   .net { display:grid; gap:8px; font-size:14px; }
@@ -429,6 +432,7 @@
   .mstats b { display:block; font-size:20px; font-variant-numeric:tabular-nums; }
   .mstats span { font-size:12px; color:var(--muted); }
   @media (max-width: 420px) { .mstats { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .meter.empty { display:none; }
   .meter { height:6px; border-radius:99px; background:var(--code); overflow:hidden; margin-top:6px; }
   .meter i { display:block; height:100%; background:var(--accent-fill); border-radius:99px; }
   .meter.full i { background:var(--live); }
@@ -506,6 +510,7 @@
       <span class="pill neutral" id="status"><span class="dot"></span><span id="status-t">Connecting…</span></span><span class="sr" id="status-live" aria-live="polite"></span>
       <a class="pill" id="mchip" href="#overview"></a>
       <a class="pill neutral" id="reach" href="#server/h-net" hidden></a>
+      <a class="pill warn" id="rs-pill" href="#messages/h-rs" hidden></a>
       <a class="pill warn" id="remote-pill" href="#server/h-access" hidden title="The admin page can be opened from the internet (encrypted, with the password)">Internet access on</a>
       <a class="pill warn m-only" id="attn-pill" href="#overview" hidden></a>
       <span class="grow"></span>
@@ -560,7 +565,7 @@
           <span class="grow"></span><span class="count" id="p-count" aria-live="polite"></span>
         </div>
         <div id="plist"><div class="skel"></div><div class="skel short"></div></div>
-        <p class="note" id="p-note">Select a name for their matches, head-to-head record and the Delete option. Kick disconnects someone now; they can reconnect and see your reason when they do. There's no ban yet: anyone who has the mod file or your server's address can join.</p>
+        <p class="note" id="p-note">Select a name for their matches, head-to-head record and the Delete option. Rating is the game's own matchmaking number (it pairs players of similar skill); the table order uses points. Kick disconnects someone now; they can reconnect and see your reason when they do. There's no ban yet: anyone who has the mod file or your server's address can join.</p>
       </section>
     </section>
 
@@ -591,10 +596,13 @@
     <!-- MESSAGES -->
     <section class="view" id="v-messages" aria-labelledby="t-messages" hidden>
       <h1 id="t-messages" tabindex="-1">Messages</h1>
-      <p class="lead">Talk to everyone on your server through the game itself.</p>
+      <p class="lead">Talk to your players through the game itself: everyone at once, one player, or a warning before maintenance.</p>
       <div class="grid2">
-        <section class="card msgf" aria-labelledby="h-msg"><h2 id="h-msg" tabindex="-1">Message to players</h2>
+        <section class="card msgf" aria-labelledby="h-msg"><h2 id="h-msg" tabindex="-1">To everyone</h2>
+          <p class="small muted" style="margin:-6px 0 10px">Shows as a pop-up in the main menu, in Online Information when they sign in, and once in a box before Quick Match.</p>
           <div id="msgnow"></div>
+          <div class="tpl"><span class="small muted" id="tpl-l">Start from:</span><div class="chips" role="group" aria-labelledby="tpl-l">
+            <button type="button" data-tpl="maint">Maintenance</button><button type="button" data-tpl="restart">Quick restart</button><button type="button" data-tpl="update">New version</button><button type="button" data-tpl="cup">Tournament</button><button type="button" data-tpl="welcome">Welcome</button></div></div>
           <form id="msgform">
             <label for="msg-title">Title</label><input id="msg-title" maxlength="60" autocomplete="off" placeholder="Tournament on Friday">
             <label for="msg-body">Message</label><textarea id="msg-body" maxlength="600" placeholder="Matches start at 9 pm. Be online by 8:45." aria-describedby="msg-fit"></textarea>
@@ -604,22 +612,29 @@
           </form>
         </section>
         <div class="stack">
-        <section class="card msgf" aria-labelledby="h-rs"><h2 id="h-rs" tabindex="-1">Planned restart</h2>
+        <section class="card msgf" aria-labelledby="h-dm"><h2 id="h-dm" tabindex="-1">To one player</h2>
+          <p class="small muted" style="margin:-6px 0 4px">They see it in a box the next time they open an online mode, such as Quick Match. The game can't show it sooner. A newer message replaces one they haven't seen.</p>
+          <form id="dmform">
+            <label for="dm-to">Player</label><select id="dm-to" class="needs-server"></select>
+            <label for="dm-title">Title</label><input id="dm-title" maxlength="60" autocomplete="off" placeholder="Your match tonight">
+            <label for="dm-body">Message</label><textarea id="dm-body" maxlength="600" placeholder="You play Omar at 9 pm in the semi-final." aria-describedby="dm-fit"></textarea>
+            <div id="dm-fit" class="small muted" style="margin-top:6px" aria-live="polite"></div><div class="meter" id="dm-meter" aria-hidden="true"><i style="width:0"></i></div>
+            <div class="row"><button class="primary needs-server" type="submit" id="dm-send">Send</button></div>
+          </form>
+          <div id="dm-list"></div>
+        </section>
+        <section class="card msgf" aria-labelledby="h-rs"><h2 id="h-rs" tabindex="-1">Maintenance or restart warning</h2>
           <form id="rsform">
             <div id="rsnow" class="small" style="margin-bottom:6px"></div>
-            <label for="rs-min">Warn players that the server restarts</label>
-            <div class="row" style="margin-top:4px"><select id="rs-min"><option value="5">in 5 minutes</option><option value="10">in 10 minutes</option><option value="15" selected>in 15 minutes</option><option value="30">in 30 minutes</option><option value="60">in 1 hour</option></select>
+            <label for="rs-min">Warn players that the server goes down</label>
+            <div class="row" style="margin-top:4px"><select id="rs-min"><option value="5">in 5 minutes</option><option value="10">in 10 minutes</option><option value="15" selected>in 15 minutes</option><option value="30">in 30 minutes</option><option value="60">in 1 hour</option><option value="120">in 2 hours</option><option value="240">in 4 hours</option></select>
               <button type="submit" class="needs-server" id="rs-set">Warn players</button><button type="button" class="needs-server" id="rs-cancel" hidden>Cancel warning</button></div>
-            <p class="note">Anyone who starts matchmaking gets the game's own warning: "maintenance work starting at [time]… Are you sure you want to start a match now?"</p>
+            <p class="note">Anyone who starts matchmaking gets the game's own warning: "maintenance work starting at [time]… Are you sure you want to start a match now?" Pair it with a message to everyone that says how long it lasts.</p>
           </form>
         </section>
-        <section class="card" aria-labelledby="h-where"><h2 id="h-where">Where players see your message</h2>
-          <ol class="steps" id="where-list">
-            <li><span class="n" aria-hidden="true">1</span><div><b>Main menu</b><div class="d">A pop-up the next time they reach the main menu.</div></div></li>
-            <li><span class="n" aria-hidden="true">2</span><div><b>Online Information</b><div class="d">In the list of news when they sign in to an online mode.</div></div></li>
-            <li><span class="n" aria-hidden="true">3</span><div><b>Before Quick Match</b><div class="d">Once, in a box before matchmaking starts.</div></div></li>
-          </ol>
-        </section>
+        </div>
+      </div>
+    </section>
         </div>
       </div>
     </section>
@@ -832,6 +847,7 @@ async function api(path, opts = {}) {
 const VIEWS = ["overview", "players", "matches", "activity", "messages", "invite", "server"];
 const TITLES = {overview: "Overview", players: "Players", matches: "Matches", activity: "Activity", messages: "Messages", invite: "Invite friends", server: "Server"};
 function route(focus) {
+  if (focus && $("sheet").open) { sheetBack = null; closeSheet(); }
   const [v0, target] = location.hash.slice(1).split("/");
   const v = VIEWS.includes(v0) ? v0 : "overview";
   const changed = v !== ui.view;
@@ -894,7 +910,8 @@ function setDown(on) {
   $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").textContent; $("dl").textContent = "Waiting for the server…";
   const downHtml = (lastOkAt ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? If it is, start the server again (was its window closed?)`
     : `<b>The server isn't answering yet.</b> If this lasts, start the server again (was its window closed?)`) +
-    `${platform === "win32" ? " in PowerShell" : " in a terminal"}:` + copyRow(runCmd(), "Start command") + `<span class="small muted">This page keeps trying and updates by itself.</span>`;
+    (matchMedia("(max-width: 760px)").matches ? `. <details><summary>Show the start command</summary>${copyRow(runCmd(), "Start command")}</details>`
+      : `${platform === "win32" ? " in PowerShell" : " in a terminal"}:` + copyRow(runCmd(), "Start command")) + `<span class="small muted">This page keeps trying and updates by itself.</span>`;
   $("down").hidden = false; requestAnimationFrame(() => { $("down").innerHTML = downHtml; });
   if (last) render(last);
 }
@@ -935,7 +952,7 @@ function barChart(id, bars, summary, desc) {
   const max = Math.max(0, ...bars.map(b => b.v));
   if (!max) return put(id, `<div class="chart-empty">${esc(summary)}</div>`);
   const {top, step} = niceScale(max), grid = []; for (let g = 0; g <= top; g += step) grid.push(g);
-  const hint = matchMedia("(hover: hover)").matches ? "Point at a bar for its numbers." : "Tap a bar for its numbers.";
+  const hint = (matchMedia("(hover: hover)").matches ? "Point at a bar for its numbers" : "Tap a bar for its numbers") + (bars.some(b => b.day) ? "; click it to list that day's matches." : ".");
   const html = `<div class="chart" tabindex="0" role="group" data-key="chart-${id}" aria-label="${esc(desc)} Use the left and right arrow keys to read each bar${bars.some(b => b.day) ? ", Enter to list that day's matches" : ""}.">` +
     `<div class="readout" data-hint="${esc(hint)}">${esc(hint)}</div><div class="plot" aria-hidden="true">` +
     grid.map(g => `<div class="gl${g ? "" : " base"}" style="top:${100 - g / top * 100}%"><span>${g}</span></div>`).join("") +
@@ -962,6 +979,7 @@ document.addEventListener("pointerover", e => {
 document.addEventListener("click", e => {             // a tap or click keeps a bar selected (touch has no hover)
   const c = e.target.closest(".bars .c"), inChart = e.target.closest(".chart");
   document.querySelectorAll(".chart").forEach(ch => { if (ch !== inChart && ch.dataset.sticky) showTip(ch, null); });
+  if (c && c.classList.contains("on") && inChart.dataset.sticky && c.dataset.day && +c.dataset.v) return dayFilter(+c.dataset.day);   // second tap
   if (c) { showTip(inChart, c); inChart.dataset.sticky = "1"; }
 });
 document.addEventListener("keydown", e => {
@@ -1030,9 +1048,19 @@ const formOf = (list, pid, n) => myMatches(list, pid).slice(0, n || 5).map(m => 
 const pname = (name, pid, key) => pid == null ? nm(name) : `<button type="button" class="pname" data-player="${pid}" data-key="${key || "pn-" + pid}" aria-haspopup="dialog">${nm(name)}</button>`;
 
 let msgDirty = false;
+function renderDmTo(d, pick) {
+  if (!d) return;
+  const sel = $("dm-to"), keep = pick != null ? String(pick) : sel.value;
+  const ps = [...d.players].sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
+  const html = `<option value="">Choose a player…</option>` + ps.map(p => `<option value="${p.pid}" data-name="${esc(p.name)}">${esc(p.name)}${p.online ? " (online now)" : ""}</option>`).join("");
+  if (shown["dm-to"] !== html) { shown["dm-to"] = html; sel.innerHTML = html; }
+  if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
+}
 function renderMsg(a) {
   if (!a) return;
   lastAnnounce = a;
+  const names = new Map((last ? last.players : []).map(p => [p.pid, p.name])), pend = a.personal || [];
+  put("dm-list", pend.length ? `<h3 class="day" style="margin-top:16px">Waiting to be seen</h3>` + pend.map(m => `<div class="dmrow"><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”${m.kind === "kick" ? ' <span class="pill neutral tag">kick note</span>' : ""}<br><span class="small muted">sent ${esc(m.sent ? ago(m.sent, Date.now() / 1000) : "earlier")}</span></span><button type="button" class="small danger needs-server" data-untell="${m.pid}" data-name="${esc(names.get(m.pid) || "this player")}" data-key="untell-${m.pid}">Take back</button></div>`).join("") : "");
   put("msgnow", a.news ? `<div class="preview"><div class="ph"><span class="pill tag"><span class="dot"></span>Showing now</span><span>since ${esc(fmt.format(new Date(a.news.date * 1000)))}${a.news.seen ? ` · seen before Quick Match by ${plural(a.news.seen, "player")}` : ""}</span></div><div class="pb"><b>${esc(a.news.title)}</b>${esc(a.news.body)}</div></div>`
     : `<p class="empty" style="margin-bottom:4px">No message is showing in the game right now.</p>`);
   $("msg-clear").hidden = !a.news; $("msg-edit").hidden = !a.news; text("msg-send", a.news ? "Replace message" : "Show in the game");
@@ -1075,11 +1103,16 @@ function render(d) {
   const pn = pcNeeds(), srvIssues = down ? 0 : (r.ok ? 0 : 1) + (s.update ? 1 : 0);   // setting up PES on this PC is optional
   const mc = $("mchip");
   mc.className = "pill " + (down ? "bad" : srvIssues ? "warn" : "");
-  put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} Online · ${srvIssues} to fix` : `<span class="dot"></span>Online`);
+  const rsAt = d.announce && d.announce.restart, rsLeft = rsAt ? rsAt - Date.now() / 1000 : 0;
+  $("rs-pill").hidden = !rsAt;
+  if (rsAt) { put("rs-pill", `${I.warn} ${rsLeft > 0 ? `Restart at ${hm.format(new Date(rsAt * 1000))} · in ${dur(rsLeft)}` : "Restart time has passed"}`); $("rs-pill").title = "Players are being warned. Change or cancel it in Messages."; }
+  put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} Online · ${srvIssues} to fix` : rsAt && rsLeft > 0 ? `${I.warn} Restart in ${dur(rsLeft)}` : `<span class="dot"></span>Online`);
+  if (!down && !srvIssues && rsAt) { mc.className = "pill warn"; mc.href = "#messages/h-rs"; }
   mc.href = srvIssues ? "#overview" : "#server";
   badge("nb-players", d.online.length, `${d.online.length} online now`);
   badge("nb-matches", playing, `${playing} live now`);
   badge("nb-messages", d.announce && (d.announce.news || d.announce.restart) ? "on" : 0, "a message or restart warning is active");
+  if (ui.view !== "messages" || !$("dm-to").options.length) renderDmTo(d);
   badge("nb-server", srvIssues, `${plural(srvIssues, "thing needs", "things need")} attention`);
   badge("nb-more", srvIssues, `Server: ${plural(srvIssues, "thing needs", "things need")} attention`);
   $("attn-pill").hidden = !srvIssues || ui.view === "overview";
@@ -1091,6 +1124,7 @@ function render(d) {
   if (ui.view === "matches") renderMatches(d, playing, ready);
   if (ui.view === "activity") renderFeed(d);
   if (ui.view === "server") renderServer(d, s);
+  if (ui.view === "messages") renderDmTo(d);
   if (ui.view === "invite") renderInvite(d);
   navFade();
 }
@@ -1123,7 +1157,7 @@ const ICON = {login: svg('<path d="M10 3h3v10h-3M2 8h7M6 5l3 3-3 3"/>'), logout:
   goal: svg('<circle cx="8" cy="8" r="5.5"/><path d="M8 5.6l2.3 1.7-.9 2.7H6.6l-.9-2.7z"/>'), result: svg('<path d="M4 14V2.5M4 3h7l-1.5 2.5L11 8H4"/>'),
   warn: svg('<path d="M8 2l6.5 11.5h-13zM8 6.5v3M8 11.8v.2"/>'), search: svg('<circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/>'),
   match: svg('<path d="M5 3.5v9l7.5-4.5z"/>'), web: svg('<path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"/>'),
-  info: svg('<circle cx="8" cy="8" r="1.6" fill="currentColor"/>'),
+  info: svg('<circle cx="8" cy="8" r="1.6" fill="currentColor"/>'), msg: svg('<path d="M2 3h12v8H6l-3 2.5V11H2z"/>'),
   online: svg('<path d="M2.5 6.5a8 8 0 0111 0M4.5 8.8a5 5 0 017 0M6.6 11a2 2 0 012.8 0"/><circle cx="8" cy="13" r=".6" fill="currentColor"/>'),
   cal: svg('<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/>'),
   users: svg('<circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"/>'),
@@ -1156,7 +1190,7 @@ function weekDelta(hist, now) {
   const a = hist.filter(h => h[0] > now - 7 * 86400).length, b = hist.filter(h => h[0] > now - 14 * 86400 && h[0] <= now - 7 * 86400).length;
   if (!b) return `${a} this week`;
   const pct = Math.round(100 * (a - b) / b);
-  return `${a} this week · <span class="delta ${pct >= 0 ? "up" : "down"}" title="${b} the week before">${pct >= 0 ? "↑" : "↓"} ${Math.abs(pct)}%</span> vs last week<span class="sr"> (${b})</span>`;
+  return `${a} this week · <span class="delta ${pct >= 0 ? "up" : "down"}" title="${b} the week before">${pct >= 0 ? "↑" : "↓"}${Math.abs(pct)}%</span><span class="sr"> compared with ${b} last week</span>`;
 }
 function highlights(d) {
   const since = d.now - 7 * 86400, wins = new Map(), goals = new Map(), names = new Map();
@@ -1312,6 +1346,7 @@ function inRange(t, k) {
 }
 function whenCell(t, now) {
   const dt = new Date(t * 1000);
+  if (ui.rr[0] === "d") return hm.format(dt);
   return now - t < 86400 ? esc(ago(t, now)) : `<span class="d">${dShort.format(dt)}</span> <span class="t">${hm.format(dt)}</span>`;
 }
 function renderMatches(d, playing, ready, fromLoad) {
@@ -1341,7 +1376,7 @@ function renderMatches(d, playing, ready, fromLoad) {
 }
 
 const FKINDS = [["all", "All", () => true], ["players", "Sign-ins", f => f.kind === "login" || f.kind === "logout"], ["matches", "Matches & goals", f => ["match", "goal", "result", "search"].includes(f.kind)],
-  ["warn", "Warnings", f => f.kind === "warn"], ["admin", "Admin & downloads", f => f.kind === "info" || f.kind === "web"]];
+  ["warn", "Warnings", f => f.kind === "warn"], ["admin", "Messages & admin", f => f.kind === "info" || f.kind === "web" || f.kind === "msg"]];
 function renderFeed(d) {
   const q = ui.fq.toLowerCase(), match = f => !q || f.text.toLowerCase().includes(q);
   $("f-q").closest(".toolbar").hidden = !d.feed.length;
@@ -1376,7 +1411,7 @@ async function loadPlayer() {
   catch (e) { if (e.status === 401) { $("sheet").close(); return signedOut(); }
     if (sheetPid === pid) $("sh-f").innerHTML = "";
     if (sheetPid === pid) $("sh-b").innerHTML = e.status === 404 ? `<p class="empty">This player was deleted.</p>`
-      : cachedPlayer(pid) + `<p class="empty">The server isn't answering. This panel reloads by itself when it's back.</p><button type="button" data-sheetretry="1" style="margin-top:10px">Try again</button>`; return; }
+      : cachedPlayer(pid) + `<p class="empty" style="margin-top:14px">The server isn't answering. This panel reloads by itself when it's back.</p><button type="button" data-sheetretry="1" style="margin-top:10px">Try again</button>`; return; }
   if (sheetPid !== pid || !$("sheet").open) return;
   const now = Date.now() / 1000, ms = myMatches(p.matches, pid);
   const w = ms.filter(m => m.res === "W").length, dr = ms.filter(m => m.res === "D").length, l = ms.length - w - dr;
@@ -1392,12 +1427,12 @@ async function loadPlayer() {
       ` · joined ${esc(dShort.format(new Date(p.created * 1000)))} · rating ${esc(p.rating ?? "–")}${rank ? ` · #${rank} in the table` : ""}${p.streak > 1 ? ` · ${p.streak} wins in a row` : ""}</p>` +
     `<div class="mstats"><div><b>${ms.length}</b><span>played</span></div><div><b>${w}–${dr}–${l}</b><span>won–drawn–lost</span></div><div><b>${gf}:${ga}</b><span>goals for:against</span></div><div><b>${ms.length ? Math.round(100 * w / ms.length) + "%" : "–"}</b><span>win rate</span></div></div>` +
     `<h3>Form <span class="small muted" style="font-weight:400">last ${Math.min(10, ms.length)}, oldest → newest</span></h3>${formHtml(ms.slice(0, 10).map(m => m.res).reverse())}` +
-    (rows.length ? `<h3>Head to head</h3><div class="tablewrap"><table><caption class="sr">Head to head</caption><thead><tr><th scope="col">Opponent</th><th scope="col" class="num">P</th><th scope="col" class="num">W</th><th scope="col" class="num">D</th><th scope="col" class="num">L</th><th scope="col" class="num">Goals</th><th scope="col" class="num"><abbr title="Wins minus losses">+/−</abbr></th></tr></thead><tbody>` +
-      rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td><td class="num h2h-bal ${x.w > x.l ? "up" : x.w < x.l ? "down" : ""}">${x.w === x.l ? "even" : signed(x.w - x.l)}</td></tr>`).join("") + `</tbody></table></div>` : "") +
+    (rows.length ? `<h3>Head to head</h3><div class="tablewrap"><table><caption class="sr">Head to head</caption><thead><tr><th scope="col">Opponent</th><th scope="col" class="num">P</th><th scope="col" class="num">W</th><th scope="col" class="num">D</th><th scope="col" class="num">L</th><th scope="col" class="num">Goals</th><th scope="col" class="num"><abbr title="Goal difference">GD</abbr></th></tr></thead><tbody>` +
+      rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td><td class="num h2h-bal ${x.gf > x.ga ? "up" : x.gf < x.ga ? "down" : ""}">${signed(x.gf - x.ga)}</td></tr>`).join("") + `</tbody></table></div>` : "") +
     `<h3>Matches</h3>` + (ms.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${pname(m.opp, m.oppPid, "pm-" + m.r.id)}${m.r.reason ? ' <span class="pill neutral tag">abandoned</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (ms.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${ms.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
     (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true) : "");
-  $("sh-f").innerHTML = (p.online ? `<button type="button" class="needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
+  $("sh-f").innerHTML = `<button type="button" class="needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
       `<span class="small muted" style="flex:1;min-width:10em">${p.online ? "Kick disconnects them now; they can come back." : "Delete removes their name, rating and table row; results stay."}</span>` +
       `<button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button>`;
 }
@@ -1510,9 +1545,8 @@ function gameRow(g) {
   if (!ready && skipped(g)) { st = `<span class="pill neutral tag">Skipped</span>` + st.replace(/^<span class="pill[^>]*>.*?<\/span>/, ""); btn = btn.replace(/class="primary/g, 'class="'); }
   if (!ready && skipped(g)) info = `<span class="muted small">Skipped in this browser.</span> <button type="button" class="linkbtn" data-unskip="${esc(g.path)}" data-key="unskip-${esc(g.id)}" aria-label="Set up ${esc(name)} after all">Set it up after all</button>`;
   else if (!ready) skipb = `<button type="button" class="linkbtn skipbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}" aria-label="Skip ${esc(name)}: I don't play on this copy">Skip this copy</button>`;
-  if (pcError && !ready && ["none", "other-server"].includes(g.mod)) btn = btn.replace(/class="primary/g, 'class="').replace(/<button /g, '<button aria-disabled="true" ');
-  const msg = rowMsg[g.id] ? rowMsg[g.id].html : pcError && !ready && ["none", "other-server"].includes(g.mod)
-    ? `<span class="err">Can't install: this copy of the server was built without the mod.</span> <a href="#server/h-cmd">Start the official server instead</a>` : "";
+  if (pcError && !ready && ["none", "other-server"].includes(g.mod)) { btn = ""; skipb = ""; }
+  const msg = rowMsg[g.id] ? rowMsg[g.id].html : "";
   const retry = failed ? `<button type="button" class="${rowMsg[g.id].act === "remove" ? "" : "primary"}" data-game="${esc(g.id)}" data-act="${rowMsg[g.id].act}" data-key="retry-${esc(g.id)}" data-retry="1" aria-label="Try again: ${esc(name)}">${{remove: "Try removing again", switch: "Try switching again"}[rowMsg[g.id].act] || "Try installing again"}</button>` : "";
   return `<div class="game${!ready && skipped(g) ? " skipped" : ""}"><div class="where"><b>${esc(name)}</b>
       <code class="parent" title="${esc(g.path)}">${esc(String(g.path).replace(/^\/home\/[^/]+/, "~"))}</code><div class="st">${st}</div></div>
@@ -1580,7 +1614,7 @@ async function loadGames(force, focusMsg, focusKey) {
     ? `<details class="pcready${okCnt ? "" : " none-ready"}" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this computer is ready to play (${plural(gs.length, "copy", "copies")})` : `${okCnt ? `PES 2021 on this computer: ${okCnt} ready, ${gs.length - okCnt} skipped` : "PES 2021 on this computer: skipped (set it up any time)"}`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
         : `${gs.length > 1 ? (need === gs.length ? `All ${need} copies need setup` : `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup`) : (gs[0].mod === "ours" ? "One step left" : "Not set up yet")}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
-  put("games", html, force);
+  put("games", (pcError ? `<div class="banner remote" style="margin:0 0 8px">${I.warn} <b>Installing isn't possible with this copy of the server:</b> it was built without the mod. <a href="#server/h-cmd">Start the official server</a> to set up PES 2021 here and to give friends the mod.</div>` : "") + html, force);
   if (pcError) $("games").querySelectorAll('[data-act="install"], [data-act="switch"]').forEach(b => b.setAttribute("aria-disabled", "true"));
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }
   if (focusMsg) { const rb = $("games").querySelector(`[data-key="retry-${CSS.escape(focusMsg)}"], [data-key^="game-${CSS.escape(focusMsg)}-"]`);
@@ -1665,6 +1699,13 @@ document.addEventListener("click", async e => {
   if (ct) return copyText(ct.dataset.copytext, ct, ct.parentElement && ct.parentElement.querySelector("code"), "Copy", ct.dataset.copied || "Copied");
   const a = e.target.closest('a[href^="#"]');
   if (a && a.getAttribute("href") === location.hash) { e.preventDefault(); route(true); return; }   // same link again: still jump
+  const tp = e.target.closest("[data-tpl]");
+  if (tp) return useTemplate(tp.dataset.tpl);
+  const un = e.target.closest("[data-untell]");
+  if (un) { if (await ask({title: `Take back the message to ${un.dataset.name}?`, body: "They won't see it.", ok: "Take it back", danger: true}) === null) return;
+    return msgCall("/admin/api/message/player", {pid: +un.dataset.untell, cancel: true}, "Message taken back."); }
+  const dm = e.target.closest("[data-dm]");
+  if (dm) { const pid = dm.dataset.dm; sheetBack = null; closeSheet(); location.hash = "#messages/dm-title"; renderDmTo(last, pid); return; }
   if (e.target.closest("[data-hidepc]")) { try { localStorage.setItem("pes-pc-hint", "off"); } catch (_) {} if (last) render(last); $("t-overview").focus(); return toast("Hidden. The setup stays under Server → PES 2021 on this computer."); }
   if (e.target.closest("[data-sheetretry]")) return loadPlayer();
   const df = e.target.closest("[data-dayfilter]");
@@ -1773,7 +1814,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && document.q
 $("f-q").addEventListener("input", e => { ui.fq = e.target.value.trim(); ui.fN = 50; if (last) render(last); });
 function navFade() {
   const sd = document.querySelector(".side"), narrow = matchMedia("(max-width: 960px)").matches;
-  const strip = narrow && !matchMedia("(max-width: 760px)").matches;
+  const strip = false;   // below 960 px the tabs are a bottom bar
   sd.classList.toggle("fade-r", strip && sd.scrollLeft + sd.clientWidth < sd.scrollWidth - 2);
   sd.classList.toggle("fade-l", strip && sd.scrollLeft > 2);
 }
@@ -1786,29 +1827,59 @@ async function msgCall(path, body, done) {
     toast(err.message === "too long" ? "That's too long for the game's message box. Shorten the message (non-Latin letters take more room)."
           : err.status === 400 ? "Write a title and a message first." : "Couldn't reach the server. Try again.", true); return false; }
 }
-let fitT = 0, fitN = 0;
-function msgCount() {
-  const t = $("msg-title").value.trim(), b = $("msg-body").value.trim();
-  clearTimeout(fitT);
-  put("msg-prev", t || b ? `<div class="preview"><div class="ph">Preview</div><div class="pb"><b>${esc(t) || '<span class="muted">Title</span>'}</b>${esc(b) || '<span class="muted">Message</span>'}</div></div>` : "");
-  if (!t && !b) { text("msg-fit", "Up to 60 characters for the title and 600 for the message."); $("msg-meter").firstChild.style.width = "0"; $("msg-meter").classList.remove("full"); return; }
-  if (!t || !b) { text("msg-fit", !t ? "Add a title too." : "Add the message too."); return; }
-  const n = ++fitN;
-  fitT = setTimeout(async () => {
-    let pct; try { pct = (await api("/admin/api/message", {method: "POST", body: JSON.stringify({check: true, title: t, body: b})})).pct; } catch (e) { return; }
-    if (n !== fitN) return;
-    $("msg-meter").firstChild.style.width = Math.min(100, pct) + "%"; $("msg-meter").classList.toggle("full", pct > 100);
-    text("msg-fit", pct > 100 ? `Too long for the game's message box (${pct}%). Shorten it; non-Latin letters take more room.` : `Uses ${pct}% of the game's message box · title ${t.length}/60.`);
-    $("msg-fit").className = "small " + (pct > 100 ? "err" : "muted");
-  }, 350);
+// live "fits in the game's box" meter (and a preview) for a title + message pair
+function meter(prefix, personal) {
+  let t0 = 0, n0 = 0;
+  const run = () => {
+    const t = $(prefix + "-title").value.trim(), b = $(prefix + "-body").value.trim(), m = $(prefix + "-meter"), f = prefix + "-fit";
+    clearTimeout(t0);
+    if ($(prefix + "-prev")) put(prefix + "-prev", t || b ? `<div class="preview"><div class="ph">Preview</div><div class="pb"><b>${esc(t) || '<span class="muted">Title</span>'}</b>${esc(b) || '<span class="muted">Message</span>'}</div></div>` : "");
+    m.classList.toggle("empty", !t && !b);
+    if (!t && !b) { text(f, "Up to 60 characters for the title and 600 for the message."); $(f).className = "small muted"; m.firstChild.style.width = "0"; m.classList.remove("full"); return; }
+    if (!t || !b) { text(f, !t ? "Add a title too." : "Add the message too."); return; }
+    const n = ++n0;
+    t0 = setTimeout(async () => {
+      let pct; try { pct = (await api("/admin/api/message", {method: "POST", body: JSON.stringify({check: true, title: t, body: b, personal})})).pct; } catch (e) { return; }
+      if (n !== n0) return;
+      m.firstChild.style.width = Math.min(100, pct) + "%"; m.classList.toggle("full", pct > 100);
+      text(f, pct > 100 ? `Too long for the game's message box (${pct}%). Shorten it; non-Latin letters take more room.` : `Uses ${pct}% of the game's message box · title ${t.length}/60.`);
+      $(f).className = "small " + (pct > 100 ? "err" : "muted");
+    }, 350);
+  };
+  $(prefix + "-title").addEventListener("input", run); $(prefix + "-body").addEventListener("input", run); run();
+  return run;
 }
-$("msg-body").addEventListener("input", msgCount); $("msg-title").addEventListener("input", msgCount); msgCount();
+const msgCount = meter("msg", false), dmCount = meter("dm", true);
+const TPL = {
+  maint: ["Server maintenance", "The server is down for maintenance on [day] from [time], for about [30 minutes]. Matches still running then will be cut off. Thanks for waiting!"],
+  restart: ["Quick restart", "The server restarts at [time] for a few minutes. Finish your match before then; you can play again right after."],
+  update: ["Server updated", "The server is on a new version. If anything looks wrong, restart PES 2021 and tell the host."],
+  cup: ["Tournament on [Friday]", "Knockout tournament on [Friday] at [9 pm]. Be online by [8:45] and choose Quick Match when it's your turn."],
+  welcome: ["Welcome!", "Welcome to the server. Choose Quick Match any time to play whoever is online. Have fun and play fair."]};
+async function useTemplate(k) {
+  const [t, b] = TPL[k];
+  if (($("msg-title").value.trim() || $("msg-body").value.trim()) && await ask({title: "Replace what you wrote?", body: "The template replaces the title and message in the form.", ok: "Replace"}) === null) return;
+  $("msg-title").value = t; $("msg-body").value = b; msgCount();
+  const ta = $("msg-body"), i = b.indexOf("[");                // jump to the first [blank] to fill in
+  ta.focus(); if (i >= 0) ta.setSelectionRange(i, b.indexOf("]", i) + 1);
+}
 $("msg-edit").onclick = () => { if (!lastAnnounce || !lastAnnounce.news) return; $("msg-title").value = lastAnnounce.news.title; $("msg-body").value = lastAnnounce.news.body; msgCount(); $("msg-body").focus(); };
 $("msgform").onsubmit = async e => {
   e.preventDefault();
   const title = $("msg-title").value.trim(), body = $("msg-body").value.trim();
   if (!title || !body) { toast("Write a title and a message first.", true); (title ? $("msg-body") : $("msg-title")).focus(); return; }
+  if (/\[[^\]]*\]/.test(title + body) && await ask({title: "Some [blanks] aren't filled in", body: "The message still has text in [square brackets] from the template. Send it anyway?", ok: "Send anyway"}) === null) return;
   if (await msgCall("/admin/api/message", {title, body}, "Message posted. Players see it next time they reach the main menu or Quick Match.")) { $("msg-title").value = ""; $("msg-body").value = ""; msgCount(); }
+};
+$("dmform").onsubmit = async e => {
+  e.preventDefault();
+  const pid = +$("dm-to").value, title = $("dm-title").value.trim(), body = $("dm-body").value.trim();
+  const who = $("dm-to").selectedOptions[0] ? $("dm-to").selectedOptions[0].dataset.name : "";
+  if (!pid) { toast("Choose a player first.", true); return $("dm-to").focus(); }
+  if (!title || !body) { toast("Write a title and a message first.", true); return (title ? $("dm-body") : $("dm-title")).focus(); }
+  const waiting = lastAnnounce && (lastAnnounce.personal || []).find(m => m.pid === pid);
+  if (waiting && await ask({title: `Replace the message ${who} hasn't seen yet?`, body: `“${waiting.title}” is still waiting. They only get one at a time.`, ok: "Replace it"}) === null) return;
+  if (await msgCall("/admin/api/message/player", {pid, title, body}, `Sent. ${who} sees it the next time they open an online mode.`)) { $("dm-title").value = ""; $("dm-body").value = ""; dmCount(); }
 };
 $("msg-clear").onclick = async () => { if (await ask({title: "Remove the message?", body: "Players stop seeing it in the game.", ok: "Remove", danger: true}) !== null) msgCall("/admin/api/message", {clear: true}, "Message removed."); };
 $("rsform").onsubmit = e => { e.preventDefault(); msgCall("/admin/api/restart", {minutes: +$("rs-min").value}, "Restart warning set."); };

@@ -216,7 +216,7 @@ def urgent(svc, sess, req):
     log.info("showing %r to pid %s", msg["title"], pid)
     if msg.get("kind") == "note":                 # the admin page's activity shows that it arrived
         from . import events
-        events.feed(svc, f"{events.name_of(svc, pid)} saw your message “{msg['title']}”", "info")
+        events.feed(svc, f"{events.name_of(svc, pid)} saw your message “{msg['title']}”", "msg")
     return _urgent_reply(msg, req)
 
 
