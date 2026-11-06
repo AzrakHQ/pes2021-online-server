@@ -220,7 +220,7 @@
   .bars.has-on .c:not(.on) i { opacity:.4; }
   .bars .c.on i { opacity:1; box-shadow:0 0 0 2px var(--card), 0 0 0 4px var(--fg); }
   @media (hover: hover) { .bars:not(.has-on) .c:hover i { filter:brightness(1.15); } }
-  .readout { min-height:2.9em; align-content:flex-start; font-size:13px; color:var(--muted); margin:0 0 6px 30px; display:flex; flex-wrap:wrap; gap:2px 8px; align-items:baseline; }
+  .readout { height:3em; overflow:hidden; align-content:flex-start; font-size:13px; color:var(--muted); margin:0 0 6px; display:flex; flex-wrap:wrap; gap:2px 8px; align-items:baseline; }
   .readout.on { color:var(--fg); }
   .readout b { font-weight:700; }
   .readout b::after { content:" ·"; font-weight:400; color:var(--muted); }
@@ -246,7 +246,9 @@
   td.name { font-weight:600; min-width:9em; max-width:20em; }
   td.name .pname, td.h .pname, td.a .pname { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:16em; display:inline-block; vertical-align:bottom; }
   td.name small { display:block; font-weight:400; color:var(--muted); font-size:12px; }
-  td.act { width:1%; white-space:nowrap; text-align:right; }
+  td.act { width:1%; white-space:nowrap; text-align:left; }
+  td.act .slot { display:inline-block; min-width:4.6em; }
+  @media (max-width: 520px) { td.act [data-dm] { display:none; } }
   td.act button + button { margin-left:6px; }
   td.nw, .nw { white-space:nowrap; }
   abbr[title] { text-decoration:none; cursor:help; }
@@ -295,7 +297,7 @@
   .stuck { display:block; margin-top:4px; overflow-wrap:anywhere; }
   @media (max-width: 420px) { .match { gap:4px 8px; padding:10px; } .score { font-size:18px; } }
   .finished { font-size:14px; color:var(--muted); margin:8px 0 0; overflow-wrap:anywhere; }
-  table.res { table-layout:fixed; } table.res col.w { width:150px; } table.res col.s { width:110px; } table.res col.hm, table.res col.aw { width:24%; }
+  table.res { table-layout:fixed; max-width:980px; margin:0 auto; } table.res col.w { width:150px; } table.res col.s { width:110px; } table.res col.hm, table.res col.aw { width:24%; }
   table.res td { vertical-align:baseline; }
   .len-m { display:none; }
   @media (max-width: 760px) { table.res col.l { width:0; } }
@@ -451,7 +453,8 @@
   dialog .row { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; flex-wrap:wrap; }
   .toast { position:fixed; right:20px; top:64px; z-index:60; max-width:min(420px, calc(100vw - 40px)); background:var(--fg); color:var(--bg); border-radius:10px; padding:10px 14px; font-size:14px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
   .toast:empty { display:none; }
-  .toast.bad { background:var(--live); color:var(--on-live); }
+  .toast { background:var(--card) !important; color:var(--fg) !important; border:1px solid var(--line); border-left:4px solid var(--accent); }
+  .toast.bad { border-left-color:var(--live); }
 
   /* login */
   main.login { max-width:400px; margin:12vh auto; padding:0 16px; }
@@ -604,6 +607,7 @@
       <h1 id="t-messages" tabindex="-1">Messages</h1>
       <p class="lead">Talk to your players through the game itself: everyone at once, one player, or a warning before maintenance.</p>
       <div class="grid2">
+        <div class="stack">
         <section class="card msgf" aria-labelledby="h-msg"><h2 id="h-msg" tabindex="-1">To everyone</h2>
           <p class="small muted" style="margin:-6px 0 10px">Shows as a pop-up in the main menu, in Online Information when they sign in, and once in a box before Quick Match.</p>
           <div id="msgnow"></div>
@@ -618,6 +622,16 @@
           </form>
           <div id="msg-hist"></div>
         </section>
+        <section class="card msgf" aria-labelledby="h-rs"><h2 id="h-rs" tabindex="-1">Maintenance or restart warning</h2>
+          <form id="rsform">
+            <div id="rsnow" class="small" style="margin-bottom:6px"></div>
+            <label for="rs-min">Warn players that the server goes down</label>
+            <div class="row" style="margin-top:4px"><select id="rs-min"><option value="5">in 5 minutes</option><option value="10">in 10 minutes</option><option value="15" selected>in 15 minutes</option><option value="30">in 30 minutes</option><option value="60">in 1 hour</option><option value="120">in 2 hours</option><option value="240">in 4 hours</option></select>
+              <button type="submit" class="needs-server" id="rs-set">Warn players</button><button type="button" class="needs-server" id="rs-cancel" hidden>Cancel warning</button></div>
+            <p class="note">Anyone who starts matchmaking gets the game's own warning: "maintenance work starting at [time]… Are you sure you want to start a match now?" Pair it with a message to everyone that says how long it lasts.</p>
+          </form>
+        </section>
+        </div>
         <div class="stack">
         <section class="card msgf" aria-labelledby="h-dm"><h2 id="h-dm" tabindex="-1">To one player</h2>
           <p class="small muted" style="margin:-6px 0 4px">They see it in a box the next time they open an online mode, such as Quick Match. The game can't show it sooner. A newer message replaces one they haven't seen. This card shows when they've seen it.</p>
@@ -631,15 +645,6 @@
           <div id="dm-list"></div>
           <div id="dm-seen"></div>
         </section>
-        <section class="card msgf" aria-labelledby="h-rs"><h2 id="h-rs" tabindex="-1">Maintenance or restart warning</h2>
-          <form id="rsform">
-            <div id="rsnow" class="small" style="margin-bottom:6px"></div>
-            <label for="rs-min">Warn players that the server goes down</label>
-            <div class="row" style="margin-top:4px"><select id="rs-min"><option value="5">in 5 minutes</option><option value="10">in 10 minutes</option><option value="15" selected>in 15 minutes</option><option value="30">in 30 minutes</option><option value="60">in 1 hour</option><option value="120">in 2 hours</option><option value="240">in 4 hours</option></select>
-              <button type="submit" class="needs-server" id="rs-set">Warn players</button><button type="button" class="needs-server" id="rs-cancel" hidden>Cancel warning</button></div>
-            <p class="note">Anyone who starts matchmaking gets the game's own warning: "maintenance work starting at [time]… Are you sure you want to start a match now?" Pair it with a message to everyone that says how long it lasts.</p>
-          </form>
-        </section>
         </div>
       </div>
     </section>
@@ -649,6 +654,7 @@
       <h1 id="t-invite" tabindex="-1">Invite friends</h1>
       <p class="lead">Send each friend one file, once. It already knows your server and keeps working after restarts.</p>
       <div class="grid2">
+        <div class="stack">
         <section class="card" aria-labelledby="h-send"><h2 id="h-send" tabindex="-1">Send the mod</h2>
           <div class="small" id="inv-reach" style="margin:0 0 10px"></div>
           <a class="dl needs-server" id="dl" href="/mod/dinput8.dll?from=admin" download="dinput8.dll"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"/></svg> Download the mod for friends</a>
@@ -663,6 +669,8 @@
             Capital or small letters and spaces don't matter. That proves the file is exactly the one your server hands out. In the mod's log file (<code>pes2021-online.log</code>), the line <code id="skey">key …</code> shows which server it connects to.</details>
           </div>
         </section>
+        <section class="card" aria-labelledby="h-joins"><h2 id="h-joins">Who has joined</h2><div id="joins"></div></section>
+        </div>
         <section class="card friend" aria-labelledby="h-friend"><h2 id="h-friend">What your friend does</h2>
           <ol>
             <li>In Steam, right-click <b>PES 2021</b> → Manage → <b>Browse local files</b>, and put the file next to <code>PES2021.exe</code>.
@@ -670,7 +678,6 @@
             <li>Start the game → <b>eFootball → Quick Match → Go to Matchmaking</b>. The first time, they pick a region and a player name.</li>
           </ol>
           <p class="small muted" style="margin:8px 0 0">To stop playing on your server, they just delete the file.</p>
-          <h2 id="h-joins" style="margin:20px 0 8px">Who has joined</h2><div id="joins"></div>
         </section>
       </div>
     </section>
@@ -960,7 +967,8 @@ function barChart(id, bars, summary, desc) {
   const max = Math.max(0, ...bars.map(b => b.v));
   if (!max) return put(id, `<div class="chart-empty">${esc(summary)}</div>`);
   const {top, step} = niceScale(max), grid = []; for (let g = 0; g <= top; g += step) grid.push(g);
-  const hint = (matchMedia("(hover: hover)").matches ? "Point at a bar for its numbers" : "Tap a bar for its numbers") + (bars.some(b => b.day) ? "; click it to list that day's matches." : ".");
+  const hover = matchMedia("(hover: hover)").matches, days = bars.some(b => b.day);
+  const hint = hover ? "Point at a bar for its numbers" + (days ? "; click it to list that day's matches." : ".") : "Tap a bar for its numbers" + (days ? "; tap it again to list that day's matches." : ".");
   const html = `<div class="chart" tabindex="0" role="group" data-key="chart-${id}" aria-label="${esc(desc)} Use the left and right arrow keys to read each bar${bars.some(b => b.day) ? ", Enter to list that day's matches" : ""}.">` +
     `<div class="readout" data-hint="${esc(hint)}">${esc(hint)}</div><div class="plot" aria-hidden="true">` +
     grid.map(g => `<div class="gl${g ? "" : " base"}" style="top:${100 - g / top * 100}%"><span>${g}</span></div>`).join("") +
@@ -987,7 +995,7 @@ document.addEventListener("pointerover", e => {
 document.addEventListener("click", e => {             // a tap or click keeps a bar selected (touch has no hover)
   const c = e.target.closest(".bars .c"), inChart = e.target.closest(".chart");
   document.querySelectorAll(".chart").forEach(ch => { if (ch !== inChart && ch.dataset.sticky) showTip(ch, null); });
-  if (c && c.classList.contains("on") && inChart.dataset.sticky && c.dataset.day && +c.dataset.v) return dayFilter(+c.dataset.day);   // second tap
+  if (c && c.dataset.day && +c.dataset.v && ((e.pointerType && e.pointerType !== "touch") || (c.classList.contains("on") && inChart.dataset.sticky))) return dayFilter(+c.dataset.day);   // mouse: one click; touch: second tap
   if (c) { showTip(inChart, c); inChart.dataset.sticky = "1"; }
 });
 document.addEventListener("keydown", e => {
@@ -1028,7 +1036,7 @@ function charts(d) {
   const htot = hours.reduce((a, b) => a + b, 0), top = Math.max(...hours);
   const hl = h => { const x = new Date(); x.setHours(h, 0, 0, 0); return hourFmt.format(x); };
   const peaks = hours.map((v, h) => v === top ? h : -1).filter(h => h >= 0);
-  barChart("chart-hours", hours.map((v, h) => ({x: h % 6 === 0 ? hl(h) : "", v, tip: `<b>${hl(h)} – ${hl((h + 1) % 24)}</b>${plural(v, "match", "matches")} kicked off`})),
+  barChart("chart-hours", hours.map((v, h) => ({x: h % (innerWidth > 700 ? 3 : 6) === 0 ? hl(h) : "", v, tip: `<b>${hl(h)} – ${hl((h + 1) % 24)}</b>${plural(v, "match", "matches")} kicked off`})),
     !htot ? `No matches in the last ${n} days.` : peaks.length > 3 ? "Matches are spread across the day." : `Busiest: ${andList(peaks.map(hl))} (your time), by kick-off, over the last ${n} days.`,
     `Matches by kick-off hour over the last ${n} days.`);
 }
@@ -1121,8 +1129,8 @@ function render(d) {
   const mc = $("mchip");
   mc.className = "pill " + (down ? "bad" : srvIssues ? "warn" : "");
   const rsAt = d.announce && d.announce.restart, rsLeft = rsAt ? rsAt - Date.now() / 1000 : 0;
-  $("rs-pill").hidden = !rsAt;
-  if (rsAt) { put("rs-pill", `${I.warn} ${rsLeft > 0 ? `Restart at ${hm.format(new Date(rsAt * 1000))} · in ${inMin(rsLeft)}` : "Restart time has passed"}`); $("rs-pill").title = "Players are being warned. Change or cancel it in Messages."; }
+  $("rs-pill").hidden = !rsAt; $("rs-pill").className = "pill " + (down ? "neutral" : "warn");
+  if (rsAt) { put("rs-pill", `${I.warn} ${rsLeft > 0 ? `Restart at ${hm.format(new Date(rsAt * 1000))}${down ? " (last known)" : ` · in ${inMin(rsLeft)}`}` : "Restart time has passed"}`); $("rs-pill").title = "Players are being warned. Change or cancel it in Messages."; }
   put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} Online · ${srvIssues} to fix` : rsAt && rsLeft > 0 ? `${I.warn} Restart in ${inMin(rsLeft)}` : `<span class="dot"></span>Online`);
   if (!down && !srvIssues && rsAt) { mc.className = "pill warn"; mc.href = "#messages/h-rs"; }
   if (!(rsAt && !srvIssues && !down)) mc.href = srvIssues ? "#overview" : "#server";
@@ -1194,7 +1202,8 @@ const linkNames = t => nameRe ? esc(t).replace(nameRe, n => pname(n, nameIdx.get
 function feedHtml(items, grouped) {
   const tl = t => { const d = new Date(t * 1000); if (grouped || d.toDateString() === new Date().toDateString()) return hm.format(d);
     return (dayLabel(t) === "Yesterday" ? "Yesterday" : dShort.format(d)) + ", " + hm.format(d); };
-  const row = f => `<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${tl(f.t)}</time><span class="ico k-${esc(f.kind)}" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="t-${esc(f.kind)}">${linkNames(f.text)}</span></li>`;
+  const kindOf = f => f.kind === "info" && /message to (players|everyone)|restart warning/i.test(f.text) ? "msg" : f.kind;
+  const row = f0 => { const f = {...f0, kind: kindOf(f0)}; return `<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${tl(f.t)}</time><span class="ico k-${esc(f.kind)}" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="t-${esc(f.kind)}">${linkNames(f.text)}</span></li>`; };
   if (!grouped) return `<ul class="feed">${items.map(row).join("")}</ul>`;
   const groups = [];
   for (const f of items) { const day = dayLabel(f.t); if (!groups.length || groups[groups.length - 1].day !== day) groups.push({day, rows: []}); groups[groups.length - 1].rows.push(row(f)); }
@@ -1209,7 +1218,7 @@ function weekDelta(hist, now) {
   const a = hist.filter(h => h[0] > now - 7 * 86400).length, b = hist.filter(h => h[0] > now - 14 * 86400 && h[0] <= now - 7 * 86400).length;
   if (!b) return `${a} this week`;
   const pct = Math.round(100 * (a - b) / b);
-  return `${a} this week · <span class="delta ${pct >= 0 ? "up" : "down"}" title="${b} the week before">${pct >= 0 ? "↑" : "↓"}${Math.abs(pct)}%</span><span class="sr"> compared with ${b} last week</span>`;
+  return `<span title="${a} this week, ${b} the week before"><span class="delta ${pct >= 0 ? "up" : "down"}">${pct >= 0 ? "↑" : "↓"}${Math.abs(pct)}%</span> vs last week</span><span class="sr"> (${a} this week, ${b} the week before)</span>`;
 }
 function highlights(d) {
   const since = d.now - 7 * 86400, wins = new Map(), goals = new Map(), names = new Map();
@@ -1222,8 +1231,10 @@ function highlights(d) {
   }
   const best = m => [...m.entries()].sort((x, y) => y[1] - x[1] || names.get(x[0]).localeCompare(names.get(y[0])))[0];
   const w = best(wins), g = best(goals);
-  const streak = [...d.players].filter(p => p.streak >= 2).sort((a, b) => b.streak - a.streak)[0];
-  const form = !streak && [...d.players].filter(p => p.played).map(p => ({p, f: formOf(d.results, p.pid)})).filter(x => x.f.length >= 3)
+  const week = d.results.filter(r => r.ended >= since);
+  const run = pid => { let n = 0; for (const m of myMatches(d.results, pid)) { if (m.res !== "W") break; n++; } return n; };
+  const streak = [...d.players].map(p => ({...p, streak: Math.max(p.streak || 0, run(p.pid))})).filter(p => p.streak >= 3).sort((a, b) => b.streak - a.streak)[0];
+  const form = !streak && [...d.players].filter(p => p.played).map(p => ({p, f: formOf(week, p.pid)})).filter(x => x.f.length >= 3)
     .sort((a, b) => b.f.filter(x => x === "W").length * 3 + b.f.filter(x => x === "D").length - a.f.filter(x => x === "W").length * 3 - a.f.filter(x => x === "D").length)[0];
   const cell = (k, who, sub) => `<div><span class="k">${k}</span>${who}<span class="s">${sub}</span></div>`;
   if (!w && !g && !streak && !form) return `<p class="empty">No finished matches this week yet.</p>`;
@@ -1231,7 +1242,7 @@ function highlights(d) {
     cell("Most wins", w ? `<b>${pname(names.get(w[0]), w[0], "hlw-" + w[0])}</b>` : "<b>–</b>", w ? plural(w[1], "win") : "") +
     cell("Most goals", g ? `<b>${pname(names.get(g[0]), g[0], "hlg-" + g[0])}</b>` : "<b>–</b>", g ? plural(g[1], "goal") : "") +
     (streak ? cell("On a streak", `<b>${pname(streak.name, streak.pid, "hls-" + streak.pid)}</b>`, `${streak.streak} wins in a row`)
-            : cell("Best form", form ? `<b>${pname(form.p.name, form.p.pid, "hlf-" + form.p.pid)}</b>` : "<b>–</b>", form ? formHtml(form.f) : "")) + `</div>`;
+            : cell("Best form this week", form ? `<b>${pname(form.p.name, form.p.pid, "hlf-" + form.p.pid)}</b>` : "<b>–</b>", form ? formHtml(form.f) : "")) + `</div>`;
 }
 function renderOverview(d, r, pn, playing, ready) {
   const now = d.now, s = d.server, down = !!downSince;
@@ -1241,7 +1252,7 @@ function renderOverview(d, r, pn, playing, ready) {
   if (!r.ok && !starting) attn.push(`<li><span>${I.warn} <b>Friends outside your home can't join yet.</b> ${s.cgnat ? "Your internet provider shares one address between homes (CGNAT)." : "Your router hasn't opened the ports."}</span><a href="#server/h-net">Fix it ${I.right}</a></li>`);
   let hintOff = false; try { hintOff = localStorage.getItem("pes-pc-hint") === "off"; } catch (e) {}
   const info = [];
-  if (pn && lastGames.length && !hintOff && !starting) info.push(`<li class="info"><span><b>Optional:</b> play on the server computer too. Its PES 2021 isn't set up for your server yet.</span><a href="#server/pc-h">Set it up ${I.right}</a><button type="button" class="linkbtn" data-hidepc="1" style="color:var(--muted)">Hide</button></li>`);
+  if (pn && lastGames.length && !hintOff && !starting && !pcError) info.push(`<li class="info"><span><b>Optional:</b> play on the server computer too. Its PES 2021 isn't set up for your server yet.</span><a href="#server/pc-h">Set it up ${I.right}</a><button type="button" class="linkbtn" data-hidepc="1" style="color:var(--muted)">Hide</button></li>`);
   if (s.update) attn.push(`<li><span>${I.warn} <b>A newer server version is out</b> (${esc(s.update)}).</span><a href="#server/h-cmd">How to update ${I.right}</a></li>`);
   if (d.announce && d.announce.restart) attn.push(`<li class="info"><span>Players are being warned about a restart at <b>${hm.format(new Date(d.announce.restart * 1000))}</b>.</span><a href="#messages">Change ${I.right}</a></li>`);
   $("attn").hidden = !attn.length; put("attn", attn.join(""));
@@ -1322,16 +1333,16 @@ function renderPlayers(d) {
   put("plist", `<div class="tablewrap"><table><caption class="sr">Players, sorted by ${esc(SORTN[ui.sort] || ui.sort)}</caption><thead><tr>` +
     th("rank", "#", "num") + th("name", "Player") + th("seen", "Status", "hide-md") + th("rating", "Rating", "num hide-lg", "The game's matchmaking rating. It doesn't change the table order.") +
     th("played", "P", "num hide-sm", "Played") + th("won", "W", "num hide-sm", "Won") + th("drawn", "D", "num hide-sm", "Drawn") + th("lost", "L", "num hide-sm", "Lost") +
-    th("gd", "GD", "num hide-md", "Goal difference") + th("pts", "Pts", "num", "Points") + `<th scope="col" class="hide-lg"><span title="Last 5 results, newest on the right">Form</span></th>` +
+    th("gd", "GD", "num hide-md", "Goal difference") + th("pts", "Pts", "num", "Points") + `<th scope="col" class="hide-lg"><span title="Last 5 results, newest on the right">Form <span style="text-transform:none;font-weight:400">old→new</span></span></th>` +
     `<th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
     list.map(p => { const o = onlineBy.get(p.pid);
       return `<tr><td class="num muted">${rankOf.get(p.pid) || "–"}</td>
       <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · <span class="nw">${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
-      <td class="hide-md st-cell">${o ? `<span class="pill tag"><span class="dot"></span>online</span> ` + statusOf(d, o) + `<small class="muted hide-900" style="display:block">${where(o.ip)} · for ${dur(now - o.since)}</small>`
+      <td class="hide-md st-cell">${o ? `<span class="pill tag"><span class="dot"></span>online</span> ` + statusOf(d, o) + ``
           : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
       <td class="num hide-lg">${p.rating ?? "–"}</td><td class="num hide-sm">${p.played}</td><td class="num hide-sm">${p.won}</td><td class="num hide-sm">${p.drawn}</td><td class="num hide-sm">${p.lost}</td>
       <td class="num hide-md">${p.played ? signed(gd(p)) : "–"}</td><td class="num"><b>${pts(p)}</b></td><td class="hide-lg">${formHtml(formOf(d.results, p.pid))}</td>
-      <td class="act"><button type="button" class="small needs-server" data-dm="${p.pid}" data-key="dm-${p.pid}" aria-label="Message ${esc(p.name)}">Message</button>${o ? `<button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button>` : ""}</td></tr>`; }).join("") +
+      <td class="act"><button type="button" class="small needs-server" data-dm="${p.pid}" data-key="dm-${p.pid}" aria-label="Message ${esc(p.name)}">Message</button> ${o ? `<button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button>` : `<span class="slot" aria-hidden="true"></span>`}</td></tr>`; }).join("") +
     `</tbody></table></div>`);
 }
 
@@ -1389,7 +1400,7 @@ function renderMatches(d, playing, ready, fromLoad) {
     `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col class="hm"><col class="s"><col class="aw"><col class="l"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th><th scope="col" class="num hide-md">Length</th></tr></thead><tbody>` +
     shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
       return `<tr><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}</td>
-        <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.reason ? `<span class="pill neutral tag" title="Ended early (${esc(r.reason)}); counted with the score when it ended">abandoned</span>` : ""}</td>
+        <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.reason ? `<span class="pill warn tag" title="Ended early (${esc(r.reason)}); counted with the score when it ended">abandoned</span>` : ""}</td>
         <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}</td><td class="num muted small hide-md">${r.started && r.ended > r.started ? Math.max(1, Math.round((r.ended - r.started) / 60)) + " min" : "–"}</td></tr>`; }).join("") +
     `</tbody></table></div>` +
     (total > shownRs.length ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">Show ${Math.min(25, total - shownRs.length)} more</button>` : ""));
@@ -1565,7 +1576,7 @@ function gameRow(g) {
   if (!ready && skipped(g)) { st = `<span class="pill neutral tag">Skipped</span>` + st.replace(/^<span class="pill[^>]*>.*?<\/span>/, ""); btn = btn.replace(/class="primary/g, 'class="'); }
   if (!ready && skipped(g)) info = `<span class="muted small">Skipped in this browser.</span> <button type="button" class="linkbtn" data-unskip="${esc(g.path)}" data-key="unskip-${esc(g.id)}" aria-label="Set up ${esc(name)} after all">Set it up after all</button>`;
   else if (!ready) skipb = `<button type="button" class="linkbtn skipbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}" aria-label="Skip ${esc(name)}: I don't play on this copy">Skip this copy</button>`;
-  if (pcError && !ready && ["none", "other-server"].includes(g.mod)) { btn = ""; skipb = ""; }
+  if (pcError && !ready && ["none", "other-server"].includes(g.mod)) { btn = ""; skipb = ""; st = `<span class="pill warn tag">Can't install in this build</span>`; }
   const msg = rowMsg[g.id] ? rowMsg[g.id].html : "";
   const retry = failed ? `<button type="button" class="${rowMsg[g.id].act === "remove" ? "" : "primary"}" data-game="${esc(g.id)}" data-act="${rowMsg[g.id].act}" data-key="retry-${esc(g.id)}" data-retry="1" aria-label="Try again: ${esc(name)}">${{remove: "Try removing again", switch: "Try switching again"}[rowMsg[g.id].act] || "Try installing again"}</button>` : "";
   return `<div class="game${!ready && skipped(g) ? " skipped" : ""}"><div class="where"><b>${esc(name)}</b>
@@ -1904,7 +1915,7 @@ $("dmform").onsubmit = async e => {
   if (!title || !body) { toast("Write a title and a message first.", true); return (title ? $("dm-body") : $("dm-title")).focus(); }
   const waiting = lastAnnounce && (lastAnnounce.personal || []).find(m => m.pid === pid);
   if (waiting && await ask({title: `Replace the message ${who} hasn't seen yet?`, body: `“${waiting.title}” is still waiting. They only get one at a time.`, ok: "Replace it"}) === null) return;
-  if (await msgCall("/admin/api/message/player", {pid, title, body}, `Sent. ${who} sees it the next time they open an online mode; this page shows when they have.`)) { $("dm-title").value = ""; $("dm-body").value = ""; dmCount(); }
+  if (await msgCall("/admin/api/message/player", {pid, title, body}, `Sent. ${who} sees it the next time they open an online mode; this page shows when they have.`)) { $("dm-title").value = ""; $("dm-body").value = ""; $("dm-to").value = ""; dmCount(); }
 };
 $("msg-clear").onclick = async () => { if (await ask({title: "Remove the message?", body: "Players stop seeing it in the game.", ok: "Remove", danger: true}) !== null) msgCall("/admin/api/message", {clear: true}, "Message removed."); };
 $("rs-min").addEventListener("change", () => { $("rs-min").dataset.touched = "1"; });
