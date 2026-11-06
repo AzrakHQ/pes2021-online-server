@@ -65,6 +65,8 @@ def test_two_players_get_one_push_each_with_one_owner(svc, pushes):
     assert [m["side"] for m in members] == ["HOME", "AWAY"]
     assert [m["is_owner"] for m in members] == ["YES", "NO"]          # exactly one owner: the HOME player
     assert [g["owner_pid"] for g in groups] == [1, 2] and [g["member_list_num"] for g in groups] == [1, 1]
+    teams = [g["use_team_id"] for g in groups]                # no team-select screen: the server picks two
+    assert len(set(teams)) == 2 and 262143 not in teams       # "no team" on both sides crashed the load
     rooms = [r for r in pesmatch._state(svc)["rooms"].values()]
     assert [(r["members"], r.get("coop")) for r in rooms] == [([1, 2], True)]
 

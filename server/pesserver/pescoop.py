@@ -12,16 +12,24 @@ Flow (notes/re/functions/misc.md §3, coop2.md, livetests.md):
   so GET_GAMERELAY ("P2P" for co-op rooms), GET_MATCHID, the notice relays and the result handling of the
   1v1 code carry the session from there.
 """
-import logging, time
+import logging, random, time
 
 import msgpack
 
 from .pescmds import NOERR, cmd
-from . import pesmatch
+from . import pescmds, pesmatch
 from .pesmatch import _compatible, _member, _pid, _state
 
 log = logging.getLogger("pesserver.coop")
 NO_TEAM = 262143          # use_team_id when the player brought no team of its own
+
+
+def _teams():
+    """Two different real teams for HOME and AWAY. Co-op has no team-select screen: each side plays the
+    team in its group's use_team_id, and with "no team" (262143) on both sides the match load crashes both
+    games (null team, seen live). Players who did bring a team keep it."""
+    ids = [t for t, _ in pescmds.TEAM_LIST]
+    return random.sample(ids, 2)
 
 
 def _fixed(sess):
@@ -114,6 +122,9 @@ def _group(svc, pid, owner, order, gid, team, viewer):
 
 def _start(svc, home, away):
     (a, sa, ta), (b, sb, tb) = home, away
+    pick = _teams()
+    ta = ta if ta != NO_TEAM else pick[0]
+    tb = tb if tb != NO_TEAM else pick[1]
     st = _state(svc)
     room = st["next_room"]; st["next_room"] += 1
     st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time(), "coop": True}
@@ -122,7 +133,7 @@ def _start(svc, home, away):
         body = {"result": NOERR, "matching_state": "FINISH", "group_list_num": 2,
                 "group_list": [_group(svc, a, True, 0, 1, ta, viewer), _group(svc, b, False, 1, 2, tb, viewer)]}
         pesmatch._send_later(viewer, "CMD_WATCH_COOP_MATCHING", 0, 0x60, 1, body)
-    log.info("COOP FOUND room %d: %s (HOME, owner) vs %s (AWAY)", room, a, b)
+    log.info("COOP FOUND room %d: %s (HOME, owner, team %s) vs %s (AWAY, team %s)", room, a, ta, b, tb)
 
 
 def in_coop_room(svc, pid):
