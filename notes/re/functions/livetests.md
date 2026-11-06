@@ -413,3 +413,13 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
   team data is exchanged at DATASYNC (TaskSyncTeamData), so both sides simulate with the same data
   [inferred]; the CHECK_CHEAT sums (and the server refusing mismatched friends) remain the only guard that
   friends play with the same data, and "check off" is a fairness question, not a crash.
+### Online Divisions menu and search (2026-11-06 19:12–19:20, modes2.md)
+- Bare GET_DIVISION_INFO: the season-end path runs every time (GET_DIVISION_INFO ×2, FINISH_SEASON, "Season
+  Results", "You have been promoted to Division 11.", then an empty screen after GET_DIVISION_INFO
+  `is_season_end:"YES"`). So today Online Divisions is unusable.
+- With a `division_info` blob (D10, `other_match_num` 10, one history entry of 3 points): the Online Divisions
+  screen shows Division 10, the D9 line at 12, 3 points, "W 1-0" and the opponent crest from `enemy_team_id`.
+- "To Next Match": GET_OFTEN_USED_TEAM_LIST → team select ("Season Points Info", "Frequently Selected Teams") →
+  GET_QUICKMATCHOPTION → Matchmaking Settings → START_MATCHING `matching_type "OC_RANK"` from both copies →
+  paired by the Quick Match code → "View Opponent: Connection status with opponent. Proceed?" (Find Another /
+  Proceed). Stopped there.

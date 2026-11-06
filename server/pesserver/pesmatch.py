@@ -443,9 +443,10 @@ def change_gamephase(svc, sess, req):
     rid, room = _room_of(svc, pid)
     if room is not None:
         room.setdefault("phase", {})[pid] = str(req.get("phase", ""))
-        if (os.environ.get("PESSERVER_VERDICT_AT_END") == "1" and "pushed_at_end" not in room
+        if ((os.environ.get("PESSERVER_VERDICT_AT_END") == "1" or room.get("lobby_room")) and "pushed_at_end" not in room
                 and all(room["phase"].get(p) == "END" for p in room["members"])):
-            # Test-session switch: also push at the final whistle to every member (unconfirmed path).
+            # At the final whistle, to every member. Always for a Friendly Match Lobby match: the room screen's
+            # "N Match(es)" and "Wins" counters only count this push (lobby2.md); a test switch for Quick Match.
             room["pushed_at_end"] = True
             v = _verdict(svc, rid, room)
             for p in room["members"]:
