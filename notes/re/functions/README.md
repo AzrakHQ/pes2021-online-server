@@ -20,6 +20,7 @@ summary is [docs/functions.html](../../../docs/functions.html); these files keep
 | [lobby.md](lobby.md) | where the room lobbies are in the menu (Kick Off list), how the menu table is built, other entry points |
 | [roomcrash.md](roomcrash.md) | room creation requirements: own room in the room list first, player-list field types, no duplicate player-list push (solved live) |
 | [roomlist.md](roomlist.md) | room-list entry: field types, where each is stored, every filter; why a room shows as "0 rooms" (limitTime NOSET) |
+| [turnlinkup.md](turnlinkup.md) | how the match link-up uses TURN; the address-label rule that decides which side opens the link (relay-only match works) |
 | [coop2.md](coop2.md) | why Online Co-op stops after matching (peer list never handed to the P2P layer; needs a mod patch) |
 | [turncycle.md](turncycle.md) | why TURN restarted every 21 s (DTLS socket re-created every 10 s) and the fix |
 | [livetests.md](livetests.md) | live tests 2026-11-05/06: TURN (DTLS leg working), Live Update end to end (keep listing it), reconnect, AFK, Friendly Match Lobby (a whole match and back to the room), duplicate-list crash confirmed |

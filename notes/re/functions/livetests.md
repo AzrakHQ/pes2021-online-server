@@ -273,8 +273,15 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
   "DscpEnable":false},"Session":{"ConnectionTimeoutUs":30000000}}}`: **proto_opt is honoured** — no DTLS port
   changes at all (DscpEnable false), and the failure moved from ChannelBind + 10 s to ChannelBind + 30.3 s
   (`Session.ConnectionTimeoutUs`). START was sent to the right peer, addresses were exchanged and channels bound
-  both ways, but no END and **no ChannelData at all**: the kps session never sent over TURN. Still open
-  (turnlinkup.md).
+  both ways, but no END and **no ChannelData at all**: the kps session never sent over TURN.
+- **Cause and fix (turnlinkup.md):** kps sorts the two `ip:port` labels and only the side with the lower one opens
+  the link. Both games saw 192.0.2.1:9 sort below their own 192.168.1.100, so both waited. With the owner shown
+  as **192.0.2.1:9** and the guest as **203.0.113.1:9** (host_addr and reflexive_addr, in the player list and
+  JOIN_ROOM_NTL), the owner sent 14 bytes of ChannelData right after the binds, got 270 back (the key
+  exchange), and **the match ran entirely over our relay**: DATASYNC, TEAMSELECT, ENTRY, 1ST (kick-off,
+  played), 10,000+ relayed packets, no END notice, no direct game-to-game UDP. **A relay-only match works.**
+- Consequence for real matches (inferred): the same label rule can leave both players waiting between homes
+  (P2P or relay); the server should check the order of the labels it hands out and fix it when both would wait.
 
 ### Online Co-op, 1 vs 1 (misc.md §1/§3, coop2.md)
 - Menu: eFootball → Online Co-op → Casual Match / Clan Match / CO-OP Stats / CO-OP Settings (+ "Co-op Room

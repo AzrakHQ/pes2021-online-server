@@ -21,8 +21,15 @@ def pack(d):
 
 import base64 as _b64
 # an unreachable P2P address (TEST-NET 192.0.2.1, port 9) in the same blob layout the game sends
-_BAD_ADDR = msgpack.packb({"address_family": 1, "sa_data": _b64.b64encode(bytes([0, 9, 0, 0, 192, 0, 2, 1]) + bytes(6)).decode()},
-                          use_bin_type=True).decode("utf-8", "surrogateescape")
+def _addr(ip):
+    return msgpack.packb({"address_family": 1, "sa_data": _b64.b64encode(bytes([0, 9, 0, 0, *ip]) + bytes(6)).decode()},
+                         use_bin_type=True).decode("utf-8", "surrogateescape")
+
+
+# Unreachable labels chosen so the kps node-id sort makes exactly one side active (turnlinkup.md): the owner is
+# shown as 192.0.2.1:9 (sorts below the guest's own 192.168.x) and the guest as 203.0.113.1:9 (sorts above).
+_BAD_ADDR = _addr((192, 0, 2, 1))
+_BAD_ADDR_GUEST = _addr((203, 0, 113, 1))
 
 
 def _ctl_bad_p2p():
@@ -63,7 +70,8 @@ def room_player(svc, room, pid):
     m.update({k: v for k, v in pesmatch._state(svc)["ntl"].get(pid, {}).items()
               if k in ("host_addr", "reflexive_addr", "relayed_addr", "ntl_nat_type")})
     if _ctl_bad_p2p():
-        m.update(host_addr=_BAD_ADDR, reflexive_addr=_BAD_ADDR)
+        bad = _BAD_ADDR if pid == room["owner"] else _BAD_ADDR_GUEST
+        m.update(host_addr=bad, reflexive_addr=bad)
     return pack(m)
 
 
