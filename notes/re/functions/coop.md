@@ -1,6 +1,7 @@
 # Group "coop": online co-op (2v2 / 3v3, vs-COM) and spectating — static RE of PES2021.exe 1.01.00
 
 ## Corrections from later findings (2026-11-06)
+- **Live (coop2.md, livetests.md): co-op never connected in 1.01.00** — the peer list is never handed to the P2P layer, and that layer takes one peer. "The session already handles 4–6 peers" below is wrong for P2P. Fixed for one human per side by mod 0.5.0 + server `pescoop.py`; a co-op Casual Match kicked off live. The server must also echo each player's own SYNC_PROGRESS notice, answer GET_GAMERELAY with `game_sycom "P2P"`, and send real `use_team_id` values (262143 on both sides crashes the match load).
 - misc.md §1 (static, 2026-11-06): the client accepts groups of 1–3 and any number of groups; with `force_alone:"YES"` two solo copies can play 1 v 1 co-op; exactly one `is_owner:"YES"` (HOME owner); match_data = base64 of 480 bytes (float32[70] + float32[50]); a GET reply with size 0 is accepted. Not tested live.
 
 
