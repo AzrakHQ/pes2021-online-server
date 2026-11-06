@@ -3,15 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="dark light">
+<script>try { if (localStorage.getItem("pes-admin-theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}</script>
 <title>PES 2021 Server · Admin</title>
 <style>
-  :root { --bg:#f3f5f7; --fg:#14171c; --muted:#5a6371; --card:#fff; --line:#e1e5ea; --field:#7c8696; --accent:#0a7d4f; --accent-fill:#0a7d4f; --accent2:#e6f5ee;
+  /* dark is the default; the header button switches to light (remembered in this browser) */
+  :root { color-scheme:dark; --bg:#0d1014; --fg:#e7eaee; --muted:#a3adbc; --card:#161a20; --line:#2a313b; --field:#6b7585;
+          --accent:#3ccf8e; --accent-fill:#2fb97c; --accent2:#12261d; --on-accent:#04241a; --live:#ff7b6b; --on-live:#2a0a05; --warn:#f5b041; --warnbg:#2a2110;
+          --code:#1e232b; --skel:#232a33; --side:#12161b; --hover:#1c2129; --bar:#3ccf8e; --bar-dim:#24533f; --shadow:none; }
+  :root[data-theme="light"] { color-scheme:light; --bg:#f3f5f7; --fg:#14171c; --muted:#5a6371; --card:#fff; --line:#e1e5ea; --field:#7c8696; --accent:#0a7d4f; --accent-fill:#0a7d4f; --accent2:#e6f5ee;
           --on-accent:#fff; --live:#c4320a; --on-live:#fff; --warn:#8f4400; --warnbg:#fff4e0; --code:#eef1f4; --skel:#e8ebef; --side:#fff; --hover:#f0f3f6;
           --bar:#0a7d4f; --bar-dim:#b9d9c9; --shadow:0 1px 2px rgba(16,24,40,.06); }
-  @media (prefers-color-scheme: dark) { :root { --bg:#0d1014; --fg:#e7eaee; --muted:#a3adbc; --card:#161a20; --line:#2a313b; --field:#6b7585;
-          --accent:#3ccf8e; --accent-fill:#2fb97c; --accent2:#12261d; --on-accent:#04241a; --live:#ff7b6b; --on-live:#2a0a05; --warn:#f5b041; --warnbg:#2a2110;
-          --code:#1e232b; --skel:#232a33; --side:#12161b; --hover:#1c2129; --bar:#3ccf8e; --bar-dim:#24533f; --shadow:none; } }
+  .iconbtn { display:inline-grid; place-items:center; width:34px; height:34px; min-height:34px; padding:0; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--muted); flex:none; }
+  .iconbtn:hover { color:var(--fg); border-color:var(--field); }
+  .iconbtn svg { width:17px; height:17px; }
+  .theme-login { position:fixed; top:12px; right:12px; }
   * { box-sizing:border-box; }
   [hidden] { display:none !important; }
   html { scroll-padding-top:16px; }
@@ -440,6 +446,7 @@
 </head>
 <body>
 <main class="login" id="login" hidden>
+  <button type="button" class="iconbtn theme-btn theme-login" aria-pressed="false"></button>
   <div class="card">
     <h1><span aria-hidden="true">⚽ </span>PES 2021 Server</h1>
     <p class="muted" style="margin:0" id="lsub">Sign in to your PES 2021 server.</p>
@@ -485,6 +492,7 @@
       <a class="pill warn" id="remote-pill" href="#server/h-access" hidden title="The admin page can be opened from the internet (encrypted, with the password)">Internet access on</a>
       <a class="pill warn m-only" id="attn-pill" href="#overview" hidden></a>
       <span class="grow"></span>
+      <button type="button" class="iconbtn theme-btn" aria-pressed="false"></button>
       <button class="linkbtn" id="logout" type="button" style="color:var(--muted)">Sign out</button>
     </header>
 
@@ -668,6 +676,23 @@
 
 <script>
 const $ = id => document.getElementById(id);
+// ---- theme: dark unless this browser chose light
+const SUN = '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/></svg>';
+const MOON = '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.5A5.5 5.5 0 016.5 2.5a5.5 5.5 0 107 7z"/></svg>';
+function paintThemeButtons() {
+  const light = document.documentElement.dataset.theme === "light";
+  document.querySelectorAll(".theme-btn").forEach(b => {
+    b.innerHTML = light ? MOON : SUN;
+    b.setAttribute("aria-pressed", String(!light)); b.setAttribute("aria-label", "Dark mode"); b.title = light ? "Switch to dark mode" : "Switch to light mode";
+  });
+}
+function setTheme(light) {
+  if (light) document.documentElement.dataset.theme = "light"; else delete document.documentElement.dataset.theme;
+  try { localStorage.setItem("pes-admin-theme", light ? "light" : "dark"); } catch (e) {}
+  paintThemeButtons();
+}
+document.querySelectorAll(".theme-btn").forEach(b => b.addEventListener("click", () => setTheme(document.documentElement.dataset.theme !== "light")));
+paintThemeButtons();
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store = {
   get() { try { return localStorage.getItem("pes-admin-token") || sessionStorage.getItem("pes-admin-token") || ""; } catch (e) { return ""; } },
