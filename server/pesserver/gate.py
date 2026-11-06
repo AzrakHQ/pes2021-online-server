@@ -7,11 +7,14 @@ from .protocol import Codec, ProtocolError, Message, _read_or_none
 
 log = logging.getLogger("pesserver.gate")
 
-# The mod (0.3.0+) starts each gate connection with one line naming its install, before the game's
-# first frame: b"PESID1 <32 hex>\n" (40 bytes). The game's own first bytes are a frame header XORed
-# with 5b9f2e64 (first byte 0x5b), so the two can't be confused. Accounts are then stored by this id
-# instead of the Steam id, which every copy that doesn't really run through Steam shares.
+# The mod starts each gate connection with one line naming its install, before the game's first
+# frame: b"PESID1 <32 hex>\n" (40 bytes, mod 0.3.0, hello version 2) or b"PESID2 <32 hex> <features>\n"
+# (mod 0.4.0+, hello version 3; "math1" = the game gets the mod's same-math functions). The game's own
+# first bytes are a frame header XORed with 5b9f2e64 (first byte 0x5b), so they can't be confused.
+# Accounts are then stored by this id instead of the Steam id, which every copy that doesn't really
+# run through Steam shares; matchmaking pairs only games with the same math (pesmatch.py).
 ID_MAGIC, ID_LEN = b"PESID1 ", 40
+ID2_MAGIC, ID2_MAX = b"PESID2 ", 128
 
 
 class _Prefixed:
@@ -44,14 +47,23 @@ async def take_player_id(reader, sess):
     head = await _read_or_none(reader, 24)
     if head is None:
         return None
-    if not head.startswith(ID_MAGIC):
+    if head.startswith(ID_MAGIC):
+        line = head + await reader.readexactly(ID_LEN - len(head))
+        m = re.fullmatch(rb"PESID1 ([0-9a-f]{32})\n", line)
+    elif head.startswith(ID2_MAGIC):
+        try:
+            line = head if b"\n" in head else head + await reader.readuntil(b"\n")
+        except (asyncio.LimitOverrunError, asyncio.IncompleteReadError):
+            raise ProtocolError("bad player id line") from None
+        m = re.fullmatch(rb"PESID2 ([0-9a-f]{32})((?: [a-z0-9]{1,16}){0,8})\n", line) if len(line) <= ID2_MAX else None
+    else:
         return _Prefixed(reader, head)
-    line = head + await reader.readexactly(ID_LEN - len(head))
-    m = re.fullmatch(rb"PESID1 ([0-9a-f]{32})\n", line)
     if not m:
         raise ProtocolError("bad player id line")
     sess.mod_id = m.group(1).decode()
-    log.info("mod install id %s… from %s", sess.mod_id[:8], sess.peer_ip)
+    sess.mod_features = frozenset(m.group(2).decode().split()) if m.lastindex == 2 else frozenset()
+    log.info("mod install id %s… from %s%s", sess.mod_id[:8], sess.peer_ip,
+             f" ({' '.join(sorted(sess.mod_features))})" if sess.mod_features else "")
     return reader
 
 

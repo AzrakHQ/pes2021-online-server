@@ -58,6 +58,7 @@ delete the file.
 |---|---|
 | A friend can't connect | The host's server must be running. The mod writes what it tried to `pes2021-online.log` in the game folder |
 | "Router ports are closed" on the host | Turn on **UPnP** in your router settings and start the server again, or forward the ports it lists |
+| The match ends right after kick-off ("unforeseen circumstances") | A Windows player and a Linux / Steam Deck player computed the match differently. Both download the mod again from the admin page (version 0.4.0 or newer keeps their games in step), and the host updates the server (paste the start line again) |
 | "Failed to connect with opponent" | The two PCs can't reach each other directly. Everyone installs [Tailscale](https://tailscale.com); the host starts the server again with `PUBLIC_IP=<host's Tailscale IP>` before `sh` (PowerShell: `$env:PUBLIC_IP="…";` before `irm`) |
 | Play on another server | Get that server's file and replace yours, or hold **Shift** while the game starts and paste its address |
 

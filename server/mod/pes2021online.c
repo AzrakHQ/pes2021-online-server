@@ -24,6 +24,13 @@
  *     copied to another PC is a new player). It sends the hash as one line, "PESID1 <32 hex>\n", at
  *     the start of each connection to the game server's port 10000, and only to servers whose
  *     /mod/hello answer says they read it (version 2).
+ *   - Same math on every PC: in a match both PCs simulate the game and must compute identical numbers.
+ *     The game takes sinf, powf, atan2f... and qsort from the C runtime, which is Microsoft's on Windows
+ *     and Wine's own under Proton / Steam Deck; their results differ in the last bits, so a Windows
+ *     player and a Linux player fell out of sync at kick-off ("SYNC_FAILED", RMYN393). The mod hooks
+ *     those functions in ucrtbase.dll and answers with its own copies (musl-math/), the same code on
+ *     every PC. Only with servers that keep such players apart from older mods (/mod/hello version 3;
+ *     the id line then says "PESID2 <id> math1"); otherwise the runtime's own functions are used.
  * The game's own files and code are not modified. dinput8 itself is forwarded to the system DLL.
  *
  * MIT license (this file). MinHook (BSD 2-clause) hooks; Monocypher (CC0/BSD 2-clause) checks signatures.
@@ -47,7 +54,7 @@
 #include "monocypher/monocypher.h"
 #include "monocypher/monocypher-ed25519.h"
 
-#define MOD_VERSION "0.3.0"
+#define MOD_VERSION "0.4.0"
 
 /* Reserved settings area: the server overwrites everything after the 32-byte marker with
  * "key=...\nname=...\nurl=...\naddrs=a,b\nbook=...\n" (see server/pesserver/identity.py pack_mod). */
@@ -68,7 +75,8 @@ typedef struct {
     char addrs[MAXADDR][64];      /* game addresses, best first */
     int naddrs;
     char book[512];               /* address book base URL */
-    int hello_v;                  /* the server's /mod/hello version: 2 = reads the player-id line */
+    int hello_v;                  /* the server's /mod/hello version: 2 = reads the player-id line,
+                                     3 = also pairs players by math (PESID2 line) */
 } server_t;
 
 static server_t g_srv;
@@ -80,9 +88,12 @@ static volatile LONG g_started;
 static HANDLE g_ready;            /* set when the first background lookup has finished */
 static DWORD g_last_try;
 static CRITICAL_SECTION g_lock;
+static CRITICAL_SECTION g_slock;  /* own lock for the id line and sockets: g_lock can be held for seconds */
 static FILE *g_log;
 static volatile LONG g_id_on;     /* the server in use reads the player-id line */
-static char g_id_line[48];        /* "PESID1 <32 hex>\n" ("" = no id) */
+static volatile LONG g_math_on;   /* the game gets our math functions (server pairs by them) */
+static char g_id_hex[33];         /* this install's player id ("" = none) */
+static char g_id_line[64];        /* the line for the server in use */
 
 /* ------------------------------------------------------------------------------------------ log */
 static void logf_(const char *fmt, ...)
@@ -283,10 +294,21 @@ static void make_player_id(void)
     unsigned char h[16];
     crypto_blake2b(h, sizeof h, (const uint8_t *)msg, strlen(msg));
     crypto_wipe(msg, sizeof msg); crypto_wipe(secret, sizeof secret);
-    strcpy(g_id_line, "PESID1 ");
-    for (int i = 0; i < 16; i++) sprintf(g_id_line + 7 + 2 * i, "%02x", h[i]);
-    strcat(g_id_line, "\n");
-    logf_("player id %.8s... (%s secret%s)", g_id_line + 7, from, mid[0] ? "" : ", no machine id");
+    for (int i = 0; i < 16; i++) sprintf(g_id_hex + 2 * i, "%02x", h[i]);
+    logf_("player id %.8s... (%s secret%s)", g_id_hex, from, mid[0] ? "" : ", no machine id");
+}
+
+/* What this mod tells the server it uses, from the server's /mod/hello version. */
+static void use_server(int hello_v)
+{
+    LONG math = hello_v >= 3 || GetEnvironmentVariableA("PES2021ONLINE_TEST_MATH", NULL, 0) > 0;  /* tests only */
+    EnterCriticalSection(&g_slock);
+    if (hello_v >= 3) snprintf(g_id_line, sizeof g_id_line, "PESID2 %s math1\n", g_id_hex);
+    else snprintf(g_id_line, sizeof g_id_line, "PESID1 %s\n", g_id_hex);
+    LeaveCriticalSection(&g_slock);
+    InterlockedExchange(&g_id_on, hello_v >= 2 && g_id_hex[0]);
+    if (InterlockedExchange(&g_math_on, math) != math)
+        logf_("same-math functions %s", math ? "on (sinf, powf, atan2f, qsort...)" : "off");
 }
 
 /* --------------------------------------------------------------------------------------- HTTP */
@@ -354,13 +376,13 @@ static BOOL hello(const char *ip, server_t *s)
     unsigned char rnd[16]; char nonce[33], url[160], body[1024];
     if (BCryptGenRandom(NULL, rnd, sizeof rnd, BCRYPT_USE_SYSTEM_PREFERRED_RNG) != 0) return FALSE;
     for (int i = 0; i < 16; i++) sprintf(nonce + 2 * i, "%02x", rnd[i]);
-    snprintf(url, sizeof url, "http://%s:8080/mod/hello?n=%s&v=2", ip, nonce);
+    snprintf(url, sizeof url, "http://%s:8080/mod/hello?n=%s&v=3", ip, nonce);
     if (!http_get(url, body, sizeof body, 2500)) return FALSE;
     char *nl = strchr(body, '\n');
     if (!nl) return FALSE;
     char claimed[65] = "";
-    int v = 0;                                /* older servers ignore v=2 and answer version 1 */
-    if (sscanf(nl + 1, "PES2021ONLINE-HELLO %d\n%64[0-9a-f]\n", &v, claimed) != 2 || (v != 1 && v != 2)) return FALSE;
+    int v = 0;                                /* older servers answer a lower version */
+    if (sscanf(nl + 1, "PES2021ONLINE-HELLO %d\n%64[0-9a-f]\n", &v, claimed) != 2 || v < 1 || v > 3) return FALSE;
     server_t learned; memset(&learned, 0, sizeof learned);
     if (!s->keyhex[0]) {                      /* first contact with a typed address: trust on first use */
         if (!parse_key(claimed, &learned)) return FALSE;
@@ -398,8 +420,9 @@ static BOOL try_addr(const char *ip)
     if (!ip[0] || !hello(ip, &g_srv)) return FALSE;
     snprintf(g_ip, sizeof g_ip, "%s", ip);
     ini_set(g_cache, "last_ip", ip);
-    InterlockedExchange(&g_id_on, g_srv.hello_v >= 2 && g_id_line[0]);
-    logf_("server \"%s\" is at %s (verified%s)", g_srv.name, ip, g_id_on ? ", sends player id" : ", older server: no player id");
+    use_server(g_srv.hello_v);
+    logf_("server \"%s\" is at %s (verified%s)", g_srv.name, ip, g_srv.hello_v >= 3 ? ", sends player id, same math"
+          : g_id_on ? ", sends player id; older server: game's own math" : ", older server: no player id");
     return TRUE;
 }
 
@@ -525,7 +548,7 @@ static void dlg_try(void)
             ini_set(g_cache, "last_ip", g_ip);
             ini_set("server", "key", g_srv.keyhex);
             ini_set("server", "url", base);
-            InterlockedExchange(&g_id_on, g_srv.hello_v >= 2 && g_id_line[0]);
+            use_server(g_srv.hello_v);
             ok = TRUE;
         }
     }
@@ -757,7 +780,6 @@ static BOOL WINAPI hk_WinHttpCloseHandle(HINTERNET h)
 #define MAXS 64
 static SOCKET g_sent[MAXS];
 static int g_nsent;
-static CRITICAL_SECTION g_slock;      /* own lock: g_lock can be held for seconds during a lookup */
 
 static int sent_find(SOCKET s) { for (int i = 0; i < g_nsent; i++) if (g_sent[i] == s) return i; return -1; }
 static void sent_drop(int i) { g_sent[i] = g_sent[--g_nsent]; }
@@ -816,6 +838,40 @@ static int WSAAPI hk_closesocket(SOCKET s)
     return o_closesocket(s);
 }
 
+/* Same math on every PC (see the top of the file). Each hook answers with our function while
+ * g_math_on is set, else with the C runtime's own (the trampoline). */
+#define MATH_D1(X) X(acos) X(asin) X(atan) X(cos) X(cosh) X(exp) X(log) X(log10) X(sin) X(sinh) X(tan) X(tanh)
+#define MATH_F1(X) X(acosf) X(asinf) X(atanf) X(cbrtf) X(cosf) X(expf) X(log10f) X(logf) X(sinf) X(tanf)
+#define MATH_D2(X) X(atan2) X(pow)
+#define MATH_F2(X) X(atan2f) X(powf)
+#define DEF_D1(n) double pesm_##n(double); static double (*o_##n)(double); \
+    static double hk_##n(double x) { return g_math_on ? pesm_##n(x) : o_##n(x); }
+#define DEF_F1(n) float pesm_##n(float); static float (*o_##n)(float); \
+    static float hk_##n(float x) { return g_math_on ? pesm_##n(x) : o_##n(x); }
+#define DEF_D2(n) double pesm_##n(double, double); static double (*o_##n)(double, double); \
+    static double hk_##n(double x, double y) { return g_math_on ? pesm_##n(x, y) : o_##n(x, y); }
+#define DEF_F2(n) float pesm_##n(float, float); static float (*o_##n)(float, float); \
+    static float hk_##n(float x, float y) { return g_math_on ? pesm_##n(x, y) : o_##n(x, y); }
+MATH_D1(DEF_D1) MATH_F1(DEF_F1) MATH_D2(DEF_D2) MATH_F2(DEF_F2)
+
+typedef int (__cdecl *qsort_cmp)(const void *, const void *);
+void pesm_qsort(void *, size_t, size_t, qsort_cmp);
+static void (__cdecl *o_qsort)(void *, size_t, size_t, qsort_cmp);
+static void __cdecl hk_qsort(void *b, size_t n, size_t w, qsort_cmp c)
+{
+    if (g_math_on) pesm_qsort(b, n, w, c); else o_qsort(b, n, w, c);
+}
+
+static void hook(const wchar_t *dll, const char *fn, void *detour, void **orig);
+static void hook_math(void)
+{
+    /* The game imports these from api-ms-win-crt-math / -utility, which lead to ucrtbase.dll on
+       Windows and under Wine alike. Hooking them there also covers lookups by GetProcAddress. */
+#define HOOK_IT(n) hook(L"ucrtbase.dll", #n, (void *)hk_##n, (void **)&o_##n);
+    MATH_D1(HOOK_IT) MATH_F1(HOOK_IT) MATH_D2(HOOK_IT) MATH_F2(HOOK_IT) HOOK_IT(qsort)
+#undef HOOK_IT
+}
+
 static void maybe_start(HWND parent, DWORD style)
 {
     if (!parent && !(style & WS_CHILD) && !InterlockedCompareExchange(&g_started, 1, 0)) startup();
@@ -848,7 +904,8 @@ static void install_hooks(void)
     hook(L"ws2_32.dll", "GetAddrInfoW", hk_GetAddrInfoW, (void **)&o_GetAddrInfoW);
     hook(L"ws2_32.dll", "GetAddrInfoExW", hk_GetAddrInfoExW, (void **)&o_GetAddrInfoExW);
     hook(L"ws2_32.dll", "gethostbyname", hk_gethostbyname, (void **)&o_gethostbyname);
-    if (g_id_line[0]) {
+    hook_math();
+    if (g_id_hex[0]) {
         hook(L"ws2_32.dll", "send", hk_send, (void **)&o_send);
         hook(L"ws2_32.dll", "WSASend", hk_WSASend, (void **)&o_WSASend);
         hook(L"ws2_32.dll", "closesocket", hk_closesocket, (void **)&o_closesocket);
@@ -889,5 +946,6 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved)
     logf_("PES 2021 Online mod " MOD_VERSION "; server \"%s\" key %.16s...%s", g_srv.name,
           g_srv.keyhex[0] ? g_srv.keyhex : "(none)", g_force_prompt ? " (Shift held)" : "");
     install_hooks();
+    if (GetEnvironmentVariableA("PES2021ONLINE_TEST_MATH", NULL, 0)) use_server(0);  /* tests: same math, no server */
     return TRUE;
 }

@@ -381,7 +381,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Windows players: the mod is built for Windows, but so far it has only run on Linux under Proton</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Starting the game from the Steam client: our tests launched the game directly under Proton</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Steam Deck: same as Linux, not yet tried on a Deck</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Two separate PCs, in the same home or far apart: not tested yet</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Two separate PCs: connected between two homes once (Windows and Linux); that match ended at kick-off because the two games computed differently, fixed in mod 0.4.0 but not yet confirmed in a match</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Hosting from Windows, a Mac or a Steam Deck</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Goals: every test match so far ended 0–0, so scoring hasn't been seen yet</span></li>
         </ul>
@@ -561,6 +561,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <tr><td>The host's link doesn't open for a friend in the host's own home</td><td>Many home routers can't open their own internet address from inside. Use the file the host sends, or open <code>http://&lt;host's home address&gt;</code> (the admin page's Network card shows it).</td></tr>
           <tr><td>The network test fails, or eFootball modes stay locked</td><td>The host checks that all 6 ports are open (UPnP, or forwarded by hand) and that the computer's own firewall allows them (see "nobody else can connect" under hosts). The banner warns if the router ports couldn't be opened.</td></tr>
           <tr><td>Matchmaking searches forever</td><td>Two players must be in eFootball → Quick Match and searching at the same time.</td></tr>
+          <tr><td>The match ends right after kick-off ("unforeseen circumstances")</td><td>A Windows player and a Linux or Steam Deck player computed the match differently. Both get the mod again from the admin page (0.4.0 or newer keeps their games in step) and the host updates the server.</td></tr>
           <tr><td>"Failed to connect with opponent"</td><td>The two PCs can't reach each other directly. Try Tailscale (an untested workaround): see <a href="#faq-far">playing across the internet</a>.</td></tr>
           <tr><td>Windows Firewall asks about PES 2021</td><td>Click <b>Allow</b>: matches run directly between the two players' PCs.</td></tr>
           <tr><td>The match ends with a "no operation" message</td><td>The game's own rule: a player didn't touch the controller for about 50 seconds.</td></tr>
@@ -642,7 +643,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
     </details>
     <details class="q" id="faq-far">
       <summary>Can I play with friends in other cities or countries?</summary>
-      <p>Probably, but it's not tested yet: so far everything was tested on one home network. The server opens the host's router ports automatically; the match itself then needs the two players' PCs to reach each other directly. If they can't ("Failed to connect with opponent"), put everyone on one private network with <a href="https://tailscale.com">Tailscale</a>, a free app for small groups (this workaround is untested too):</p>
+      <p>Probably: one test between two homes connected fine (the match itself then needed the mod fix above). The server opens the host's router ports automatically; the match itself then needs the two players' PCs to reach each other directly. If they can't ("Failed to connect with opponent"), put everyone on one private network with <a href="https://tailscale.com">Tailscale</a>, a free app for small groups (this workaround is untested too):</p>
       <ul>
         <li>Everyone installs Tailscale and joins the host's network.</li>
         <li>The host stops the server and starts it again with their Tailscale address (shown in the Tailscale app), then downloads a fresh mod file for friends:</li>

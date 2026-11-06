@@ -28,8 +28,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -q && sudo apt-get install -y -q gcc-mingw-w64-x86-64 && sh server/mod/build.sh dinput8.dll
+      - name: Math check program and its Linux reference (server/mod/musl-math/README.md)
+        run: |
+          cd server/mod && mkdir -p ../../mathcheck ref
+          x86_64-w64-mingw32-gcc -O2 -ffp-contract=off -o ../../mathcheck/mathcheck.exe test/mathcheck.c
+          for f in musl-math/*.c; do
+            gcc -O2 -ffp-contract=off -fno-fast-math -fno-builtin -Imusl-math -Imusl-math/include \
+              -include musl-math/pesm_names.h -w -c "$f" -o "ref/$(basename "$f" .c).o"
+          done
+          gcc -O2 -ffp-contract=off -fno-fast-math -o ref/mathcheck test/mathcheck.c ref/*.o
+          ref/mathcheck > ../../mathcheck/reference.txt && cp dinput8.dll ../../mathcheck/
       - uses: actions/upload-artifact@v4
         with: { name: mod, path: server/mod/dinput8.dll }
+      - uses: actions/upload-artifact@v4
+        with: { name: mathcheck, path: mathcheck }
+
+  mathcheck:
+    # The mod must give the game the same math on Windows as everywhere else (musl-math/README.md).
+    needs: mod
+    runs-on: windows-latest
+    defaults:
+      run: { shell: bash }
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: mathcheck, path: mc }
+      - run: |
+          cd mc && ./mathcheck.exe | tr -d '\r' > out.txt
+          echo "Microsoft's own functions that differ from the mod's:"; sed 's/^native //;t;d' out.txt | diff - reference.txt | grep '^<' || true
+          grep -v '^native \|^apiset ' out.txt | diff - reference.txt
+          sed 's/^apiset //;t;d' out.txt | diff - reference.txt
+          cat pes2021-online.log
+          grep -q "same-math functions on" pes2021-online.log && ! grep -q "ERROR" pes2021-online.log
 
   build:
     needs: mod
@@ -69,7 +98,7 @@ jobs:
             server/dist/version.txt
 
   release:
-    needs: build
+    needs: [build, mathcheck]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:

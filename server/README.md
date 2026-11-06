@@ -63,7 +63,7 @@ Environment variables:
 | `pesserver/gamesetup.py` | admin page "The server computer" card: finds PES copies on this computer and installs the mod |
 | `pesserver/certs.py`, `updates.py` | the server's CA and TLS certificate; the "newer version is out" check |
 | `pesserver/__main__.py` | command line: `host` (the program), `serve` (development), `adduser` |
-| `mod/` | the mod (`dinput8.dll`): MinHook hooks, Monocypher signatures, built by `mod/build.sh` (MinGW) |
+| `mod/` | the mod (`dinput8.dll`): MinHook hooks, Monocypher signatures, same-math functions from musl (`mod/musl-math/`, checked by `mod/test/mathcheck.c`), built by `mod/build.sh` (MinGW) |
 | `packaging/` | PyInstaller build script, entry point and smoke test for the program |
 | `pesserver/events.py` | live activity for the admin page: online players, match phases and scores, saved results |
 | `pesserver/web/` | player page, `join.ps1` / `join.sh` (served with the server address filled in), Proton CA installer |

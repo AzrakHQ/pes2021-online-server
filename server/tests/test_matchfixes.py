@@ -101,10 +101,12 @@ def test_message_too_long_for_one_frame_is_refused(svc):
 REC_PARAM = "25D6DFBB091E75D525E090F993DBAE73"            # the sum every recorded session sent
 
 
-def _searching(svc, pid, param=REC_PARAM, patch="1.01.00", send_sums=True):
+def _searching(svc, pid, param=REC_PARAM, patch="1.01.00", send_sums=True, math=False):
     svc.accounts.db.execute("INSERT OR IGNORE INTO pes_players(pid, username, name, created) VALUES(?,?,?,0)",
                             (pid, f"u{pid}", f"P{pid}"))
     s = SimpleNamespace(pes_pid=pid, peer_ip="192.168.1.5")
+    if math:
+        s.mod_features = frozenset({"math1"})                  # mod 0.4.0: "PESID2 <id> math1"
     svc.online[pid] = s
     pescmds._dispatch(svc, s, "CMD_JOIN_ONLINE_MODE", {"online_mode": "QUICK", "patch_version": patch,
                                                      "dlc_version": "1.00", "livedata_version": "0"})
@@ -203,3 +205,18 @@ def test_reconnect_takes_over_the_players_place_with_a_new_key(svc, monkeypatch)
     assert svc.online[1] is new and new.pes_pid == 1 and new.pes_sums == old.pes_sums
     assert pesmatch._state(svc)["queue"] == [(1, new)]
     assert pescmds._dispatch(svc, SimpleNamespace(), "CMD_RECONNECT", {"pid": 99})["result"] == "ERR_LOGIN_FAILED"
+
+
+def test_same_math_mod_is_only_paired_with_same_math(svc, monkeypatch):
+    # A Windows player and a Proton player fell out of sync at kick-off (SYNC_FAILED, RMYN393): their
+    # C runtimes' sinf/powf/... differ. Mod 0.4.0 gives both the same functions; older mods can't.
+    monkeypatch.setattr(pesmatch, "_send_later", lambda *a: None)
+    _searching(svc, 1, math=True)
+    _searching(svc, 2)                                      # older mod
+    assert _rooms(svc) == []
+    warns = [e["text"] for e in events.snapshot(svc)["feed"] if "can't play each other" in e["text"]]
+    assert len(warns) == 1 and "P2 has an older mod" in warns[0]
+    _searching(svc, 3)                                      # older mod too: plays player 2
+    assert _rooms(svc) == [[2, 3]]
+    _searching(svc, 4, math=True)
+    assert _rooms(svc) == [[2, 3], [1, 4]]

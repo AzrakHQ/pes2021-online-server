@@ -61,13 +61,18 @@ def note(url, addrs, t=None):
                                                          "".join(a + "\n" for a in addrs)))
 
 
+HELLO_VERSION = 3
+
+
 def hello(nonce, version=1):
-    """Proof that this address is this server. Version 2 (asked for with v=2) also tells the mod that
-    this server reads the player-id line at the start of each gate connection (gate.py); older mods
-    ask for nothing and get version 1, which they check byte for byte."""
+    """Proof that this address is this server. The mod asks for the newest version it knows (v=N) and
+    gets min(N, ours): 2 = this server reads the player-id line at the start of each gate connection
+    (gate.py); 3 = it also pairs players by the mod's same-math switch (PESID2 line). Mods older than
+    0.3.0 ask for nothing and get version 1, which they check byte for byte."""
     if not re.fullmatch(r"[0-9a-fA-F]{8,64}", nonce or ""):
         raise ValueError("bad nonce")
-    return _signed("PES2021ONLINE-HELLO %d\n%s\n%s\n" % (2 if version >= 2 else 1, public_hex(), nonce.lower()))
+    v = max(1, min(int(version), HELLO_VERSION))
+    return _signed("PES2021ONLINE-HELLO %d\n%s\n%s\n" % (v, public_hex(), nonce.lower()))
 
 
 def current_note():

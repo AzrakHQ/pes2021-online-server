@@ -87,3 +87,30 @@ def test_account_key():
     from types import SimpleNamespace
     assert pescmds.account_key(SimpleNamespace(mod_id=ID_A), STEAM_USER) == "m:" + ID_A
     assert pescmds.account_key(SimpleNamespace(), STEAM_USER) == STEAM_USER
+
+
+def test_id_line_with_features(tmp_path):
+    svc = _svc(tmp_path)
+    seen = []
+    orig = pescmds.account_key
+    pescmds.account_key = lambda sess, u: (seen.append(getattr(sess, "mod_features", None)), orig(sess, u))[1]
+    try:
+        async def go():
+            srv = await gate.serve(svc, NclCodec, "127.0.0.1", 0)
+            port = srv.sockets[0].getsockname()[1]
+            try:
+                r, w = await asyncio.open_connection("127.0.0.1", port)
+                w.write(b"PESID2 " + ID_A.encode() + b" math1\n")
+                w.write(ncl.encode_message({"msgid": "CMD_LOGIN", "rqid": 1, "username": STEAM_USER}))
+                assert (await asyncio.wait_for(NclCodec().read(r), 5)).body["result"] == "NOERR"
+                w.close()
+                r, w = await asyncio.open_connection("127.0.0.1", port)   # junk after PESID2: dropped
+                w.write(b"PESID2 " + ID_A.encode() + b" MATH!\n")
+                assert await asyncio.wait_for(r.read(), 5) == b""
+            finally:
+                srv.close()
+        asyncio.run(go())
+    finally:
+        pescmds.account_key = orig
+    assert seen == [frozenset({"math1"})]
+    assert svc.accounts.db.execute("SELECT username FROM pes_players").fetchall() == [("m:" + ID_A,)]

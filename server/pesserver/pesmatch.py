@@ -205,12 +205,19 @@ def _game_data(sess):
     return (sums["param"], ver.get("patch_version", ""), ver.get("dlc_version", ""))
 
 
+def _same_math(sess):
+    """The game uses the mod's own math functions (mod 0.4.0+: "math1" on its id line, gate.py).
+    Such a game and one using the C runtime's (Microsoft's on Windows, Wine's under Proton) compute
+    different numbers and fall out of sync at kick-off (SYNC_FAILED, RMYN393), so they aren't paired."""
+    return "math1" in getattr(sess, "mod_features", ())
+
+
 def _compatible(sa, sb):
     da, db = _game_data(sa), _game_data(sb)
-    return da is None or db is None or da == db
+    return (da is None or db is None or da == db) and _same_math(sa) == _same_math(sb)
 
 
-def _note_mismatch(svc, a, b):
+def _note_mismatch(svc, a, b, sa=None, sb=None):
     """Tell the host once per waiting pair why two searching players aren't matched."""
     from . import events
     st = _state(svc)
@@ -218,6 +225,13 @@ def _note_mismatch(svc, a, b):
     if key in st.setdefault("mismatch_told", set()):
         return
     st["mismatch_told"].add(key)
+    if sa is not None and sb is not None and _same_math(sa) != _same_math(sb):
+        old = a if _same_math(sb) else b
+        log.info("MATCH skip %s vs %s: older mod on %s", a, b, old)
+        events.feed(svc, f"{events.name_of(svc, a)} and {events.name_of(svc, b)} can't play each other: "
+                         f"{events.name_of(svc, old)} has an older mod (or none). Send them the mod again "
+                         "(Download the mod for friends): it keeps both games in sync during the match", "warn")
+        return
     log.info("MATCH skip %s vs %s: different game data", a, b)
     events.feed(svc, f"{events.name_of(svc, a)} and {events.name_of(svc, b)} can't play each other: their games "
                      "have different player data (patch, live update or edited stats)", "warn")
@@ -234,7 +248,7 @@ def _next_pair(svc):
         for j in range(i + 1, len(q)):
             if _compatible(q[i][1], q[j][1]):
                 return i, j
-            _note_mismatch(svc, q[i][0], q[j][0])
+            _note_mismatch(svc, q[i][0], q[j][0], q[i][1], q[j][1])
     return None
 
 
