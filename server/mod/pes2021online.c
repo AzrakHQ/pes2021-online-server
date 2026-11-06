@@ -1019,6 +1019,8 @@ static void hook(const wchar_t *dll, const char *fn, void *detour, void **orig)
     if (st != MH_OK) logf_("ERROR: hook %ls!%s: %s", dll, fn, MH_StatusToString(st));
 }
 
+#include "probe.c"
+
 static void install_hooks(void)
 {
     MH_STATUS st = MH_Initialize();
@@ -1043,6 +1045,7 @@ static void install_hooks(void)
     st = MH_EnableHook(MH_ALL_HOOKS);
     if (st == MH_OK) logf_("hooks ready");
     else logf_("ERROR: enabling hooks: %s", MH_StatusToString(st));
+    probe_start();          /* debug builds only (PROBE=1 sh build.sh), and only with PES2021ONLINE_PROBE=<port> */
 }
 
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved)

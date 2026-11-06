@@ -54,6 +54,11 @@ Tags in the reports: **[static]** read in code at the cited address, **[log]** s
   instruction boundaries are always right.
 - `cpkwrite.py` — writes an uncompressed CPK shaped like the game's own. `mklivedata.py OUT.cpk --player ID:PARAM:DELTA --team-short TEAM:TXT --shirt TEAM:PLAYER:N` — a test Live Update plus the CHECK_CHEAT sums it should give.
 - `testserver/` — the runtime add-ons used for the live tests (lobby handlers, TURN-over-DTLS leg, switchable Live Update); see its README.
+- `probe.py` — client for the mod's **debug probe** (`server/mod/probe.c`, built only with `PROBE=1 sh build.sh`,
+  enabled per game copy with `PES2021ONLINE_PROBE=<port>`): read/write the game's memory, follow pointer chains,
+  trace any function (register arguments, caller, thread), call functions directly or on the game's window thread.
+  To get a probe DLL with the server's address and key written in, start a test server with
+  `PESSERVER_MOD_DLL=<probe dll>` and download `/mod/dinput8.dll?from=admin`. Never give it to players.
 - `pesdb.py` (+ `cpk.py`) — reads the game database from the CPKs: `checksum`, `player <id>`, `team <id>`, `dump out.json`
   (`PES_GAME_DIR` = folder containing `game/`; no extra packages needed).
 - `classmap.py out.json` — every RTTI class with its base classes and vtables (~2 min).
