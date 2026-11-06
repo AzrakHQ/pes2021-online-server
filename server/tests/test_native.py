@@ -57,7 +57,10 @@ def test_skipped_ports_are_not_mapped(monkeypatch):
     monkeypatch.setattr(netsetup, "PORTS", list(netsetup.PORTS))
     netsetup.skip_port(80)
     assert (80, "TCP") not in netsetup.PORTS and (8080, "TCP") in netsetup.PORTS
+    monkeypatch.setenv("TURN", "0")
     assert netsetup.port_list() == "TCP 443,8080,10000 + UDP 3478,7600"
+    monkeypatch.delenv("TURN")                       # the relay is on by default: its ports are listed as ranges
+    assert netsetup.port_list() == "TCP 443,5349,8080,10000 + UDP 3478,5350,7600,49160-49179"
 
 
 def test_admin_local_sign_in_and_internet_rules(tmp_path, monkeypatch):

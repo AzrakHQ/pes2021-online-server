@@ -6,7 +6,8 @@ to `tls_port`, logs in with `id`/`pw` and trusts the DER certificate given in `s
 Each game then sends its relayed address with CMD_SEND_TURN_ADDRESS_DATA; we push it to the opponent as
 CMD_WATCH_TURN_ADDRESS_DATA. Details: notes/re/functions/net.md.
 
-Off unless TURN=1 (it is unconfirmed against the real game). Credentials use the TURN REST scheme:
+On by default (TURN=0 turns it off); tested live with the game on 2026-11-06, including a match played only
+over the relay. Credentials use the TURN REST scheme:
 username "<expiry>:<pid>", password base64(HMAC-SHA1(secret, username)).
 """
 import base64, datetime, ipaddress, logging, os, time
@@ -25,7 +26,7 @@ STATE = {"server": None, "dir": None, "secret": None, "cert_der": None, "ips": (
 
 
 def enabled():
-    return os.environ.get("TURN") == "1"
+    return os.environ.get("TURN", "1") != "0"
 
 
 def ports():
@@ -90,7 +91,7 @@ def _cert(d, ips):
 
 
 async def start(svc, data_dir, lan, wan, extra_ips=()):
-    """Start the built-in TURN relay when TURN=1. Returns True if it runs; the server works without it."""
+    """Start the built-in TURN relay (unless TURN=0). Returns True if it runs; the server works without it."""
     if not enabled():
         return False
     from . import turnrelay

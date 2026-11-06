@@ -8,7 +8,8 @@ exe = os.path.abspath(sys.argv[1])
 data = tempfile.mkdtemp(prefix="pes-smoke-")
 env = dict(os.environ, UPNP="0", PUBLIC_IP="127.0.0.1", UPDATE_CHECK="0", PESSERVER_NO_IPCHECK="1",
            PES_GATE_PORT="11000", PES_HTTP_PORT="18080", PES_HTTPS_PORT="18443", PES_JOIN_PORT="18081",
-           PES_STUN_PORT="13478", PESSERVER_RELAY_PORT="17600", PESSERVER_BOOK="")
+           PES_STUN_PORT="13478", PESSERVER_RELAY_PORT="17600", PESSERVER_BOOK="",
+           TURN_TLS_PORT="15349", TURN_DTLS_PORT="15350", TURN_MIN_PORT="15360", TURN_MAX_PORT="15361")
 flags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
 p = subprocess.Popen([exe, "--data", data], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                      creationflags=flags)
@@ -46,7 +47,16 @@ try:
     assert b"PES 2021 Server" in get("http://127.0.0.1:18080/admin")[1]
     status, dll = get("http://127.0.0.1:18080/mod/dinput8.dll")
     assert status == 200 and dll[:2] == b"MZ" and len(dll) > 50000, len(dll)
-    print("smoke test passed: http, https (game and admin certificates) on the same port, admin page, mod download")
+    # the relay's DTLS leg needs pyOpenSSL inside the bundle; without it the game restarts TURN every second
+    for _ in range(10):
+        log = open(os.path.join(data, "server.log"), errors="replace").read() if os.path.exists(os.path.join(data, "server.log")) else ""
+        if "dtls/15350" in log:
+            break
+        time.sleep(1)
+    else:
+        raise SystemExit("the TURN relay's DTLS leg did not start:\n" + log[-2000:])
+    print("smoke test passed: http, https (game and admin certificates) on the same port, admin page, mod download, "
+          "TURN relay with its DTLS leg")
 finally:
     if sys.platform == "win32":
         p.send_signal(signal.CTRL_BREAK_EVENT)

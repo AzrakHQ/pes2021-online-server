@@ -33,7 +33,7 @@ def coturn_up(tmp_path, monkeypatch):
 def test_no_turn_server_keeps_the_list_empty(svc, monkeypatch):
     monkeypatch.setattr(turn, "STATE", {**turn.STATE, "server": None})
     assert pescmds._dispatch(svc, None, "CMD_GET_TURN_SERVER_LIST", {"pid": "1"}) == {"result": "NOERR"}
-    monkeypatch.delenv("TURN", raising=False)
+    monkeypatch.setenv("TURN", "0")
     assert turn.ports() == []
     assert asyncio.run(turn.start(svc, svc.data_dir, "192.168.1.100", None)) is False
 

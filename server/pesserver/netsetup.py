@@ -25,8 +25,17 @@ def web_url(addr):
 
 def port_list():
     """'TCP 8080,10000 + UDP 3478,7600': the ports this server listens on, for forwarding instructions."""
-    tcp = ",".join(str(p) for p, proto in PORTS if proto == "TCP")
-    udp = ",".join(str(p) for p, proto in PORTS if proto == "UDP")
+    def fmt(ports):
+        out, ps = [], sorted(set(ports))
+        while ps:
+            a = b = ps.pop(0)
+            while ps and ps[0] == b + 1:
+                b = ps.pop(0)
+            out.append(str(a) if a == b else f"{a}-{b}")
+        return ",".join(out)
+    all_ports = _ports()
+    tcp = fmt([p for p, proto in all_ports if proto == "TCP"])
+    udp = fmt([p for p, proto in all_ports if proto == "UDP"])
     return f"TCP {tcp} + UDP {udp}"
 
 

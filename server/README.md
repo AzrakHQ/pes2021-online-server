@@ -45,7 +45,7 @@ Environment variables:
 | `PESSERVER_HTTP_PORT` | port used in URL lists (default 8080) |
 | `PESSERVER_RXLOG` | path of a JSONL log of every decoded message (optional) |
 | `UPNP` | `0` = don't open router ports |
-| `TURN` | `1` = run the built-in relay for players who can't connect directly (TLS 5349 + DTLS UDP 5350 + relay UDP 49160–49179; needs pyOpenSSL) |
+| `TURN` | `0` = don't run the built-in relay for players who can't connect directly (on by default: TLS 5349 + DTLS UDP 5350 + relay UDP 49160–49179, opened with UPnP; needs pyOpenSSL) |
 | `UPDATE_CHECK` | `0` = don't ask GitHub whether a newer server is out |
 | `ADMIN_PASSWORD` | fixed admin password (default: random, saved in `<data>/admin_password`) |
 | `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
