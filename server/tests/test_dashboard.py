@@ -67,3 +67,26 @@ def test_results_pages_filters_and_counts(tmp_path):
     assert events.results_page(svc, since=now - 7200, until=now - 1000)[1] == 2   # one day's slice
     assert events.results_page(svc, since=now - 7200)[1] == 4                       # a period
     assert events.results_page(svc, "%")[1] == 0 and events.results_page(svc, "_")[1] == 0   # LIKE wildcards are literal
+
+
+def test_message_to_one_player(tmp_path):
+    from types import SimpleNamespace
+    svc = _svc(tmp_path); _seed(svc); announce._STATE.clear()
+    announce.tell(svc, 2, "Hi Bob", "Final at 9", kind="note")
+    snap = announce.snapshot(svc)
+    assert snap["pending"] == 1 and snap["personal"][0]["pid"] == 2 and snap["personal"][0]["kind"] == "note"
+    announce.tell(svc, 2, "Hi again", "Final moved to 10", kind="note")         # replaces the unseen one
+    assert [m["title"] for m in announce.snapshot(svc)["personal"]] == ["Hi again"]
+    r = announce.urgent(svc, SimpleNamespace(pes_pid=2), {"pid": 2})
+    assert r["is_announcement"] == "YES" and announce.snapshot(svc)["pending"] == 0
+    assert events._st(svc)["feed"][0]["text"] == "Bob saw your message “Hi again”"
+    assert announce.urgent(svc, SimpleNamespace(pes_pid=2), {"pid": 2}) == {"result": "NOERR"}   # once only
+    announce.tell(svc, 3, "Hey", "x", kind="note")
+    assert announce.untell(svc, 3) and not announce.untell(svc, 3)
+    import random
+    r = random.Random(2)
+    try:
+        announce.tell(svc, 1, "Cup", "".join(chr(r.randint(0x4e00, 0x9fff)) for _ in range(600)), kind="note")   # 3 bytes a letter
+        assert False, "too long for one frame"
+    except announce.TooLong:
+        pass

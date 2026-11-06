@@ -77,7 +77,10 @@ def snapshot(svc):
             _save(svc)
         n = st["news"]
         return {"news": n and {"title": n["title"], "body": n["body"], "date": n["date"], "seen": len(st["seen"])},
-                "restart": r, "pending": len(st["personal"])}
+                "restart": r, "pending": len(st["personal"]),
+                "personal": sorted(({"pid": int(k), "title": v["title"], "body": v["body"], "sent": v.get("sent"),
+                                     "kind": v.get("kind", "note")} for k, v in st["personal"].items()),
+                                   key=lambda x: -(x["sent"] or 0))}
 
 
 class TooLong(ValueError):
@@ -91,15 +94,17 @@ def _check_size(reply):
         raise TooLong("too long")
 
 
-def fits(title, body):
-    """How much of the game's message box a draft fills (the admin page's live meter): 0-100+."""
+def fits(title, body, personal=False):
+    """How much of the game's message box a draft fills (the admin page's live meter): 0-100+.
+    personal: a note for one player (the box before Quick Match), which has less around it."""
     from . import ncl
     try:
         news = {"id": 2_000_000_000, "title": clean(title, TITLE_MAX, lines=False), "body": clean(body, BODY_MAX),
                 "date": int(time.time())}
     except ValueError:
         return 0
-    size = len(ncl.bf_encrypt(ncl.pack_plain({"msgid": "CMD_GET_INFOBODY", "rqid": 99999, **_body_reply(news)})))
+    reply = _urgent_reply(news, {}) if personal else _body_reply(news)
+    size = len(ncl.bf_encrypt(ncl.pack_plain({"msgid": "CMD_GET_INFOBODY", "rqid": 99999, **reply})))
     return round(100 * size / (ncl.MAX_BODY - 16))
 
 
@@ -130,13 +135,25 @@ def set_restart(svc, minutes):
         _save(svc)
 
 
-def tell(svc, pid, title, body):
-    """A one-time message for one player, shown the next time they enter an online mode."""
+def tell(svc, pid, title, body, kind="kick"):
+    """A one-time message for one player, shown in a box the next time they enter an online mode (the game only
+    shows server text when it asks for it). A newer note replaces one they haven't seen yet."""
+    msg = {"id": int(time.time()) % 2_000_000_000, "title": clean(title, TITLE_MAX, False),
+           "body": clean(body, BODY_MAX), "sent": time.time(), "kind": kind}
+    _check_size(_urgent_reply(msg, {}))
     with _lock:
         st = _load(svc)
-        st["personal"][str(pid)] = {"id": int(time.time()) % 2_000_000_000, "title": clean(title, TITLE_MAX, False),
-                                    "body": clean(body, BODY_MAX)}
+        st["personal"][str(pid)] = msg
         _save(svc)
+
+
+def untell(svc, pid):
+    """Take back a note the player hasn't seen yet. Returns False if there was none."""
+    with _lock:
+        st = _load(svc)
+        gone = st["personal"].pop(str(pid), None) is not None
+        _save(svc)
+    return gone
 
 
 def forget(svc, pid):
@@ -197,6 +214,13 @@ def urgent(svc, sess, req):
             return {"result": NOERR}
         _save(svc)
     log.info("showing %r to pid %s", msg["title"], pid)
+    if msg.get("kind") == "note":                 # the admin page's activity shows that it arrived
+        from . import events
+        events.feed(svc, f"{events.name_of(svc, pid)} saw your message “{msg['title']}”", "info")
+    return _urgent_reply(msg, req)
+
+
+def _urgent_reply(msg, req):
     data = {"announcement_id": msg["id"], "online_mode": req.get("online_mode", "QUICK"),
             "announcement_type": req.get("announcement_type", "PRE_MAIN"), "read_check": "NO",
             "title": msg["title"], "body": msg["body"]}

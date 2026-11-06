@@ -392,7 +392,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             req = json.loads(body or b"{}")
             if route.endswith("message"):
                 if req.get("check"):          # the live "fits in the game's box" meter; nothing is saved
-                    return "200 OK", json.dumps({"pct": announce.fits(req.get("title"), req.get("body"))}).encode(), "application/json"
+                    return "200 OK", json.dumps({"pct": announce.fits(req.get("title"), req.get("body"), bool(req.get("personal")))}).encode(), "application/json"
                 if req.get("clear"):
                     announce.clear_news(service)
                     events.feed(service, "The message to players was removed", "info")
@@ -410,6 +410,28 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             return "400 Bad Request", b'{"error":"too long"}', "application/json"
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"Write a title and a message."}', "application/json"
+        return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
+    if route == "/admin/api/message/player" and method == "POST":
+        from . import announce
+        try:
+            req = json.loads(body or b"{}")
+            pid = int(req.get("pid"))
+        except (ValueError, TypeError, AttributeError):
+            return "400 Bad Request", b'{"error":"pid"}', "application/json"
+        if not service.accounts.db.execute("SELECT 1 FROM pes_players WHERE pid=?", (pid,)).fetchone():
+            return "404 Not Found", b'{"error":"That player is gone."}', "application/json"
+        name = events.name_of(service, pid)
+        if req.get("cancel"):
+            if announce.untell(service, pid):
+                events.feed(service, f"The message to {name} was taken back", "info")
+            return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
+        try:
+            announce.tell(service, pid, req.get("title"), req.get("body"), kind="note")
+        except announce.TooLong:
+            return "400 Bad Request", b'{"error":"too long"}', "application/json"
+        except (ValueError, TypeError, AttributeError):
+            return "400 Bad Request", b'{"error":"Write a title and a message."}', "application/json"
+        events.feed(service, f"Message sent to {name}: “{announce.clean(req.get('title'), announce.TITLE_MAX, False)}”", "info")
         return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
     if route == "/admin/api/games":
         from . import gamesetup
@@ -455,7 +477,10 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             reason = "\n\nReason: " + announce.clean(req.get("reason"), announce.REASON_MAX)
         except ValueError:
             reason = ""
-        announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server." + reason)
+        try:
+            announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server." + reason)
+        except announce.TooLong:                  # a very long non-Latin reason: send the note without it
+            announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server.")
         sess.close()
         return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/results" and method == "POST":
