@@ -22,8 +22,13 @@ def _st(svc):
                 home_score INTEGER, away_score INTEGER, reason TEXT)""")
             db.execute("CREATE TABLE IF NOT EXISTS pes_feed(id INTEGER PRIMARY KEY, t REAL, kind TEXT, text TEXT)")
             # the host can leave an unfair result (e.g. a dropped connection) out of the table
-            if "voided" not in {r[1] for r in db.execute("PRAGMA table_info(pes_matches)")}:
+            cols = {r[1] for r in db.execute("PRAGMA table_info(pes_matches)")}
+            if "voided" not in cols:
                 db.execute("ALTER TABLE pes_matches ADD COLUMN voided INTEGER NOT NULL DEFAULT 0")
+            # who left a match that ended early, and when (so the host can judge whether to count it)
+            if "left_pid" not in cols:
+                db.execute("ALTER TABLE pes_matches ADD COLUMN left_pid INTEGER")
+                db.execute("ALTER TABLE pes_matches ADD COLUMN left_at REAL")
             rows = db.execute("SELECT t, kind, text FROM pes_feed ORDER BY id DESC LIMIT 200").fetchall()
         svc.pes_events["feed"].extend({"t": t, "kind": k, "text": x} for t, k, x in rows)
     return svc.pes_events
@@ -71,6 +76,22 @@ def _live(svc, rid, room):
                    "away_name": name_of(svc, away) if away else "", "phase": "Pre-match", "raw_phase": "",
                    "home_score": 0, "away_score": 0, "started": time.time(), "kickoff": None, "saved": False}
     return lv[rid]
+
+
+def _note_left(svc, lv, pid):
+    """A player left a match after kick-off: remember it for the result that may still arrive."""
+    if lv.get("kickoff"):
+        _st(svc).setdefault("leavers", {})[pid] = {"t": time.time(), "kickoff": lv["kickoff"], "pair": {lv["home"], lv["away"]}}
+
+
+def _leaver(svc, home, away):
+    now = time.time()
+    for pid, x in list(_st(svc).get("leavers", {}).items()):
+        if now - x["t"] > 900:
+            _st(svc)["leavers"].pop(pid, None)
+        elif pid in (home, away) and x["pair"] == {home, away}:
+            return pid, x
+    return None, None
 
 
 def observe(svc, sess, msgid, req):
@@ -123,13 +144,14 @@ def observe(svc, sess, msgid, req):
         if not lv["saved"]:
             lv["saved"] = True
             reason = str(req.get("abnormalend_reason", "NOERR"))
+            left_pid, lx = _leaver(svc, lv["home"], lv["away"]) if reason != "NOERR" else (None, None)
             db = svc.accounts.db
             with svc.accounts.lock, db:
                 db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name,"
-                           " home_score, away_score, reason) VALUES(?,?,?,?,?,?,?,?,?,?)",
-                           (rid, lv["kickoff"] or lv["started"], time.time(), lv["home"], lv["away"],
+                           " home_score, away_score, reason, left_pid, left_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                           (rid, lv["kickoff"] or (lx and lx["kickoff"]) or lv["started"], time.time(), lv["home"], lv["away"],
                             lv["home_name"], lv["away_name"], lv["home_score"], lv["away_score"],
-                            "" if reason == "NOERR" else reason))
+                            "" if reason == "NOERR" else reason, left_pid, lx and lx["t"]))
             feed(svc, f"Full time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "result")
     elif msgid == "CMD_LEAVE_ROOM":
         lv.setdefault("left", set()).add(pid)
@@ -137,6 +159,7 @@ def observe(svc, sess, msgid, req):
             if not lv["kickoff"]:
                 feed(svc, f"Match cancelled before kick-off: {name_of(svc, pid)} left", "warn")
             else:
+                _note_left(svc, lv, pid)
                 feed(svc, f"Match ended early: {name_of(svc, pid)} left", "warn")
             _st(svc)["live"].pop(rid, None)
         elif lv["left"] >= {lv["home"], lv["away"]}:
@@ -149,8 +172,15 @@ def disconnected(svc, sess):
         return                            # an older connection of a player who is still online
     _st(svc)["present"].discard(pid)
     feed(svc, f"{name_of(svc, pid)} went offline", "logout")
+    try:                                  # "last seen" means when they left, not when they signed in
+        db = svc.accounts.db
+        with svc.accounts.lock, db:
+            db.execute("UPDATE pes_players SET last_login=? WHERE pid=?", (time.time(), pid))
+    except Exception:  # noqa: BLE001
+        pass
     for rid, lv in list(_st(svc)["live"].items()):
         if pid in (lv["home"], lv["away"]) and lv["phase"] != "Full time":
+            _note_left(svc, lv, pid)
             feed(svc, f"Match ended early: {name_of(svc, pid)} disconnected", "warn")
             _st(svc)["live"].pop(rid, None)
 
@@ -190,9 +220,9 @@ def snapshot(svc):
               for pid, s in sorted(svc.online.items()) if isinstance(pid, int)]
     db = svc.accounts.db
     results = [dict(zip(("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason",
-                         "home_pid", "away_pid", "voided"), r))
+                         "home_pid", "away_pid", "voided", "left_pid", "left_at"), r))
                for r in db.execute("SELECT id, started, ended, home_name, away_name, home_score, away_score, reason,"
-                                   " home_pid, away_pid, voided"
+                                   " home_pid, away_pid, voided, left_pid, left_at"
                                    " FROM pes_matches ORDER BY id DESC LIMIT 100")]
     played_total, goals_total, abandoned = db.execute(
         "SELECT COUNT(*), COALESCE(SUM(home_score + away_score), 0), COALESCE(SUM(COALESCE(reason, '') != ''), 0)"
@@ -249,7 +279,7 @@ def player_detail(svc, pid):
     if r is None:
         return None
     _st(svc)
-    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason", "voided")
+    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason", "voided", "left_pid", "left_at")
     matches = [dict(zip(keys, m)) for m in db.execute(
         "SELECT " + ", ".join(keys) + " FROM pes_matches WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid))]
     name = r[1] or f"Player {pid}"
@@ -291,7 +321,7 @@ def results_page(svc, q="", since=0, limit=25, until=None, early=False):
     w = " WHERE " + " AND ".join(where)
     db = svc.accounts.db
     _st(svc)
-    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid", "voided")
+    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid", "voided", "left_pid", "left_at")
     rows = [dict(zip(keys, r)) for r in db.execute("SELECT " + ", ".join(keys) + " FROM pes_matches" + w +
                                                    " ORDER BY id DESC LIMIT ?", (*args, max(1, min(int(limit), 1000))))]
     return rows, db.execute("SELECT COUNT(*) FROM pes_matches" + w, args).fetchone()[0]

@@ -164,3 +164,22 @@ def test_leaving_a_result_out_of_the_table(tmp_path):
     events.set_counted(svc, mid, True)
     assert ann()["won"] == 2
     assert events.set_counted(svc, 999, True) is None
+
+
+def test_who_left_an_early_ending(tmp_path):
+    from types import SimpleNamespace
+    svc = _svc(tmp_path); _seed(svc)
+    lv = {"room": 7, "home": 1, "away": 2, "home_name": "Ann", "away_name": "Bob", "phase": "2nd half", "raw_phase": "2ND",
+          "home_score": 0, "away_score": 1, "started": time.time() - 700, "kickoff": time.time() - 600, "saved": False}
+    events._st(svc)["live"][7] = lv
+    events._note_left(svc, lv, 1)                                       # Ann quits while losing
+    sess = SimpleNamespace(pes_pid=2)
+    import pesserver.events as ev
+    orig = ev._room_of
+    ev._room_of = lambda s, pid: (7, {"owner": 1, "members": [1, 2]})
+    try:
+        ev.observe(svc, sess, "CMD_SEND_GAME_RESULT", {"home_score": 0, "away_score": 1, "abnormalend_reason": "DISCONNECT"})
+    finally:
+        ev._room_of = orig
+    r = events.results_page(svc, early=True)[0][0]
+    assert r["left_pid"] == 1 and r["left_at"] and r["started"] == lv["kickoff"]
