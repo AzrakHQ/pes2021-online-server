@@ -231,8 +231,8 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
 ### Data mismatch (not settled cleanly)
 - Copy 1 with the Live Update, copy 2 stock. Both runs failed at the room start, but both were confounded by our
   test handler: a stale room from an earlier session meant copy 2 joined the wrong room (13:55, owner:
-  "Unable to connect.") or the owner's SET_GAMEMEMBER reached the server's default handler (14:45). The default
-  reply `ERR_DATABASE` shows "An unexpected problem has occurred while communicating with the PES 2021 server.
+  "Unable to connect.") or the owner's SET_GAMEMEMBER crashed the test handler (14:45). The gate's reply to a
+  handler crash, `ERR_DATABASE`, shows "An unexpected problem has occurred while communicating with the PES 2021 server.
   CODE:C_DYUN_0013". The handler is fixed (one room per player); the clean repeat is still to do.
 
 ### TURN relay: the DTLS leg works (ktcdtls.md)
@@ -318,7 +318,7 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
 | CREATEJOIN_ROOM → ERR_ROOMCREATELIMIT | "You cannot create any more Match Rooms." | back to Match Room Settings |
 | GET_MANNER_WARN `warn_kind A_TO_B` | "Your courtesy rating has fallen to "B". Please ensure that the number of times you disconnect does not increase any further. Users with a "B" courtesy rating are subject to the following restrictions. · You will be more likely to be paired with users who have "B" or "C" courtesy ratings. · If your courtesy rating remains at "B" for some time, it will eventually fall to "C", thereby making you subject to further restrictions." | continues into the lobby |
 | LOGIN → ERR_INVALID_ACCOUNT | "It has been noted that you have acted in direct breach of our Operation Policy and Terms of Use. Therefore, we have suspended your account in line with our policy on violations. Thank you for your understanding." | main menu, offline (the online menus are gone) |
-| SET_GAMEMEMBER → ERR_DATABASE (default reply) | "An unexpected problem has occurred while communicating with the PES 2021 server. CODE:C_DYUN_0013" | room |
+| SET_GAMEMEMBER → ERR_DATABASE (our test handler crashed; the gate answers a handler crash with ERR_DATABASE) | "An unexpected problem has occurred while communicating with the PES 2021 server. CODE:C_DYUN_0013" | room |
 - `{re}`/`{rf}` show as "PES 2021" in these texts, as misc.md says.
 
 ### Data mismatch, clean repeat
@@ -330,3 +330,10 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
   - `is_revision_check "NO"` (same two copies, new room): DATASYNC, SET_GAMEMEMBERENV, TEAMSELECT — both reached
     team selection. So a sum mismatch blocks the match only while `is_revision_check` is YES, as datacheck.md Q1 says. (Playing a
     whole match with different data was not tried; datacheck.md warns of desync.)
+
+### In the server itself (branch lobby-relay, 2026-11-06 17:10)
+- `pesrooms.py` + `turndtls.py`, no test add-ons, `TURN=1`: copy 1 created a room (room-list ADD, game_env
+  UPDATE, player-list reply, ENTRY_GAME, room screen); copy 2 saw "[001]Room testHome" and joined; both pressed
+  Start Match; "match 1 starts"; START/END; DTLS legs up in 0.02 s; both relay addresses forwarded; channels
+  bound; DATASYNC, TEAMSELECT; the DTLS associations followed the game's port change every 10 s, and the TURN
+  list was fetched once (no restart cycle).
