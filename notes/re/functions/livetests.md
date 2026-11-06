@@ -337,3 +337,17 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
   Start Match; "match 1 starts"; START/END; DTLS legs up in 0.02 s; both relay addresses forwarded; channels
   bound; DATASYNC, TEAMSELECT; the DTLS associations followed the game's port change every 10 s, and the TURN
   list was fetched once (no restart cycle).
+
+### Online Co-op fixed: mod 0.5.0 + pescoop.py (2026-11-06 evening) [live]
+- Mod 0.5.0 hooks the co-op peer-list builder (0x141134c00: afterwards it calls 0x141092720, as Quick Match does)
+  and the WATCH_COOP_MATCHING handler (0x14110fe00: afterwards it copies each member's host/reflexive address and
+  NAT type from the parsed reply into the member record). Only on the exact 1.01.00 code; the id line says
+  `coop1`. Mod log: "co-op: addresses of 2 of 2 member(s) kept", "co-op: 1 peer(s) handed to the P2P layer".
+- Server (`pescoop.py`, branch coop-mod): force_alone matching of two `coop1` players with equal game data,
+  the WATCH_COOP_MATCHING push, a room (GET_GAMERELAY says "P2P" for it), SYNC_PROGRESS echoed to its sender.
+- Result: START:pid=<peer> / END both ways (direct link up), SET_GAMERELAY_CHECK_RES NOERR, DATASYNC,
+  GET_COOP_MATCH_DATA, MATCHMENU, GAMELOAD, ENTRY, 1ST — **an Online Co-op Casual Match kicked off and played**
+  (testHome + COM2 + COM3 v TestAway + COM5 + COM6). Repeated on main after the lobby/relay merge (relay on).
+- With `use_team_id` 262143 ("no team") on both sides the match menu showed blank crests and both games crashed
+  in GAMELOAD (access violation writing address 8 at 0x1403db255). Co-op has no team-select screen; the server
+  must assign each side a real team (pescoop picks two from the Quick Match team list).

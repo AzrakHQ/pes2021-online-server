@@ -1,6 +1,6 @@
 # Co-op 2: SYNC_PROGRESS, the zero pids/addresses, and MXNV_0010 (PES2021.exe 1.01.00, static)
 
-> **Live (2026-11-06, livetests.md):** the SYNC_PROGRESS echo and `game_sycom "P2P"` behaved exactly as described (START_COOP_MATCHING, then SEND_SYNC_NOTICE / TURN list / SEND_TURN_ADDRESS_DATA, MXNV_0010 gone); the session then stops at `START:pid=0` with an empty pid_list and MXNV_0013, as the follow-up explains: co-op never hands its peer list to NtlImpl. **Needs a game-side (mod) patch; no server reply can fix it.**
+> **Live (2026-11-06, livetests.md):** the SYNC_PROGRESS echo and `game_sycom "P2P"` behaved exactly as described (START_COOP_MATCHING, then SEND_SYNC_NOTICE / TURN list / SEND_TURN_ADDRESS_DATA, MXNV_0010 gone); the session then stops at `START:pid=0` with an empty pid_list and MXNV_0013, as the follow-up explains: co-op never hands its peer list to NtlImpl. **Needs a game-side (mod) patch; no server reply can fix it.** → **Done: mod 0.5.0 (both patch steps below, as hooks) + server pescoop.py; a co-op match kicked off live (livetests.md).** Also needed: real `use_team_id` values (262143 on both sides crashes the load).
 
 Static reading only. Tags: **[static]** (address), **[inferred]**, **[guess]**. Dumps are in the working folder
 (not published). Names: **g** = `0x140ff0a20()`. **C** = `[g+0x30]` (co-op object). **N** = `[g+0x58]` (the
