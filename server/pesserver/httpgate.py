@@ -382,7 +382,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
                           "link_home_only": not reachable,
                           "sessions": len([1 for v in _sessions(service).s.values() if v > now]),
                           "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex()),
-                          "mod_sha256": mod_sha256(mod_url(service, headers, None))}
+                          "mod_sha256": mod_sha256(mod_url(service, headers, None)), "has_mod": os.path.isfile(MOD_DLL)}
         from . import announce
         snap["announce"] = announce.snapshot(service)
         return "200 OK", json.dumps(snap).encode(), "application/json"
@@ -420,7 +420,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         try:
             if route.endswith("install"):
                 if not os.path.isfile(MOD_DLL):
-                    return "404 Not Found", b'{"error":"This server was built without the mod."}', "application/json"
+                    return "501 Not Implemented", b'{"error":"This server was built without the mod."}', "application/json"
                 result = gamesetup.install(gid, mod_bytes(mod_url(service, headers, None)))
                 verb = "installed in"
             else:

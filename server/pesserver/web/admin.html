@@ -30,7 +30,7 @@
   button:hover { border-color:var(--accent); color:var(--accent); }
   button.primary, .dl { background:var(--accent-fill); color:var(--on-accent); border:1px solid var(--accent-fill); font-weight:700; }
   button.primary:hover, .dl:hover { filter:brightness(1.08); color:var(--on-accent); }
-  button.danger { color:var(--muted); }
+  button.danger { color:var(--live); }
   button.danger:hover, button.danger:focus-visible { border-color:var(--live); color:var(--live); }
   button.danger.solid { background:var(--live); border-color:var(--live); color:var(--on-live); font-weight:700; }
   button:disabled, button[aria-disabled="true"] { opacity:.6; filter:grayscale(1); cursor:not-allowed; }
@@ -142,6 +142,7 @@
   .grid2 { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px; }
   .grid-ov { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:16px; }
   .grid2 { align-items:start; }
+  .grid-ov.eq > .card { margin-bottom:0; }
   .grid2 > .card, .grid-ov > .card, .grid-ov > div > .card:last-child { margin-bottom:0; }
   .stack { display:grid; gap:16px; align-content:start; }
   .stack > .card { margin-bottom:0; }
@@ -219,7 +220,7 @@
   tr:last-child td { border-bottom:0; }
   td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
   td.name { font-weight:600; min-width:9em; max-width:20em; }
-  td.name .pname, td.h .pname, td.a .pname, .st-cell .nw { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:16em; display:inline-block; vertical-align:bottom; }
+  td.name .pname, td.h .pname, td.a .pname { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:16em; display:inline-block; vertical-align:bottom; }
   td.name small { display:block; font-weight:400; color:var(--muted); font-size:12px; }
   td.act { width:1%; white-space:nowrap; text-align:right; }
   td.act button + button { margin-left:6px; }
@@ -257,18 +258,22 @@
 
   /* matches */
   .list-plain { list-style:none; margin:0; padding:0; }
-  .match { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:12px; padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:10px; }
+  .match { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) minmax(150px, auto); align-items:center; gap:6px 14px; padding:10px 14px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; }
   .match:last-child { margin-bottom:0; }
   .match .side-n { font-weight:600; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow-wrap:break-word; min-width:6ch; }
   .match .side-n:not(.away) { text-align:right; }
-  .score { font-size:26px; font-weight:800; font-variant-numeric:tabular-nums; text-align:center; }
+  .score { font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; text-align:center; }
   .score.vs { font-size:15px; color:var(--muted); font-weight:600; }
-  .phase { grid-column:1/-1; text-align:center; font-size:13px; }
+  .phase { text-align:right; font-size:13px; }
+  .phase .muted { display:block; margin-top:2px; }
+  .ov-live .match, #ov-live .match { grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); }
+  #ov-live .phase { grid-column:1 / -1; text-align:center; } #ov-live .phase .muted { display:inline; }
+  @media (max-width: 700px) { .match { grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); } .phase { grid-column:1 / -1; text-align:center; } .phase .muted { display:inline; } }
   .stuck { display:block; margin-top:4px; overflow-wrap:anywhere; }
-  @media (max-width: 420px) { .match { gap:4px 10px; padding:10px; grid-template-columns:minmax(0,1fr) auto; } .score { font-size:20px; grid-column:2; grid-row:1 / span 2; }
-    .match .side-n { display:block; grid-column:1; text-align:left !important; } .match .side-n.away { grid-row:2; } .phase { grid-column:1 / -1; text-align:left; } }
+  @media (max-width: 420px) { .match { gap:4px 8px; padding:10px; } .score { font-size:18px; } }
   .finished { font-size:14px; color:var(--muted); margin:8px 0 0; overflow-wrap:anywhere; }
-  table.res { table-layout:fixed; max-width:820px; } table.res col.w { width:140px; } table.res col.s { width:96px; }
+  table.res { table-layout:fixed; } table.res col.w { width:150px; } table.res col.s { width:110px; } table.res col.l { width:110px; }
+  @media (max-width: 760px) { table.res col.l { width:0; } }
   td.sc .pill { display:block; width:fit-content; margin:3px auto 0; font-weight:600; }
   @media (max-width: 520px) {
     table.res, table.res tbody { display:block; } table.res thead, table.res colgroup { display:none; }
@@ -339,7 +344,15 @@
   /* server view */
   .kv { display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 16px; font-size:14px; margin:0; }
   .kv dt { color:var(--muted); }
-  .kv dd { margin:0; overflow-wrap:anywhere; }
+  .kv dd { margin:0; overflow-wrap:anywhere; min-width:0; }
+  .kv code.url { white-space:nowrap; }
+  @media (max-width: 1100px) { #cmds.kv, #srv-status.kv { grid-template-columns:minmax(0,1fr); gap:2px; } #cmds dt, #srv-status dt { margin-top:8px; font-size:13px; } #cmds dt:first-child, #srv-status dt:first-child { margin-top:0; } }
+  .grid2.eq { align-items:stretch; }
+  .dl[aria-disabled="true"] { background:var(--code); color:var(--muted); border-color:var(--line); pointer-events:none; }
+  #mchip { display:none; }
+  @media (max-width: 760px) { #status, #reach, #remote-pill, #attn-pill { display:none !important; } #mchip { display:inline-flex; } header.top { flex-wrap:nowrap; } .mbrand { white-space:nowrap; } }
+  @media (pointer: coarse) { .pname { padding:10px 0; margin:-10px 0; } header.top .pill { min-height:32px; } }
+  .h2h-bal { font-weight:700; } .h2h-bal.up { color:var(--accent); } .h2h-bal.down { color:var(--live); }
   .net { display:grid; gap:8px; font-size:14px; }
   .net details { font-size:13px; color:var(--muted); }
   details.pcready > summary { font-weight:600; color:var(--accent); }
@@ -374,8 +387,8 @@
   @media (max-width: 520px) { dialog.sheet { width:100vw; border:0; } }
   .switch { display:flex; align-items:center; gap:12px; }
   .switch .lbl { flex:1; font-weight:600; }
-  button[role="switch"] { width:46px; height:26px; min-height:26px; border-radius:99px; padding:0; position:relative; background:var(--code); border:1px solid var(--field); flex:none; }
-  button[role="switch"]::after { content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--card); box-shadow:0 1px 3px rgba(0,0,0,.3); transition:left .15s; }
+  button[role="switch"] { width:46px; height:26px; min-height:26px; border-radius:99px; padding:0; position:relative; background:var(--field); border:1px solid var(--field); flex:none; }
+  button[role="switch"]::after { content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:left .15s; }
   button[role="switch"][aria-checked="true"] { background:var(--accent-fill); border-color:var(--accent-fill); }
   button[role="switch"][aria-checked="true"]::after { left:22px; }
   .kv .linkrow { margin-top:0; }
@@ -467,6 +480,7 @@
     <header class="top">
       <span class="mbrand"><span aria-hidden="true">⚽ </span>PES 2021 Server</span>
       <span class="pill neutral" id="status"><span class="dot"></span><span id="status-t">Connecting…</span></span><span class="sr" id="status-live" aria-live="polite"></span>
+      <a class="pill" id="mchip" href="#overview"></a>
       <a class="pill neutral" id="reach" href="#server/h-net" hidden></a>
       <a class="pill warn" id="remote-pill" href="#server/h-access" hidden title="The admin page can be opened from the internet (encrypted, with the password)">Internet access on</a>
       <a class="pill warn m-only" id="attn-pill" href="#overview" hidden></a>
@@ -486,12 +500,14 @@
       <section class="card" id="c-start" aria-labelledby="h-start" hidden><div class="card-h"><h2 id="h-start" tabindex="-1">Get started</h2></div><ol class="steps" id="steps"></ol></section>
       <div id="tiles"><div class="tiles" aria-hidden="true"><div class="tile"><div class="skel"></div></div><div class="tile"><div class="skel"></div></div><div class="tile"><div class="skel"></div></div><div class="tile"><div class="skel"></div></div></div></div>
       <p class="small warn" id="stalenote" hidden></p>
-      <div class="grid-ov row-gap" id="ov-charts">
-        <section class="card" aria-labelledby="h-chart"><div class="card-h"><h2 id="h-chart">Matches per day</h2><span class="grow"></span>
-          <div class="seg" role="group" aria-label="Time range"><button type="button" data-range="7" aria-pressed="false">7 days</button><button type="button" data-range="14" aria-pressed="true">14 days</button><button type="button" data-range="30" aria-pressed="false">30 days</button></div></div>
+      <div id="ov-charts">
+      <div class="toolbar"><span class="small muted" id="range-l">Charts cover the last</span><div class="seg" role="group" aria-labelledby="range-l"><button type="button" data-range="7" aria-pressed="false">7 days</button><button type="button" data-range="14" aria-pressed="true">14 days</button><button type="button" data-range="30" aria-pressed="false">30 days</button></div></div>
+      <div class="grid-ov row-gap eq">
+        <section class="card" aria-labelledby="h-chart"><div class="card-h"><h2 id="h-chart">Matches per day</h2></div>
           <div id="chart-days"><div class="skel"></div><div class="skel short"></div></div></section>
-        <section class="card" aria-labelledby="h-hours"><div class="card-h"><h2 id="h-hours">When friends play</h2><span class="grow"></span><span class="small muted" id="hours-range">last 30 days</span></div>
+        <section class="card" aria-labelledby="h-hours"><div class="card-h"><h2 id="h-hours">When friends play</h2></div>
           <div id="chart-hours"><div class="skel"></div><div class="skel short"></div></div></section>
+      </div>
       </div>
       <div class="grid-ov" id="ov-cards">
         <div class="stack">
@@ -509,7 +525,7 @@
     <!-- PLAYERS -->
     <section class="view" id="v-players" aria-labelledby="t-players" hidden>
       <h1 id="t-players" tabindex="-1">Players</h1>
-      <p class="lead">Everyone who has joined your server, ranked like a league table (3 points a win).</p>
+      <p class="lead">Everyone who has joined your server, ranked like a league table (3 points a win, then goal difference).</p>
       <section class="card" aria-labelledby="h-players">
         <h2 id="h-players" class="sr" tabindex="-1">Player list</h2>
         <div class="toolbar">
@@ -559,9 +575,9 @@
             <div id="msg-fit" class="small muted" style="margin-top:6px" aria-live="polite"></div><div class="meter" id="msg-meter" aria-hidden="true"><i style="width:0"></i></div>
             <div id="msg-prev" style="margin-top:12px" aria-hidden="true"></div>
             <div class="row"><button class="primary needs-server" type="submit" id="msg-send">Show in the game</button><button type="button" id="msg-edit" hidden>Edit current message</button><button type="button" class="needs-server danger" id="msg-clear" hidden>Remove message</button></div>
-            <p class="note">Players see it as a pop-up in the main menu, on the Online Information list when they sign in, and once in a box before Quick Match.</p>
           </form>
         </section>
+        <div class="stack">
         <section class="card msgf" aria-labelledby="h-rs"><h2 id="h-rs" tabindex="-1">Planned restart</h2>
           <form id="rsform">
             <div id="rsnow" class="small" style="margin-bottom:6px"></div>
@@ -571,6 +587,14 @@
             <p class="note">Anyone who starts matchmaking gets the game's own warning: "maintenance work starting at [time]… Are you sure you want to start a match now?"</p>
           </form>
         </section>
+        <section class="card" aria-labelledby="h-where"><h2 id="h-where">Where players see your message</h2>
+          <ol class="steps" id="where-list">
+            <li><span class="n" aria-hidden="true">1</span><div><b>Main menu</b><div class="d">A pop-up the next time they reach the main menu.</div></div></li>
+            <li><span class="n" aria-hidden="true">2</span><div><b>Online Information</b><div class="d">In the list of news when they sign in to an online mode.</div></div></li>
+            <li><span class="n" aria-hidden="true">3</span><div><b>Before Quick Match</b><div class="d">Once, in a box before matchmaking starts.</div></div></li>
+          </ol>
+        </section>
+        </div>
       </div>
     </section>
 
@@ -607,11 +631,11 @@
     <section class="view" id="v-server" aria-labelledby="t-server" hidden>
       <h1 id="t-server" tabindex="-1">Server</h1>
       <p class="lead">Network, admin access, this computer's game and the start command.</p>
-      <div class="grid2 row-gap">
+      <div class="grid2 eq row-gap">
         <section class="card" aria-labelledby="h-status"><h2 id="h-status" tabindex="-1">Status</h2><dl class="kv" id="srv-status"></dl></section>
         <section class="card" aria-labelledby="h-net"><h2 id="h-net" tabindex="-1">Network</h2><div class="net" id="net"><div class="skel"></div></div></section>
       </div>
-      <div class="grid2 row-gap">
+      <div class="grid2 eq row-gap">
         <section class="card" aria-labelledby="h-access"><h2 id="h-access" tabindex="-1">Admin access</h2><div class="net" id="access"></div></section>
         <section class="card" aria-labelledby="h-cmd"><h2 id="h-cmd" tabindex="-1">Start, stop and update</h2><dl class="kv" id="cmds"></dl></section>
       </div>
@@ -662,7 +686,8 @@ const RUN_SH = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pe
 const RUN_PS = "irm https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.ps1 | iex";
 const FAQ_FAR = "https://mohamedalirashad.github.io/pes2021-private-server/#faq-far";
 const runCmd = () => platform === "win32" ? RUN_PS : RUN_SH;
-const copyRow = (t, what) => `<div class="linkrow"><code>${esc(t)}</code><button type="button" class="small" data-copytext="${esc(t)}" data-copied="${what} copied">Copy</button></div>`;
+const midCut = (t, n) => t.length > n ? t.slice(0, Math.floor(n * .35)) + "…" + t.slice(-Math.floor(n * .6)) : t;
+const copyRow = (t, what, shownText) => `<div class="linkrow"><code title="${esc(t)}">${esc(shownText || t)}</code><button type="button" class="small" data-copytext="${esc(t)}" data-copied="${what} copied">Copy</button></div>`;
 const isTs = a => /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(a || "") || String(a || "").toLowerCase().startsWith("fd7a:115c:a1e0:");
 const restartHint = () => `start the server again (was its window closed?): <code>${esc(runCmd())}</code>.`;
 const nm = n => esc(n).replace(/(_|\.(?!\d))/g, "$1<wbr>");
@@ -805,7 +830,7 @@ function setDown(on) {
   const pill = $("status");
   if (!on) {
     failures = 0; lastOkAt = Date.now();
-    if (downSince) { backUntil = Date.now() + 4000; $("status-live").textContent = "The server is answering again."; }
+    if (downSince) { backUntil = Date.now() + 4000; $("status-live").textContent = "The server is answering again."; if ($("sheet").open && sheetPid != null) setTimeout(loadPlayer, 0); }
     if (downSince || pill.className !== "pill") { downSince = 0; pill.className = "pill"; $("down").hidden = true; $("stalenote").hidden = true; document.body.classList.remove("stale");
       $("dl").removeAttribute("aria-disabled"); $("dl").removeAttribute("tabindex");
       if ($("dl").dataset.label) { $("dl").innerHTML = dlHTML; delete $("dl").dataset.label; }
@@ -913,7 +938,8 @@ function charts(d) {
   const hours = Array.from({length: 24}, () => 0);
   for (const [t, g, ab] of hist) {
     const dt = new Date(t * 1000), i = idx.get(dayKey(dt));
-    if (i !== undefined) { days[i].m++; days[i].g += g; days[i].a += ab ? 1 : 0; }
+    if (i === undefined) continue;
+    days[i].m++; days[i].g += g; days[i].a += ab ? 1 : 0;
     hours[dt.getHours()]++;
   }
   const step = n <= 7 ? 1 : n <= 14 ? 2 : 5;
@@ -927,8 +953,8 @@ function charts(d) {
   const hl = h => { const x = new Date(); x.setHours(h, 0, 0, 0); return hourFmt.format(x); };
   const peaks = hours.map((v, h) => v === top ? h : -1).filter(h => h >= 0);
   barChart("chart-hours", hours.map((v, h) => ({x: h % 6 === 0 ? hl(h) : "", v, tip: `<b>${hl(h)} – ${hl((h + 1) % 24)}</b>${plural(v, "match", "matches")} kicked off`})),
-    !htot ? "No matches in the last 30 days yet." : peaks.length > 3 ? "Matches are spread across the day." : `Busiest: ${andList(peaks.map(hl))} (your time), by kick-off.`,
-    "Matches by kick-off hour over the last 30 days.");
+    !htot ? `No matches in the last ${n} days.` : peaks.length > 3 ? "Matches are spread across the day." : `Busiest: ${andList(peaks.map(hl))} (your time), by kick-off, over the last ${n} days.`,
+    `Matches by kick-off hour over the last ${n} days.`);
 }
 
 // ---- render ---------------------------------------------------------------------------------------
@@ -982,6 +1008,11 @@ function render(d) {
   if (s.key) text("skey", "key " + s.key.replace(" ", ""));
   if (s.mod_sha256) { $("copy-sha").dataset.copytext = s.mod_sha256; text("ssha", s.mod_sha256.toUpperCase().match(/.{1,8}/g).join(" ")); }
   text("jp-note", s.link_home_only ? " (works on your Wi-Fi only)" : "");
+  if (s.has_mod === false && !downSince) {
+    $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").dataset.label || "x";
+    if ($("dl").textContent !== "No mod in this server build") $("dl").textContent = "No mod in this server build";
+    text("dl-done", "This copy of the server was built without the mod, so there's nothing to send yet. Start the official server (Server → Start or update) and the download appears here.");
+  }
   $("remote-pill").hidden = !s.remote_admin;
   const r = reachInfo(s);
   $("reach").hidden = false; $("reach").className = "pill " + (down || r.neutral ? "neutral" : r.ok ? "" : "warn");
@@ -990,7 +1021,11 @@ function render(d) {
 
   // nav badges
   const playing = d.live.filter(m => m.kickoff && m.phase !== "Full time").length, ready = d.live.filter(m => !m.kickoff && m.phase !== "Full time").length;
-  const pn = pcNeeds(), srvIssues = (r.ok ? 0 : 1) + (pn ? 1 : 0) + (s.update ? 1 : 0);
+  const pn = pcNeeds(), srvIssues = down ? 0 : (r.ok ? 0 : 1) + (s.update ? 1 : 0);   // setting up PES on this PC is optional
+  const mc = $("mchip");
+  mc.className = "pill " + (down ? "bad" : srvIssues ? "warn" : "");
+  put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} Online · ${srvIssues} to fix` : `<span class="dot"></span>Online`);
+  mc.href = srvIssues ? "#overview" : "#server";
   badge("nb-players", d.online.length, `${d.online.length} online now`);
   badge("nb-matches", playing, `${playing} live now`);
   badge("nb-messages", d.announce && (d.announce.news || d.announce.restart) ? "on" : 0, "a message or restart warning is active");
@@ -1009,6 +1044,7 @@ function render(d) {
   navFade();
 }
 function badge(id, v, label) {
+  if (downSince && (id === "nb-players" || id === "nb-matches")) v = 0;   // live counts aren't known while the server is silent
   const b = $(id); b.hidden = !v;
   const t = v === "on" ? "On" : id === "nb-players" ? "● " + v : String(v);
   if (b.textContent !== t) { b.textContent = t; }
@@ -1069,7 +1105,7 @@ function weekDelta(hist, now) {
   const a = hist.filter(h => h[0] > now - 7 * 86400).length, b = hist.filter(h => h[0] > now - 14 * 86400 && h[0] <= now - 7 * 86400).length;
   if (!b) return `${a} this week`;
   const pct = Math.round(100 * (a - b) / b);
-  return `${a} this week <span class="delta ${pct >= 0 ? "up" : "down"}" title="${b} the week before">${pct >= 0 ? "↑" : "↓"} ${Math.abs(pct)}%</span><span class="sr"> compared with ${b} the week before</span>`;
+  return `${a} this week · <span class="delta ${pct >= 0 ? "up" : "down"}" title="${b} the week before">${pct >= 0 ? "↑" : "↓"} ${Math.abs(pct)}%</span> vs last week<span class="sr"> (${b})</span>`;
 }
 function highlights(d) {
   const since = d.now - 7 * 86400, wins = new Map(), goals = new Map(), names = new Map();
@@ -1099,7 +1135,8 @@ function renderOverview(d, r, pn, playing, ready) {
   // needs attention (the network problem is step 2 of "Get started" while that card shows)
   const attn = [];
   if (!r.ok && !starting) attn.push(`<li><span>${I.warn} <b>Friends outside your home can't join yet.</b> ${s.cgnat ? "Your internet provider shares one address between homes (CGNAT)." : "Your router hasn't opened the ports."}</span><a href="#server/h-net">Fix it ${I.right}</a></li>`);
-  if (pn && lastGames.length) attn.push(`<li><span>${I.warn} <b>PES 2021 on this computer needs setup</b> (${plural(pn, "copy", "copies")}).</span><a href="#server/pc-h">Set it up ${I.right}</a></li>`);
+  let hintOff = false; try { hintOff = localStorage.getItem("pes-pc-hint") === "off"; } catch (e) {}
+  if (pn && lastGames.length && !hintOff && !starting) attn.push(`<li class="info"><span><b>Optional:</b> play on the server computer too. Its PES 2021 isn't set up for your server yet.</span><a href="#server/pc-h">Set it up ${I.right}</a><button type="button" class="linkbtn" data-hidepc="1" style="color:var(--muted)">Hide</button></li>`);
   if (s.update) attn.push(`<li><span>${I.warn} <b>A newer server version is out</b> (${esc(s.update)}).</span><a href="#server/h-cmd">How to update ${I.right}</a></li>`);
   if (d.announce && d.announce.restart) attn.push(`<li class="info"><span>Players are being warned about a restart at <b>${hm.format(new Date(d.announce.restart * 1000))}</b>.</span><a href="#messages">Change ${I.right}</a></li>`);
   $("attn").hidden = !attn.length; put("attn", attn.join(""));
@@ -1172,13 +1209,13 @@ function renderPlayers(d) {
   const th = (k, label, cls, abbr) => `<th scope="col" class="${cls || ""}"${ui.sort === k ? ` aria-sort="${ui.dir > 0 ? "ascending" : "descending"}"` : ""}><button type="button" class="sort" data-sort="${k}" data-key="sort-${k}" aria-label="Sort by ${SORTN[k]}">${abbr ? `<abbr title="${abbr}">${label}</abbr>` : label}${ui.sort === k ? (ui.dir > 0 ? " ▲" : " ▼") : ""}</button></th>`;
   if (!list.length) return put("players", `<p class="empty">No players match${ui.pq ? ` "${esc(ui.pq)}"` : ""}. <button type="button" class="linkbtn" data-clear="players">Show everyone</button></p>`);
   put("players", `<div class="tablewrap"><table><caption class="sr">Players, sorted by ${esc(SORTN[ui.sort] || ui.sort)}</caption><thead><tr>` +
-    th("rank", "#", "num") + th("name", "Player") + th("seen", "Status", "hide-md") + th("rating", "Rating", "num hide-lg") +
+    th("rank", "#", "num") + th("name", "Player") + th("seen", "Status", "hide-md") + th("rating", "Rating", "num hide-lg", "The game's matchmaking rating. It doesn't change the table order.") +
     th("played", "P", "num hide-sm", "Played") + th("won", "W", "num hide-sm", "Won") + th("drawn", "D", "num hide-sm", "Drawn") + th("lost", "L", "num hide-sm", "Lost") +
     th("gd", "GD", "num hide-md", "Goal difference") + th("pts", "Pts", "num", "Points") + `<th scope="col" class="hide-lg"><span title="Last 5 results, newest on the right">Form</span></th>` +
     `<th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
     list.map(p => { const o = onlineBy.get(p.pid);
       return `<tr><td class="num muted">${rankOf.get(p.pid) || "–"}</td>
-      <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · ${p.won}W ${p.drawn}D ${p.lost}L</small></span></span></td>
+      <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · <span class="nw">${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
       <td class="hide-md st-cell">${o ? `<span class="pill tag"><span class="dot"></span>online</span> ` + statusOf(d, o) + `<small class="muted hide-900" style="display:block">${where(o.ip)} · for ${dur(now - o.since)}</small>`
           : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
       <td class="num hide-lg">${p.rating ?? "–"}</td><td class="num hide-sm">${p.played}</td><td class="num hide-sm">${p.won}</td><td class="num hide-sm">${p.drawn}</td><td class="num hide-sm">${p.lost}</td>
@@ -1231,11 +1268,11 @@ function renderMatches(d, playing, ready, fromLoad) {
   text("r-count", none ? "" : shownRs.length < total ? `Showing ${shownRs.length} of ${total}` : plural(total, "result"));
   const rs = {length: total};
   put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results ${q ? `with "${esc(ui.rq)}" ` : ""}${ui.rr !== "all" ? "in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
-    `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col><col class="s"><col></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th></tr></thead><tbody>` +
+    `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col><col class="s"><col><col class="l"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th><th scope="col" class="num hide-md">Length</th></tr></thead><tbody>` +
     shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
       return `<tr><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time></td>
         <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.reason ? `<span class="pill neutral tag" title="Ended early (${esc(r.reason)}); counted with the score when it ended">abandoned</span>` : ""}</td>
-        <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}</td></tr>`; }).join("") +
+        <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}</td><td class="num muted small hide-md">${r.started && r.ended > r.started ? Math.max(1, Math.round((r.ended - r.started) / 60)) + " min" : "–"}</td></tr>`; }).join("") +
     `</tbody></table></div>` +
     (total > shownRs.length ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">Show ${Math.min(25, total - shownRs.length)} more</button>` : ""));
 }
@@ -1268,7 +1305,8 @@ async function loadPlayer() {
   try { p = await api("/admin/api/player", {method: "POST", body: JSON.stringify({pid})}); }
   catch (e) { if (e.status === 401) { $("sheet").close(); return signedOut(); }
     if (sheetPid === pid) $("sh-f").innerHTML = "";
-    if (sheetPid === pid) $("sh-b").innerHTML = `<p class="empty">${e.status === 404 ? "This player was deleted." : "Couldn't load this player. Try again in a moment."}</p>`; return; }
+    if (sheetPid === pid) $("sh-b").innerHTML = e.status === 404 ? `<p class="empty">This player was deleted.</p>`
+      : `<p class="empty">Couldn't load this player: the server isn't answering. This panel reloads by itself when it's back.</p><button type="button" data-sheetretry="1" style="margin-top:10px">Try again</button>`; return; }
   if (sheetPid !== pid || !$("sheet").open) return;
   const now = Date.now() / 1000, ms = myMatches(p.matches, pid);
   const w = ms.filter(m => m.res === "W").length, dr = ms.filter(m => m.res === "D").length, l = ms.length - w - dr;
@@ -1284,8 +1322,8 @@ async function loadPlayer() {
       ` · joined ${esc(dShort.format(new Date(p.created * 1000)))} · rating ${esc(p.rating ?? "–")}${rank ? ` · #${rank} in the table` : ""}${p.streak > 1 ? ` · ${p.streak} wins in a row` : ""}</p>` +
     `<div class="mstats"><div><b>${ms.length}</b><span>played</span></div><div><b>${w}–${dr}–${l}</b><span>won–drawn–lost</span></div><div><b>${gf}:${ga}</b><span>goals for:against</span></div><div><b>${ms.length ? Math.round(100 * w / ms.length) + "%" : "–"}</b><span>win rate</span></div></div>` +
     `<h3>Form <span class="small muted" style="font-weight:400">last ${Math.min(10, ms.length)}, oldest → newest</span></h3>${formHtml(ms.slice(0, 10).map(m => m.res).reverse())}` +
-    (rows.length ? `<h3>Head to head</h3><div class="tablewrap"><table><caption class="sr">Head to head</caption><thead><tr><th scope="col">Opponent</th><th scope="col" class="num">P</th><th scope="col" class="num">W</th><th scope="col" class="num">D</th><th scope="col" class="num">L</th><th scope="col" class="num">Goals</th></tr></thead><tbody>` +
-      rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td></tr>`).join("") + `</tbody></table></div>` : "") +
+    (rows.length ? `<h3>Head to head</h3><div class="tablewrap"><table><caption class="sr">Head to head</caption><thead><tr><th scope="col">Opponent</th><th scope="col" class="num">P</th><th scope="col" class="num">W</th><th scope="col" class="num">D</th><th scope="col" class="num">L</th><th scope="col" class="num">Goals</th><th scope="col" class="num"><abbr title="Wins minus losses">+/−</abbr></th></tr></thead><tbody>` +
+      rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td><td class="num h2h-bal ${x.w > x.l ? "up" : x.w < x.l ? "down" : ""}">${x.w === x.l ? "even" : signed(x.w - x.l)}</td></tr>`).join("") + `</tbody></table></div>` : "") +
     `<h3>Matches</h3>` + (ms.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${pname(m.opp, m.oppPid, "pm-" + m.r.id)}${m.r.reason ? ' <span class="pill neutral tag">abandoned</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (ms.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${ms.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
     (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true) : "");
@@ -1310,13 +1348,13 @@ function renderServer(d, s) {
   const kv = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
   put("srv-status", kv("Version", esc(s.version || "?") + (s.update ? ` <span class="pill warn tag">${esc(s.update)} is out</span>` : "")) +
     kv("Running for", dur(d.uptime)) + kv("Players", `${d.players.length} registered, ${d.online.length} online`) +
-    kv("Address for friends", `<code>${esc(s.main)}</code>`) + kv("Server key", `<code>${esc(s.key || "?")}</code>`));
+    kv("Address for friends", `<code class="url">${esc(s.main)}</code>`) + kv("Server key", `<code>${esc(s.key || "?")}</code>`));
   put("net", netHtml(s));
   put("access", remoteHtml(s) + `<div style="margin-top:6px">${location.protocol === "https:" ? "Opened over the internet, encrypted." : s.same_pc ? "Opened on the server's computer." : "On your home network the admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale."}</div>` +
-    `<div>${plural(s.sessions || 1, "active sign-in")}${untilText ? `; this one lasts until ${esc(untilText)}` : ""}. <button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
+    `<div>Signed in here${untilText ? ` until ${esc(untilText)}` : ""}. <button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
   put("cmds", `<dt>Stop</dt><dd>Press <b>Ctrl+C</b> in the server's window, or close the window.</dd>
     <dt>Start or update</dt><dd id="install-cmd">${copyRow(runCmd(), "Start command")}<span class="small muted">${platform === "win32" ? "In PowerShell. " : "In a terminal. "}Always starts the newest version; players, results and friends' mod files keep working.</span></dd>
-    ${dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path")}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : ""}`);
+    ${dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", midCut(dataDir, 46))}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : ""}`);
 }
 
 function remoteHtml(s) {
@@ -1394,7 +1432,8 @@ function gameRow(g) {
   if (!ready && skipped(g)) { st = `<span class="pill neutral tag">Skipped</span>` + st.replace(/^<span class="pill[^>]*>.*?<\/span>/, ""); btn = btn.replace(/class="primary/g, 'class="'); }
   if (!ready && skipped(g)) info = `<span class="muted small">Skipped in this browser.</span> <button type="button" class="linkbtn" data-unskip="${esc(g.path)}" data-key="unskip-${esc(g.id)}" aria-label="Set up ${esc(name)} after all">Set it up after all</button>`;
   else if (!ready) skipb = `<button type="button" class="linkbtn skipbtn" data-skip="${esc(g.path)}" data-key="skip-${esc(g.id)}" aria-label="Skip ${esc(name)}: I don't play on this copy">Skip this copy</button>`;
-  const msg = rowMsg[g.id] ? rowMsg[g.id].html : "";
+  const msg = rowMsg[g.id] ? rowMsg[g.id].html : pcError && !ready && ["none", "other-server"].includes(g.mod)
+    ? `<span class="err">Can't install: this copy of the server was built without the mod.</span> <a href="#server/h-cmd">Start the official server instead</a>` : "";
   const retry = failed ? `<button type="button" class="${rowMsg[g.id].act === "remove" ? "" : "primary"}" data-game="${esc(g.id)}" data-act="${rowMsg[g.id].act}" data-key="retry-${esc(g.id)}" data-retry="1" aria-label="Try again: ${esc(name)}">${{remove: "Try removing again", switch: "Try switching again"}[rowMsg[g.id].act] || "Try installing again"}</button>` : "";
   return `<div class="game${!ready && skipped(g) ? " skipped" : ""}"><div class="where"><b>${esc(name)}</b>
       <code class="parent" title="${esc(g.path)}">${esc(String(g.path).replace(/^\/home\/[^/]+/, "~"))}</code><div class="st">${st}</div></div>
@@ -1462,7 +1501,7 @@ async function loadGames(force, focusMsg, focusKey) {
     ? `<details class="pcready${okCnt ? "" : " none-ready"}" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this computer is ready to play (${plural(gs.length, "copy", "copies")})` : `${okCnt ? `PES 2021 on this computer: ${okCnt} ready, ${gs.length - okCnt} skipped` : "PES 2021 on this computer: skipped (set it up any time)"}`}</summary>${rows}</details>`
     : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
         : `${gs.length > 1 ? (need === gs.length ? `All ${need} copies need setup` : `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup`) : (gs[0].mod === "ours" ? "One step left" : "Not set up yet")}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
-  put("games", (pcError ? `<p class="err" style="margin:0 0 8px">${esc(pcError)}</p>` : "") + html, force);
+  put("games", html, force);
   if (pcError) $("games").querySelectorAll('[data-act="install"], [data-act="switch"]').forEach(b => b.setAttribute("aria-disabled", "true"));
   [...$("games").querySelectorAll(".act button.primary")].slice(1).forEach(x => x.classList.remove("primary"));
   if (focusKey) { const n = $("games").querySelector(`[data-key="${CSS.escape(focusKey)}"]`); if (n && n.offsetParent !== null) return n.focus(); }
@@ -1516,8 +1555,8 @@ async function gameAction(btn) {
     const t = e.name === "TimeoutError" ? "The server didn't finish in time. Check that PES 2021 is closed, then try again."
       : e.message === "failed" ? "That didn't work. Close the game and try again." : e.message;
     const needsInstall = /Start the server again/.test(t);
-    if (e.status === 404 && /without the mod/.test(t)) {      // not about this copy: say it once, for the whole card
-      pcError = t + " Use the official download (the start command below) to get a server that can install it.";
+    if (e.status === 501) {      // not about this copy: every Install button would fail the same way
+      pcError = t;
       $("pc-live").textContent = pcError; delete rowMsg[id];
       return loadGames(true, null, `game-${id}-${act}`);
     }
@@ -1548,6 +1587,8 @@ document.addEventListener("click", async e => {
   if (ct) return copyText(ct.dataset.copytext, ct, ct.parentElement && ct.parentElement.querySelector("code"), "Copy", ct.dataset.copied || "Copied");
   const a = e.target.closest('a[href^="#"]');
   if (a && a.getAttribute("href") === location.hash) { e.preventDefault(); route(true); return; }   // same link again: still jump
+  if (e.target.closest("[data-hidepc]")) { try { localStorage.setItem("pes-pc-hint", "off"); } catch (_) {} if (last) render(last); $("t-overview").focus(); return toast("Hidden. The setup stays under Server → PES 2021 on this computer."); }
+  if (e.target.closest("[data-sheetretry]")) return loadPlayer();
   const pl = e.target.closest("[data-player]");
   if (pl) return openPlayer(+pl.dataset.player, pl);
   if (e.target.closest("[data-sheetall]")) { sheetAll = true; return loadPlayer(); }
