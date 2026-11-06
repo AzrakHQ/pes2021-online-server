@@ -268,7 +268,13 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
 - Both games given unreachable P2P addresses (192.0.2.1:9 in the player list and `room_owner`), relay working:
   after SYSTEM_NOTICE START/END no ChannelData moved and about 10 s later the owner left with
   `LEAVE_ROOM {error_code MXNV_0013}` (MXNV476, OnlineModeTaskMatchSession.cpp line 476) and saw C_DYUN_0013.
-  So the P2P link-up does not fall back to the TURN route on its own; what it needs is being read in the code.
+  So the P2P link-up does not fall back to the TURN route on its own.
+- Repeat with `GET_SERVER_ENV.proto_opt {"P2P":{"Network":{"NetworkIoConnectionTimeoutUs":40000000,
+  "DscpEnable":false},"Session":{"ConnectionTimeoutUs":30000000}}}`: **proto_opt is honoured** — no DTLS port
+  changes at all (DscpEnable false), and the failure moved from ChannelBind + 10 s to ChannelBind + 30.3 s
+  (`Session.ConnectionTimeoutUs`). START was sent to the right peer, addresses were exchanged and channels bound
+  both ways, but no END and **no ChannelData at all**: the kps session never sent over TURN. Still open
+  (turnlinkup.md).
 
 ### Online Co-op, 1 vs 1 (misc.md §1/§3, coop2.md)
 - Menu: eFootball → Online Co-op → Casual Match / Clan Match / CO-OP Stats / CO-OP Settings (+ "Co-op Room
@@ -287,7 +293,12 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
     Quick Match forces type 1 itself.
   - with `game_sycom "P2P"`: SEND_SYNC_NOTICE, the TURN list and SEND_TURN_ADDRESS_DATA follow, but
     `SEND_SYSTEM_NOTICE {pid_list [], data "START:pid=0;…"}`, SET_GAMERELAY_CHECK_RES `ER_CONNECT` after 30 s
-    and `LEAVE_ROOM MXNV_0013`. The client's peer entry has pid 0. Open (being read in the code).
+    and `LEAVE_ROOM MXNV_0013`.
+  - Cause (coop2.md, static): the peer list is right, but co-op never calls the function that hands it to the
+    P2P layer (0x141092720, called only by Quick Match and the lobby room), so NtlImpl has no own pid and no
+    peers. It also passes at most one peer, so P2P could carry 1 v 1 co-op at most; 2v2/3v3 used Konami's game
+    relay ("SC"). **Server-side fix: none; it needs a mod patch** (call 0x141092720 after 0x141134c00 at
+    0x1411346c3, and copy the peer addresses in 0x14110fe00).
 
 ### Dialogs photographed (misc.md §3 list; the error was forced on one copy)
 | Reply | On screen | Then |
@@ -299,6 +310,7 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
 | GET_BLOCKLIST → ERR_DATABASE | "An error occurred while accessing the PES 2021 database." | main menu |
 | CREATEJOIN_ROOM → ERR_ROOMCREATELIMIT | "You cannot create any more Match Rooms." | back to Match Room Settings |
 | GET_MANNER_WARN `warn_kind A_TO_B` | "Your courtesy rating has fallen to "B". Please ensure that the number of times you disconnect does not increase any further. Users with a "B" courtesy rating are subject to the following restrictions. · You will be more likely to be paired with users who have "B" or "C" courtesy ratings. · If your courtesy rating remains at "B" for some time, it will eventually fall to "C", thereby making you subject to further restrictions." | continues into the lobby |
+| LOGIN → ERR_INVALID_ACCOUNT | "It has been noted that you have acted in direct breach of our Operation Policy and Terms of Use. Therefore, we have suspended your account in line with our policy on violations. Thank you for your understanding." | main menu, offline (the online menus are gone) |
 | SET_GAMEMEMBER → ERR_DATABASE (default reply) | "An unexpected problem has occurred while communicating with the PES 2021 server. CODE:C_DYUN_0013" | room |
 - `{re}`/`{rf}` show as "PES 2021" in these texts, as misc.md says.
 
