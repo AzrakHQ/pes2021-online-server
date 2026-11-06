@@ -435,3 +435,19 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
   with the first match **"D 0-0", 1 point**.
 - Open: the history shows no crest (`enemy_team_id` 0: the server doesn't learn the opponent's team); a
   season end (10 matches) with FINISH_SEASON and promotion is covered by unit tests only.
+
+### Matchday in the server (pesmatchday.py, 2026-11-06 20:45–22:07, modes2.md §C, matchday2.md)
+- eFootball → Matchday: JOIN_MATCHDAY_MODE → GET_MATCHDAY_LIST → the event card ("Friends Matchday", "Group Match
+  Stage ends in: 30d0h", "Eligible") → "Enter this Competition. Proceed?" → GET_MATCHDAY_INFO → side choice →
+  team (only the side's leagues) → "You cannot change your Side/Team later" → JOIN_MATCHDAY {compe_id,
+  entry_matchday_group, team_id, sp_gameplan_data, sp_member_list} → GET_MATCHDAY_SP_GAMEPLAN → GET_MATCHDAY_INFO →
+  GET_MATCHDAY_MAINMENU_INFO → the Matchday menu (Start Match, Game Plan, Side Ranking, Competition Details, the
+  Home/Away bar, Event Points).
+- Bugs found on the way: the event map must be one level down in `compe_info.info_overview` (flat keys are
+  ignored → compe_id 0 and "The Group Match Stage has ended."); a guessed `all_reward_info` blob crashed the game
+  (it is an array read without a type check); an empty GET_MATCHDAY_SP_GAMEPLAN left the line-ups empty and both
+  games crashed in GAMELOAD (access violation 0x141afae35).
+- Start Match on both → START_MATCHING `matching_type "MATCHDAY"` → paired → full match (0-0) → verdict at END →
+  GET_MATCHDAY_ACHIEVEMENT_REWARD → "Match Rewards: 1 Points" → the menu shows Home 1 – Away 1, Event Points 1.
+- Also new: SET_GAMETEAM (both team ids, sent at the match menu) is stored, so the Online Divisions history shows
+  the opponent's team.

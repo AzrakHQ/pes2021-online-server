@@ -387,7 +387,9 @@ def validate(msgid, resp):
         t = fields.get(k)
         if t == "STR" and not isinstance(v, (str, bytes)):
             bad.append(f"{k}: expected STR got {type(v).__name__}")
-        elif t == "NUM" and (isinstance(v, bool) or not isinstance(v, (int, float))):
+        elif t == "NUM" and (isinstance(v, bool) or not isinstance(v, (int, float))) and not (
+                isinstance(v, list) and all(isinstance(x, int) and not isinstance(x, bool) for x in v)):
+            # (the schema extractor types an int vector as NUM, e.g. sp_member_list, add_limit_rating)
             bad.append(f"{k}: expected NUM got {type(v).__name__}")
         elif t == "LIST" and not isinstance(v, list):
             bad.append(f"{k}: expected LIST got {type(v).__name__}")

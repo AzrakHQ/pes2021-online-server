@@ -449,7 +449,8 @@ def change_gamephase(svc, sess, req):
     rid, room = _room_of(svc, pid)
     if room is not None:
         room.setdefault("phase", {})[pid] = str(req.get("phase", ""))
-        if ((os.environ.get("PESSERVER_VERDICT_AT_END") == "1" or room.get("lobby_room") or room.get("mode") == "OC_RANK")
+        if ((os.environ.get("PESSERVER_VERDICT_AT_END") == "1" or room.get("lobby_room")
+             or room.get("mode") in ("OC_RANK", "MATCHDAY"))
                 and "pushed_at_end" not in room
                 and all(room["phase"].get(p) == "END" for p in room["members"])):
             # At the final whistle, to every member. Always for a Friendly Match Lobby match: the room screen's
@@ -459,6 +460,20 @@ def change_gamephase(svc, sess, req):
             for p in room["members"]:
                 if (s := svc.online.get(p)) is not None and v is not None:
                     _send_later(s, "CMD_WATCH_GAMEADDPOINT", 0, 0x60, 1, v)
+    return {"result": NOERR}
+
+
+@cmd("CMD_SET_GAMETEAM")
+def set_gameteam(svc, sess, req):
+    """Both games send the two team ids at the match menu, before kick-off: keep them with the match
+    (Online Divisions shows the opponent's crest in its history)."""
+    rid, room = _room_of(svc, _pid(sess))
+    if room is not None:
+        try:
+            room["teams"] = {room["owner"]: int(req.get("home_team_id") or 0),
+                             next(p for p in room["members"] if p != room["owner"]): int(req.get("away_team_id") or 0)}
+        except (StopIteration, TypeError, ValueError):
+            pass
     return {"result": NOERR}
 
 
@@ -527,6 +542,9 @@ def _verdict(svc, rid, room):
     if room.get("mode") == "OC_RANK":
         from . import pesdivisions
         pesdivisions.record(svc, room)
+    elif room.get("mode") == "MATCHDAY":
+        from . import pesmatchday
+        pesmatchday.record(svc, room)
     log.info("VERDICT room %s %d-%d: %s", rid, score["HOME"], score["AWAY"],
              {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
     events.feed(svc, "Ratings: " + ", ".join(f"{events.name_of(svc, p)} {old[p][0]} → {new[p][0]}" for p in (home, away)),

@@ -69,3 +69,19 @@ def test_divisions_and_quick_match_are_separate_queues(svc):
 
 def test_thresholds():
     assert pesdivisions.thresholds(10)[2] == 0 and pesdivisions.thresholds(1)[0] > 30
+
+
+def test_set_gameteam_gives_the_history_the_opponents_team(svc):
+    async def go():
+        a, b = Sess(1), Sess(2)
+        svc.online.update({1: a, 2: b})
+        for s in (a, b):
+            pescmds._dispatch(svc, s, "CMD_START_MATCHING", {"matching_type": "OC_RANK"})
+        (rid, room), = pesmatch._state(svc)["rooms"].items()
+        pescmds._dispatch(svc, a, "CMD_SET_GAMETEAM", {"home_team_id": 108, "away_team_id": 101})
+        room["phase"] = {1: "END", 2: "END"}
+        pesmatch._verdict(svc, rid, room)
+        ha = unb(unb(pescmds._dispatch(svc, a, "CMD_GET_DIVISION_INFO", {})["division_info"])["match_history_list"][0])
+        hb = unb(unb(pescmds._dispatch(svc, b, "CMD_GET_DIVISION_INFO", {})["division_info"])["match_history_list"][0])
+        assert ha["enemy_team_id"] == 101 and hb["enemy_team_id"] == 108
+    asyncio.run(go())
