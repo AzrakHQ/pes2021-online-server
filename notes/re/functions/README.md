@@ -20,7 +20,11 @@ summary is [docs/functions.html](../../../docs/functions.html); these files keep
 | [lobby.md](lobby.md) | where the room lobbies are in the menu (Kick Off list), how the menu table is built, other entry points |
 | [roomcrash.md](roomcrash.md) | room creation requirements: own room in the room list first, player-list field types, no duplicate player-list push (solved live) |
 | [roomlist.md](roomlist.md) | room-list entry: field types, where each is stored, every filter; why a room shows as "0 rooms" (limitTime NOSET) |
-| [livetests.md](livetests.md) | live tests 2026-11-05: TURN (dual-route SOFTWARE + DTLS leg), Live Update end to end, reconnect, AFK, Friendly Match Lobby (whole flow to team selection works, 2026-11-06) |
+| [livetests.md](livetests.md) | live tests 2026-11-05/06: TURN (DTLS leg working), Live Update end to end (keep listing it), reconnect, AFK, Friendly Match Lobby (a whole match and back to the room), duplicate-list crash confirmed |
+| [datacheck.md](datacheck.md) | DATAPACK check between peers (what must match), match-layer timers, why a RELOAD push crashes the client |
+| [dbgaps.md](dbgaps.md) | remaining Player/Team/PlayerAssignment fields, save container and key, Live Update reload details |
+| [ktcdtls.md](ktcdtls.md) | the TURN client's DTLS framing (2-byte trailer, type byte) and what a relay must send |
+| [misc.md](misc.md) | co-op group rules and 1v1 co-op recipe, spectating data format, dialog macros, match datagram header decoding |
 | [survey.md](survey.md) | catalogue counts, error codes, myClub / clans / PES League / Matchday / events |
 
 Tags in the reports: **[static]** read in code at the cited address, **[log]** seen in our traffic,
@@ -40,6 +44,8 @@ Tags in the reports: **[static]** read in code at the cited address, **[log]** s
   `cmd CMD_X` (request keys, reply fields, users of the command), `fn`, `refs`, `callers`, `str`, `rtti`,
   `disp 0xOFF [w]` (instructions using a struct offset). References are decoded from the function start, so
   instruction boundaries are always right.
+- `cpkwrite.py` — writes an uncompressed CPK shaped like the game's own. `mklivedata.py OUT.cpk --player ID:PARAM:DELTA --team-short TEAM:TXT --shirt TEAM:PLAYER:N` — a test Live Update plus the CHECK_CHEAT sums it should give.
+- `testserver/` — the runtime add-ons used for the live tests (lobby handlers, TURN-over-DTLS leg, switchable Live Update); see its README.
 - `pesdb.py` (+ `cpk.py`) — reads the game database from the CPKs: `checksum`, `player <id>`, `team <id>`, `dump out.json`
   (`PES_GAME_DIR` = folder containing `game/`; no extra packages needed).
 - `classmap.py out.json` — every RTTI class with its base classes and vtables (~2 min).

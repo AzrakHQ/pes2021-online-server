@@ -1,6 +1,7 @@
 # pesdb: the PES 2021 player/team database (Player.bin, Team.bin, PlayerAssignment.bin, …)
 
 ## Corrections from later findings (2026-11-05)
+- dbgaps.md (2026-11-06, static): p48 = STAR, p49 = COOL; 0x14 = market value (€100 units), 0x17 = caps, 0x18 = salary; motion order settled; celebration 2 is edit-only; PlayerAssignment set-piece bits (Long FK 19, Short FK 17, Left CK 18, Right CK 16, PK 20, captain 21); save master key = SHA-512 of the UTF-16 title; edits change param_check_sum; `*4.bin` = unused ACL set; InstallVersionPlayer / PlayerDeleteList explained. p43 and p50 have no label anywhere.
 - Skill names, from the game's English string table (sweep.md): 74 = **Long Range Drive** (PES 2020's Long Range Curler), 106 = **Long Range Shooting**, 99 = **Step On Ball Control**, 105 = **Cross Over Turn**, 101 = **Rising Shots**. tools/pesdb.py uses these names.
 - The downloaded Live Update is saved in `C:\ProgramData\KONAMI\eFootball PES 2021 SEASON UPDATE\save\LIVE00000000`, not in Documents (live test).
 - The live-mode checksum was confirmed live: with an update applied, the game sent exactly the value pesdb.py predicts (livetests.md).

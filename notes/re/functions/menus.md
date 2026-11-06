@@ -1,6 +1,7 @@
 # Group "menus": fair-play checks, news/info, profile/account, store
 
 ## Corrections from later findings (2026-11-05)
+- datacheck.md Q1 (static, 2026-11-06): the peers exchange revision, param_check_sum and entry_check_sum; only **param then entry** are compared (exact strings) → MXNV_0017 "DATAPACK error"; revision is never compared; peer record missing for 60 s → MXNV_0015; `GET_SERVER_ENV.is_revision_check` must be exactly "YES" (default when absent) to compare; "NO" skips it. Live confirmation still to do.
 - On-screen codes: CCWR450 is shown as **CCWR_0014**, CCWR455 as **CCWR_0015**, CCWR211 as **CCWR_0003** (tag + sub-code; messages.md).
 - `regstate(id)` in param_check_sum is **not** a registration flag: it is the player's weekly condition from PlayerWeekly.bin, used only in live-data mode, otherwise the constant 5 (db.md, confirmed live in livetests.md).
 

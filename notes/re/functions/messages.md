@@ -1,5 +1,9 @@
 # Group msg: what the player sees (message ids, error dialogs, on-screen codes)
 
+## Corrections from later findings (2026-11-06)
+- misc.md §3 (static, 2026-11-06): `{re}`/`{rf}` both expand to "PES 2021"; the three 0x14114e7e0 checks are "GATE / ACCOUNT / MENU connection up"; 0x1410f8010 fills CMD_SEND_NOTICE; 0x141070880 is a Matchday task, not a command. Live: SET_GAMEMEMBER `ERR_DATABASE` → "An unexpected problem has occurred while communicating with the PES 2021 server. CODE:C_DYUN_0013".
+
+
 Working files are in the working folder (not published):
 - The full message-id → text dump (1563 ids) is not published; `data/server_errors.tsv` has the texts of every server reply. Macro tokens `\x11xx` are shown as `{xx}`.
 - `server_errors.tsv`: all 764 rows of the client's server-error table, with the text the player sees.

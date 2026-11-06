@@ -1,6 +1,8 @@
 # Rooms / Online Match Lobby — static RE + implementation spec
 
 ## Corrections from later findings (2026-11-05)
+- **RELOAD crashes a non-empty client cache** (datacheck.md Q3, confirmed live 2026-11-06): the merger 0x1411c1340 frees old entries with `std::map::at(i)` for i = 0..n-1, which throws `std::out_of_range` (uncaught → process exit) once the cache holds any key. Send RELOAD only as the reply to a new REQWATCHL_* request; every push must be ADD / UPDATE / DEL. The RELOAD lines in §2/§3 below are wrong where they say to push RELOAD.
+- Live 2026-11-06 (livetests.md): a whole lobby match, the post-match sequence (SET_PLAYDATA_MATCH gamemode 26, SEND_STATS_DATA, SEND_GAME_RESULT, REQWATCHL_ROOMLIST, LEAVE_GAME) and the return to the room after `WATCH_ROOMSTATE WAITING`.
 - **Menu path: Kick Off → Friendly Match Lobby** (8th item, below Cup in a scrolling list; Team Play Lobby is 9th). An earlier correction here wrongly called it hidden (lobby.md).
 - Live (livetests.md): REQWATCHL_ROOMLIST is a real request; the order is CREATEJOIN_ROOM then SET_GAMEENV; in REQWATCHL_ROOMPLAYERLIST_NTL `pname.psn_user_id` is a nested blob `{account_id, online_id, is_valid_cache}` (an object exits the game; an empty list is read as garbage). After CREATEJOIN_ROOM the server must push the owner's room into the room list before the player list (roomcrash.md), and must answer the player-list request **only with the reply**: an extra copy pushed right after it ends the game. With that, the owner gets to ENTRY_GAME and the room screen. A second player's room list showed 0 rooms for our entry (livetests.md); code reading (roomlist.md) found the cause: the list hides every room whose `gameenv.limitTime` is NOSET (or unknown), and also rooms with `is_invite_limit` YES or an empty `gamer` list. Our test server never stored the real `game_env` blob from SET_GAMEENV, so it sent NOSET. Fix: store the blob, echo it as `gameenv`, push a room-list UPDATE after SET_GAMEENV. **Live 2026-11-06: the whole flow works with these rules** (room list → details → join → both Start Match → owner's SET_GAMEMEMBER → DECIDE_GAMEENV + ROOMSTATE SETENV → team selection on both games); the exact sequence is in livetests.md.
 - Mode names (sweep.md): `lobby_type` FREE/MULTI/MYCLUB/PESLEAGUE; JOIN_ONLINE_MODE `online_mode` QUICK/RANKMATCH/FREE/MULTI/MYCLUB/PESLEAGUE/MATCHDAY/COOP/EDIT_DATA_LIVE_UPDATE.
@@ -183,7 +185,7 @@ S = msgpack str, N = int, B = nested msgpack blob, [B] = array of blobs. Reply f
   `guest_info` B{`pname` B{…}, `is_platform_guest` S}.
 - Uses: PostCreate/PostJoin wait for it (10 s for the guest), owner check (`is_owner` → entry+0x30, read by
   0x141041500), auto-start trigger (each update), match peer addresses (0x141040e80 / 0x1421a84d0), room preview.
-- Server: per room; reply RELOAD of current members to the requester; push RELOAD/UPDATE to all members on any change
+- Server: per room; reply RELOAD of current members to the requester; push RELOAD/UPDATE to all members on any change **[wrong for pushes: a RELOAD push into a non-empty cache crashes the client; push UPDATE — see corrections]**
   (join, leave = DEL `{pid}`, owner change, entry change). Address blobs exactly as stored from SEND_IPANDPORT_NTL.
 
 ### CMD_WATCH_ROOMSTATE — room events (push only)
@@ -327,7 +329,7 @@ wl(msgid, key, typ, elems) = {result:NOERR, list_type:typ, list_key_name:key, li
    room.password and password != room.password); add member; reply `{room_owner: blob{pid, pname, **ntl[owner]},
    room_stat: room.state}`; `after_join(room, pid)`; room-list UPDATE.
 8. `after_join(room, pid)`: at +0.5 s and again at +2 s push `CMD_REQWATCHL_ROOMPLAYERLIST_NTL`
-   `wl("pid","RELOAD", all members)` to **every** member (guest must get one within 10 s; owner's PostCreate
+   `wl("pid","RELOAD", all members)` to **every** member **[wrong for pushes: a RELOAD push into a non-empty cache crashes the client; push UPDATE — see corrections]** (guest must get one within 10 s; owner's PostCreate
    waits for one with no timeout; duplicates are harmless).
 9. `ENTRY_GAME{entry,side}` → TRUE: entries[pid] = {entryNum: len(entries)+1, side}; FALSE: pop.
    Reply `{entryflag: entry, gameNum: room.game_no}`. Push to all members, in this order:

@@ -186,3 +186,70 @@ as the room-list `gameenv`, then a room-list UPDATE). Copy 1 = owner (pid 1), co
   **Both games showed the team selection screen** (Home / Away, a countdown showing 57 s when captured). Stopped there; the match itself is the
   same session as Quick Match.
 - Player-list UPDATE pushes after a player's ENTRY_GAME, and to the owner when someone joins, were all harmless.
+
+## Second round, 2026-11-06 afternoon (two copies, test handlers + add-ons outside the repo) [live]
+Test server: the repo server plus `tools/lobbytest/` add-ons in the game folder (lobby handlers, `dtlsleg.py` =
+TURN-over-DTLS leg, `livedata.py` = switchable Live Update, `HELLO_MAX` to switch the mod's same-math hooks off).
+Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "testHome", pid 4 "TestAway").
+
+### Friendly Match Lobby: a whole match and back to the room
+- 10-minute match (Arsenal v Arsenal, autoplay on both): phases 1ST → 1ST_15MIN → 1ST_30MIN → BREAK1 (half
+  time, about 1.5 min) → 2ND → 2ND_15MIN → 2ND_30MIN → END, about 29 real minutes in all (15 game minutes ≈ 4.5 real
+  minutes with autoplay). No reconnects, no aborts.
+- After the "Full Time" stats screen (countdown 148 s, A = Confirm):
+  - each game sends HTTP `CMD_SET_PLAYDATA_MATCH` (play_data JSON, `gamemode` 26 = Friendly Match Lobby),
+    `CMD_SEND_STATS_DATA` and `CMD_SEND_GAME_RESULT {gameend_reason "NotImplement", game_phase END, side, scores}`;
+  - then `CMD_REQWATCHL_ROOMLIST` (a new watch request) and `CMD_LEAVE_GAME {pid}`.
+  - The player who confirms first leaves the match session; the other one, still on the stats screen, then
+    reports `SEND_ABNORMALEND {reason DISCONN_P2P, error_code GNCX_0003_0x20000000}`, sends its result with
+    `error_code GNCX_0003` and sees "This match will be abandoned. There has been a connection problem between you
+    and your opponent." (OK → back to the room). Same NOERR / DISCONN_P2P pair as in Quick Match.
+  - The first player waits in the room with "Please wait for all users to return to the Main Menu."
+  - When both have sent LEAVE_GAME, our `WATCH_ROOMSTATE {StateChanged, WAITING}` push brings both back to
+    "You can now start the match by selecting Start Match": a rematch is possible. The room still says
+    "0 Match(es)" and Wins 0–0 (the match was a draw; how the count rises is not known yet).
+- The room list keeps showing a room whose status is SETENV/GAME (Capacity 2/2). Selecting it gives
+  "Could not enter because a match is currently being played." from the client itself (no request sent).
+
+### Duplicate list crash: mechanism confirmed (datacheck.md Q3)
+- With both games in team selection we pushed a player-list `UPDATE` to copy 2 (no effect) and, 4 s later, a
+  player-list `RELOAD` to copy 1 (its list cache already held the room's players). Copy 1's process ended within
+  0.25 s; its Wine log shows `dispatch_exception code=e06d7363 (EXCEPTION_WINE_CXX_EXCEPTION)` right before.
+  This is the uncaught `std::out_of_range` from the watch-list merger's RELOAD loop.
+- **Rule:** send RELOAD only into an empty client cache (the reply to a new REQWATCHL_* request); every later push
+  is ADD / UPDATE / DEL.
+
+### Live Update: the server must keep listing it
+- The update is downloaded at boot (one HTTP GET), saved as LIVE00000000 and reported as `livedata_version`. But the
+  game asks for `CMD_GET_DLC_FILELIST` again when it enters an online mode (always `pid=0`). **If that second
+  list is empty, the game computes CHECK_CHEAT from the base data** (stock sums, no live-mode term), although it
+  still reports `livedata_version` "1.01"/"1.02". With the update listed every time, the sums were exactly as
+  pesdb.py predicts (`param_check_sum 25D6E9E6091EAC7425E05AF193DA6094`, Messi Speed +1). A reboot with the update
+  still listed does not download it again.
+- The mod's same-math hooks (0.4.0) have no effect on this (tested with them off).
+
+### Data mismatch (not settled cleanly)
+- Copy 1 with the Live Update, copy 2 stock. Both runs failed at the room start, but both were confounded by our
+  test handler: a stale room from an earlier session meant copy 2 joined the wrong room (13:55, owner:
+  "Unable to connect.") or the owner's SET_GAMEMEMBER reached the server's default handler (14:45). The default
+  reply `ERR_DATABASE` shows "An unexpected problem has occurred while communicating with the PES 2021 server.
+  CODE:C_DYUN_0013". The handler is fixed (one room per player); the clean repeat is still to do.
+
+### TURN relay: the DTLS leg works (ktcdtls.md)
+- The game's TURN client uses stock OpenSSL 1.1.0i for DTLS, wrapped by Konami's ktc layer. That layer:
+  - appends 2 bytes after the last record of each application-data datagram it sends and adds 2 to that record's
+    length, so a standard DTLS server drops every record;
+  - ends every plaintext with a type byte (0x00 = plain message);
+  - reads incoming records unchanged, but drops any message whose last plaintext byte is not a known type.
+- Server fix (in `dtlsleg.py`): strip the 2 bytes and correct the length before OpenSSL, strip the 0x00 after
+  reading, and send replies with `SSL_write(message + b"\x00")`. Do not pad ChannelData on this leg.
+- With that, on the DTLS leg each game: Allocate → 401 → authenticated Allocate (LIFETIME 60, MOBILITY-TICKET) →
+  Refresh → **closes the TLS connection** (the TLS leg only bootstraps) → `CMD_SEND_TURN_ADDRESS_DATA {address,
+  address_data_size 7}` → (our `WATCH_TURN_ADDRESS_DATA` push to the opponent) → ChannelBind to the opponent's
+  relayed address → ChannelData both ways (≈295 bytes first, then ≈40-byte packets every 5 s) and a Refresh every
+  5 s.
+- The address blob is 20 bytes: `00`, the relayed port big-endian, the IPv4 address in little-endian byte order,
+  then zeros (`00 c00a 6401a8c0` = 192.168.1.100:49162).
+- The match itself ran over the direct path. **Open:** every 21.4 s each game asks for the TURN list again and
+  rebuilds both legs (new allocations, new address published). The DTLS-leg Allocate success must not carry the
+  dual-route SOFTWARE directive (we fixed that; the cycle stayed).

@@ -1,5 +1,9 @@
 # Group "coop": online co-op (2v2 / 3v3, vs-COM) and spectating — static RE of PES2021.exe 1.01.00
 
+## Corrections from later findings (2026-11-06)
+- misc.md §1 (static, 2026-11-06): the client accepts groups of 1–3 and any number of groups; with `force_alone:"YES"` two solo copies can play 1 v 1 co-op; exactly one `is_owner:"YES"` (HOME owner); match_data = base64 of 480 bytes (float32[70] + float32[50]); a GET reply with size 0 is accepted. Not tested live.
+
+
 Two halves. **Co-op** is below. **Spectating / watching** is in
 [spectate.md](spectate.md) (written by a sub-agent from the same brief). Its summary is at the end of this file.
 Working files are in the working folder (dumps not published; general tools in `notes/re/functions/tools/`):

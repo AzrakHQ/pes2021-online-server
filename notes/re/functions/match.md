@@ -1,6 +1,7 @@
 # Group "match" — online match setup, keep-alive, teardown (PES 2021 1.01.00, static RE)
 
 ## Corrections from later findings (2026-11-05)
+- datacheck.md Q2 (static, 2026-11-06): P2P session type has no retry; ping check only in Quick Match with a player limit; the P2P connect tag uses min(own, peer START `time=`), so the server must relay START `time=` unchanged; `trigger_keep_alive` is never read.
 - Live (livetests.md): CMD_RECONNECT survives a ~7 s server outage during a match (APLR_0002 at ~15 s); in the menus an outage gives VNBP_0002 with no reconnect. The AFK end came after about 70 s without input.
 
 
