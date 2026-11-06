@@ -88,6 +88,10 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 msgid = form.get("msgid", "?")
                 from .protocol import record
                 record("rx", msgid, {**form, "_via": "http"})
+                # no gate session here: give handlers that build URLs the addresses of this connection
+                from types import SimpleNamespace
+                sock, peer = writer.get_extra_info("sockname") or ("",), writer.get_extra_info("peername") or ("",)
+                form["_http"] = SimpleNamespace(local_ip=sock[0], peer_ip=peer[0], pes_pid=None)
                 resp = pescmds.dispatch(service, None, msgid, form)
                 resp = {"msgid": msgid, "rqid": int(form.get("rqid", 0) or 0), **resp}
                 import msgpack

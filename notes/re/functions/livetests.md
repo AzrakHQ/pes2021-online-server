@@ -351,3 +351,15 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
 - With `use_team_id` 262143 ("no team") on both sides the match menu showed blank crests and both games crashed
   in GAMELOAD (access violation writing address 8 at 0x1403db255). Co-op has no team-select screen; the server
   must assign each side a real team (pescoop picks two from the Quick Match team list).
+### Server features checked live (branch lobby-relay, 2026-11-06 18:05–18:20)
+- **Live Update from the data folder** (`liveupdate.py`): a CPK in `<data>/liveupdate/` was listed with
+  dlc_version "101" and fetched with one HTTP GET from `/liveupdate/<name>`, then applied (the "No Live Update
+  changes to Condition Rating" notice); the game's CHECK_CHEAT then reported the updated sum. The first try
+  failed with **"Communication error CODE:SGJC_0007_0"** (LiveDataSetFlow line 809, download error): the URL
+  carried the server's *public* address because HTTP commands have no gate session, and a game on the host's
+  own network can't reach the public address. Fixed by building the URL from the address the HTTP request
+  came in on. An update is also downloaded on entering an online mode, not only at boot.
+- **Room join with different data**: owner with the update, friend stock → JOIN_ROOM_NTL `ERR_DIFFDCVERSION`
+  → the friend sees **"Data Pack Incompatible."** and stays in the room list (instead of "Unable to connect."
+  two seconds after kick-off).
+- Room chat (SEND_TEXTCHAT relay) is built but was not tried live (typing in the chat box was not driven).

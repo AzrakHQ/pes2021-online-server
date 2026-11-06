@@ -255,7 +255,10 @@ def get_dlc_filelist(svc, sess, req):
     # dlc_version must equal the client's ("1.00" -> 100, compared in state 4).
     # A Live Update the host put in <data>/liveupdate/ is listed every time (liveupdate.py).
     from . import liveupdate
-    e = liveupdate.entry(svc, f"http://{_addr(svc, sess)}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}")
+    # an HTTP command has no gate session: use the connection it came on, or the game gets the public
+    # address, which a game on the host's own network can't reach (SGJC_0007, seen live)
+    viewer = req.get("_http") or sess
+    e = liveupdate.entry(svc, f"http://{_addr(svc, viewer)}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}")
     if e is not None:
         return {"result": NOERR, "dlc_version": "1.00", "dlcfile_list_count": 1, "dlcfile_list": [e],
                 "variation_file_list_count": 0, "variation_file_list": []}

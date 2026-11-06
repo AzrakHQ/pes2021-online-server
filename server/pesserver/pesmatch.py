@@ -45,6 +45,21 @@ def _remote(sess):
     return ip.is_global or ip in ipaddress.ip_network("100.64.0.0/10")
 
 
+def _for_viewer(svc, addrs, pid, viewer):
+    """A player's NTL addresses as another player should get them. reflexive_addr stays exactly as reported:
+    the game picks which side opens the match link by comparing its own reflexive label with the one it got
+    for the peer (only the "lower" side opens it), so a rewritten reflexive address can leave both sides
+    waiting (MXNV_0013; notes/re/functions/gncx_labels.md, turnlinkup.md). The address a remote friend can
+    actually reach goes into host_addr instead (a connection candidate, never a label); if even that fails,
+    the TURN relay carries the match."""
+    out = dict(addrs)
+    if viewer is not None and pid != _pid(viewer) and "reflexive_addr" in out:
+        seen = _visible_addr(svc, out["reflexive_addr"], viewer)
+        if seen is not out["reflexive_addr"] and seen != out["reflexive_addr"]:
+            out["host_addr"] = seen
+    return out
+
+
 def _visible_addr(svc, blob, viewer):
     """A game on the server's own network gets its "public" (reflexive) address from our STUN server
     over the LAN, so it reports its LAN IP (seen live: 192.168.1.100, or 127.0.0.1 on the server PC).
@@ -89,9 +104,8 @@ def get_ipandport(svc, sess, req):
     for k in ("host_addr", "reflexive_addr", "relayed_addr"):
         if k in info:
             out[k] = info[k]
-    if "reflexive_addr" in out and pid != _pid(sess):
-        out["reflexive_addr"] = _visible_addr(svc, out["reflexive_addr"], sess)
-    return out
+    return {**out, **_for_viewer(svc, {k: out[k] for k in ("host_addr", "reflexive_addr", "relayed_addr") if k in out},
+                                 pid, sess)}
 
 
 @cmd("CMD_GET_LOBBYLIST")
@@ -153,8 +167,7 @@ def _member(svc, pid, owner, order, viewer=None):
          "side": "HOME" if owner else "AWAY"}
     m.update({k: v for k, v in _state(svc)["ntl"].get(pid, {}).items()
               if k in ("host_addr", "reflexive_addr", "relayed_addr", "ntl_nat_type")})
-    if "reflexive_addr" in m and viewer is not None and _pid(viewer) != pid:
-        m["reflexive_addr"] = _visible_addr(svc, m["reflexive_addr"], viewer)
+    m.update(_for_viewer(svc, {k: m[k] for k in ("host_addr", "reflexive_addr") if k in m}, pid, viewer))
     return msgpack.packb(m, use_bin_type=True, unicode_errors="surrogateescape")
 
 

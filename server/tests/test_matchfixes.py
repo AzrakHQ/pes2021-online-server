@@ -38,21 +38,23 @@ def test_recorded_blob_decodes():
 
 
 def test_host_lan_address_is_rewritten_only_for_a_remote_friend(svc):
+    """The remote friend gets the host's public address as host_addr; reflexive_addr is never rewritten,
+    because the game compares reflexive labels to pick which side opens the link (gncx_labels.md)."""
     host = SimpleNamespace(pes_pid=1, peer_ip="192.168.1.100", local_ip="192.168.1.100")
     friend = SimpleNamespace(pes_pid=2, peer_ip="41.236.194.222", local_ip="192.168.1.100")
     neighbour = SimpleNamespace(pes_pid=3, peer_ip="192.168.1.12", local_ip="192.168.1.100")
     st = pesmatch._state(svc)
     st["ntl"][1] = {"host_addr": addr("192.168.1.100", 25075), "reflexive_addr": addr("192.168.1.100", 25075)}
     st["ntl"][2] = {"host_addr": addr("10.0.0.5", 2945), "reflexive_addr": addr("41.236.194.222", 2945)}
-    for viewer, want in ((friend, "81.2.69.160"), (neighbour, "192.168.1.100"), (host, "192.168.1.100")):
+    for viewer, want_host in ((friend, "81.2.69.160"), (neighbour, "192.168.1.100"), (host, "192.168.1.100")):
         m = msgpack.unpackb(pesmatch._member(svc, 1, True, 0, viewer), raw=False, unicode_errors="surrogateescape")
-        assert ip_of(m["reflexive_addr"]) == (want, 25075)
-        assert ip_of(m["host_addr"]) == ("192.168.1.100", 25075)        # the LAN address stays for LAN tries
-    # the friend's public address is never touched
+        assert ip_of(m["reflexive_addr"]) == ("192.168.1.100", 25075)   # as reported: both games agree on the order
+        assert ip_of(m["host_addr"]) == (want_host, 25075)               # what a remote friend can reach
+    # the friend's own addresses are never touched
     m = msgpack.unpackb(pesmatch._member(svc, 2, False, 1, host), raw=False, unicode_errors="surrogateescape")
-    assert ip_of(m["reflexive_addr"]) == ("41.236.194.222", 2945)
+    assert ip_of(m["reflexive_addr"]) == ("41.236.194.222", 2945) and ip_of(m["host_addr"]) == ("10.0.0.5", 2945)
     r = pescmds._dispatch(svc, friend, "CMD_GET_IPANDPORT_NTL", {"pid": 1})
-    assert ip_of(r["reflexive_addr"])[0] == "81.2.69.160"
+    assert ip_of(r["reflexive_addr"])[0] == "192.168.1.100" and ip_of(r["host_addr"])[0] == "81.2.69.160"
     # loopback (the game on the server PC itself) and bytes blobs too; junk passes through
     assert ip_of(pesmatch._visible_addr(svc, addr("127.0.0.1", 99, as_str=False), friend)) == ("81.2.69.160", 99)
     assert pesmatch._visible_addr(svc, "junk", friend) == "junk"

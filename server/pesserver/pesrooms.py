@@ -81,9 +81,7 @@ def room_pname(svc, pid):
 
 def _addrs(svc, pid, viewer_sess):
     out = {k: v for k, v in pesmatch._state(svc)["ntl"].get(pid, {}).items() if k in ADDR_KEYS}
-    if "reflexive_addr" in out and viewer_sess is not None and _pid(viewer_sess) != pid:
-        out["reflexive_addr"] = pesmatch._visible_addr(svc, out["reflexive_addr"], viewer_sess)
-    return out
+    return pesmatch._for_viewer(svc, out, pid, viewer_sess)
 
 
 def room_player(svc, room, pid, viewer_sess):
