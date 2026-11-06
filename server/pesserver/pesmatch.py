@@ -226,6 +226,10 @@ def _same_math(sess):
     return "math1" in getattr(sess, "mod_features", ())
 
 
+def _matching_type(sess):
+    return str((getattr(sess, "pes_match_req", None) or {}).get("matching_type") or "OC_QUICK")
+
+
 def _compatible(sa, sb):
     da, db = _game_data(sa), _game_data(sb)
     return (da is None or db is None or da == db) and _same_math(sa) == _same_math(sb)
@@ -260,6 +264,8 @@ def _next_pair(svc):
     q = _state(svc)["queue"]
     for i in range(len(q)):
         for j in range(i + 1, len(q)):
+            if _matching_type(q[i][1]) != _matching_type(q[j][1]):
+                continue                                  # Quick Match vs Online Divisions: different queues
             if _compatible(q[i][1], q[j][1]):
                 return i, j
             _note_mismatch(svc, q[i][0], q[j][0], q[i][1], q[j][1])
@@ -274,7 +280,7 @@ def _try_pair(svc):
         st["queue"] = [x for k, x in enumerate(st["queue"]) if k not in (i, j)]
         _forget_mismatch(st, a, b)
         room = st["next_room"]; st["next_room"] += 1
-        st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time()}
+        st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time(), "mode": _matching_type(sa)}
         log.info("MATCH FOUND room %d: owner %s vs %s", room, a, b)
         for pid in (a, b):
             viewer = sa if pid == a else sb
@@ -443,7 +449,8 @@ def change_gamephase(svc, sess, req):
     rid, room = _room_of(svc, pid)
     if room is not None:
         room.setdefault("phase", {})[pid] = str(req.get("phase", ""))
-        if ((os.environ.get("PESSERVER_VERDICT_AT_END") == "1" or room.get("lobby_room")) and "pushed_at_end" not in room
+        if ((os.environ.get("PESSERVER_VERDICT_AT_END") == "1" or room.get("lobby_room") or room.get("mode") == "OC_RANK")
+                and "pushed_at_end" not in room
                 and all(room["phase"].get(p) == "END" for p in room["members"])):
             # At the final whistle, to every member. Always for a Friendly Match Lobby match: the room screen's
             # "N Match(es)" and "Wins" counters only count this push (lobby2.md); a test switch for Quick Match.
@@ -517,6 +524,9 @@ def _verdict(svc, rid, room):
     winner = "WINNER_HOME" if result[home] == 1 else "WINNER_AWAY" if result[away] == 1 else "WINNER_NONE"
     room["verdict"] = {"result": NOERR, "player_count": 2, "player_list": [msgpack.packb(x, use_bin_type=True) for x in players],
                        "winner_side": winner, "gameend_reason": "NORMAL_END", "is_pk": "NO"}
+    if room.get("mode") == "OC_RANK":
+        from . import pesdivisions
+        pesdivisions.record(svc, room)
     log.info("VERDICT room %s %d-%d: %s", rid, score["HOME"], score["AWAY"],
              {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
     events.feed(svc, "Ratings: " + ", ".join(f"{events.name_of(svc, p)} {old[p][0]} → {new[p][0]}" for p in (home, away)),

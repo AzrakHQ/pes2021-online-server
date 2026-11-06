@@ -423,3 +423,15 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
   GET_QUICKMATCHOPTION → Matchmaking Settings → START_MATCHING `matching_type "OC_RANK"` from both copies →
   paired by the Quick Match code → "View Opponent: Connection status with opponent. Proceed?" (Find Another /
   Proceed). Stopped there.
+
+### Online Divisions in the server (pesdivisions.py, 2026-11-06 19:36–20:20)
+- New player: "Division 10. This is the first of 10 games this season. You will need to obtain at least 0
+  Season Points to stay in the division. Get 12 or more Season Points to earn a promotion." then the empty
+  Divisions chart (D9 line at 12).
+- Two copies: To Next Match → team select → START_MATCHING OC_RANK → paired (Divisions and Quick Match players
+  are now separate queues) → View Opponent → Proceed → a full 10-minute match (0-0).
+- At END the server recorded a draw (+1) for both and pushed the verdict to both: both showed **"Changes in
+  rating"** (1000 > 1000), a screen Quick Match never shows. Then GET_DIVISION_INFO ×3 and the Divisions chart
+  with the first match **"D 0-0", 1 point**.
+- Open: the history shows no crest (`enemy_team_id` 0: the server doesn't learn the opponent's team); a
+  season end (10 matches) with FINISH_SEASON and promotion is covered by unit tests only.
