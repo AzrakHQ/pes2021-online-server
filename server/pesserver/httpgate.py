@@ -40,6 +40,16 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
                 if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
                     note_download(service, (writer.get_extra_info("peername") or ("",))[0])
+            elif method in ("GET", "HEAD") and route.startswith("/liveupdate/"):
+                from . import liveupdate
+                f = liveupdate.file_for(service, route[len("/liveupdate/"):])
+                if f is None:
+                    status, out, ctype = "404 Not Found", b"not found", "text/plain"
+                else:
+                    with open(f, "rb") as fh:
+                        out = fh.read()
+                    ctype = "application/octet-stream"
+                    log.info("Live Update %s sent to %s", os.path.basename(f), (writer.get_extra_info("peername") or ("",))[0])
             elif path.startswith("/status"):
                 from . import pesmatch
                 from . import identity

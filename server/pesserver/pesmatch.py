@@ -196,13 +196,14 @@ def send_tamper_data(svc, sess, req):
 
 
 def _game_data(sess):
-    """What must be equal for two games to play: the player-database sum and the game versions.
+    """What must be equal for two games to play: both CHECK_CHEAT sums (the games compare param_check_sum,
+    then entry_check_sum, before kick-off; datacheck.md) and the game versions.
     None for a game that never sent them (it is paired with anyone, as before)."""
     sums, ver = getattr(sess, "pes_sums", None), getattr(sess, "pes_versions", None)
     if not sums or not sums.get("param"):
         return None
     ver = ver or {}
-    return (sums["param"], ver.get("patch_version", ""), ver.get("dlc_version", ""))
+    return (sums["param"], sums.get("entry", ""), ver.get("patch_version", ""), ver.get("dlc_version", ""))
 
 
 def _same_math(sess):

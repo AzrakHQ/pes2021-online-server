@@ -253,6 +253,12 @@ def create_player(svc, sess, req):
 def get_dlc_filelist(svc, sess, req):
     # HTTP web-API to the FLOW URL (LiveDataSetFlow 0x1420ac3f0). Empty lists = nothing to download;
     # dlc_version must equal the client's ("1.00" -> 100, compared in state 4).
+    # A Live Update the host put in <data>/liveupdate/ is listed every time (liveupdate.py).
+    from . import liveupdate
+    e = liveupdate.entry(svc, f"http://{_addr(svc, sess)}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}")
+    if e is not None:
+        return {"result": NOERR, "dlc_version": "1.00", "dlcfile_list_count": 1, "dlcfile_list": [e],
+                "variation_file_list_count": 0, "variation_file_list": []}
     return {"result": NOERR, "dlc_version": "1.00", "dlcfile_list_count": 0, "dlcfile_list": "",
             "variation_file_list_count": 0, "variation_file_list": ""}
 

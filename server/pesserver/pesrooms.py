@@ -269,6 +269,13 @@ def join_room(svc, sess, req):
             return {"result": "ERR_ROOMSTATNOTMATCH"}
         if room["opts"]["password"] and str(req.get("password") or "") != room["opts"]["password"]:
             return {"result": "ERR_PASSWDINCORRECT"}
+        owner_sess = svc.online.get(room["owner"])
+        if owner_sess is not None and not pesmatch._compatible(owner_sess, sess):
+            # different player data (or mod math) ends the match 2 s after kick-off ("Unable to connect.",
+            # GNCX_0006); say it now: the game shows "Data Pack Incompatible." for this reply
+            pesmatch._note_mismatch(svc, room["owner"], pid, owner_sess, sess)
+            log.info("ROOM %d: %s refused, game data differs from the owner's", room["id"], pid)
+            return {"result": "ERR_DIFFDCVERSION"}
         _leave(svc, pid, "joined another room")
         room["members"].append(pid)
         log.info("ROOM %d: %s joined", room["id"], pid)
@@ -387,3 +394,35 @@ def snapshot(svc):
     """Rooms for the admin page."""
     return [{"id": r["id"], "name": r["opts"]["name"], "owner": r["owner"], "members": list(r["members"]),
              "state": r["state"], "password": bool(r["opts"]["password"])} for r in _st(svc)["rooms"].values()]
+
+
+# ---- chat -------------------------------------------------------------------------------------------
+CHAT_MAX = 200
+
+
+@cmd("CMD_SEND_TEXTCHAT")
+def send_textchat(svc, sess, req):
+    """Room / match / block chat: WATCH_TEXTCHAT {channel, from_pid, name, statement} to the channel's players.
+    The sender gets its own line back too (whether the game prints it locally is not known; rooms.md)."""
+    pid = _pid(sess)
+    channel = str(req.get("channel") or "ROOM")
+    text = str(req.get("statement") or "")[:CHAT_MAX]
+    if not text.strip():
+        return {"result": NOERR}
+    if channel == "BLOCK":
+        to = set(_st(svc)["subs"]) | {pid}
+    elif channel == "ROOM":
+        room = room_of(svc, pid)
+        to = set(room["members"]) if room else {pid}
+    else:                                            # in-match / co-op channels: the players of this match
+        _, mroom = pesmatch._room_of(svc, pid)
+        to = set(mroom["members"]) if mroom else {pid}
+    listed = req.get("list_pid")
+    if str(req.get("list_flg") or "") == "CHAT_SEND" and isinstance(listed, list) and listed:
+        to &= {int(p) for p in listed if str(p).isdigit()} | {pid}
+    p = _player(svc, pesmatch._username(svc, pid)) or {}
+    body = {"channel": channel, "from_pid": pid, "name": p.get("name") or f"Player{pid}", "statement": text}
+    for q in to:
+        _push(svc, q, "CMD_WATCH_TEXTCHAT", body)
+    log.info("CHAT %s %s -> %s: %r", channel, pid, sorted(to), text)
+    return {"result": NOERR}
