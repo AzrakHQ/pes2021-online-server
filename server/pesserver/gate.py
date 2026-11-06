@@ -111,6 +111,11 @@ async def serve(service, codec_factory, host="0.0.0.0", port=10000, idle=300):
                 events.disconnected(service, sess)
             except Exception:  # noqa: BLE001
                 log.exception("events.disconnected")
+            try:
+                from . import pesrooms
+                pesrooms.disconnected(service, sess)
+            except Exception:  # noqa: BLE001
+                log.exception("pesrooms.disconnected")
             service.disconnected(sess)
             writer.close()
             log.info("disconnect %s", peer)
