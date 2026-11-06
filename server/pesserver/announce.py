@@ -91,6 +91,18 @@ def _check_size(reply):
         raise TooLong("too long")
 
 
+def fits(title, body):
+    """How much of the game's message box a draft fills (the admin page's live meter): 0-100+."""
+    from . import ncl
+    try:
+        news = {"id": 2_000_000_000, "title": clean(title, TITLE_MAX, lines=False), "body": clean(body, BODY_MAX),
+                "date": int(time.time())}
+    except ValueError:
+        return 0
+    size = len(ncl.bf_encrypt(ncl.pack_plain({"msgid": "CMD_GET_INFOBODY", "rqid": 99999, **_body_reply(news)})))
+    return round(100 * size / (ncl.MAX_BODY - 16))
+
+
 def set_news(svc, title, body):
     title, body = clean(title, TITLE_MAX, lines=False), clean(body, BODY_MAX)
     now = int(time.time())

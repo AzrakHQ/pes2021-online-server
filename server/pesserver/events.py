@@ -154,7 +154,7 @@ def disconnected(svc, sess):
 
 def snapshot(svc):
     """Everything the admin page shows."""
-    from . import pesmatch
+    from . import pesmatch, pescmds
     st = _st(svc)
     mm = pesmatch._state(svc)
     queued = {p for p, _ in mm["queue"]}
@@ -165,16 +165,31 @@ def snapshot(svc):
                "status": "In a match" if pid in in_match else "Searching" if pid in queued else "In menus"}
               for pid, s in sorted(svc.online.items()) if isinstance(pid, int)]
     db = svc.accounts.db
-    results = [dict(zip(("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason"), r))
-               for r in db.execute("SELECT id, started, ended, home_name, away_name, home_score, away_score, reason"
-                                   " FROM pes_matches ORDER BY id DESC LIMIT 50")]
-    played_total = db.execute("SELECT COUNT(*) FROM pes_matches").fetchone()[0]
+    results = [dict(zip(("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason",
+                         "home_pid", "away_pid"), r))
+               for r in db.execute("SELECT id, started, ended, home_name, away_name, home_score, away_score, reason,"
+                                   " home_pid, away_pid"
+                                   " FROM pes_matches ORDER BY id DESC LIMIT 100")]
+    played_total, goals_total, abandoned = db.execute(
+        "SELECT COUNT(*), COALESCE(SUM(home_score + away_score), 0), COALESCE(SUM(COALESCE(reason, '') != ''), 0)"
+        " FROM pes_matches").fetchone()
+    # the last 30 days for the charts; the browser groups them by its own calendar days
+    # (by kick-off time: "when friends play")
+    history = [list(r) for r in db.execute("SELECT COALESCE(started, ended), COALESCE(home_score, 0) + COALESCE(away_score, 0),"
+                                           " COALESCE(reason, '') != '' FROM pes_matches"
+                                           " WHERE COALESCE(started, ended) > ? ORDER BY 1", (now - 31 * 86400,))]
+    big = db.execute("SELECT home_name, away_name, home_score, away_score, ended FROM pes_matches"
+                     " WHERE COALESCE(reason, '') = '' AND home_score IS NOT NULL AND away_score IS NOT NULL"
+                     " AND home_score != away_score ORDER BY ABS(home_score - away_score) DESC, home_score + away_score DESC,"
+                     " ended DESC LIMIT 1").fetchone()
     players = []
     try:
-        rows = db.execute("SELECT pid, name, username, created, last_login FROM pes_players ORDER BY last_login DESC").fetchall()
+        pescmds._db(svc)                  # adds the rating columns to older databases
+        rows = db.execute("SELECT pid, name, username, created, last_login, rating, win_streak FROM pes_players"
+                          " ORDER BY last_login DESC").fetchall()
     except Exception:  # noqa: BLE001
         rows = []
-    for pid, name, username, created, last in rows:
+    for pid, name, username, created, last, rating, streak in rows:
         w = d = l = gf = ga = 0
         for hp, ap, hs, as_ in db.execute("SELECT home_pid, away_pid, home_score, away_score FROM pes_matches"
                                           " WHERE home_pid=? OR away_pid=?", (pid, pid)):
@@ -185,8 +200,28 @@ def snapshot(svc):
             gf, ga = gf + mine, ga + theirs
         players.append({"pid": pid, "name": name or f"Player {pid}", "created": created, "last_login": last,
                         "online": pid in svc.online, "played": w + d + l, "won": w, "drawn": d, "lost": l,
-                        "gf": gf, "ga": ga})
+                        "gf": gf, "ga": ga, "rating": rating, "streak": streak})
     live = [{k: v for k, v in lv.items() if k not in ("left", "saved", "goals_seen")} for lv in st["live"].values()]
     return {"now": now, "uptime": now - st["started"], "online": online, "searching": len(queued),
             "live": live, "results": results, "played_total": played_total, "players": players,
-            "feed": list(st["feed"])[:60]}
+            "stats": {"goals": goals_total, "abandoned": abandoned, "history": history,
+                      "biggest": dict(zip(("home_name", "away_name", "home_score", "away_score", "ended"), big)) if big else None},
+            "feed": list(st["feed"])[:200]}
+
+
+def player_detail(svc, pid):
+    """One player for the admin page's side panel: every match they played (all time) and their activity lines."""
+    from . import pescmds
+    db = pescmds._db(svc)
+    r = db.execute("SELECT pid, name, created, last_login, rating, win_streak FROM pes_players WHERE pid=?", (pid,)).fetchone()
+    if r is None:
+        return None
+    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason")
+    matches = [dict(zip(keys, m)) for m in db.execute(
+        "SELECT " + ", ".join(keys) + " FROM pes_matches WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid))]
+    name = r[1] or f"Player {pid}"
+    sess = svc.online.get(pid)
+    return {"pid": pid, "name": name, "created": r[2], "last_login": r[3], "rating": r[4], "streak": r[5],
+            "online": sess is not None, "ip": getattr(sess, "peer_ip", "") if sess else "",
+            "since": getattr(sess, "connected_at", None) if sess else None, "matches": matches,
+            "feed": [f for f in _st(svc)["feed"] if name in f["text"]][:40]}

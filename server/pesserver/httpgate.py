@@ -391,6 +391,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         try:
             req = json.loads(body or b"{}")
             if route.endswith("message"):
+                if req.get("check"):          # the live "fits in the game's box" meter; nothing is saved
+                    return "200 OK", json.dumps({"pct": announce.fits(req.get("title"), req.get("body"))}).encode(), "application/json"
                 if req.get("clear"):
                     announce.clear_news(service)
                     events.feed(service, "The message to players was removed", "info")
@@ -456,6 +458,15 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server." + reason)
         sess.close()
         return "200 OK", b'{"ok":true}', "application/json"
+    if route == "/admin/api/player" and method == "POST":
+        try:
+            pid = int(json.loads(body or b"{}").get("pid"))
+        except (ValueError, TypeError, AttributeError):
+            return "400 Bad Request", b'{"error":"pid"}', "application/json"
+        p = events.player_detail(service, pid)
+        if p is None:
+            return "404 Not Found", b'{"error":"That player is gone."}', "application/json"
+        return "200 OK", json.dumps(p).encode(), "application/json"
     if route == "/admin/api/players/delete" and method == "POST":
         try:
             pid = int(json.loads(body or b"{}").get("pid"))
