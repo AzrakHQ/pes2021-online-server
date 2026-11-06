@@ -140,8 +140,49 @@ instrumented at runtime from a scratch launcher (no repo code changed). Tags: [l
   still showed **"Number of rooms 0"**. Code reading (roomlist.md) found why: the list hides rooms whose
   `gameenv.limitTime` is NOSET, and our test handler had kept the default NOSET because it looked for the
   settings as top-level SET_GAMEENV keys instead of unpacking the `game_env` blob (which said "MIDDLE").
-  Fix not yet tested live.
+  Fix confirmed live on 2026-11-06 (next section).
 - A player-list UPDATE pushed **after** the owner's ENTRY_GAME (21:17:08) did no harm, so the rule is narrower:
   no player-list push between the reply and the owner's ENTRY_GAME.
 - **Do not send `owner_pname.psn_user_id` as an empty msgpack list:** a room-list RELOAD in that form, pushed to
   both copies, ended **both** game processes within 0.25 s (same unchecked nested unpack as in roomcrash.md).
+
+## Friendly Match Lobby, whole room flow (2026-11-06) [live]
+Test handlers rebuilt with every rule above (own room into the room list after CREATEJOIN_ROOM; player list only as
+the reply before the owner's ENTRY_GAME; nested `psn_user_id` blobs; `game_env` unpacked from SET_GAMEENV, echoed
+as the room-list `gameenv`, then a room-list UPDATE). Copy 1 = owner (pid 1), copy 2 = Tester2 (pid 2).
+- Entering the lobby shows "No new Live Update available." (the mode entry checks Live Update), then the Match
+  Room List.
+- **Owner:** CREATEJOIN_ROOM → our ADD push → SET_GAMEENV (`game_env` blob: cpuLevel HARDEST, gametime 10, injury
+  YES, ball_type 22, exGame NO, pkOnOff NO, substitution 3, exSubstitution YES, limitTime MIDDLE) → our UPDATE push
+  → REQWATCHL_ROOMPLAYERLIST_NTL (reply) → ENTRY_GAME {entry FALSE, side HOME} → room screen.
+- **Second player's room list: "Number of rooms 1"** with the row "[001]Room Mohamed Rashad", Owner, Capacity 1/2
+  (`gamer_num`/`max_players`) and an "EN" tag (`owner_lang "en"`). This confirms the limitTime NOSET filter from
+  roomlist.md.
+- **Room details (before joining):** selecting the row sends REQWATCHL_ROOMPLAYERLIST_NTL {room_id 1} from a player
+  who is not a member; our reply (the room's list) gives the "Match Room Details" screen: Room Security, Language
+  English, Match Time 10 min., Injuries On, Time limit **Normal** (= MIDDLE), Overtime Off, PK Off, substitutions
+  3 (+1 in Extra Time); Home = the owner, Away = "Accepting Participants", button Enter.
+- **Join (Enter):**
+  - `JOIN_ROOM_NTL {room_id 1, is_invited "NO", password ""}`; we reply `{room_owner: blob{pid, pname (stock
+    _pname), NTL addresses}, room_stat "WAITING"}` and push a room-list UPDATE.
+  - The joiner then asks REQWATCHL_ROOMPLAYERLIST_NTL (reply) and sends ENTRY_GAME {entry FALSE, side AWAY}.
+  - We push a player-list UPDATE (2 players) to the owner only.
+  - The owner then sends `SEND_NOTICE {pid_list [1, 2], data {"notice_key":"ROOM_SHARE_INFO", from_pid 1,
+    has_team_data "NO", team_id 0, team_name "", team_power 0, chemistry 0}}` and an empty `SET_GAMEMEMBER`.
+    Our handler ignored this SET_GAMEMEMBER (nobody had entered yet) with no visible effect.
+  - Both screens: Home Mohamed Rashad, Away Tester2, "You can now start the match by selecting Start Match."
+- **"Start Match" is the ready flag:** it sends `ENTRY_GAME {entry TRUE, side}`. After our WATCH_ENTRY_GAME push
+  `{entry_count, entrygame [blob{pid, entryNum, gameNum}]}`, that side's "Pre-Match Preparations" OK turns green
+  and the owner sees "Please wait for everyone to select [Start Match]".
+- **Start:** when the second player also entered, the owner sent `SET_GAMEMEMBER` (empty request) again. We pushed
+  `WATCH_DECIDE_GAMEENV {game_env blob}` and `WATCH_ROOMSTATE {event StateChanged, state SETENV, owner_pid 1}` to
+  both. Both games then ran the normal match start within 8 s:
+  - GET_MATCHID, SEND_SYNC_NOTICE ("1," / "2,"), GET_SERVER_ENV;
+  - P2P SYSTEM_NOTICE START/END;
+  - CHANGE_GAMEPHASE DATASYNC;
+  - the owner's `SET_GAMEMEMBERENV {list_num 2, envlist [blob{pid 1, side HOME, sideLeader YES}, blob{pid 2,
+    side AWAY, sideLeader YES}]}` (our server's default reply was enough);
+  - CHANGE_GAMEPHASE TEAMSELECT.
+  **Both games showed the team selection screen** (Home / Away, a countdown showing 57 s when captured). Stopped there; the match itself is the
+  same session as Quick Match.
+- Player-list UPDATE pushes after a player's ENTRY_GAME, and to the owner when someone joins, were all harmless.
