@@ -57,3 +57,12 @@ def test_message_meter(tmp_path):
     arabic = "".join(chr(r.randint(0x627, 0x64a)) for _ in range(600))
     small, big = announce.fits("Cup", "Friday 9 pm"), announce.fits("Cup", arabic)
     assert 0 < small < 100 and big > 100
+
+
+def test_results_pages_filters_and_counts(tmp_path):
+    svc = _svc(tmp_path); now = _seed(svc)
+    rows, total = events.results_page(svc, limit=2)
+    assert total == 5 and len(rows) == 2 and rows[0]["id"] > rows[1]["id"]        # newest first, all time
+    assert events.results_page(svc, "cid")[1] == 3                                 # one player's matches
+    assert events.results_page(svc, since=now - 7200)[1] == 4                       # a period
+    assert events.results_page(svc, "%")[1] == 0 and events.results_page(svc, "_")[1] == 0   # LIKE wildcards are literal
