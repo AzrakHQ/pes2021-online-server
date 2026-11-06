@@ -2,6 +2,10 @@
  * names (pesm_*), so they never mix with the C library's and the mod can hand them to the game. */
 #define hidden
 #define weak_alias(old, new)
+/* musl's log() takes an FMA shortcut when the compiler's target CPU has FMA (a different last bit);
+ * never take it, whatever machine builds the mod (CI's Linux gcc defaulted to it). */
+#undef __FP_FAST_FMA
+#undef __FP_FAST_FMAF
 
 #define acos pesm_acos
 #define acosf pesm_acosf

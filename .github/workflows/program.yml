@@ -31,12 +31,12 @@ jobs:
       - name: Math check program and its Linux reference (server/mod/musl-math/README.md)
         run: |
           cd server/mod && mkdir -p ../../mathcheck ref
-          x86_64-w64-mingw32-gcc -O2 -ffp-contract=off -o ../../mathcheck/mathcheck.exe test/mathcheck.c
+          x86_64-w64-mingw32-gcc -O2 -march=x86-64 -mno-fma -ffp-contract=off -o ../../mathcheck/mathcheck.exe test/mathcheck.c
           for f in musl-math/*.c; do
-            gcc -O2 -ffp-contract=off -fno-fast-math -fno-builtin -Imusl-math -Imusl-math/include \
+            gcc -O2 -march=x86-64 -mno-fma -ffp-contract=off -fno-fast-math -fno-builtin -Imusl-math -Imusl-math/include \
               -include musl-math/pesm_names.h -w -c "$f" -o "ref/$(basename "$f" .c).o"
           done
-          gcc -O2 -ffp-contract=off -fno-fast-math -o ref/mathcheck test/mathcheck.c ref/*.o
+          gcc -O2 -march=x86-64 -mno-fma -ffp-contract=off -fno-fast-math -o ref/mathcheck test/mathcheck.c ref/*.o
           ref/mathcheck > ../../mathcheck/reference.txt && cp dinput8.dll ../../mathcheck/
       - uses: actions/upload-artifact@v4
         with: { name: mod, path: server/mod/dinput8.dll }
