@@ -10,10 +10,10 @@
   /* dark is the default; the header button switches to light (remembered in this browser) */
   :root { color-scheme:dark; --bg:#0d1014; --fg:#e7eaee; --muted:#a3adbc; --card:#161a20; --line:#2a313b; --field:#6b7585;
           --accent:#3ccf8e; --accent-fill:#2fb97c; --accent2:#12261d; --on-accent:#04241a; --live:#ff7b6b; --on-live:#2a0a05; --warn:#f5b041; --warnbg:#2a2110;
-          --code:#1e232b; --skel:#232a33; --side:#12161b; --hover:#1c2129; --bar:#3ccf8e; --bar-dim:#24533f; --shadow:none; --input:#0d1014; }
+          --code:#1e232b; --skel:#232a33; --side:#12161b; --hover:#1c2129; --bar:#6b7a8f; --bar-dim:#343d4a; --bar-now:#3ccf8e; --bar-now-dim:#24533f; --shadow:none; --input:#0d1014; }
   :root[data-theme="light"] { color-scheme:light; --bg:#f3f5f7; --fg:#14171c; --muted:#5a6371; --card:#fff; --line:#e1e5ea; --field:#7c8696; --accent:#0a7d4f; --accent-fill:#0a7d4f; --accent2:#e6f5ee;
           --on-accent:#fff; --live:#c4320a; --on-live:#fff; --warn:#8f4400; --warnbg:#fff4e0; --code:#eef1f4; --skel:#e8ebef; --side:#fff; --hover:#f0f3f6;
-          --bar:#0a7d4f; --bar-dim:#b9d9c9; --shadow:0 1px 2px rgba(16,24,40,.06); --input:#fff; }
+          --bar:#8794a6; --bar-dim:#d5dbe3; --bar-now:#0a7d4f; --bar-now-dim:#b9d9c9; --shadow:0 1px 2px rgba(16,24,40,.06); --input:#fff; }
   .iconbtn { display:inline-grid; place-items:center; width:34px; height:34px; min-height:34px; padding:0; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--muted); flex:none; }
   .iconbtn:hover { color:var(--fg); border-color:var(--field); }
   .iconbtn svg { width:17px; height:17px; }
@@ -64,8 +64,8 @@
   .nav a { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; color:var(--fg); text-decoration:none; font-weight:500; font-size:14px; white-space:nowrap; }
   .nav a svg { width:18px; height:18px; color:var(--muted); flex:none; }
   .nav a:hover { background:var(--hover); }
-  .nav a[aria-current="page"] { background:var(--accent2); color:var(--accent); font-weight:700; }
-  .nav a[aria-current="page"] svg { color:var(--accent); }
+  .nav a[aria-current="page"] { background:var(--hover); color:var(--fg); font-weight:700; box-shadow:inset 3px 0 0 var(--accent); }
+  .nav a[aria-current="page"] svg { color:var(--fg); }
   .nav .badge { margin-left:auto; font-size:12px; font-weight:700; padding:0 7px; border-radius:99px; background:var(--code); color:var(--muted); min-width:20px; text-align:center; font-variant-numeric:tabular-nums; }
   .nav .badge.live { background:var(--code); color:var(--fg); display:inline-flex; align-items:center; gap:4px; }
   .nav .badge.live::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--accent); }
@@ -84,6 +84,9 @@
   #reach { max-width:min(36ch, 60vw); } #reach .rt { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
   #reach:hover, #reach:focus-visible { text-decoration:underline dotted; text-underline-offset:3px; }
   .until { font-size:13px; color:var(--muted); }
+  #upd { font-variant-numeric:tabular-nums; white-space:nowrap; }
+  #upd.late { color:var(--warn); }
+  @media (max-width: 960px) { #upd { display:none; } }
   .view { max-width:1240px; }
   .view > h1 { font-size:24px; margin:4px 0 4px; width:fit-content; }
   .view > .lead { color:var(--muted); margin:0 0 18px; font-size:14px; }
@@ -132,7 +135,9 @@
     #logout { display:none; }
     .sec a svg { display:block !important; }
     .sec .lg { display:inline !important; } .sec .st { display:none !important; }
-    .more-btn[aria-expanded="true"], .more-btn.cur { color:var(--accent); }
+    .more-btn[aria-expanded="true"], .more-btn.cur { color:var(--fg); box-shadow:inset 0 2px 0 var(--accent); }
+    .nav > a[aria-current="page"] { box-shadow:inset 0 2px 0 var(--accent); }
+    .sec a[aria-current="page"] { box-shadow:inset 3px 0 0 var(--accent); }
     .main { padding-bottom:88px; }
     .toast { bottom:calc(76px + env(safe-area-inset-bottom)); right:12px; left:12px; max-width:none; }
   }
@@ -152,8 +157,8 @@
   .card > h2 { margin-bottom:12px; }
   .card-h { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
   .card-h .grow { flex:1; }
-  .card-h a { font-size:13px; font-weight:600; text-decoration:none; }
-  .card-h a:hover { text-decoration:underline; }
+  .card-h a { font-size:13px; font-weight:600; text-decoration:none; color:var(--muted); }
+  .card-h a:hover { text-decoration:underline; color:var(--accent); }
   h2[tabindex], h1[tabindex] { width:fit-content; max-width:100%; }
   .grid2 { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px; }
   .grid-ov { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:16px; }
@@ -184,6 +189,16 @@
   @media (max-width: 520px) { .tiles, .tiles.t4 { grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; } .tile { padding:12px; } .tile b { font-size:24px; } }
 
   /* attention list */
+  #ov-online .acts { display:flex; gap:6px; flex:none; }
+  @media (max-width: 400px) { #ov-online .acts [data-kick] { display:none; } }
+  .ovmsg { display:grid; gap:10px; }
+  .ovmsg .row { display:flex; gap:10px; align-items:flex-start; }
+  .ovmsg .row > .i { margin-top:3px; color:var(--muted); }
+  .ovmsg .row.on > .i { color:var(--accent); } .ovmsg .row.warn > .i { color:var(--warn); }
+  .ovmsg .acts { display:flex; gap:8px; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:12px; }
+  a.btnlink { display:inline-flex; align-items:center; border:1px solid var(--field); border-radius:8px; padding:5px 12px; font-size:13px; color:var(--fg); text-decoration:none; }
+  a.btnlink:hover { border-color:var(--accent); color:var(--accent); }
+  @media (pointer: coarse) { a.btnlink, #c-ovmsg a.dl { min-height:44px; } }
   .attn { list-style:none; margin:0 0 16px; padding:0; display:grid; gap:8px; }
   .attn li { display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--warnbg); border:1px solid var(--warn); border-radius:10px; padding:10px 14px; font-size:14px; }
   .attn li.info { background:var(--card); border-color:var(--line); }
@@ -203,7 +218,7 @@
   .seg { display:inline-flex; border:1px solid var(--field); border-radius:8px; overflow:hidden; }
   .seg button { border:0; border-radius:0; padding:4px 10px; font-size:13px; background:var(--card); }
   .seg button + button { border-left:1px solid var(--field); }
-  .seg button[aria-pressed="true"] { background:var(--accent2); color:var(--accent); font-weight:700; }
+  .seg button[aria-pressed="true"] { background:var(--hover); color:var(--fg); font-weight:700; box-shadow:inset 0 -2px 0 var(--accent); }
   .chart { position:relative; }
   .plot { position:relative; height:168px; margin:0 14px 0 30px; }
   .chart:focus-visible { outline:3px solid var(--accent); outline-offset:2px; border-radius:6px; }
@@ -214,7 +229,7 @@
   .bars .c { flex:1; height:100%; display:flex; align-items:flex-end; justify-content:center; position:relative; min-width:0; cursor:default; }
   .bars .c i { display:block; width:100%; max-width:30px; background:var(--bar); border-radius:4px 4px 0 0; min-height:0; }
   .bars .c.zero i { height:0 !important; }
-  .bars .c.today i { background:repeating-linear-gradient(135deg, var(--bar) 0 5px, var(--bar-dim) 5px 9px); }
+  .bars .c.today i { background:repeating-linear-gradient(135deg, var(--bar-now) 0 5px, var(--bar-now-dim) 5px 9px); }
   .bars .c { cursor:pointer; }
   .bars.has-on .c:not(.on) i { opacity:.4; }
   .bars .c.on i { opacity:1; box-shadow:0 0 0 2px var(--card), 0 0 0 4px var(--fg); }
@@ -222,6 +237,7 @@
   .readout { height:3em; overflow:hidden; align-content:flex-start; font-size:13px; color:var(--muted); margin:0 0 6px; display:flex; flex-wrap:wrap; gap:2px 8px; align-items:baseline; }
   .readout.on { color:var(--fg); }
   .readout b { font-weight:700; }
+  @media (pointer: coarse) { .readout { height:auto; min-height:3em; } .readout .linkbtn { min-height:0; padding:2px 0; } }
   .readout b::after { content:" ·"; font-weight:400; color:var(--muted); }
   .xl { display:flex; gap:2px; margin:4px 14px 0 30px; }
   .xl span { flex:1; text-align:center; font-size:11px; color:var(--muted); white-space:nowrap; min-width:0; overflow:visible; }
@@ -278,7 +294,7 @@
   input[type=search] { min-width:min(260px, 100%); }
   .chips { display:flex; gap:6px; flex-wrap:wrap; }
   .chips button { border-radius:99px; padding:4px 12px; font-size:13px; }
-  .chips button[aria-pressed="true"] { background:var(--accent2); color:var(--accent); border-color:var(--accent); font-weight:700; }
+  .chips button[aria-pressed="true"] { background:var(--hover); color:var(--fg); border-color:var(--fg); font-weight:700; }
   .chips .n { font-variant-numeric:tabular-nums; color:var(--muted); font-weight:600; margin-left:2px; }
   .chips button[aria-pressed="true"] .n { color:inherit; }
   .count { font-size:13px; color:var(--muted); }
@@ -292,7 +308,7 @@
   .score { font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; text-align:center; }
   .score.vs { font-size:15px; color:var(--muted); font-weight:600; }
   .phase { grid-column:1 / -1; text-align:center; font-size:13px; }
-  #live .list-plain { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:10px; }
+  #live .list-plain { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:10px; }
   #live .match { margin:0; }
   .stuck { display:block; margin-top:4px; overflow-wrap:anywhere; }
   @media (max-width: 420px) { .match { gap:4px 8px; padding:10px; } .score { font-size:18px; } }
@@ -338,6 +354,11 @@
   .feed .ico.k-match { background:var(--accent2); color:var(--accent); }
   .feed .ico.k-result, .feed .ico.k-goal { box-shadow:inset 0 0 0 1px var(--accent); }
   .feed .pname { font-weight:600; text-decoration:underline dotted var(--field); text-underline-offset:3px; }
+  .act-grid { display:grid; grid-template-columns:minmax(0,1fr) 270px; gap:28px; align-items:start; }
+  #feed-side { position:sticky; top:72px; background:var(--bg); border-radius:10px; padding:14px 16px; }
+  #feed-side h3 { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 8px; }
+  #feed-side h3 + .kv { margin-bottom:16px; }
+  @media (max-width: 1000px) { .act-grid { grid-template-columns:minmax(0,1fr); } #feed-side { display:none; } }
   h3.day { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:14px 0 2px; }
   h3.day:first-child { margin-top:0; }
   .empty { color:var(--muted); font-size:14px; padding:4px 0; margin:0; }
@@ -428,7 +449,7 @@
   button[role="switch"][aria-checked="true"] { background:var(--accent-fill); border-color:var(--accent-fill); }
   button[role="switch"][aria-checked="true"]::after { left:22px; }
   .kv .linkrow { margin-top:0; }
-  #cmds .linkrow code, #down .linkrow code, #update .linkrow code { white-space:normal; overflow-wrap:anywhere; text-overflow:clip; }
+  #install-cmd .linkrow code, #down .linkrow code, #update .linkrow code { white-space:pre; overflow-x:auto; text-overflow:clip; }
   .hl { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
   .hl > div { background:var(--bg); border-radius:10px; padding:10px 12px; min-width:0; }
   .hl .k { font-size:12px; color:var(--muted); display:block; }
@@ -505,10 +526,10 @@
       <a href="#overview" data-view="overview"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2.5h5v5H2zM9 2.5h5v3H9zM9 7.5h5v6H9zM2 9.5h5v4H2z"/></svg><span class="lbl">Overview</span></a>
       <a href="#players" data-view="players"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"/></svg><span class="lbl">Players</span><span class="badge ok" id="nb-players" hidden></span></a>
       <a href="#matches" data-view="matches"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 5.2l2.4 1.7-.9 2.8h-3l-.9-2.8z"/></svg><span class="lbl">Matches</span><span class="badge live" id="nb-matches" hidden></span></a>
-      <a href="#activity" data-view="activity"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg><span class="lbl">Activity</span></a>
+      <a href="#messages" data-view="messages"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H6l-3 2.5V11H2z"/></svg><span class="lbl">Messages</span><span class="badge ok" id="nb-messages" hidden></span></a>
       <button type="button" class="more-btn" id="nav-more" aria-expanded="false" aria-controls="nav-sec"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="12.5" cy="8" r="1" fill="currentColor"/></svg>More<span class="badge warn" id="nb-more" hidden></span></button>
       <div class="sec" id="nav-sec">
-      <a href="#messages" data-view="messages"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H6l-3 2.5V11H2z"/></svg><span class="lbl">Messages</span><span class="badge ok" id="nb-messages" hidden></span></a>
+      <a href="#activity" data-view="activity"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg><span class="lbl">Activity</span></a>
       <a href="#invite" data-view="invite"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4 1.2 0 2.3.4 3 1.2M12.5 8.5v5M10 11h5"/></svg><span class="lbl"><span class="lg">Invite friends</span><span class="st">Invite</span></span></a>
       <a href="#server" data-view="server"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.01M4.5 11.25h.01"/></svg><span class="lbl">Server</span><span class="badge warn" id="nb-server" hidden></span></a>
         <button type="button" class="so-m" id="logout-m"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3H3v10h3M7 8h7M11 5l3 3-3 3"/></svg>Sign out</button>
@@ -526,6 +547,7 @@
       <a class="pill warn" id="remote-pill" href="#server/h-access" hidden title="The admin page can be opened from the internet (encrypted, with the password)">Internet access on</a>
       <a class="pill warn m-only" id="attn-pill" href="#overview" hidden></a>
       <span class="grow"></span>
+      <span class="until" id="upd" title="This page asks the server for news every 3 seconds"></span>
       <button type="button" class="iconbtn theme-btn" aria-pressed="false"></button>
       <button class="linkbtn" id="logout" type="button" style="color:var(--muted)">Sign out</button>
     </header>
@@ -562,6 +584,8 @@
         </div>
         <div class="stack">
           <section class="card" id="c-ovtop" aria-labelledby="h-ovtop"><div class="card-h"><h2 id="h-ovtop">Top of the table</h2><span class="grow"></span><a href="#players">Full table →</a></div><div id="ov-top"><div class="skel"></div></div></section>
+          <section class="card" id="c-ovmsg" aria-labelledby="h-ovmsg"><div class="card-h"><h2 id="h-ovmsg">Messages to players</h2><span class="grow"></span><a href="#messages">All messages →</a></div><div id="ov-msg"></div>
+            <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px;margin-top:12px"><a class="dl" style="padding:6px 12px;font-size:13px;border-radius:8px;text-decoration:none" href="#messages/msg-title">Message everyone</a><a class="btnlink" href="#messages/dm-to">Message one player</a><a class="btnlink" href="#messages/h-rs">Warn about a restart</a></div></section>
         </div>
       </div>
       <ul class="attn" id="ov-info" aria-label="Tips" hidden style="margin-top:16px"></ul>
@@ -579,7 +603,7 @@
           <span class="grow"></span><span class="count" id="p-count" aria-live="polite"></span>
         </div>
         <div id="plist"><div class="skel"></div><div class="skel short"></div></div>
-        <p class="note" id="p-note">Select a name for their matches, head-to-head record and the Delete option. Rating is the game's own matchmaking number (it pairs players of similar skill); the table order uses points. Kick disconnects someone now; they can reconnect and see your reason when they do. There's no ban yet: anyone who has the mod file or your server's address can join.</p>
+        <p class="note" id="p-note">Select a name for their matches, head-to-head record and the Delete option. <span class="hide-lg">Rating is the game's own matchmaking number (it pairs players of similar skill); the table order uses points.</span> Kick disconnects someone now; they can reconnect and see your reason when they do. There's no ban yet: anyone who has the mod file or your server's address can join.</p>
       </section>
     </section>
 
@@ -603,7 +627,7 @@
       <section class="card" aria-labelledby="h-feed">
         <h2 id="h-feed" class="sr" tabindex="-1">Activity log</h2>
         <div class="toolbar"><input type="search" id="f-q" placeholder="Search activity" aria-label="Search activity" autocomplete="off"><div class="chips" role="group" aria-label="Show" id="f-filter"></div></div>
-        <div id="feed"><div class="skel"></div><div class="skel short"></div></div>
+        <div class="act-grid"><div id="feed"><div class="skel"></div><div class="skel short"></div></div><aside id="feed-side" aria-label="Last 24 hours"></aside></div>
       </section>
     </section>
 
@@ -801,7 +825,7 @@ function toast(msg, bad) {
   const t = $("toast"); clearTimeout(toastT);
   t.textContent = ""; t.className = "toast" + (bad ? " bad" : "");
   requestAnimationFrame(() => { t.textContent = msg; });
-  toastT = setTimeout(() => { t.textContent = ""; }, 7000);
+  toastT = setTimeout(() => { t.textContent = ""; }, 4500);
 }
 
 // A modal confirm (optionally with a text box). Resolves to null when cancelled, else the text ("" without a box).
@@ -879,7 +903,7 @@ function route(focus) {
   VIEWS.forEach(x => { $("v-" + x).hidden = x !== v; });
   document.querySelectorAll(".nav a").forEach(a => a.dataset.view === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   document.title = TITLES[v] + " · PES 2021 Server";
-  $("nav-more").classList.toggle("cur", ["messages", "invite", "server"].includes(v)); setMore(false);
+  $("nav-more").classList.toggle("cur", ["activity", "invite", "server"].includes(v)); setMore(false);
   if (last) render(last);
   if (v === "server" && changed) loadGames();
   navFade();
@@ -901,6 +925,12 @@ function showLogin(msg) {
   requestAnimationFrame(() => { $("err").textContent = msg || ""; });
   $("signin").disabled = false; $("signin").textContent = "Sign in";
   if (msg || !matchMedia("(pointer: coarse)").matches) $("pw").focus();
+}
+function paintUpd() {
+  if (!lastOkAt) return text("upd", "");
+  const s = Math.max(0, Math.round((Date.now() - lastOkAt) / 1000));
+  text("upd", s < 5 ? "Updated just now" : s < 60 ? `Updated ${s} s ago` : `Updated ${hm.format(new Date(lastOkAt))}`);
+  $("upd").classList.toggle("late", s >= 10);
 }
 function signedOut() {
   if (!token) return;
@@ -1020,7 +1050,8 @@ document.addEventListener("keydown", e => {
 });
 function dayFilter(ts) {
   ui.dayNav = true; ui.rr = "d" + ts; ui.rq = ""; ui.rN = 25; $("r-q").value = "";
-  location.hash = "#matches/h-results"; loadResults(true);
+  location.hash = "#matches/h-results";
+  loadResults(true).then(() => requestAnimationFrame(() => { $("h-results").scrollIntoView({block: "start"}); $("h-results").focus({preventScroll: true}); }));
 }
 
 function charts(d) {
@@ -1143,7 +1174,7 @@ function render(d) {
   const rsAt = d.announce && d.announce.restart, rsLeft = rsAt ? rsAt - Date.now() / 1000 : 0;
   $("rs-pill").hidden = !rsAt; $("rs-pill").className = "pill " + (down ? "neutral" : "warn");
   if (rsAt) { put("rs-pill", `${I.warn} ${rsLeft > 0 ? `Restart at ${hm.format(new Date(rsAt * 1000))}${down ? " (last known)" : ` · in ${inMin(rsLeft)}`}` : "Restart time has passed"}`); $("rs-pill").title = "Players are being warned. Change or cancel it in Messages."; }
-  put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} Online · ${srvIssues} to fix` : rsAt && rsLeft > 0 ? `${I.warn} Restart in ${inMin(rsLeft)}` : `<span class="dot"></span>Online`);
+  put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} Server on · ${srvIssues} to fix` : rsAt && rsLeft > 0 ? `${I.warn} Restart in ${inMin(rsLeft)}` : `<span class="dot"></span>Server on`);
   if (!down && !srvIssues && rsAt) { mc.className = "pill warn"; mc.href = "#messages/h-rs"; }
   if (!(rsAt && !srvIssues && !down)) mc.href = srvIssues ? "#overview" : "#server";
   badge("nb-players", d.online.length, `${d.online.length} online now`);
@@ -1151,7 +1182,7 @@ function render(d) {
   badge("nb-messages", d.announce && (d.announce.news || d.announce.restart) ? "on" : 0, "a message or restart warning is active");
   if (ui.view !== "messages" || !$("dm-to").options.length) renderDmTo(d);
   badge("nb-server", srvIssues, `${plural(srvIssues, "thing needs", "things need")} attention`);
-  badge("nb-more", srvIssues, `Server: ${plural(srvIssues, "thing needs", "things need")} attention`);
+  badge("nb-more", srvIssues || 0, `Server: ${plural(srvIssues, "thing needs", "things need")} attention`);
   $("attn-pill").hidden = !srvIssues || ui.view === "overview";
   put("attn-pill", `${I.warn} ${plural(srvIssues, "thing", "things")} to fix`);
 
@@ -1304,13 +1335,22 @@ function renderOverview(d, r, pn, playing, ready) {
   $("ov-cards").hidden = fresh && !d.feed.length; $("ov-cards").classList.toggle("solo", starting);
   $("c-ovlive").hidden = $("c-ovonline").hidden = $("ov-now").hidden = fresh; $("c-ovtop").hidden = $("c-ovhl").hidden = starting;
   if (!starting) put("ov-hl", highlights(d));
-  put("ov-live", liveHtml(d, now, true));
-  put("ov-online", d.online.length ? `<ul class="list-plain mini">` + d.online.slice(0, 8).map(p => `<li>${avatar({name: p.name, online: true})}<span class="grow">${pname(p.name, p.pid, "ovo-" + p.pid)}<br><span class="small muted">${statusOf(d, p)}</span></span><span class="r">${dur(now - p.since)}</span></li>`).join("") + `</ul>` +
+  const tdy = (d.stats ? d.stats.history : []).filter(h => dayKey(new Date(h[0] * 1000)) === dayKey(new Date()));
+  const lr = d.results[0] && dayKey(new Date(d.results[0].ended * 1000)) === dayKey(new Date()) ? d.results[0] : null;
+  put("ov-live", liveHtml(d, now, true) + (tdy.length ? `<p class="note" style="border-top:1px solid var(--line);padding-top:10px;margin-top:12px">Today so far: ${plural(tdy.length, "match", "matches")} · ${plural(tdy.reduce((a, h) => a + h[1], 0), "goal")}${lr ? ` · last: ${esc(lr.home_name)} ${lr.home_score}–${lr.away_score} ${esc(lr.away_name)}, ${esc(ago(lr.ended, now))}` : ""}</p>` : ""));
+  put("ov-online", d.online.length ? `<ul class="list-plain mini">` + d.online.slice(0, 8).map(p => `<li>${avatar({name: p.name, online: true})}<span class="grow">${pname(p.name, p.pid, "ovo-" + p.pid)}<br><span class="small muted">${statusOf(d, p)} · ${dur(now - p.since)}</span></span>` +
+      `<span class="acts"><button type="button" class="small needs-server" data-dm="${p.pid}" data-key="ovdm-${p.pid}" aria-label="Message ${esc(p.name)}">Message</button><button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="ovkick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></span></li>`).join("") + `</ul>` +
       (d.online.length > 8 ? `<p class="note"><a href="#players">${d.online.length - 8} more online</a></p>` : "")
     : `<p class="empty">Nobody is online right now.</p>`);
   const rk = ranked(d).slice(0, 5);
   put("ov-top", rk.length ? `<ol class="list-plain mini">` + rk.map((p, i) => `<li><span class="rank">${i + 1}</span>${avatar(p)}<span class="grow">${pname(p.name, p.pid, "ovt-" + p.pid)}${p.online ? '<span class="sr"> (online)</span>' : ""}<br><span class="small muted">${p.won}W ${p.drawn}D ${p.lost}L · GD ${signed(gd(p))}${p.online ? " · online" : ""}</span></span><span class="r"><b style="color:var(--fg)">${pts(p)}</b> pts</span></li>`).join("") + `</ol>`
     : `<p class="empty">The table fills in after the first finished match.</p>`);
+  const a = d.announce || {}, pend = (a.personal || []).length, rsLeft = a.restart ? a.restart - Date.now() / 1000 : 0;
+  $("c-ovmsg").hidden = fresh;
+  put("ov-msg", `<div class="ovmsg">` +
+    `<div class="row${a.news ? " on" : ""}">${ICON.msg.replace("<svg ", '<svg class="i" ')}<span>${a.news ? `<b>“${esc(a.news.title)}”</b> is showing to everyone<br><span class="small muted">since ${esc(when(a.news.date, now))}${a.news.seen ? ` · seen by ${plural(a.news.seen, "player")}` : " · nobody has seen it yet"}</span>` : `<span class="muted">No message is showing to everyone.</span>`}</span></div>` +
+    (a.restart ? `<div class="row warn">${I.warn}<span>${rsLeft > 0 ? `Restart warning for <b>${hm.format(new Date(a.restart * 1000))}</b>, in ${inMin(rsLeft)}` : `The restart time (${hm.format(new Date(a.restart * 1000))}) has passed`}</span></div>` : "") +
+    (pend ? `<div class="row">${ICON.msg.replace("<svg ", '<svg class="i" ')}<span>${plural(pend, "message")} to one player waiting to be seen</span></div>` : "") + `</div>`);
   put("ov-feed", d.feed.length ? feedHtml(d.feed.slice(0, 7), false) : `<p class="empty">Sign-ins, goals and results will appear here.</p>`);
 }
 
@@ -1399,7 +1439,7 @@ function renderMatches(d, playing, ready, fromLoad) {
   const onDay = ui.rr[0] === "d" ? " on " + dLong.format(new Date(+ui.rr.slice(1) * 1000)) : "";
   text("r-count", none ? "" : (shownRs.length < total ? `Showing ${shownRs.length} of ${total}` : plural(total, "result")) + onDay);
   const rs = {length: total};
-  put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results ${q ? `with "${esc(ui.rq)}" ` : ""}${ui.rr !== "all" ? "in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
+  put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results${q ? ` with "${esc(ui.rq)}"` : ""}${ui.rr !== "all" ? " in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
     `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col class="hm"><col class="s"><col class="aw"><col class="l"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th><th scope="col" class="num hide-md">Length</th></tr></thead><tbody>` +
     shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
       return `<tr><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}</td>
@@ -1411,7 +1451,16 @@ function renderMatches(d, playing, ready, fromLoad) {
 
 const FKINDS = [["all", "All", () => true], ["players", "Sign-ins", f => f.kind === "login" || f.kind === "logout"], ["matches", "Matches & goals", f => ["match", "goal", "result", "search"].includes(f.kind)],
   ["warn", "Warnings", f => f.kind === "warn"], ["admin", "Messages & admin", f => f.kind === "info" || f.kind === "web" || f.kind === "msg"]];
+function feedSide(d) {
+  const day = d.now - 86400, recent = d.feed.filter(f => f.t > day), n = k => recent.filter(f => f.kind === k).length;
+  const who = new Map();
+  for (const f of recent) for (const p of d.players) if (f.text.includes(p.name)) who.set(p.pid, (who.get(p.pid) || 0) + 1);
+  const top = [...who.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([pid, c]) => { const p = d.players.find(x => x.pid === pid); return `<li>${pname(p.name, pid, "fs-" + pid)} <span class="muted small">${c}</span></li>`; }).join("");
+  put("feed-side", `<h3>Last 24 hours</h3><dl class="kv"><dt>Sign-ins</dt><dd>${n("login")}</dd><dt>Matches finished</dt><dd>${n("result")}</dd><dt>Goals</dt><dd>${n("goal")}</dd><dt>Warnings</dt><dd>${n("warn")}</dd></dl>` +
+    (top ? `<h3>Most active</h3><ol class="list-plain" style="display:grid;gap:6px">${top}</ol>` : ""));
+}
 function renderFeed(d) {
+  feedSide(d);
   const q = ui.fq.toLowerCase(), match = f => !q || f.text.toLowerCase().includes(q);
   $("f-q").closest(".toolbar").hidden = !d.feed.length;
   put("f-filter", FKINDS.map(([k, l, fn]) => `<button type="button" data-ff="${k}" data-key="ff-${k}" aria-pressed="${ui.ff === k}">${l} <span class="n">${d.feed.filter(f => fn(f) && match(f)).length}</span></button>`).join(""));
@@ -1466,7 +1515,7 @@ async function loadPlayer() {
     `<h3>Matches</h3>` + (ms.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${nm(m.opp)}${m.r.reason ? ' <span class="pill neutral tag">abandoned</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (ms.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${ms.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
     (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true, pid) : "");
-  $("sh-f").innerHTML = `<button type="button" class="primary needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
+  $("sh-f").innerHTML = `<button type="button" class="primary needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="danger needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
       `<span class="small muted" style="flex:1;min-width:10em">${p.online ? "Kick disconnects them now; they can come back." : "The message waits until they next open an online mode."}</span>`;
   $("sh-b").insertAdjacentHTML("beforeend", `<h3>Remove this player</h3><div class="dmrow"><span class="grow small muted">Deletes their name, rating and table row; past results stay. If they play again, the game asks them for a name like on their first visit.</span><button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button></div>`);
 }
@@ -1489,7 +1538,7 @@ function renderInvite(d) {
   put("joins", (ps.length ? `<ul class="list-plain mini">` + ps.slice(0, 6).map(p => `<li>${avatar(p)}<span class="grow">${pname(p.name, p.pid, "jn-" + p.pid)}</span><span class="r">joined ${esc(ago(p.created, now))}</span></li>`).join("") + `</ul>` +
       (ps.length > 6 ? `<p class="note"><a href="#players">All ${ps.length} players</a></p>` : "")
     : `<p class="empty">Nobody yet. Friends appear here within seconds of opening Quick Match with the mod.</p>`) +
-    (dls ? `<p class="note">The mod was downloaded ${plural(dls, "time")} recently (from this page or the link).</p>` : ""));
+    (dls ? `<p class="note">The mod was downloaded ${plural(dls, "time")} in the activity log's history (from this page or the link).</p>` : ""));
 }
 function renderServer(d, s) {
   const kv = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
@@ -1875,10 +1924,11 @@ function meter(prefix, personal) {
     if ($(prefix + "-prev")) put(prefix + "-prev", t || b ? `<div class="preview"><div class="ph">Preview</div><div class="pb"><b>${esc(t) || '<span class="muted">Title</span>'}</b>${esc(b) || '<span class="muted">Message</span>'}</div></div>` : "");
     m.classList.toggle("empty", !t && !b);
     if (!t && !b) { text(f, "Up to 60 characters for the title and 600 for the message."); $(f).className = "small muted"; m.firstChild.style.width = "0"; m.classList.remove("full"); return; }
-    if (!t || !b) { text(f, !t ? "Add a title too." : "Add the message too."); return; }
+    if (!t || !b) { text(f, !t ? "Add a title too." : "Add the message too."); $(f).className = "small muted"; return; }
+    text(f, "Checking it fits the game's message box…"); $(f).className = "small muted";
     const n = ++n0;
     t0 = setTimeout(async () => {
-      let pct; try { pct = (await api("/admin/api/message", {method: "POST", body: JSON.stringify({check: true, title: t, body: b, personal})})).pct; } catch (e) { return; }
+      let pct; try { pct = (await api("/admin/api/message", {method: "POST", body: JSON.stringify({check: true, title: t, body: b, personal})})).pct; } catch (e) { if (n === n0) text(f, `Title ${t.length}/60 · message ${b.length}/600. The fit is checked when the server answers.`); return; }
       if (n !== n0) return;
       m.firstChild.style.width = Math.min(100, pct) + "%"; m.classList.toggle("full", pct > 100);
       text(f, pct > 100 ? `Too long for the game's message box (${pct}%). Shorten it; non-Latin letters take more room.` : `Uses ${pct}% of the game's message box · title ${t.length}/60.`);
@@ -2015,7 +2065,7 @@ function start(focus) {
   untilText = until ? new Intl.DateTimeFormat([], until * 1000 - Date.now() < 86400000 ? {hour: "numeric", minute: "2-digit"} : {month: "short", day: "numeric"}).format(new Date(until * 1000)) : "";
   route(focus);
   refresh(); loadGames();
-  timer = setInterval(refresh, 3000); gamesTimer = setInterval(loadGames, 15000);
+  timer = setInterval(refresh, 3000); gamesTimer = setInterval(loadGames, 15000); setInterval(paintUpd, 1000);
 }
 if (token) start();
 else infoP.then(i => i.same_pc ? localSignIn().catch(() => showLogin()) : showLogin());
