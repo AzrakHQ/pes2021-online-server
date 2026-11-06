@@ -2,7 +2,7 @@
 
 > **Live checks (2026-11-06, livetests.md):**
 > - Q3 confirmed: a player-list **RELOAD** pushed to a game whose list cache is not empty ended the process within 0.25 s, and its Wine log shows `code=e06d7363 (EXCEPTION_WINE_CXX_EXCEPTION)` just before the exit; an **UPDATE** to the other game was harmless.
-> - Q1: with different data (one copy on a Live Update, the other stock) the room start failed twice, but in both runs our test server also had a stale room for the owner, so the result is not clean (see livetests.md). Still to repeat cleanly: expect MXNV_0017 with `is_revision_check` YES, a normal match with NO.
+> - Q1, clean repeat (livetests.md): one copy on a Live Update, the other stock. With `is_revision_check` absent both sessions ended 2 s after START with **GNCX_0006** (GNCX556, OnlineModeMultiplay.cpp:556), "Unable to connect.", not the MXNV_0017 predicted below; with `is_revision_check:"NO"` both reached team selection. The switch works as described; the on-screen code differs (line 556 not read yet).
 
 
 Tags: **[static]** read at the cited address, **[inferred]**, **[guess]**. Dumps are in the working folder (not published).

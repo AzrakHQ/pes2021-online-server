@@ -14,6 +14,8 @@ the repo code is not changed. Copy this folder anywhere outside the repo and run
   `cryptography`.
 - `livedata.py` (`LIVEDATA=1`): lists `www/<name>.cpk` in CMD_GET_DLC_FILELIST while `ctl.json` says
   `{"livedata": "<name>.cpk"}` and serves it on port 8090. Build a test CPK with `../mklivedata.py`.
+- `cooptest.py` (`COOP=1`): Online Co-op 1 vs 1 handlers (force_alone, one WATCH_COOP_MATCHING push); `ctl.json` `coop_echo` echoes SYNC_PROGRESS, `gamerelay_p2p` answers GET_GAMERELAY with `game_sycom "P2P"`.
+- `ctl.json` `{"err": {"CMD_X": "ERR_Y"}}` replies that error instead (dialog photos), `manner_warn`, `bad_p2p` (unreachable P2P addresses), `server_env`, one-off `push`.
 - `HELLO_MAX=2`: answer the mod's hello with version 2 (same-math hooks off).
 - `to_lobby.sh`: drives one game copy into the lobby, gated on server-log events (needs the game folder's
   `tools/pes.py`).

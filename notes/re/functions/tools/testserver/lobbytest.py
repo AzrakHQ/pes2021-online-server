@@ -19,6 +19,20 @@ def pack(d):
     return msgpack.packb(d, use_bin_type=True, unicode_errors="surrogateescape")
 
 
+import base64 as _b64
+# an unreachable P2P address (TEST-NET 192.0.2.1, port 9) in the same blob layout the game sends
+_BAD_ADDR = msgpack.packb({"address_family": 1, "sa_data": _b64.b64encode(bytes([0, 9, 0, 0, 192, 0, 2, 1]) + bytes(6)).decode()},
+                          use_bin_type=True).decode("utf-8", "surrogateescape")
+
+
+def _ctl_bad_p2p():
+    import json, os
+    try:
+        return bool(json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ctl.json"))).get("bad_p2p"))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def pid_of(sess):
     return pesmatch._pid(sess)
 
@@ -48,6 +62,8 @@ def room_player(svc, room, pid):
          "side": "HOME" if pid == room["owner"] else "AWAY", "is_quality_bad": "NO", "has_guest": "NO"}
     m.update({k: v for k, v in pesmatch._state(svc)["ntl"].get(pid, {}).items()
               if k in ("host_addr", "reflexive_addr", "relayed_addr", "ntl_nat_type")})
+    if _ctl_bad_p2p():
+        m.update(host_addr=_BAD_ADDR, reflexive_addr=_BAD_ADDR)
     return pack(m)
 
 
@@ -200,6 +216,8 @@ def join_room(svc, sess, req, orig):
     owner = {"pid": r["owner"], "pname": pname(svc, r["owner"], nested=False)}
     owner.update({k: v for k, v in pesmatch._state(svc)["ntl"].get(r["owner"], {}).items()
                   if k in ("host_addr", "reflexive_addr", "relayed_addr", "ntl_nat_type")})
+    if _ctl_bad_p2p():
+        owner.update(host_addr=_BAD_ADDR, reflexive_addr=_BAD_ADDR)
     return {"result": NOERR, "room_owner": pack(owner), "room_stat": r["state"]}
 
 
@@ -224,7 +242,9 @@ def entry_game(svc, sess, req, orig):
 @h("CMD_SET_GAMEMEMBER")
 def set_gamemember(svc, sess, req, orig):
     pid = pid_of(sess); r = room_of(pid)
-    if not r or r["owner"] != pid or r["state"] != "WAITING":
+    if r and r["owner"] == pid and r["state"] != "WAITING":
+        return {"result": NOERR}            # the owner repeats SET_GAMEMEMBER right after the start: just ack it
+    if not r or r["owner"] != pid:
         return orig(svc, sess, req)
     if len(r["members"]) < 2 or set(r["entries"]) != set(r["members"]):
         log.info("LOBBY start refused: members %s entries %s", r["members"], list(r["entries"]))
@@ -314,3 +334,27 @@ def _server_env(svc, sess, req):
 
 
 pescmds.HANDLERS["CMD_GET_SERVER_ENV"] = _server_env
+
+
+# ---- {"err": {"CMD_X": "ERR_Y"}} in ctl.json: reply that error instead (dialog photographs) ----------
+#      {"manner_warn": "A_TO_B"}: GET_MANNER_WARN warn_kind
+def install_err_overrides():
+    def wrap(name, fn):
+        def w(svc, sess, req):
+            e = _ctl().get("err", {}).get(name)
+            if e:
+                log.info("LOBBY ctl err %s -> %s", name, e)
+                return {"result": e}
+            return fn(svc, sess, req)
+        return w
+    for name, fn in list(pescmds.HANDLERS.items()):
+        pescmds.HANDLERS[name] = wrap(name, fn)
+    orig = pescmds.HANDLERS.get("CMD_GET_MANNER_WARN")
+
+    def manner(svc, sess, req):
+        k = _ctl().get("manner_warn")
+        if k:
+            log.info("LOBBY ctl manner_warn %s", k)
+            return {"result": NOERR, "warn_kind": k}
+        return orig(svc, sess, req) if orig else {"result": NOERR}
+    pescmds.HANDLERS["CMD_GET_MANNER_WARN"] = wrap("CMD_GET_MANNER_WARN", manner)

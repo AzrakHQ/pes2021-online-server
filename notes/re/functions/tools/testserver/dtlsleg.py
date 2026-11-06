@@ -287,12 +287,31 @@ class _Endpoint(asyncio.DatagramProtocol):
     def connection_made(self, t):
         self.t = t
 
+    def roam(self, addr, data):
+        """The game's DTLS socket is re-created every 10 s while DSCP is on (Network.DscpEnable, default true),
+        so the client's source port changes but the DTLS session stays. Find the session from the same IP whose
+        keys decrypt this record and move it (and its relayed traffic) to the new port."""
+        d = _untrail(data)
+        for old, p in list(self.peers.items()):
+            if old[0] != addr[0] or p.dead or not p.ready or not getattr(p, "keys", None):
+                continue
+            if p.manual(d) is not None:
+                self.peers.pop(old, None); self.peers[addr] = p; p.addr = addr
+                if p.conn is not None:
+                    p.conn.peer = addr
+                log.info("DTLS session moved %s -> %s (client changed its UDP port)", old, addr)
+                return p
+        return None
+
     def datagram_received(self, data, addr):
         if data[:1] == b"\x17":
             log.info("DTLS %s rx app datagram %dB", addr, len(data))
         p = self.peers.get(addr)
+        if (p is None or p.dead) and data[:1] == b"\x17":
+            p = self.roam(addr, data)
         if p is None or (p.dead):
             if not data or data[0] != 22:              # only a handshake record may open a session
+                log.info("DTLS %s %dB record type %s from a port with no session: dropped", addr, len(data), data[:1].hex())
                 return
             p = self.peers[addr] = _Peer(self, addr)
             log.info("DTLS %s new session (%dB first record)", addr, len(data))

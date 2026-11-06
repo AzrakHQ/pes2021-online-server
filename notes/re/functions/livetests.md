@@ -253,3 +253,61 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
 - The match itself ran over the direct path. **Open:** every 21.4 s each game asks for the TURN list again and
   rebuilds both legs (new allocations, new address published). The DTLS-leg Allocate success must not carry the
   dual-route SOFTWARE directive (we fixed that; the cycle stayed).
+
+### TURN restart cycle: fixed (turncycle.md)
+- The game's DTLS socket is re-created every 10 s while DSCP is on (`Network.DscpEnable`, default true), so the
+  client's UDP source port changes while the DTLS session stays. A relay keyed by (ip, port) stops answering, the
+  next Refresh "ping" waits 10 s, and the client restarts TURN: that was the 21.4 s cycle.
+- With session roaming in `dtlsleg.py` (a record from an unknown port of a known IP that decrypts with a session's
+  keys moves that session and its relayed traffic to the new port), the log showed "session moved" for both
+  games every 10.0 s, Refresh answered every 5 s, and no new TURN list request for 70+ s. Fixed.
+- Alternative without relay changes: `GET_SERVER_ENV.proto_opt {"P2P":{"Network":{"DscpEnable":false}}}`
+  (static; not tested).
+
+### A match forced onto the relay: not yet
+- Both games given unreachable P2P addresses (192.0.2.1:9 in the player list and `room_owner`), relay working:
+  after SYSTEM_NOTICE START/END no ChannelData moved and about 10 s later the owner left with
+  `LEAVE_ROOM {error_code MXNV_0013}` (MXNV476, OnlineModeTaskMatchSession.cpp line 476) and saw C_DYUN_0013.
+  So the P2P link-up does not fall back to the TURN route on its own; what it needs is being read in the code.
+
+### Online Co-op, 1 vs 1 (misc.md §1/§3, coop2.md)
+- Menu: eFootball → Online Co-op → Casual Match / Clan Match / CO-OP Stats / CO-OP Settings (+ "Co-op Room
+  List"). Entry: JOIN_ONLINE_MODE COOP, the usual mode-entry commands, GET_CLAN_LIST, GET_COOP_PROFILE,
+  GET_COOP_REJECT_LIST, GET_COOP_MAINMENU_INFO, GET_IS_JOIN_COOP_ROOM. Casual Match → GET_COOP_QUICKMATCHOPTION →
+  "Matchmaking Settings" (VS Settings 3 vs 3, Match Level, Guest User; locked at co-op level 1) →
+  SET_COOP_QUICKMATCHOPTION.
+- **SYNC_PROGRESS must be echoed:** after "Go to Matchmaking" each copy sends `SEND_NOTICE {pid_list:[self],
+  data {"notice_key":"SYNC_PROGRESS","pid_list":[self]}}` and waits up to 30 s for its own group's members in a
+  WATCH_NOTICE. Our 1v1 relay never sends a notice back to its sender; with an echo the copy continues with
+  `START_COOP_MATCHING {matching_type ONLINE_COOP, coop_player_info_list [blob{pid, is_good_reputation,
+  guest_kind, user_id blob{pid, pname}, owner_pid}], use_team_id 262143, retry_num 0}`.
+- After our WATCH_COOP_MATCHING FINISH push (two solo groups), both copies start the session:
+  - with GET_GAMERELAY `game_sycom ""`: CreateMultiplaySession fails (`SEND_MATCHING_RESULT error_code
+    MXNV_0010`, pid 0 and zero addresses). Co-op takes its network type from `game_sycom` ("P2P" = 1);
+    Quick Match forces type 1 itself.
+  - with `game_sycom "P2P"`: SEND_SYNC_NOTICE, the TURN list and SEND_TURN_ADDRESS_DATA follow, but
+    `SEND_SYSTEM_NOTICE {pid_list [], data "START:pid=0;…"}`, SET_GAMERELAY_CHECK_RES `ER_CONNECT` after 30 s
+    and `LEAVE_ROOM MXNV_0013`. The client's peer entry has pid 0. Open (being read in the code).
+
+### Dialogs photographed (misc.md §3 list; the error was forced on one copy)
+| Reply | On screen | Then |
+|---|---|---|
+| JOIN_ONLINE_MODE → ERR_DIFFERENT_PATCHVERSION | "Your version of PES 2021 is out of date. Please update to the latest version and reconnect." | main menu |
+| CHECK_CHEAT → ERR_PARAMCHECK_FAILED | "Invalid player data found.", then a second dialog "Unable to load content data. The data may be corrupted, or conditions for use may not have been met. CODE:CCWR_0014" | main menu |
+| GET_LOBBYLIST → ERR_MODE_BLOCKED | "Some of our online services are currently unavailable. Please refer to Online Information for further details." | main menu |
+| JOIN_LOBBY → ERR_LOBBYUSERMAX | "Cannot participate due to full quota." | main menu |
+| GET_BLOCKLIST → ERR_DATABASE | "An error occurred while accessing the PES 2021 database." | main menu |
+| CREATEJOIN_ROOM → ERR_ROOMCREATELIMIT | "You cannot create any more Match Rooms." | back to Match Room Settings |
+| GET_MANNER_WARN `warn_kind A_TO_B` | "Your courtesy rating has fallen to "B". Please ensure that the number of times you disconnect does not increase any further. Users with a "B" courtesy rating are subject to the following restrictions. · You will be more likely to be paired with users who have "B" or "C" courtesy ratings. · If your courtesy rating remains at "B" for some time, it will eventually fall to "C", thereby making you subject to further restrictions." | continues into the lobby |
+| SET_GAMEMEMBER → ERR_DATABASE (default reply) | "An unexpected problem has occurred while communicating with the PES 2021 server. CODE:C_DYUN_0013" | room |
+- `{re}`/`{rf}` show as "PES 2021" in these texts, as misc.md says.
+
+### Data mismatch, clean repeat
+- Fresh server, one room. Copy 1 with the Live Update (`param_check_sum …DA6094`), copy 2 stock (`…DBAE73`):
+  - `is_revision_check` absent (= YES): the room start ran GET_MATCHID … SYSTEM_NOTICE START/END, then both
+    copies sent `LEAVE_ROOM {error_code GNCX_0006}` 2 s later and showed "Unable to connect." GNCX_0006 is
+    GNCX556 (OnlineModeMultiplay.cpp line 556, fn 0x1410001f0), **not the MXNV_0017 "DATAPACK error" that
+    datacheck.md predicted**; which check at line 556 fires is not read yet. It depends on the same switch.
+  - `is_revision_check "NO"` (same two copies, new room): DATASYNC, SET_GAMEMEMBERENV, TEAMSELECT — both reached
+    team selection. So a sum mismatch blocks the match only while `is_revision_check` is YES, as datacheck.md Q1 says. (Playing a
+    whole match with different data was not tried; datacheck.md warns of desync.)

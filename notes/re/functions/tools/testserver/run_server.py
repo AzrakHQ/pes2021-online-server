@@ -11,7 +11,10 @@ if os.environ.get("HELLO_MAX"):
     identity.HELLO_VERSION = int(os.environ["HELLO_MAX"])   # 2 = mod keeps its same-math hooks off
 if os.environ.get("DTLS") == "1":
     import dtlsleg  # noqa: F401,E402  (TURN-over-DTLS second leg; needs TURN=1)
+if os.environ.get("COOP") == "1":
+    import cooptest  # noqa: F401,E402  (Online Co-op 1 vs 1 test handlers)
 if os.environ.get("LIVEDATA") == "1":
     import livedata  # noqa: F401,E402  (test Live Update from www/, switched by ctl.json)
 from pesserver.__main__ import main  # noqa: E402
+lobbytest.install_err_overrides()   # after every add-on registered its handlers
 main()
