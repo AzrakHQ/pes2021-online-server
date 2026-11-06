@@ -324,6 +324,13 @@ def admin_push(svc, params):
 
 
 # ---- after the match: game relay + relay check -----------------------------------------------------
+def _int(v):
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return 0
+
+
 def _room_of(svc, pid):
     for rid, r in sorted(_state(svc)["rooms"].items(), reverse=True):
         if pid in r["members"]:
@@ -337,6 +344,11 @@ def get_gamerelay(svc, sess, req):
     ip = advertised_addr(svc, sess)
     out = {"result": NOERR, "gamerelay_index": 0, "grid": 1, "ip_addr": ip,
            "port": int(os.environ.get("PESSERVER_RELAY_PORT", "7600")), "game_sycom": ""}
+    # Co-op takes its network mode from game_sycom ("" = none: CreateMultiplaySession fails, MXNV_0010);
+    # Quick Match and the lobby set P2P themselves. This request comes over HTTP, so the pid is in it.
+    from . import pescoop
+    if pescoop.in_coop_room(svc, _pid(sess) or _int(req.get("pid"))):
+        out["game_sycom"] = "P2P"
     log.info("GAMERELAY pid %s -> %s", _pid(sess), out)
     return out
 
@@ -367,6 +379,9 @@ def _relay_notice(watch_msgid):
             pids = [pids]
         data = req.get("data", "")
         delivered = []
+        # A co-op player waits for its own SYNC_PROGRESS notice (TaskSyncProgress expects every member of its
+        # group, itself included, to show up in a received notice), so that one also goes back to the sender.
+        echo = watch_msgid == "CMD_WATCH_NOTICE" and '"SYNC_PROGRESS"' in str(data)
         # The game's pid_list grows by one copy per match ([1], [1, 1], [1, 1, 1]... seen live);
         # deliver once per player, in order, and never back to the sender.
         targets = []
@@ -375,7 +390,7 @@ def _relay_notice(watch_msgid):
                 p = int(p)
             except (TypeError, ValueError):
                 continue
-            if p not in targets and p != _pid(sess):
+            if p not in targets and (p != _pid(sess) or echo):
                 targets.append(p)
         for p in targets:
             s = svc.online.get(p)

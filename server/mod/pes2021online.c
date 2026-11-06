@@ -31,7 +31,10 @@
  *     those functions in ucrtbase.dll and answers with its own copies (musl-math/), the same code on
  *     every PC. Only with servers that keep such players apart from older mods (/mod/hello version 3;
  *     the id line then says "PESID2 <id> math1"); otherwise the runtime's own functions are used.
- * The game's own files and code are not modified. dinput8 itself is forwarded to the system DLL.
+ *   - Online Co-op: the game forgets to give its P2P layer the opponent it was matched with, so co-op never
+ *     connects. Two hooks on the game's co-op code add the step Quick Match has (see "Online Co-op" below);
+ *     the id line then also says "coop1". Only on the exact 1.01.00 code.
+ * The game's own files are not modified; in memory only the co-op functions above are hooked. dinput8 itself is forwarded to the system DLL.
  *
  * MIT license (this file). MinHook (BSD 2-clause) hooks; Monocypher (CC0/BSD 2-clause) checks signatures.
  */
@@ -54,7 +57,7 @@
 #include "monocypher/monocypher.h"
 #include "monocypher/monocypher-ed25519.h"
 
-#define MOD_VERSION "0.4.0"
+#define MOD_VERSION "0.5.0"
 
 /* Reserved settings area: the server overwrites everything after the 32-byte marker with
  * "key=...\nname=...\nurl=...\naddrs=a,b\nbook=...\n" (see server/pesserver/identity.py pack_mod). */
@@ -92,6 +95,7 @@ static CRITICAL_SECTION g_slock;  /* own lock for the id line and sockets: g_loc
 static FILE *g_log;
 static volatile LONG g_id_on;     /* the server in use reads the player-id line */
 static volatile LONG g_math_on;   /* the game gets our math functions (server pairs by them) */
+static volatile LONG g_coop_fix;  /* the co-op hooks are in (id line says coop1) */
 static char g_id_hex[33];         /* this install's player id ("" = none) */
 static char g_id_line[64];        /* the line for the server in use */
 
@@ -303,7 +307,7 @@ static void use_server(int hello_v)
 {
     LONG math = hello_v >= 3 || GetEnvironmentVariableA("PES2021ONLINE_TEST_MATH", NULL, 0) > 0;  /* tests only */
     EnterCriticalSection(&g_slock);
-    if (hello_v >= 3) snprintf(g_id_line, sizeof g_id_line, "PESID2 %s math1\n", g_id_hex);
+    if (hello_v >= 3) snprintf(g_id_line, sizeof g_id_line, "PESID2 %s math1%s\n", g_id_hex, g_coop_fix ? " coop1" : "");
     else snprintf(g_id_line, sizeof g_id_line, "PESID1 %s\n", g_id_hex);
     LeaveCriticalSection(&g_slock);
     InterlockedExchange(&g_id_on, hello_v >= 2 && g_id_hex[0]);
@@ -872,6 +876,125 @@ static void hook_math(void)
 #undef HOOK_IT
 }
 
+/* ------------------------------------------------------------------------ Online Co-op (1 vs 1)
+ * In 1.01.00 Online Co-op never connects. After matching, the game builds the list of the players it must
+ * reach (TaskCoopSession, 0x141134c00) but, unlike Quick Match and the Friendly Match Lobby, never hands that
+ * list to its P2P layer (0x141092720), so the P2P layer looks for "pid 0" and gives up (MXNV_0013). The game's
+ * WATCH_COOP_MATCHING handler (0x14110fe00) also drops the peers' addresses that the reply parser decoded.
+ * Two hooks put back exactly what Quick Match does; nothing else in the game changes:
+ *   - after the co-op peer list is built, hand it to the P2P layer;
+ *   - after the matching push is handled, copy each member's host/reflexive address and NAT type into the
+ *     member record the peer list is built from.
+ * The P2P layer takes one peer, so this carries 1 vs 1 co-op (one human per side). The hooks go in only when
+ * the code at every address is the 1.01.00 code; the server then pairs co-op players whose id line says
+ * "coop1" (notes/re/functions/coop2.md). */
+#define PES_BASE 0x140000000ULL
+static uint8_t *g_exe;                                      /* the game's image base */
+static void *game_va(uint64_t va) { return g_exe + (va - PES_BASE); }
+static uintptr_t (*o_coop_peers)(void *, void *, void *, void *);   /* 0x141134c00 (TaskCoopSession *) */
+static uintptr_t (*o_coop_watch)(void *, void *, void *, void *);   /* 0x14110fe00 (watch command *) */
+static void (*game_hand_peers)(void *);                      /* 0x141092720 (network-mode struct *) */
+
+/* g = [0x1436fced8]: online mode globals. g+0x30 = co-op state (member slots at +0x58 / +0x90, each with a
+   vector of 0x68-byte member records at +0x18), g+0x58 = network-mode struct (peer vector at +0x60). */
+static uint8_t *coop_globals(void) { return *(uint8_t **)game_va(0x1436fced8); }
+
+static uintptr_t hk_coop_peers(void *a, void *b, void *c, void *d)
+{
+    uintptr_t r = o_coop_peers(a, b, c, d);
+    uint8_t *g = coop_globals();
+    uint8_t *net = g ? *(uint8_t **)(g + 0x58) : NULL;
+    if (!net) return r;
+    uint8_t *p0 = *(uint8_t **)(net + 0x60), *p1 = *(uint8_t **)(net + 0x68);
+    size_t n = p0 && p1 > p0 ? (size_t)(p1 - p0) / 0x30 : 0;
+    game_hand_peers(net);
+    logf_("co-op: %u peer(s) handed to the P2P layer%s (first pid %d)", (unsigned)n,
+          n == 1 ? "" : " (it takes exactly one; 1 vs 1 only)", n ? *(int32_t *)p0 : 0);
+    return r;
+}
+
+/* Address fields: parsed member (0x3e8 bytes) host family +0xd8 / sa_data +0xdc, reflexive +0xf0 / +0xf4,
+   NAT type +0x120; member record (0x68 bytes) +0x3c / +0x40, +0x50 / +0x54, +0x64. sa_data is 14 bytes. */
+typedef struct { int32_t pid; uint8_t host[4 + 14], refl[4 + 14]; uint32_t nat; } coop_addr;
+
+static uintptr_t hk_coop_watch(void *cmd, void *b, void *c, void *d)
+{
+    coop_addr got[24]; int n = 0;
+    uint8_t *res = cmd ? *(uint8_t **)((uint8_t *)cmd + 0xd0) : NULL;   /* the parsed reply (0x141173e20) */
+    if (res) {
+        uint8_t *groups = *(uint8_t **)(res + 0x1d8);
+        uint32_t ng = *(uint32_t *)(res + 0x1e0);
+        for (uint32_t i = 0; groups && i < ng && i < 8; i++) {
+            uint8_t *mem = *(uint8_t **)(groups + i * 0x20 + 8);
+            uint32_t nm = *(uint32_t *)(groups + i * 0x20 + 0x10);
+            for (uint32_t j = 0; mem && j < nm && j < 3 && n < 24; j++, n++) {
+                uint8_t *m = mem + j * 0x3e8;
+                got[n].pid = *(int32_t *)(m + 0x28);
+                memcpy(got[n].host, m + 0xd8, 4); memcpy(got[n].host + 4, m + 0xdc, 14);
+                memcpy(got[n].refl, m + 0xf0, 4); memcpy(got[n].refl + 4, m + 0xf4, 14);
+                got[n].nat = *(uint32_t *)(m + 0x120);
+            }
+        }
+    }
+    uintptr_t r = o_coop_watch(cmd, b, c, d);                /* builds the member records */
+    uint8_t *g = coop_globals(), *co = g ? *(uint8_t **)(g + 0x30) : NULL;
+    int copied = 0;
+    for (int s = 0; co && s < 2; s++) {
+        uint8_t *slot = co + (s ? 0x90 : 0x58);
+        uint8_t *rec = *(uint8_t **)(slot + 0x18), *end = *(uint8_t **)(slot + 0x20);
+        for (; rec && rec < end; rec += 0x68)
+            for (int k = 0; k < n; k++)
+                if (got[k].pid && got[k].pid == *(int32_t *)(rec + 0x28)) {
+                    memcpy(rec + 0x3c, got[k].host, 4); memcpy(rec + 0x40, got[k].host + 4, 14);
+                    memcpy(rec + 0x50, got[k].refl, 4); memcpy(rec + 0x54, got[k].refl + 4, 14);
+                    memcpy(rec + 0x64, &got[k].nat, 4);
+                    copied++;
+                    break;
+                }
+    }
+    if (n) logf_("co-op: addresses of %d of %d member(s) kept", copied, n);
+    return r;
+}
+
+/* The exact 1.01.00 bytes at each address: a different build gets no hooks (and no "coop1"). */
+static const struct { uint64_t va; const char *hex; } coop_code[] = {
+    { 0x14110fe00, "40554154415541564157488dac24b0ed" },  /* WATCH_COOP_MATCHING handler */
+    { 0x141134c00, "488bc4554154415541564157488d68b8" },  /* co-op peer list builder */
+    { 0x1411346c3, "e838050000b001" },                    /* its only caller: call 0x141134c00; mov al,1 */
+    { 0x141092720, "48895c240848896c2410488974241857" },  /* hand the peer list to the P2P layer */
+    { 0x14111a8fe, "498bcee81a7ef7ff" },                  /* Quick Match does: mov rcx,r14; call 0x141092720 */
+    { 0x140ff0a20, "488b05b1c47002c3" },                  /* g getter: mov rax,[0x1436fced8]; ret */
+};
+
+static BOOL code_is(uint64_t va, const char *hex)
+{
+    const uint8_t *p = game_va(va);
+    for (size_t i = 0; hex[2 * i]; i++) {
+        unsigned v;
+        if (sscanf(hex + 2 * i, "%2x", &v) != 1 || p[i] != v) return FALSE;
+    }
+    return TRUE;
+}
+
+static void hook_coop(void)
+{
+    g_exe = (uint8_t *)GetModuleHandleW(NULL);
+    const IMAGE_NT_HEADERS *nt = (const IMAGE_NT_HEADERS *)(g_exe + ((const IMAGE_DOS_HEADER *)g_exe)->e_lfanew);
+    if (PES_BASE + nt->OptionalHeader.SizeOfImage <= 0x1436fced8 + 8) { logf_("co-op fix: not PES 2021 1.01.00, off"); return; }
+    for (size_t i = 0; i < sizeof coop_code / sizeof coop_code[0]; i++)
+        if (!code_is(coop_code[i].va, coop_code[i].hex)) {
+            logf_("co-op fix: game code at %llx is not 1.01.00, off", (unsigned long long)coop_code[i].va);
+            return;
+        }
+    game_hand_peers = (void (*)(void *))game_va(0x141092720);
+    if (MH_CreateHook(game_va(0x141134c00), (void *)hk_coop_peers, (void **)&o_coop_peers) != MH_OK ||
+        MH_CreateHook(game_va(0x14110fe00), (void *)hk_coop_watch, (void **)&o_coop_watch) != MH_OK) {
+        logf_("ERROR: co-op fix hooks"); return;
+    }
+    InterlockedExchange(&g_coop_fix, 1);
+    logf_("co-op fix ready (1 vs 1)");
+}
+
 static void maybe_start(HWND parent, DWORD style)
 {
     if (!parent && !(style & WS_CHILD) && !InterlockedCompareExchange(&g_started, 1, 0)) startup();
@@ -905,6 +1028,7 @@ static void install_hooks(void)
     hook(L"ws2_32.dll", "GetAddrInfoExW", hk_GetAddrInfoExW, (void **)&o_GetAddrInfoExW);
     hook(L"ws2_32.dll", "gethostbyname", hk_gethostbyname, (void **)&o_gethostbyname);
     hook_math();
+    hook_coop();
     if (g_id_hex[0]) {
         hook(L"ws2_32.dll", "send", hk_send, (void **)&o_send);
         hook(L"ws2_32.dll", "WSASend", hk_WSASend, (void **)&o_WSASend);

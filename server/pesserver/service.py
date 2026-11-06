@@ -35,7 +35,7 @@ class Service:
     async def handle(self, sess: Session, msg: Message) -> Message:
         if msg.name.startswith("CMD_"):
             # Native PES NCL command (msgpack). Echo framing metadata so the codec replies in kind.
-            from . import pescmds, pesmatch, pesrooms, announce  # noqa: F401  (these register their handlers)
+            from . import pescmds, pesmatch, pesrooms, pescoop, announce  # noqa: F401  (these register their handlers)
             body = pescmds.dispatch(self, sess, msg.name, msg.body)
             for k in ("_kind", "_seq"):
                 if k in msg.body:
