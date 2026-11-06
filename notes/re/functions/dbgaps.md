@@ -1,5 +1,9 @@
 # DB / Live Update gaps (db.md "Still unknown", live.md §6), static pass 2026-11-06
 
+## Corrections from later findings (2026-11-06)
+- **Live 2026-11-06:** the Team.bin override test passed (scoreboard "BRX", entry sum `1E21A8301DFF…746A` as predicted).
+
+
 > **Live checks (2026-11-06, livetests.md):** the Live Update recipe with Player.bin + Team.bin + PlayerAssignment.bin edits was built and served; the measured CHECK_CHEAT sums matched pesdb.py only while the server kept listing the update (new rule, see live.md corrections). The Team.bin short-name check (BAR → BRX) was not reached on screen. The save decrypter mentioned below stays in the working folder (not published).
 
 

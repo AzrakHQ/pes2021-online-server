@@ -1,5 +1,9 @@
 # Hidden room lobbies (Free / Team Play / spectate): how the top menu is built and how to reach them
 
+## Corrections from later findings (2026-11-06)
+- **PES League lobby reached live** (2026-11-06): the lobby choice comes from GET_PESLEAGUE_COMPE_INFO `match_type "PES_LEAGUE_MATCH_1VS1_LOBBY"` sent inside a `compe_data` blob (top-level only gives the 1v1 menu); `lobby_type` is "PESLEAGUE" (spectate2.md).
+
+
 > **Confirmed live (2026-11-05):** Kick Off → scroll past Cup → **Friendly Match Lobby** is there (8th item). Entering it runs the Lobby flow described here; see livetests.md for what the game sent.
 
 

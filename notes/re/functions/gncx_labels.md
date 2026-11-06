@@ -1,5 +1,8 @@
 # GNCX_0006 and the kps address labels (static, PES 2021 1.01.00, 2026-11-06)
 
+> **Live (2026-11-06, livetests.md):** Q1's desync prediction did not hold: with different player stats and `is_revision_check "NO"` the lobby match ran past 1ST_15MIN with no SYNC_FAILED and identical minimaps on both copies. The SYNC_FAILED path exists but did not fire. Q2 (labels) was applied to the server on main (commit 5304860).
+
+
 Static reading only. No network traffic, no game launched. Dumps are in `findings/gncx/` (not published).
 Tags: **[static]** read at the address given, **[log]** seen live (livetests.md, mod notes), **[inferred]**, **[guess]**.
 

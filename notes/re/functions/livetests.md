@@ -363,3 +363,53 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
   → the friend sees **"Data Pack Incompatible."** and stays in the room list (instead of "Unable to connect."
   two seconds after kick-off).
 - Room chat (SEND_TEXTCHAT relay) is built but was not tried live (typing in the chat box was not driven).
+
+## Third round, 2026-11-06 evening (main's server + `tools/testserver/spectest.py`) [live]
+
+### Spectating: record a match, watch it from storage (spectate2.md)
+- **Recording.** With GET_MATCHID `upload "YES"` both copies sent `START_SEND_GAME_SEQUENCE_DATA {pid}` right after
+  GET_MATCHID, then `SEND_GAME_SEQUENCE_DATA` about every 5 s through DATASYNC, TEAMSELECT and play. Each message
+  is 3 kB or more and arrives as 0x70–0x72 fragments (3 frames, ~3,040 bytes). The first one held 115 records,
+  types 0 (header) and 2, starting `00 00 00 00 27 74 …`. The server kept the first uploader's stream (35 chunks, about 3 minutes in all, kick-off and 3 minutes of play) and dropped the other copy's 33 messages. The stream was closed
+  when the other copy quit (SEND_ABNORMALEND), with `03 00` + `END_OF_DATA` appended by the server.
+- **Viewer path, server replies only (no game-file change):** eFootball → **Online Tournament** →
+  JOIN_ONLINE_MODE / JOIN_PESLEAGUE_COMPE_MODE / GET_PESLEAGUE_MAINMENU_INFO / GET_PESLEAGUE_COMPE_LIST (all with
+  `mode`/`online_mode` "PESLEAGUE") → our competition card "Friends Replays · 1 vs 1 · Eligible" → "Enter this
+  Competition. Proceed?" Yes → GET_PESLEAGUE_COMPE_INFO → a notice that ratings are made uniform → team select
+  with the national teams we listed (France chosen: team_id 8) → "Enter FRANCE into Competition. Proceed?" Yes →
+  JOIN_PESLEAGUE_COMPE, GET_PESLEAGUE_1VS1_MAINMENU_INFO.
+  - **Correction:** with the competition fields only at the top level of COMPE_INFO, the game opened the
+    "eFootball League" 1v1 menu ("Calculating final competition results…"). With the same fields also inside a
+    `compe_data` blob, it went to the **PES League lobby**: GET_LOBBYLIST `lobby_type "PESLEAGUE"`, JOIN_LOBBY,
+    GET_BLOCKLIST, a first GET_WATCHING_MATCH_LIST, REQWATCHL_ROOMLIST → Match Room List with "X Match List".
+  - X → GET_WATCHING_MATCH_LIST {match_category "PESLEAGUE_LOBBY", compe_id 1, index 0} → "Match List": our
+    entry "Player2 0 - 0 Player3", Brazil v France flags, "In Progress" → A → "Spectate Match / User List".
+- **Watching:** Spectate Match → GET_SERVER_ENV → **HTTP GET `<WATCHING_GAME>/<match_id>/1.enc`, 2.enc, … every
+  0.2 s** until the last chunk (the URL id is the match_id from the list) → the stadium → **the recorded match
+  replays**: kick-off with name tags "Player 2"/"Player 3" from our list, then live play (clock running).
+  Replay from storage works with two copies; the chunk format (IV + AES-256-CBC, flag byte 0, items, END_OF_DATA)
+  is confirmed.
+
+### Live Update: team data (Team.bin + PlayerAssignment.bin) is reloaded
+- A Live Update with FC Barcelona's short name "BAR" → "BRX" (Team.bin), Messi's FCB shirt 10 → 11
+  (PlayerAssignment.bin) and Messi Speed +1: in an offline Local Match FC Barcelona v Anderlecht the scoreboard
+  shows **"BRX 0 0 AND"**. CHECK_CHEAT afterwards: `entry_check_sum 1E21A8301DFF00C9DBE591735FF8746A` — **exactly
+  the pesdb.py prediction** (stock …A82F…), `param_check_sum 25D6E9E6…6094` as predicted. So Team.bin and
+  PlayerAssignment.bin from a Live Update override the base data, and the entry checksum model is confirmed.
+- A second update (Speed +3…+15 for the 11 Arsenal starters): `param_check_sum 25D6EA22091EAC5325E05ADB93DA60E7`,
+  exactly as predicted.
+
+### Login "server full"
+- LOGIN → `ERR_FREE_TO_PLAY_FULL`: "Due to excessive traffic on the PES 2021 server, login is currently restricted.
+  Please try reconnecting again later."
+
+### A match with different player data (check off): no desync seen
+- Copy 1 on a Live Update with the 11 Arsenal starters 3–15 Speed faster (sum `…60E7`), copy 2 stock (`…AE73`),
+  `GET_SERVER_ENV.is_revision_check "NO"`, Friendly Match Lobby, Arsenal v Arsenal, autoplay on both.
+- The match ran normally through 1ST and **1ST_15MIN** (same gtimer 12750 from both copies); no SYNC_FAILED,
+  no abnormal end. The two minimaps, captured at the same moment at about 16:00, show **every player in the same
+  place**. Stopped there (gncx_labels.md's stop point).
+- So the match simulation does not visibly diverge with different player stats over 16 minutes. Most likely the
+  team data is exchanged at DATASYNC (TaskSyncTeamData), so both sides simulate with the same data
+  [inferred]; the CHECK_CHEAT sums (and the server refusing mismatched friends) remain the only guard that
+  friends play with the same data, and "check off" is a fairness question, not a crash.

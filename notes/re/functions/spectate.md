@@ -1,6 +1,7 @@
 # Spectating / observing ("Watch match") — static RE
 
 ## Corrections from later findings (2026-11-06)
+- **Spectating works live** (2026-11-06, spectate2.md, livetests.md): recording with `upload "YES"`, the viewer through Online Tournament → PES League lobby → X Match List → Spectate Match, chunks `<WATCHING_GAME>/<match_id>/N.enc`, replay from storage. In GET_WATCHING_MATCH_LIST `team` and `score` are at the game_result level (two each), not per player.
 - misc.md §2 (static, 2026-11-06): `data` = base64 of the full 256-byte buffer (keep `data_len` bytes); each record is already a viewer item (no re-encoding); the end item [3][0] is written by the client; both players upload; the URL id is never checked; the only watch menu is the PES League lobby. Not tested live.
 
 

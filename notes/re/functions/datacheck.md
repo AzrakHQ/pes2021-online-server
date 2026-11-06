@@ -1,5 +1,9 @@
 # DATAPACK check, match-layer timing values, duplicate player-list crash (static, 2026-11-06)
 
+## Corrections from later findings (2026-11-06)
+- **Live 2026-11-06:** with the check off, a lobby match with different player stats stayed in sync past 1ST_15MIN (identical minimaps). The sums are the only guard; a mismatch with the check off is unfair, not fatal (livetests.md).
+
+
 > **Live checks (2026-11-06, livetests.md):**
 > - Q3 confirmed: a player-list **RELOAD** pushed to a game whose list cache is not empty ended the process within 0.25 s, and its Wine log shows `code=e06d7363 (EXCEPTION_WINE_CXX_EXCEPTION)` just before the exit; an **UPDATE** to the other game was harmless.
 > - Q1, clean repeat (livetests.md): one copy on a Live Update, the other stock. With `is_revision_check` absent both sessions ended 2 s after START with **GNCX_0006** (GNCX556, OnlineModeMultiplay.cpp:556), "Unable to connect.", not the MXNV_0017 predicted below; with `is_revision_check:"NO"` both reached team selection. The switch works as described. **gncx_labels.md Q1:** GNCX556 is this same verdict, reported by OnlineModeMultiplay (GNCX_0004 = 60 s timeout, GNCX_0006 = sums differ) one tick before TaskMatchSession would report MXNV_0015/0017, so the player sees GNCX_0004/0006; the table below lists the later MXNV codes.

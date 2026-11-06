@@ -1,6 +1,7 @@
 # Live Update / downloadable data (PES 2021 PC 1.01.00), static RE
 
 ## Corrections from later findings (2026-11-05)
+- **Team data in a Live Update is applied** (live 2026-11-06): Team.bin short name "BAR"→"BRX" showed on the scoreboard, and PlayerAssignment.bin changes moved `entry_check_sum` to exactly the pesdb.py prediction.
 - **Keep listing the update** (live 2026-11-06): the game asks for CMD_GET_DLC_FILELIST again when it enters an online mode; if that list is empty it computes CHECK_CHEAT from the base data, although it still reports `livedata_version`. With the update listed every time, the sums match pesdb.py exactly.
 - dbgaps.md §5: after binding, all 28 pesdb files are reloaded (Team.bin too); PlayerWeekly matters only in live mode 1; ExtraUpdate.bin is `.\download\ExtraUpdate.bin`; save type index = slot − 10.
 - Settled live (livetests.md): the Live Update slot is `C:\ProgramData\KONAMI\eFootball PES 2021 SEASON UPDATE\save\LIVE00000000` (encrypted, the CPK plus 990 bytes); `JOIN_ONLINE_MODE livedata_version` becomes the first field of version_wu.bin ("1.01"); the recipe in §5 works as written.
