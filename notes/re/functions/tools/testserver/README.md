@@ -5,11 +5,17 @@ the repo code is not changed. Copy this folder anywhere outside the repo and run
 
     UPNP=0 PES_CONSOLE=0 PYTHONPATH=$PWD python3 /path/to/testserver/run_server.py > server.log 2>&1
 
-- `lobbytest.py`: Friendly Match Lobby handlers (blocks, room list, create/join, player list, entry, owner start,
+Add-ons are switched by environment variables (see `run_server.py`); with none set it is the plain repo server.
+
+- `replypatch.py` (`PATCH_CTL=<file.json>`): edits any reply of the real handlers from a control file read on
+  every change — `{"patch": {"CMD_X": {"set": {"a.b": V}, "del": ["c"]}}, "err": {"CMD_X": "ERR_Y"},
+  "push": [{"id", "to", "msgid", "body"}]}` (paths go through nested blobs) — and appends every reply's msgpack to
+  `replies.jsonl` (`PATCH_TXLOG`). Used by `../probesession.py` and `../scenario.py`.
+- `lobbytest.py` (`LOBBYTEST=1`, since the server has its own lobby in pesrooms.py): the old test Friendly Match Lobby handlers (blocks, room list, create/join, player list, entry, owner start,
   return to the room). Follows the rules in `../../rooms.md` corrections: RELOAD only as a reply, nested
   `psn_user_id` blobs, `game_env` echoed into the room list. `ctl.json` next to it can trigger one-off pushes and
   extra GET_SERVER_ENV keys.
-- `dtlsleg.py` (`TURN=1 DTLS=1`): the TURN relay's second leg, TURN over DTLS 1.2 on UDP 5350, with the game's ktc
+- `dtlsleg.py` (`DTLS=1`, superseded by the server's turndtls.py): the TURN relay's second leg, TURN over DTLS 1.2 on UDP 5350, with the game's ktc
   framing (`../../ktcdtls.md`) and the dual-route SOFTWARE directive on the TLS leg. Needs pyOpenSSL ≥ 23 and
   `cryptography`.
 - `livedata.py` (`LIVEDATA=1`): lists `www/<name>.cpk` in CMD_GET_DLC_FILELIST while `ctl.json` says

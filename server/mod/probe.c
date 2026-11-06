@@ -11,7 +11,8 @@
  *   call VA [A1 A2 A3 A4]         call a function on the probe thread (only for pure readers/getters)
  *   gcall VA [A1 A2 A3 A4]        queue the call for the game's window thread (runs inside its next
  *                                 PeekMessage/TranslateMessage/DispatchMessage call, hooked in user32 itself);
- *                                 "poll" shows the result as a "gcall" event
+ *                                 "poll" shows the result as a "gcall" event; a crash inside the call is
+ *                                 caught and shown as "gcall VA FAULT code=.. rip=.." (game tainted after)
  *   trace VA [NAME] [MAX] [DEREF] log each call of the function at VA: its four register arguments, the caller
  *                                 and the thread. MAX lines are logged (default 100), later calls only counted.
  *                                 DEREF = "1:64" also dumps 64 bytes at argument 1 (0-based: rcx=0)
@@ -154,15 +155,58 @@ static void probe_untrace(uint64_t va)
 
 typedef uint64_t (__cdecl *fn4_t)(uint64_t, uint64_t, uint64_t, uint64_t);
 
+/* Crash guard for gcalls: a fault inside the called function (access violation, bad instruction, divide by
+ * zero, stack overflow, or a C++ throw that reaches us first) is caught by a vectored handler, which puts the
+ * registers back to just before the call and reports "gcall VA FAULT code=.. rip=..". Memory the call
+ * allocated leaks and a lock it held stays held, so after a fault treat the game as tainted. */
+static CONTEXT g_guard_ctx __attribute__((aligned(16)));
+static volatile LONG g_guard_on;
+static volatile DWORD g_guard_tid, g_fault_code;
+static volatile uint64_t g_fault_rip;
+
+static LONG CALLBACK probe_veh(PEXCEPTION_POINTERS ep)
+{
+    DWORD c = ep->ExceptionRecord->ExceptionCode;
+    if (!g_guard_on || GetCurrentThreadId() != g_guard_tid)
+        return EXCEPTION_CONTINUE_SEARCH;
+    if (c != EXCEPTION_ACCESS_VIOLATION && c != EXCEPTION_ILLEGAL_INSTRUCTION && c != EXCEPTION_INT_DIVIDE_BY_ZERO &&
+        c != EXCEPTION_STACK_OVERFLOW && c != EXCEPTION_PRIV_INSTRUCTION && c != 0xE06D7363 /* C++ throw */)
+        return EXCEPTION_CONTINUE_SEARCH;
+    g_guard_on = 0;
+    g_fault_code = c ? c : 1;
+    g_fault_rip = ep->ContextRecord->Rip;
+    *ep->ContextRecord = g_guard_ctx;          /* resume right after RtlCaptureContext, with g_fault_code set */
+    return EXCEPTION_CONTINUE_EXECUTION;
+}
+
+static volatile int g_drain_busy;
+static volatile int g_gi;
+
 static void probe_drain_gcalls(void)
 {
-    for (int i = 0; i < 16; i++)
-        if (g_gcall[i].state == 1) {
-            uint64_t r = ((fn4_t)game_va(g_gcall[i].fn))(g_gcall[i].a[0], g_gcall[i].a[1], g_gcall[i].a[2], g_gcall[i].a[3]);
-            probe_event("gcall %llx -> %llx", (unsigned long long)g_gcall[i].fn, (unsigned long long)r);
-            g_gcall[i].ret = r;
-            InterlockedExchange(&g_gcall[i].state, 0);
+    if (g_drain_busy)                          /* a called function pumping messages: no nested gcalls */
+        return;
+    g_drain_busy = 1;
+    for (g_gi = 0; g_gi < 16; g_gi++)
+        if (g_gcall[g_gi].state == 1) {
+            static volatile uint64_t r;
+            g_fault_code = 0;
+            g_guard_tid = GetCurrentThreadId();
+            RtlCaptureContext(&g_guard_ctx);
+            if (!g_fault_code) {
+                g_guard_on = 1;
+                r = ((fn4_t)game_va(g_gcall[g_gi].fn))(g_gcall[g_gi].a[0], g_gcall[g_gi].a[1], g_gcall[g_gi].a[2], g_gcall[g_gi].a[3]);
+                g_guard_on = 0;
+                probe_event("gcall %llx -> %llx", (unsigned long long)g_gcall[g_gi].fn, (unsigned long long)r);
+            } else {
+                r = 0;
+                probe_event("gcall %llx FAULT code=%lx rip=%llx", (unsigned long long)g_gcall[g_gi].fn,
+                            (unsigned long)g_fault_code, (unsigned long long)g_fault_rip);
+            }
+            g_gcall[g_gi].ret = r;
+            InterlockedExchange(&g_gcall[g_gi].state, 0);
         }
+    g_drain_busy = 0;
 }
 
 static BOOL (WINAPI *o_TranslateMessage)(const MSG *);
@@ -323,6 +367,7 @@ static void probe_start(void)
     hook(L"user32.dll", "PeekMessageW", hk_PeekMessageW, (void **)&o_PeekMessageW);
     hook(L"user32.dll", "PeekMessageA", hk_PeekMessageA, (void **)&o_PeekMessageA);
     MH_EnableHook(MH_ALL_HOOKS);
+    AddVectoredExceptionHandler(1, probe_veh);
     CreateThread(NULL, 0, probe_thread, (LPVOID)(intptr_t)port, 0, NULL);
 }
 

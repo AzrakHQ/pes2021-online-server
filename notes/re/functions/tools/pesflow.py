@@ -92,15 +92,84 @@ def input_windows(p, wait=1.5):
     return [(a, rtti(p, a)) for a in seen]
 
 
-def dialog_ok(p, cancel=False):
-    """Confirm (or cancel) the open dialog, if any; returns its class name or None."""
+def dialog_ok(p, cancel=False, button=None):
+    """Confirm (or cancel) the open dialog, if any; returns its class name or None.
+    button=i first moves the cursor to button i (Yes/No dialogs: the buttons left to right, from 0)."""
     for a, k in input_windows(p):
         if "Dialog" in k:
+            if button is not None:
+                cur = p.u64(f"@{a + 0x88:x}") + 0xd8
+                p.write(f"@{cur:x}", struct.pack("<I", button))
             vt = p.u64(f"@{a:x}")
             fn = p.u64(f"@{vt + DIALOG_OK + (8 if cancel else 0):x}")
             p.gcall(fn, a)
             return k
     return None
+
+
+TITLE_PRESS = 0x140a98d00     # menu::TitleStart "a button was pressed" (plays titleOut, then posts proceed)
+
+
+def title_press(p):
+    """Leave the title screen (Intro/MenuTitle) without a key press."""
+    for a, k, n in nodes(p):
+        if "TitleStart" in (k or ""):
+            p.gcall(TITLE_PRESS, a)
+            return k
+    return None
+
+
+NCL_ASSIGN = 0x1403d3aa0      # network Buffer assign(buf, data, len): sees every message body in plain msgpack
+NCL_TX, NCL_RX = 0x14184e5b8, 0x141856aa1    # callers: a request being sent / a message received (decoded)
+
+
+def _msg_head(raw):
+    """msgid / rqid / result from the first bytes of a msgpack map (the trace dumps 128 bytes)."""
+    import msgpack
+    u = msgpack.Unpacker(raw=False, strict_map_key=False, unicode_errors="replace")
+    u.feed(raw)
+    out, keys = {}, []
+    try:
+        n = u.read_map_header()
+        for _ in range(n):
+            k = u.unpack()
+            keys.append(str(k))
+            v = u.unpack()
+            if k in ("msgid", "rqid", "result"):
+                out[k] = v
+            if len(out) == 3:
+                break
+    except Exception:  # noqa: BLE001 - truncated dump
+        pass
+    if "msgid" not in out:
+        out["msgid"] = "?{" + ",".join(keys[:4]) + "}" if keys else "?(not msgpack: HTTP/JSON?)"
+    return out
+
+
+def traffic(p, seconds=60, show=print):
+    """Log every request the game sends and every message it receives, decoded inside the game."""
+    import time
+    p.poll()
+    p.untrace(NCL_ASSIGN)
+    p.trace(NCL_ASSIGN, "ncl", 100000, "1:128")
+    end = time.time() + seconds
+    try:
+        while time.time() < end:
+            for e in p.poll():
+                if "hit ncl" not in e:
+                    continue
+                caller = int(e.split("caller=")[1].split()[0], 16)
+                if caller not in (NCL_TX, NCL_RX):
+                    continue
+                n = int(e.split("r8=")[1].split()[0], 16)
+                raw = bytes.fromhex(e.split("*=")[1].strip())[:n]
+                h = _msg_head(raw)
+                arrow = "->" if caller == NCL_TX else "<-"
+                show(f"{time.strftime('%H:%M:%S')} {arrow} {h.get('msgid', '?')} rqid={h.get('rqid')}"
+                     f"{' ' + str(h['result']) if 'result' in h else ''} ({n} bytes)")
+            time.sleep(0.3)
+    finally:
+        p.untrace(NCL_ASSIGN)
 
 
 def wait_screen(p, want, timeout=60, ok_dialogs=True):
@@ -130,11 +199,15 @@ if __name__ == "__main__":
     elif cmd == "windows":
         for a, k in input_windows(p):
             print(hex(a), k)
-    elif cmd == "ok":
-        print(dialog_ok(p) or "no dialog")
+    elif cmd == "traffic":                  # pesflow.py PORT traffic [SECONDS]  (-> sent, <- received)
+        traffic(p, int(sys.argv[3]) if len(sys.argv) > 3 else 60)
+    elif cmd == "title":                    # pesflow.py PORT title   (title screen -> login, no keys)
+        print(title_press(p) or "not on the title screen")
+    elif cmd == "ok":                       # pesflow.py PORT ok [BUTTON]
+        print(dialog_ok(p, button=int(sys.argv[3]) if len(sys.argv) > 3 else None) or "no dialog")
     elif cmd == "go":                       # pesflow.py PORT go lobby|divisions|matchday|quick|coop|...
         print(top_menu_go(p, sys.argv[3]))
     elif cmd == "wait":                     # pesflow.py PORT wait <screen substring> [timeout]
         print(wait_screen(p, sys.argv[3], int(sys.argv[4]) if len(sys.argv) > 4 else 60))
     else:
-        sys.exit("commands: screen | nodes | windows | ok | go ITEM | wait SCREEN [TIMEOUT]")
+        sys.exit("commands: screen | nodes | windows | traffic [S] | title | ok [BUTTON] | go ITEM | wait SCREEN [TIMEOUT]")

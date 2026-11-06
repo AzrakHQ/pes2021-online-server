@@ -24,6 +24,7 @@ class Probe:
     def __init__(self, port, host="127.0.0.1", timeout=10):
         self.s = socket.create_connection((host, port), timeout=timeout)
         self.f = self.s.makefile("rwb", buffering=0)
+        self.sink = None          # optional callable(events): sees every polled event, whoever polls
 
     def cmd(self, line):
         """Send one command; return the lines before the final ok/err line and the ok text."""
@@ -82,7 +83,10 @@ class Probe:
         return self.cmd("traces")[0]
 
     def poll(self):
-        return self.cmd("poll")[0]
+        ev = self.cmd("poll")[0]
+        if self.sink and ev:
+            self.sink(ev)
+        return ev
 
     def close(self):
         try:

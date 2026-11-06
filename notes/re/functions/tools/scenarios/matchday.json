@@ -1,0 +1,20 @@
+{"name": "matchday-open", "inst": 1,
+ "variants": [
+  {"name": "as-is"},
+  {"name": "flat-info", "patch": {"patch": {"CMD_GET_MATCHDAY_INFO": {"del": ["compe_info.info_overview"]}}}},
+  {"name": "err-db", "patch": {"err": {"CMD_GET_MATCHDAY_INFO": "ERR_DATABASE"}}}
+ ],
+ "steps": [
+  {"home": true},
+  {"go": "matchday"},
+  {"wait": "MatchdayCompeList", "timeout": 60},
+  {"key": "Return"},
+  {"sleep": 2},
+  {"dialog": true},
+  {"ok": 1},
+  {"reply": "CMD_GET_MATCHDAY_INFO", "timeout": 20},
+  {"sleep": 5},
+  {"screen": true},
+  {"dialog": true, "optional": true},
+  {"shot": "after-info"}
+ ]}

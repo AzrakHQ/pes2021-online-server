@@ -206,7 +206,8 @@ thread that runs your gcalls.
 - **Confirm a dialog = call its A handler, vtable slot 49 (+0x188).** [static]
   - DialogProceed → 0x140e485f0: button 0, then 0x140e42e60(dlg, 0, NULL) ("proceed"), then close 0x140e47b20.
   - DialogSelect → 0x140e70100: uses the current cursor. To pick button i, first
-    `write @<[dlg+0x88]+0xd8> <i LE>`.
+    `write @<[dlg+0x88]+0xd8> <i LE>`. [live: DialogAgreementCB "Enter this Competition. Proceed?" with i = 1 →
+    Yes; `pesflow.py PORT ok 1`]
   - Slot 50 (+0x190) is B: DialogSelect → 0x140e700c0 ("return").
   ```
   read @DLG 8 -> VT ;  read @VT+188 8 -> FN ;  gcall <FN - base + 0x140000000> <DLG>
@@ -228,6 +229,11 @@ thread that runs your gcalls.
     read dlg+0x268 afterwards.
   - 0x140e47a00(dlg, button, msgid) sets a button label (0x6c0019 = default OK).
 - Together with `trace 140e46f90` this lists every dialog with its name, msgid or text. [static]
+
+## Q5. Title screen, every message, parser bench
+
+See [parsebench.md](parsebench.md): `pesflow.py PORT title` leaves Intro/MenuTitle without keys (0x140a98d00),
+`pesflow.py PORT traffic` logs every message inside the game, and `parsebench.py` runs reply parsers on our bytes.
 
 ## Not settled statically
 - That the holder's children are exactly the live nodes, and that task names are the flow names. Check with Q1-B.
