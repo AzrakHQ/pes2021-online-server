@@ -10,10 +10,10 @@
   /* dark is the default; the header button switches to light (remembered in this browser) */
   :root { color-scheme:dark; --bg:#0d1014; --fg:#e7eaee; --muted:#a3adbc; --card:#161a20; --line:#2a313b; --field:#6b7585;
           --accent:#3ccf8e; --accent-fill:#2fb97c; --accent2:#12261d; --on-accent:#04241a; --live:#ff7b6b; --on-live:#2a0a05; --warn:#f5b041; --warnbg:#2a2110;
-          --code:#1e232b; --skel:#232a33; --side:#12161b; --hover:#1c2129; --bar:#3ccf8e; --bar-dim:#24533f; --shadow:none; }
+          --code:#1e232b; --skel:#232a33; --side:#12161b; --hover:#1c2129; --bar:#3ccf8e; --bar-dim:#24533f; --shadow:none; --input:#0d1014; }
   :root[data-theme="light"] { color-scheme:light; --bg:#f3f5f7; --fg:#14171c; --muted:#5a6371; --card:#fff; --line:#e1e5ea; --field:#7c8696; --accent:#0a7d4f; --accent-fill:#0a7d4f; --accent2:#e6f5ee;
           --on-accent:#fff; --live:#c4320a; --on-live:#fff; --warn:#8f4400; --warnbg:#fff4e0; --code:#eef1f4; --skel:#e8ebef; --side:#fff; --hover:#f0f3f6;
-          --bar:#0a7d4f; --bar-dim:#b9d9c9; --shadow:0 1px 2px rgba(16,24,40,.06); }
+          --bar:#0a7d4f; --bar-dim:#b9d9c9; --shadow:0 1px 2px rgba(16,24,40,.06); --input:#fff; }
   .iconbtn { display:inline-grid; place-items:center; width:34px; height:34px; min-height:34px; padding:0; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--muted); flex:none; }
   .iconbtn:hover { color:var(--fg); border-color:var(--field); }
   .iconbtn svg { width:17px; height:17px; }
@@ -112,7 +112,8 @@
     .side { padding:14px 8px; } .brand { padding:2px 0 14px; justify-content:center; } .brand > div { display:none; }
     .nav > a, .sec > a { justify-content:center; padding:10px 0; position:relative; }
     .nav .lbl { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
-    .nav .badge { position:absolute; top:1px; right:2px; margin:0; font-size:10px; padding:0 5px; min-width:16px; line-height:16px; }
+    .nav .badge { position:absolute; top:5px; right:9px; margin:0; font-size:0; padding:0; width:10px; height:10px; min-width:0; border-radius:50%; box-shadow:0 0 0 2px var(--side); }
+    .nav .badge.ok, .nav .badge.live { background:var(--accent); } .nav .badge.warn { background:var(--warn); } .nav .badge.live::before { display:none; }
     .main { padding:0 22px 40px; }
   }
   @media (max-width: 960px) {
@@ -164,7 +165,8 @@
   .row-gap { margin-bottom:16px; }
   @media (max-width: 820px) { .grid-ov { grid-template-columns:minmax(0,1fr); } }
   .grid-ov.even { grid-template-columns:repeat(2, minmax(0,1fr)); }
-  #ov-now > .card { margin-bottom:0; }
+  #ov-now > .card { margin-bottom:0; } #ov-now { align-items:start; }
+  .grid-ov.solo { grid-template-columns:minmax(0,1fr); }
   @media (max-width: 820px) { .grid-ov.even { grid-template-columns:minmax(0,1fr); } }
   @media (max-width: 760px) { .grid2 { grid-template-columns:minmax(0,1fr); } }
 
@@ -212,7 +214,7 @@
   .bars .c { flex:1; height:100%; display:flex; align-items:flex-end; justify-content:center; position:relative; min-width:0; cursor:default; }
   .bars .c i { display:block; width:100%; max-width:30px; background:var(--bar); border-radius:4px 4px 0 0; min-height:0; }
   .bars .c.zero i { height:0 !important; }
-  .bars .c.today i { opacity:.55; }
+  .bars .c.today i { background:repeating-linear-gradient(135deg, var(--bar) 0 5px, var(--bar-dim) 5px 9px); }
   .bars .c { cursor:pointer; }
   .bars.has-on .c:not(.on) i { opacity:.4; }
   .bars .c.on i { opacity:1; box-shadow:0 0 0 2px var(--card), 0 0 0 4px var(--fg); }
@@ -272,7 +274,7 @@
   /* toolbar */
   .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
   .toolbar .grow { flex:1; }
-  input[type=search], .field { padding:7px 10px; border-radius:8px; border:1px solid var(--field); background:var(--bg); color:var(--fg); font:inherit; font-size:14px; }
+  input[type=search], .field { padding:7px 10px; border-radius:8px; border:1px solid var(--field); background:var(--input); color:var(--fg); font:inherit; font-size:14px; }
   input[type=search] { min-width:min(260px, 100%); }
   .chips { display:flex; gap:6px; flex-wrap:wrap; }
   .chips button { border-radius:99px; padding:4px 12px; font-size:13px; }
@@ -347,7 +349,7 @@
 
   /* forms */
   .msgf label { display:block; font-weight:600; font-size:14px; margin:10px 0 4px; }
-  .msgf input:not([type=checkbox]), .msgf textarea, .msgf select { width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--field); background:var(--bg); color:var(--fg); font:inherit; font-size:14px; }
+  .msgf input:not([type=checkbox]), .msgf textarea, .msgf select { width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--field); background:var(--input); color:var(--fg); font:inherit; font-size:14px; }
   .msgf textarea { min-height:96px; resize:vertical; }
   .msgf select { width:auto; }
   .msgf .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
@@ -355,6 +357,7 @@
   .dmrow { display:flex; gap:10px; align-items:center; padding:9px 0; border-top:1px solid var(--line); font-size:14px; }
   .dmrow .grow { flex:1; min-width:0; overflow-wrap:anywhere; }
   .msgf [aria-invalid="true"] { border-color:var(--live); border-width:2px; }
+  ::placeholder { color:var(--muted); opacity:.75; font-style:italic; }
   .msgf .cnt { margin-left:auto; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
   .preview { border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:6px; }
   .preview .ph { background:var(--code); padding:6px 12px; font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; }
@@ -425,6 +428,7 @@
   button[role="switch"][aria-checked="true"] { background:var(--accent-fill); border-color:var(--accent-fill); }
   button[role="switch"][aria-checked="true"]::after { left:22px; }
   .kv .linkrow { margin-top:0; }
+  #cmds .linkrow code, #down .linkrow code, #update .linkrow code { white-space:normal; overflow-wrap:anywhere; text-overflow:clip; }
   .hl { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
   .hl > div { background:var(--bg); border-radius:10px; padding:10px 12px; min-width:0; }
   .hl .k { font-size:12px; color:var(--muted); display:block; }
@@ -448,7 +452,7 @@
   dialog h2 { font-size:18px; margin:0 0 8px; }
   dialog p { margin:0 0 10px; font-size:14px; white-space:pre-line; }
   dialog label { display:block; font-weight:600; font-size:14px; margin:12px 0 4px; }
-  dialog textarea { width:100%; min-height:70px; padding:8px 10px; border-radius:8px; border:1px solid var(--field); background:var(--bg); color:var(--fg); font:inherit; font-size:14px; resize:vertical; }
+  dialog textarea { width:100%; min-height:70px; padding:8px 10px; border-radius:8px; border:1px solid var(--field); background:var(--input); color:var(--fg); font:inherit; font-size:14px; resize:vertical; }
   dialog .row { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; flex-wrap:wrap; }
   .toast { position:fixed; right:20px; bottom:20px; z-index:60; max-width:min(420px, calc(100vw - 40px)); background:var(--fg); color:var(--bg); border-radius:10px; padding:10px 14px; font-size:14px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
   .toast:empty { display:none; }
@@ -460,7 +464,7 @@
   main.login .card { padding:22px; }
   main.login h1 { font-size:22px; margin:0 0 4px; }
   main.login label { display:block; font-weight:600; margin:16px 0 6px; }
-  main.login #pw { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--field); background:var(--bg); color:var(--fg); font:inherit; }
+  main.login #pw { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--field); background:var(--input); color:var(--fg); font:inherit; }
   main.login .remember { display:flex; gap:8px; align-items:flex-start; font-weight:400; margin:0 0 16px; font-size:14px; }
   main.login .remember input { margin-top:4px; }
   .pwrow { display:flex; gap:8px; margin-bottom:14px; } .pwrow input { flex:1; min-width:0; }
@@ -614,12 +618,13 @@
           <div id="msgnow"></div>
           <div class="tpl"><span class="small muted" id="tpl-l">Start from:</span><div class="chips" role="group" aria-labelledby="tpl-l">
             <button type="button" data-tpl="maint">Maintenance</button><button type="button" data-tpl="restart">Quick restart</button><button type="button" data-tpl="update">New version</button><button type="button" data-tpl="cup">Tournament</button><button type="button" data-tpl="welcome">Welcome</button></div></div>
+          <div class="tpl" id="tpl-hist"></div>
           <form id="msgform">
-            <label for="msg-title">Title</label><input id="msg-title" maxlength="60" autocomplete="off" placeholder="Tournament on Friday">
-            <label for="msg-body">Message</label><textarea id="msg-body" maxlength="600" placeholder="Matches start at 9 pm. Be online by 8:45." aria-describedby="msg-fit"></textarea>
+            <label for="msg-title">Title</label><input id="msg-title" maxlength="60" autocomplete="off" placeholder="e.g. Tournament on Friday">
+            <label for="msg-body">Message</label><textarea id="msg-body" maxlength="600" placeholder="e.g. Matches start at 9 pm. Be online by 8:45." aria-describedby="msg-fit"></textarea>
             <div id="msg-fit" class="small muted" style="margin-top:6px" aria-live="polite"></div><div class="meter" id="msg-meter" aria-hidden="true"><i style="width:0"></i></div>
             <div id="msg-prev" style="margin-top:12px" aria-hidden="true"></div>
-            <div class="row"><button class="primary needs-server" type="submit" id="msg-send">Show in the game</button><button type="button" id="msg-edit" hidden>Edit current message</button><button type="button" class="needs-server danger" id="msg-clear" hidden>Remove message</button></div>
+            <div class="row"><button class="primary needs-server" type="submit" id="msg-send">Show in the game</button><button type="button" class="needs-server" id="msg-edit" hidden>Edit current message</button><button type="button" class="needs-server danger" id="msg-clear" hidden>Remove message</button></div>
           </form>
           <div id="msg-hist"></div>
         </section>
@@ -639,8 +644,8 @@
           <p class="empty" id="dm-none" hidden>Nobody has joined yet, so there's no one to message. <a href="#invite">Invite friends</a></p>
           <form id="dmform">
             <label for="dm-to">Player</label><select id="dm-to" class="needs-server"></select>
-            <label for="dm-title">Title</label><input id="dm-title" maxlength="60" autocomplete="off" placeholder="Your match tonight">
-            <label for="dm-body">Message</label><textarea id="dm-body" maxlength="600" placeholder="You play Omar at 9 pm in the semi-final." aria-describedby="dm-fit"></textarea>
+            <label for="dm-title">Title</label><input id="dm-title" maxlength="60" autocomplete="off" placeholder="e.g. Your match tonight">
+            <label for="dm-body">Message</label><textarea id="dm-body" maxlength="600" placeholder="e.g. You play Omar at 9 pm in the semi-final." aria-describedby="dm-fit"></textarea>
             <div id="dm-fit" class="small muted" style="margin-top:6px" aria-live="polite"></div><div class="meter" id="dm-meter" aria-hidden="true"><i style="width:0"></i></div>
             <div class="row"><button class="primary needs-server" type="submit" id="dm-send">Send</button></div>
           </form>
@@ -868,6 +873,8 @@ function route(focus) {
   const [v0, target] = location.hash.slice(1).split("/");
   const v = VIEWS.includes(v0) ? v0 : "overview";
   const changed = v !== ui.view;
+  if (changed && v === "matches" && !ui.dayNav && ui.rr[0] === "d") { ui.rr = "all"; ui.rN = 25; loadResults(true); }
+  ui.dayNav = false;
   ui.view = v;
   VIEWS.forEach(x => { $("v-" + x).hidden = x !== v; });
   document.querySelectorAll(".nav a").forEach(a => a.dataset.view === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
@@ -1012,7 +1019,7 @@ document.addEventListener("keydown", e => {
   chart.querySelector(".sr").textContent = cols[i].dataset.tip.replace(/<b>(.*?)<\/b>/, "$1: ").replace(/<[^>]+>/g, "");
 });
 function dayFilter(ts) {
-  ui.rr = "d" + ts; ui.rq = ""; ui.rN = 25; $("r-q").value = "";
+  ui.dayNav = true; ui.rr = "d" + ts; ui.rq = ""; ui.rN = 25; $("r-q").value = "";
   location.hash = "#matches/h-results"; loadResults(true);
 }
 
@@ -1033,7 +1040,7 @@ function charts(d) {
   const best = days.reduce((b, x) => x.m > b.m ? x : b, days[0]);
   barChart("chart-days", days.map((x, i) => ({x: i === n - 1 ? "Today" : (n - 1 - i) % step === 0 && i < n - 2 ? (n <= 7 ? wdShort.format(x.d) : dShort.format(x.d)) : "", v: x.m, cls: i === n - 1 ? "today" : "",
       day: x.d.getTime() / 1000, tip: `<b>${i === n - 1 ? "Today (so far)" : dLong.format(x.d)}</b>${plural(x.m, "match", "matches")}${x.m ? ` · ${plural(x.g, "goal")}` : ""}${x.a ? ` · ${x.a} abandoned` : ""}`})),
-    total ? `${plural(total, "match", "matches")} and ${plural(goals, "goal")} in the last ${n} days. Busiest day: ${dLong.format(best.d)} (${best.m}). Today's bar is lighter because the day isn't over.` : `No matches in the last ${n} days.`,
+    total ? `${plural(total, "match", "matches")} and ${plural(goals, "goal")} in the last ${n} days. Busiest day: ${dLong.format(best.d)} (${best.m}). Today's bar is striped because the day isn't over.` : `No matches in the last ${n} days.`,
     `Matches per day over the last ${n} days.`);
   const htot = hours.reduce((a, b) => a + b, 0), top = Math.max(...hours);
   const hl = h => { const x = new Date(); x.setHours(h, 0, 0, 0); return hourFmt.format(x); };
@@ -1066,12 +1073,13 @@ const formOf = (list, pid, n) => myMatches(list, pid).slice(0, n || 5).map(m => 
 const pname = (name, pid, key) => pid == null ? nm(name) : `<button type="button" class="pname" data-player="${pid}" data-key="${key || "pn-" + pid}" aria-haspopup="dialog">${nm(name)}</button>`;
 
 let msgDirty = false;
+const waitingFor = pid => lastAnnounce && (lastAnnounce.personal || []).find(m => m.pid === pid);
 function renderDmTo(d, pick) {
   if (!d) return;
   $("dm-none").hidden = d.players.length > 0; $("dmform").hidden = !d.players.length;
   const sel = $("dm-to"), keep = pick != null ? String(pick) : sel.value;
   const ps = [...d.players].sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
-  const html = `<option value="">Choose a player…</option>` + ps.map(p => `<option value="${p.pid}" data-name="${esc(p.name)}">${esc(p.name)}${p.online ? " (online now)" : ""}</option>`).join("");
+  const html = `<option value="">Choose a player…</option>` + ps.map(p => `<option value="${p.pid}" data-name="${esc(p.name)}">${esc(p.name)}${p.online ? " (online now)" : ""}${waitingFor(p.pid) ? " · message waiting" : ""}</option>`).join("");
   if (shown["dm-to"] !== html) { shown["dm-to"] = html; sel.innerHTML = html; }
   if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
 }
@@ -1082,6 +1090,7 @@ function renderMsg(a) {
   const seen = a.seen_notes || [];
   put("dm-seen", seen.length ? `<h3 class="day" style="margin-top:16px">Seen</h3>` + seen.slice(0, 5).map(m => `<div class="dmrow"><span class="ok" aria-hidden="true">${I.ok}</span><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”<br><span class="small muted">seen ${esc(ago(m.seen, Date.now() / 1000))}</span></span></div>`).join("") : "");
   const hist = a.history || [];
+  put("tpl-hist", hist.length ? `<span class="small muted" id="hist-l">Sent before:</span><div class="chips" role="group" aria-labelledby="hist-l">` + hist.slice(0, 4).map((h, i) => `<button type="button" data-reuse="${i}" title="${esc(h.title)} (${esc(dShort.format(new Date(h.date * 1000)))})">${esc(h.title.length > 24 ? h.title.slice(0, 23) + "…" : h.title)}</button>`).join("") + `</div>` : "");
   put("msg-hist", hist.length ? `<details class="keycheck" data-key="hist" style="margin-top:16px"><summary>Earlier messages (${hist.length})</summary>` + hist.map((h, i) => `<div class="dmrow"><span class="grow"><b>${esc(h.title)}</b><br><span class="small muted">${esc(dShort.format(new Date(h.date * 1000)))} – ${esc(dShort.format(new Date(h.until * 1000)))}${h.seen ? ` · seen before Quick Match by ${plural(h.seen, "player")}` : ""}</span></span><button type="button" class="small" data-reuse="${i}">Use again</button></div>`).join("") + `</details>` : "");
   put("dm-list", pend.length ? `<h3 class="day" style="margin-top:16px">Waiting to be seen</h3>` + pend.map(m => `<div class="dmrow"><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”${m.kind === "kick" ? ' <span class="pill neutral tag">kick note</span>' : ""}<br><span class="small muted">sent ${esc(m.sent ? ago(m.sent, Date.now() / 1000) : "earlier")}</span></span><button type="button" class="small danger needs-server" data-untell="${m.pid}" data-name="${esc(names.get(m.pid) || "this player")}" data-key="untell-${m.pid}">Take back</button></div>`).join("") : "");
   put("msgnow", a.news ? `<div class="preview"><div class="ph"><span class="pill tag"><span class="dot"></span>Showing now</span><span>since ${esc(fmt.format(new Date(a.news.date * 1000)))}${a.news.seen ? ` · seen before Quick Match by ${plural(a.news.seen, "player")}` : ""}</span></div><div class="pb"><b>${esc(a.news.title)}</b>${esc(a.news.body)}</div></div>`
@@ -1159,7 +1168,7 @@ function render(d) {
 function badge(id, v, label) {
   if (downSince && (id === "nb-players" || id === "nb-matches")) v = 0;   // live counts aren't known while the server is silent
   const b = $(id); b.hidden = !v;
-  const t = !v ? "" : v === "on" ? "On" : id === "nb-players" ? "● " + v : String(v);
+  const t = !v ? "" : v === "on" ? "●" : id === "nb-players" ? "● " + v : String(v);
   if (b.textContent !== t) { b.textContent = t; }
   b.setAttribute("aria-label", label); b.title = label;
 }
@@ -1201,12 +1210,12 @@ function indexNames(players) {
   nameRe = alts.length ? new RegExp(`(?<![\\w])(${alts.join("|")})(?![\\w])`, "g") : null;
 }
 let linkN = 0;
-const linkNames = t => nameRe ? esc(t).replace(nameRe, n => pname(n, nameIdx.get(n), "fd-" + nameIdx.get(n) + "-" + (linkN++ % 1000)).replace(nm(n), n)) : nm(t);
-function feedHtml(items, grouped) {
+const linkNames = (t, self) => nameRe ? esc(t).replace(nameRe, n => nameIdx.get(n) === self ? n : pname(n, nameIdx.get(n), "fd-" + nameIdx.get(n) + "-" + (linkN++ % 1000)).replace(nm(n), n)) : nm(t);
+function feedHtml(items, grouped, self) {
   const tl = t => { const d = new Date(t * 1000); if (grouped || d.toDateString() === new Date().toDateString()) return hm.format(d);
     return (dayLabel(t) === "Yesterday" ? "Yesterday" : dShort.format(d)) + ", " + hm.format(d); };
   const kindOf = f => f.kind === "info" && /message to (players|everyone)|restart warning/i.test(f.text) ? "msg" : f.kind;
-  const row = f0 => { const f = {...f0, kind: kindOf(f0)}; return `<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${tl(f.t)}</time><span class="ico k-${esc(f.kind)}" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="t-${esc(f.kind)}">${linkNames(f.text)}</span></li>`; };
+  const row = f0 => { const f = {...f0, kind: kindOf(f0)}; return `<li><time datetime="${iso(f.t)}" title="${fmt.format(new Date(f.t * 1000))}">${tl(f.t)}</time><span class="ico k-${esc(f.kind)}" aria-hidden="true">${ICON[f.kind] || ICON.info}</span><span class="t-${esc(f.kind)}">${linkNames(f.text, self)}</span></li>`; };
   if (!grouped) return `<ul class="feed">${items.map(row).join("")}</ul>`;
   const groups = [];
   for (const f of items) { const day = dayLabel(f.t); if (!groups.length || groups[groups.length - 1].day !== day) groups.push({day, rows: []}); groups[groups.length - 1].rows.push(row(f)); }
@@ -1224,28 +1233,18 @@ function weekDelta(hist, now) {
   return `<span title="${a} this week, ${b} the week before"><span class="delta ${pct >= 0 ? "up" : "down"}">${pct >= 0 ? "↑" : "↓"}${Math.abs(pct)}%</span> vs last week</span><span class="sr"> (${a} this week, ${b} the week before)</span>`;
 }
 function highlights(d) {
-  const since = d.now - 7 * 86400, wins = new Map(), goals = new Map(), names = new Map();
-  for (const r of d.results) {
-    if (r.ended < since || r.home_score == null || r.away_score == null) continue;
-    for (const [pid, name, f, a] of [[r.home_pid, r.home_name, r.home_score, r.away_score], [r.away_pid, r.away_name, r.away_score, r.home_score]]) {
-      if (pid == null) continue;
-      names.set(pid, name); goals.set(pid, (goals.get(pid) || 0) + f); if (f > a) wins.set(pid, (wins.get(pid) || 0) + 1);
-    }
-  }
-  const best = m => [...m.entries()].sort((x, y) => y[1] - x[1] || names.get(x[0]).localeCompare(names.get(y[0])))[0];
-  const w = best(wins), g = best(goals);
-  const week = d.results.filter(r => r.ended >= since);
-  const run = pid => { let n = 0; for (const m of myMatches(d.results, pid)) { if (m.res !== "W") break; n++; } return n; };
-  const streak = [...d.players].map(p => ({...p, streak: Math.max(p.streak || 0, run(p.pid))})).filter(p => p.streak >= 3).sort((a, b) => b.streak - a.streak)[0];
-  const form = !streak && [...d.players].filter(p => p.played).map(p => ({p, f: formOf(week, p.pid)})).filter(x => x.f.length >= 3)
-    .sort((a, b) => b.f.filter(x => x === "W").length * 3 + b.f.filter(x => x === "D").length - a.f.filter(x => x === "W").length * 3 - a.f.filter(x => x === "D").length)[0];
-  const cell = (k, who, sub) => `<div><span class="k">${k}</span>${who}<span class="s">${sub}</span></div>`;
-  if (!w && !g && !streak && !form) return `<p class="empty">No finished matches this week yet.</p>`;
+  const wk = d.week || {}, cell = (k, who, sub) => `<div><span class="k">${k}</span>${who}<span class="s">${sub}</span></div>`;
+  const names = (t, key) => t.who.slice(0, 2).map(([pid, n]) => pname(n, pid, key + pid)).join(", ") + (t.who.length > 2 ? ` +${t.who.length - 2}` : "");
+  const joint = t => t.who.length > 1 ? " each (joint)" : "";
+  const streak = [...d.players].map(p => ({...p, n: Math.max(p.streak || 0, p.run || 0)})).filter(p => p.n >= 3).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name))[0];
+  const score = f => f.filter(x => x === "W").length * 3 + f.filter(x => x === "D").length;
+  const form = !streak && [...d.players].filter(p => (p.form || []).length >= 3).sort((a, b) => score(b.form) - score(a.form) || a.name.localeCompare(b.name))[0];
+  if (!wk.wins && !wk.goals && !streak && !form) return `<p class="empty">No finished matches this week yet.</p>`;
   return `<div class="hl">` +
-    cell("Most wins", w ? `<b>${pname(names.get(w[0]), w[0], "hlw-" + w[0])}</b>` : "<b>–</b>", w ? plural(w[1], "win") : "") +
-    cell("Most goals", g ? `<b>${pname(names.get(g[0]), g[0], "hlg-" + g[0])}</b>` : "<b>–</b>", g ? plural(g[1], "goal") : "") +
-    (streak ? cell("On a streak", `<b>${pname(streak.name, streak.pid, "hls-" + streak.pid)}</b>`, `${streak.streak} wins in a row`)
-            : cell("Best form this week", form ? `<b>${pname(form.p.name, form.p.pid, "hlf-" + form.p.pid)}</b>` : "<b>–</b>", form ? formHtml(form.f) : "")) + `</div>`;
+    cell("Most wins", wk.wins ? `<b>${names(wk.wins, "hlw-")}</b>` : "<b>–</b>", wk.wins ? plural(wk.wins.n, "win") + joint(wk.wins) : "") +
+    cell("Most goals", wk.goals ? `<b>${names(wk.goals, "hlg-")}</b>` : "<b>–</b>", wk.goals ? plural(wk.goals.n, "goal") + joint(wk.goals) : "") +
+    (streak ? cell("On a streak", `<b>${pname(streak.name, streak.pid, "hls-" + streak.pid)}</b>`, `${streak.n} wins in a row`)
+            : cell("Best form", form ? `<b>${pname(form.name, form.pid, "hlf-" + form.pid)}</b>` : "<b>–</b>", form ? formHtml(form.form) + ' <span class="sr">last 5</span>' : "")) + `</div>`;
 }
 function renderOverview(d, r, pn, playing, ready) {
   const now = d.now, s = d.server, down = !!downSince;
@@ -1257,7 +1256,7 @@ function renderOverview(d, r, pn, playing, ready) {
   const info = [];
   if (pn && lastGames.length && !hintOff && !starting && !pcError) info.push(`<li class="info"><span><b>Optional:</b> play on the server computer too. Its PES 2021 isn't set up for your server yet.</span><a href="#server/pc-h">Set it up ${I.right}</a><button type="button" class="linkbtn" data-hidepc="1" style="color:var(--muted)">Hide</button></li>`);
   if (s.update) attn.push(`<li><span>${I.warn} <b>A newer server version is out</b> (${esc(s.update)}).</span><a href="#server/h-cmd">How to update ${I.right}</a></li>`);
-  if (d.announce && d.announce.restart) attn.push(`<li class="info"><span>Players are being warned about a restart at <b>${hm.format(new Date(d.announce.restart * 1000))}</b>.</span><a href="#messages">Change ${I.right}</a></li>`);
+  if (d.announce && d.announce.restart) attn.push(`<li><span>${I.warn} Players are being warned about a restart at <b>${hm.format(new Date(d.announce.restart * 1000))}</b>.</span><a href="#messages">Change ${I.right}</a></li>`);
   $("attn").hidden = !attn.length; put("attn", attn.join(""));
   $("ov-info").hidden = !info.length || down; put("ov-info", info.join(""));
   text("ov-lead", starting ? "A few steps and your friends are playing." : "What's happening on your server right now.");
@@ -1302,7 +1301,7 @@ function renderOverview(d, r, pn, playing, ready) {
 
   $("ov-charts").hidden = starting;
   if (!starting) { charts(d); document.querySelectorAll("[data-range]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.range === ui.range))); }
-  $("ov-cards").hidden = fresh && !d.feed.length;
+  $("ov-cards").hidden = fresh && !d.feed.length; $("ov-cards").classList.toggle("solo", starting);
   $("c-ovlive").hidden = $("c-ovonline").hidden = $("ov-now").hidden = fresh; $("c-ovtop").hidden = $("c-ovhl").hidden = starting;
   if (!starting) put("ov-hl", highlights(d));
   put("ov-live", liveHtml(d, now, true));
@@ -1341,10 +1340,10 @@ function renderPlayers(d) {
     list.map(p => { const o = onlineBy.get(p.pid);
       return `<tr><td class="num muted">${rankOf.get(p.pid) || "–"}</td>
       <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · <span class="nw">${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
-      <td class="hide-md st-cell">${o ? `<span class="pill tag"><span class="dot"></span>online</span> ` + statusOf(d, o) + ``
+      <td class="hide-md st-cell">${o && downSince ? `<span class="muted">Was online at ${hm.format(new Date(lastOkAt))}</span>` : o ? `<span class="pill tag"><span class="dot"></span>online</span> ` + statusOf(d, o) + ``
           : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
       <td class="num hide-lg">${p.rating ?? "–"}</td><td class="num hide-sm">${p.played}</td><td class="num hide-sm">${p.won}</td><td class="num hide-sm">${p.drawn}</td><td class="num hide-sm">${p.lost}</td>
-      <td class="num hide-md">${p.played ? signed(gd(p)) : "–"}</td><td class="num"><b>${pts(p)}</b></td><td class="hide-lg">${formHtml(formOf(d.results, p.pid))}</td>
+      <td class="num hide-md">${p.played ? signed(gd(p)) : "–"}</td><td class="num"><b>${pts(p)}</b></td><td class="hide-lg">${formHtml(p.form || [])}</td>
       <td class="act"><button type="button" class="small needs-server" data-dm="${p.pid}" data-key="dm-${p.pid}" aria-label="Message ${esc(p.name)}">Message</button> ${o ? `<button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button>` : `<span class="slot" aria-hidden="true"></span>`}</td></tr>`; }).join("") +
     `</tbody></table></div>`);
 }
@@ -1397,7 +1396,8 @@ function renderMatches(d, playing, ready, fromLoad) {
     (ui.rr[0] === "d" ? `<button type="button" data-rr="all" data-key="rr-day" aria-pressed="true" aria-label="${esc(dLong.format(new Date(+ui.rr.slice(1) * 1000)))}: remove this filter">${esc(dLong.format(new Date(+ui.rr.slice(1) * 1000)))} ✕</button>` : ""));
   if (!res.data) return;
   const q = ui.rq, shownRs = res.data.rows, total = res.data.total;
-  text("r-count", none ? "" : shownRs.length < total ? `Showing ${shownRs.length} of ${total}` : plural(total, "result"));
+  const onDay = ui.rr[0] === "d" ? " on " + dLong.format(new Date(+ui.rr.slice(1) * 1000)) : "";
+  text("r-count", none ? "" : (shownRs.length < total ? `Showing ${shownRs.length} of ${total}` : plural(total, "result")) + onDay);
   const rs = {length: total};
   put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results ${q ? `with "${esc(ui.rq)}" ` : ""}${ui.rr !== "all" ? "in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
     `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col class="hm"><col class="s"><col class="aw"><col class="l"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th><th scope="col" class="num hide-md">Length</th></tr></thead><tbody>` +
@@ -1457,15 +1457,15 @@ async function loadPlayer() {
   $("sh-t").textContent = p.name; $("sh-av").innerHTML = avatar(p);
   const list = sheetAll ? ms : ms.slice(0, 10);
   $("sh-b").innerHTML =
-    `<p class="small muted" style="margin:0 0 12px">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span> for ${dur(now - p.since)} · ${where(p.ip)} (${esc(p.ip)})` : p.last_login ? "Last seen " + esc(ago(p.last_login, now)) : "Never signed in"}` +
+    `<p class="small muted" style="margin:0 0 12px">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span> ${(o => o ? statusOf(last, o) + " · " : "")(last && last.online.find(x => x.pid === pid))}for ${dur(now - p.since)} · ${where(p.ip)} (${esc(p.ip)})` : p.last_login ? "Last seen " + esc(ago(p.last_login, now)) : "Never signed in"}` +
       ` · joined ${esc(dShort.format(new Date(p.created * 1000)))} · rating ${esc(p.rating ?? "–")}${rank ? ` · #${rank} in the table` : ""}${p.streak > 1 ? ` · ${p.streak} wins in a row` : ""}</p>` +
     `<div class="mstats"><div><b>${ms.length}</b><span>played</span></div><div><b>${w}–${dr}–${l}</b><span>won–drawn–lost</span></div><div><b>${gf}:${ga}</b><span>goals for:against</span></div><div><b>${ms.length ? Math.round(100 * w / ms.length) + "%" : "–"}</b><span>win rate</span></div></div>` +
     `<h3>Form <span class="small muted" style="font-weight:400">last ${Math.min(10, ms.length)}, oldest → newest</span></h3>${formHtml(ms.slice(0, 10).map(m => m.res).reverse())}` +
     (rows.length ? `<h3>Head to head</h3><div class="tablewrap"><table><caption class="sr">Head to head</caption><thead><tr><th scope="col">Opponent</th><th scope="col" class="num">P</th><th scope="col" class="num">W</th><th scope="col" class="num">D</th><th scope="col" class="num">L</th><th scope="col" class="num">Goals</th><th scope="col" class="num"><abbr title="Goal difference">GD</abbr></th></tr></thead><tbody>` +
       rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td><td class="num h2h-bal ${x.gf > x.ga ? "up" : x.gf < x.ga ? "down" : ""}">${signed(x.gf - x.ga)}</td></tr>`).join("") + `</tbody></table></div>` : "") +
-    `<h3>Matches</h3>` + (ms.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${pname(m.opp, m.oppPid, "pm-" + m.r.id)}${m.r.reason ? ' <span class="pill neutral tag">abandoned</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
+    `<h3>Matches</h3>` + (ms.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${nm(m.opp)}${m.r.reason ? ' <span class="pill neutral tag">abandoned</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (ms.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${ms.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
-    (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true) : "");
+    (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true, pid) : "");
   $("sh-f").innerHTML = `<button type="button" class="primary needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
       `<span class="small muted" style="flex:1;min-width:10em">${p.online ? "Kick disconnects them now; they can come back." : "The message waits until they next open an online mode."}</span>`;
   $("sh-b").insertAdjacentHTML("beforeend", `<h3>Remove this player</h3><div class="dmrow"><span class="grow small muted">Deletes their name, rating and table row; past results stay. If they play again, the game asks them for a name like on their first visit.</span><button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button></div>`);
@@ -1475,7 +1475,7 @@ function cachedPlayer(pid) {
   if (!c) return "";
   return `<p class="small warn" style="margin:0 0 10px">Last known numbers (the server isn't answering):</p>` +
     `<div class="mstats"><div><b>${c.played}</b><span>played</span></div><div><b>${c.won}–${c.drawn}–${c.lost}</b><span>won–drawn–lost</span></div><div><b>${c.gf}:${c.ga}</b><span>goals for:against</span></div><div><b>${pts(c)}</b><span>points</span></div></div>` +
-    `<h3>Form <span class="small muted" style="font-weight:400">oldest → newest</span></h3>${formHtml(formOf(last.results, pid, 10))}`;
+    `<h3>Form <span class="small muted" style="font-weight:400">oldest → newest</span></h3>${formHtml(c.form || [])}`;
 }
 function closeSheet() { if ($("sheet").open) $("sheet").close(); }
 $("sheet").addEventListener("close", () => { sheetPid = null; const b = sheetBack; sheetBack = null;
@@ -1514,10 +1514,10 @@ function remoteHtml(s) {
 }
 function netHtml(s) {
   const out = [`<dl class="kv"><dt>Home network</dt><dd>${esc(s.lan)}</dd>${s.wan ? `<dt>Internet</dt><dd>${esc(s.wan)}${s.cgnat ? " (shared: CGNAT)" : ""}</dd>` : ""}${s.pinned ? `<dt>Friends use</dt><dd>${esc(s.pinned)}</dd>` : ""}</dl>`];
-  if (s.cgnat && !(s.pinned && isTs(s.pinned))) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="${FAQ_FAR}">Use Tailscale (free) to fix it.</a></div>`);
+  if (s.cgnat && !(s.pinned && isTs(s.pinned))) out.push(`<div><b class="warn">${I.warn} Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="${FAQ_FAR}">Use Tailscale (free) to fix it.</a></div>`);
   else if (s.pinned) out.push(`<div>Friends' mod uses your ${isTs(s.pinned) ? "Tailscale" : "fixed"} address <b>${esc(s.pinned)}</b>.${isTs(s.pinned) ? " Friends must join your Tailscale network." : ""}${where(s.pinned) === "Internet" ? ` Make sure ${esc(s.ports || "TCP 8080, 10000 + UDP 3478, 7600")} reach this computer (forwarded by your router).` : ""}</div>`);
   else if (s.ports_open.length) out.push(`<div class="ok">${I.ok} Router ports open (UPnP)</div><div class="small muted">While they're open, your server's address is public: anyone who has it can download the mod and join. Share it only with friends.</div><div class="small muted">Friends in your home: if the link doesn't open for them, use <code>${esc(s.lan_url || "http://" + s.lan)}</code>.</div>`);
-  else if (s.wan) out.push(`<div class="warn"><b>${I.warn} Friends outside your home can't connect yet.</b> Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then <a href="#server/install-cmd">start the server again</a>. Can't change router settings? <a href="${FAQ_FAR}">Use Tailscale (free)</a> instead.</div>
+  else if (s.wan) out.push(`<div><b class="warn">${I.warn} Friends outside your home can't connect yet.</b> Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then <a href="#server/install-cmd">start the server again</a>. Can't change router settings? <a href="${FAQ_FAR}">Use Tailscale (free)</a> instead.</div>
     <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward ${esc(s.ports || "TCP 8080, 10000 + UDP 3478, 7600")} to ${esc(s.lan)}.</details>`);
   if (s.pinned && s.wan && !isTs(s.pinned) && /^[\d.]+$/.test(s.pinned) && s.pinned !== s.wan) out.push(`<div class="small muted">Your fixed address (${esc(s.pinned)}) is different from this network's internet address (${esc(s.wan)}). If friends can't connect, check PUBLIC_IP.</div>`);
   if (!s.wan && !s.pinned && !s.ports_open.length && !s.cgnat) out.push(`<div class="muted">Friends on your Wi-Fi can connect. Want friends elsewhere? <a href="${FAQ_FAR}">Use Tailscale</a>.</div>`);
@@ -1917,7 +1917,9 @@ function fieldError(prefix, hasTitle) {
   $(prefix + "-meter").classList.add("empty"); f.focus();
 }
 ["msg-title", "msg-body", "dm-title", "dm-body", "dm-to"].forEach(id => $(id).addEventListener("input", () => $(id).removeAttribute("aria-invalid")));
-$("dm-to").addEventListener("change", () => { $("dm-to").removeAttribute("aria-invalid"); dmCount(); });
+$("dm-to").addEventListener("change", () => { $("dm-to").removeAttribute("aria-invalid"); dmCount();
+  const w = waitingFor(+$("dm-to").value);
+  if (w) { text("dm-fit", `${$("dm-to").selectedOptions[0].dataset.name} hasn't seen “${w.title}” yet. Sending replaces it.`); $("dm-fit").className = "small warn"; } });
 $("dmform").onsubmit = async e => {
   e.preventDefault();
   const pid = +$("dm-to").value, title = $("dm-title").value.trim(), body = $("dm-body").value.trim();
@@ -1931,7 +1933,7 @@ $("dmform").onsubmit = async e => {
 $("msg-clear").onclick = async () => { if (await ask({title: "Remove the message?", body: "Players stop seeing it in the game.", ok: "Remove", danger: true}) !== null) msgCall("/admin/api/message", {clear: true}, "Message removed."); };
 $("rs-min").addEventListener("change", () => { $("rs-min").dataset.touched = "1"; });
 $("rsform").onsubmit = e => { delete $("rs-min").dataset.touched; e.preventDefault(); msgCall("/admin/api/restart", {minutes: +$("rs-min").value}, "Restart warning set."); };
-$("rs-cancel").onclick = () => msgCall("/admin/api/restart", {minutes: 0}, "Restart warning cancelled.");
+$("rs-cancel").onclick = async () => { if (await msgCall("/admin/api/restart", {minutes: 0}, "Restart warning cancelled.")) $("rs-min").value = "15"; };
 
 $("lf").onsubmit = async e => {
   e.preventDefault();

@@ -136,3 +136,14 @@ def test_earlier_messages_to_everyone(tmp_path):
     announce.clear_news(svc)
     snap = announce.snapshot(svc)
     assert snap["news"] is None and [h["title"] for h in snap["history"]] == ["Cup moved", "Cup"]
+
+
+def test_form_run_and_week_cover_all_matches(tmp_path):
+    svc = _svc(tmp_path); now = _seed(svc)
+    snap = events.snapshot(svc)
+    ann = next(p for p in snap["players"] if p["name"] == "Ann")
+    # Ann: 3-1 W (oldest), 0-5 L, 6-0 W (abandoned, still counts with its score) -> oldest first
+    assert ann["form"] == ["W", "L", "W"] and ann["run"] == 1
+    wk = snap["week"]
+    assert wk["wins"]["n"] == 2 and [w[1] for w in wk["wins"]["who"]] == ["Ann"]
+    assert wk["goals"]["n"] == 9 and wk["goals"]["who"][0][1] == "Ann"

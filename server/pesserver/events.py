@@ -152,6 +152,26 @@ def disconnected(svc, sess):
             _st(svc)["live"].pop(rid, None)
 
 
+def _week(db, now):
+    """The last 7 days for the Highlights card, over every match (not just the latest few):
+    most wins and most goals, with everyone tied at the top."""
+    wins, goals, names = {}, {}, {}
+    for hp, ap, hn, an, hs, as_ in db.execute("SELECT home_pid, away_pid, home_name, away_name, home_score, away_score"
+                                              " FROM pes_matches WHERE ended >= ?", (now - 7 * 86400,)):
+        if hs is None or as_ is None:
+            continue
+        for pid, name, f, a in ((hp, hn, hs, as_), (ap, an, as_, hs)):
+            if pid is None:
+                continue
+            names[pid] = name
+            goals[pid] = goals.get(pid, 0) + f
+            wins[pid] = wins.get(pid, 0) + (f > a)
+    def top(m):
+        best = max(m.values(), default=0)
+        return {"n": best, "who": sorted(([p, names[p]] for p, v in m.items() if v == best), key=lambda x: x[1].lower())} if best else None
+    return {"wins": top(wins), "goals": top(goals)}
+
+
 def snapshot(svc):
     """Everything the admin page shows."""
     from . import pesmatch, pescmds
@@ -191,19 +211,27 @@ def snapshot(svc):
         rows = []
     for pid, name, username, created, last, rating, streak in rows:
         w = d = l = gf = ga = 0
+        form, run, running = [], 0, True          # newest first while reading
         for hp, ap, hs, as_ in db.execute("SELECT home_pid, away_pid, home_score, away_score FROM pes_matches"
-                                          " WHERE home_pid=? OR away_pid=?", (pid, pid)):
+                                          " WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid)):
             mine, theirs = (hs, as_) if hp == pid else (as_, hs)
             if mine is None or theirs is None:
                 continue
             w, d, l = w + (mine > theirs), d + (mine == theirs), l + (mine < theirs)
             gf, ga = gf + mine, ga + theirs
+            res = "W" if mine > theirs else "L" if mine < theirs else "D"
+            if len(form) < 5:
+                form.append(res)
+            running = running and res == "W"
+            run += running
         players.append({"pid": pid, "name": name or f"Player {pid}", "created": created, "last_login": last,
                         "online": pid in svc.online, "played": w + d + l, "won": w, "drawn": d, "lost": l,
-                        "gf": gf, "ga": ga, "rating": rating, "streak": streak})
+                        "gf": gf, "ga": ga, "rating": rating, "streak": streak,
+                        "form": form[::-1], "run": run})
     live = [{k: v for k, v in lv.items() if k not in ("left", "saved", "goals_seen")} for lv in st["live"].values()]
     return {"now": now, "uptime": now - st["started"], "online": online, "searching": len(queued),
             "live": live, "results": results, "played_total": played_total, "players": players,
+            "week": _week(db, now),
             "stats": {"goals": goals_total, "abandoned": abandoned, "history": history,
                       "biggest": dict(zip(("home_name", "away_name", "home_score", "away_score", "ended"), big)) if big else None},
             "feed": list(st["feed"])[:200]}
