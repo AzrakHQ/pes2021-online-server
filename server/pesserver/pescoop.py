@@ -56,6 +56,79 @@ def get_is_join_coop_room(svc, sess, req):
     return {"result": NOERR, "is_join_coop_room": "NO"}
 
 
+# ---- profile and block list -------------------------------------------------------------------------
+def _setup(db):
+    db.execute("CREATE TABLE IF NOT EXISTS pes_coop_reject (pid INTEGER, target INTEGER, UNIQUE (pid, target))")
+
+
+def _pname_of(svc, pid):
+    from .pesrooms import room_pname
+    return room_pname(svc, pid)
+
+
+def rejects(svc, pid):
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        return [r[0] for r in db.execute("SELECT target FROM pes_coop_reject WHERE pid=? ORDER BY rowid", (pid,))]
+
+
+def blocked(svc, a, b):
+    """Either player put the other on their co-op block list."""
+    return b in rejects(svc, a) or a in rejects(svc, b)
+
+
+def _reject_reply(svc, pid):
+    lst = [msgpack.packb({"pid": t, "pname": _pname_of(svc, t)}, use_bin_type=True)
+           for t in rejects(svc, pid)]
+    return {"result": NOERR, "reject_list": lst, "reject_list_num": len(lst)}
+
+
+@cmd("CMD_GET_COOP_REJECT_LIST")
+def get_coop_reject_list(svc, sess, req):
+    return _reject_reply(svc, _pid(sess))
+
+
+@cmd("CMD_SET_COOP_REJECT")
+def set_coop_reject(svc, sess, req):
+    """{set_reject_pid_list, unset_reject_pid_list}: add / remove players; the reply is the new list."""
+    pid = _pid(sess)
+    add = [t for t in req.get("set_reject_pid_list") or [] if isinstance(t, int) and t != pid]
+    drop = [t for t in req.get("unset_reject_pid_list") or [] if isinstance(t, int)]
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        for t in add:
+            db.execute("INSERT OR IGNORE INTO pes_coop_reject (pid, target) VALUES (?,?)", (pid, t))
+        for t in drop:
+            db.execute("DELETE FROM pes_coop_reject WHERE pid=? AND target=?", (pid, t))
+    if add or drop:
+        log.info("COOP block list pid %s: +%s -%s", pid, add, drop)
+    return _reject_reply(svc, pid)
+
+
+@cmd("CMD_GET_COOP_PROFILE")
+def get_coop_profile(svc, sess, req):
+    """A player's co-op card. The courtesy rating is the real one (pesmanner); level and counts are not
+    tracked (level 1)."""
+    from . import pesmanner
+    pid = req.get("pid") if isinstance(req.get("pid"), int) else _pid(sess)
+    grade = pesmanner.rating(svc, pid)["grade"] if isinstance(pid, int) else "A"
+    data = {"is_follow": "NO", "coop_level": 1, "coop_level_point": 0, "follower": 0, "coop_manner": grade,
+            "online_match": 0, "vscom_match": 0, "match_data_size": 0, "match_data": ""}
+    info = {"pid": pid, "pname": _pname_of(svc, pid),
+            "coop_profile_data": msgpack.packb(data, use_bin_type=True)}
+    return {"result": NOERR, "user_info": msgpack.packb(info, use_bin_type=True)}
+
+
+def _manner(svc, pid):
+    from . import pesmanner
+    try:
+        return pesmanner.rating(svc, pid)["grade"]
+    except Exception:  # noqa: BLE001
+        return "A"
+
+
 @cmd("CMD_GET_COOP_MATCH_DATA")
 def get_coop_match_data(svc, sess, req):
     # 480 bytes of score tables the game keeps between co-op matches; empty is accepted (it zeroes its copy)
@@ -102,6 +175,8 @@ def _try_pair(svc):
     for i in range(len(ready)):
         for j in range(i + 1, len(ready)):
             (a, sa, ta), (b, sb, tb) = ready[i], ready[j]
+            if blocked(svc, a, b):
+                continue
             if not _compatible(sa, sb):
                 pesmatch._note_mismatch(svc, a, b, sa, sb)
                 continue
@@ -115,7 +190,8 @@ def _group(svc, pid, owner, order, gid, team, viewer):
     member_list[] -> blob{member: blob{...}}}. member is the 1v1 member blob (pid, pname, is_owner, side,
     addresses rewritten for the viewer); exactly one is_owner YES in the push, on the HOME owner."""
     entry = msgpack.packb({"member": _member(svc, pid, owner, order, viewer), "guest_kind": "GUEST_NONE",
-                           "is_follow": "NO", "coop_level": 1, "coop_manner": "A"}, use_bin_type=True)
+                           "is_follow": "NO", "coop_level": 1, "coop_manner": _manner(svc, pid)},
+                          use_bin_type=True)
     return msgpack.packb({"member_list": [entry], "member_list_num": 1, "use_team_id": team, "owner_pid": pid,
                           "group_id": gid}, use_bin_type=True)
 

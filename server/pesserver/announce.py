@@ -4,6 +4,8 @@
   screen at sign-in, and title + body open as a pop-up when the player reaches the main menu.
 - Box before Quick Match (CMD_GET_URGENT_ANNOUNCEMENT): asked each time a player enters an online mode;
   the reply's title and body open as a dialog with OK. We serve each message once per player.
+- Messages to one player (CMD_GET_PRIVATEINFOTITLELIST + CMD_GET_INFOBODY is_private): the host's message also
+  stays in that player's own "Online Information" list (last INBOX_MAX, for INBOX_DAYS), same layout as the news.
 - Planned restart (CMD_GET_MAINTENANCE_INFO): asked on "Go to Matchmaking"; maintenance_warn "YES" with a
   unix time makes the game's own "maintenance starting at HH:MM today... start a match now?" Yes/No dialog.
 
@@ -19,6 +21,7 @@ from .pescmds import NOERR, blobs, cmd
 log = logging.getLogger("pesserver.announce")
 
 TITLE_MAX, BODY_MAX, REASON_MAX = 60, 600, 200
+INBOX_MAX, INBOX_DAYS = 5, 30
 RESTART_GRACE = 15 * 60        # keep warning this long after the planned time, then forget it
 _lock = threading.Lock()
 _STATE = {}                    # data_dir -> dict
@@ -40,6 +43,7 @@ def _load(svc):
         st.setdefault("seen", [])            # pids that got the news box before Quick Match
         st.setdefault("restart", None)       # unix time
         st.setdefault("personal", {})        # str(pid) -> {id, title, body}
+        st.setdefault("inbox", {})           # str(pid) -> [{id, title, body, date}], newest last
         if st["restart"] and st["restart"] < time.time():
             st["restart"] = None             # starting up after the planned time: the restart happened
         _STATE[key] = st
@@ -122,8 +126,11 @@ def tell(svc, pid, title, body):
     """A one-time message for one player, shown the next time they enter an online mode."""
     with _lock:
         st = _load(svc)
-        st["personal"][str(pid)] = {"id": int(time.time()) % 2_000_000_000, "title": clean(title, TITLE_MAX, False),
-                                    "body": clean(body, BODY_MAX)}
+        msg = {"id": int(time.time()) % 2_000_000_000, "title": clean(title, TITLE_MAX, False),
+               "body": clean(body, BODY_MAX)}
+        st["personal"][str(pid)] = msg
+        box = [m for m in st["inbox"].get(str(pid), []) if m["id"] != msg["id"]]
+        st["inbox"][str(pid)] = (box + [{**msg, "date": int(time.time())}])[-INBOX_MAX:]
         _save(svc)
 
 
@@ -132,6 +139,7 @@ def forget(svc, pid):
     with _lock:
         st = _load(svc)
         st["personal"].pop(str(pid), None)
+        st["inbox"].pop(str(pid), None)
         st["seen"] = [p for p in st["seen"] if p != pid]
         _save(svc)
 
@@ -155,17 +163,46 @@ def global_info_titles(svc, sess, req):
     return {"result": NOERR, "announce_info_list": blobs([_basic(n)]), "annnounce_info_list_num": 1}
 
 
+def _inbox(st, pid, now=None):
+    """The player's messages still kept (drops old ones)."""
+    cut = (now or time.time()) - INBOX_DAYS * 86400
+    box = [m for m in st["inbox"].get(str(pid), []) if m.get("date", 0) >= cut]
+    if box:
+        st["inbox"][str(pid)] = box
+    else:
+        st["inbox"].pop(str(pid), None)
+    return box
+
+
+@cmd("CMD_GET_PRIVATEINFOTITLELIST")
+def private_info_titles(svc, sess, req):
+    pid = req.get("pid") or getattr(sess, "pes_pid", None)
+    with _lock:
+        box = _inbox(_load(svc), pid)
+    if not box:
+        return {"result": NOERR}
+    items = [{**_basic(m), "announce_type": "PERSONAL_INFO", "popup_type": "ONCE"} for m in reversed(box)]
+    return {"result": NOERR, "announce_info_list": blobs(items), "annnounce_info_list_num": len(items)}
+
+
 @cmd("CMD_GET_INFOBODY")
 def info_body(svc, sess, req):
+    aid = req.get("announce_id")
     with _lock:
-        n = _load(svc)["news"]
-    if not n or req.get("announce_id") != n["id"]:
+        st = _load(svc)
+        n = st["news"]
+        if str(req.get("is_private", "")).upper() == "YES" or not n or aid != n["id"]:
+            pid = req.get("pid") or getattr(sess, "pes_pid", None)
+            m = next((m for m in _inbox(st, pid) if m["id"] == aid), None)
+            if m:
+                return _body_reply(m, {"announce_type": "PERSONAL_INFO", "popup_type": "ONCE"})
+    if not n or aid != n["id"]:
         return {"result": NOERR}
     return _body_reply(n)
 
 
-def _body_reply(n):
-    info = {"announce_basic_info": msgpack.packb(_basic(n)), "body": n["body"], "link_url": "",
+def _body_reply(n, over=None):
+    info = {"announce_basic_info": msgpack.packb({**_basic(n), **(over or {})}), "body": n["body"], "link_url": "",
             "direct_move": "NO", "use_template": "NO", "template_id": 0,
             "banner_file_info": msgpack.packb({"filename": "", "hash_str": ""}), "compe_name": "",
             "compe_start_time": 0}

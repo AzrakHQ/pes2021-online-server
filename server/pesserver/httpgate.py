@@ -468,6 +468,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         except ValueError:
             reason = ""
         announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server." + reason)
+        sess.kicked = True              # not an early exit for the courtesy rating
         sess.close()
         return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/players/delete" and method == "POST":
@@ -480,6 +481,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         if name is None:
             return "404 Not Found", b'{"error":"That player is already gone."}', "application/json"
         announce.forget(service, pid)
+        from . import pesmanner
+        pesmanner.forget(service, pid)
         sess = service.online.get(pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)
