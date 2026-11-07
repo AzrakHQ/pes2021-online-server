@@ -319,6 +319,32 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
 - CMD_SET_AVATAR (gate MENU; `avatar_data_size, avatar_data, avatar_md5`) is the upload. It was not seen in
   our logs.
 - Server should: bare NOERR (= no avatar). Later: store whatever SET_AVATAR uploads and return it verbatim.
+- **Done and live-tested 2026-11-07 (pesavatar.py):**
+  - **Editor:** Settings → Online Settings (main-menu item 0x21, `pesflow go settings`) → Edit Profile → Avatar
+    (Online/Avatar/MenuAvatarEdit). It has Appearance, Facial Expression, Background Color and Uniform Color, and
+    draws a 3D face.
+  - **Upload:** OK after a change sends gate `CMD_SET_AVATAR {pid, avatar_data_size 49152, avatar_data (65536
+    base64 chars), avatar_md5}` once, in fragments (kind 0x70). The game then asks GET_AVATAR_HTTP for its own pid.
+  - **Format (rendered by the server, matched the game):** 128×128, 3 bytes a pixel = R, G, B, A at 6 bits each,
+    big-endian (R in the top bits), top row first. The alpha makes the round shape.
+    A served test pattern of red/green/blue/white bands showed in that order in Edit Profile.
+  - **Seen by others:** copy 2's Matchmaking screen showed copy 1's avatar beside its name (GET_AVATAR_HTTP
+    pid=1 from copy 2).
+  - The static details (editor states, the loader cache used by ~24 screens) are in the avatar agent's notes,
+    summarised here.
+
+### Profile: CMD_SET_PLAYERPROFILE / CMD_GET_PLAYERINFO (Edit Profile) — live 2026-11-07, pesprofile.py
+- Edit Profile (Online/Setting/SettingMenuProfile) shows: the player name, Avatar, Favorite Team, Favorite Player
+  and Comment. All three texts are free text from the on-screen keyboard.
+- Leaving it after a change sends gate `CMD_SET_PLAYERPROFILE {profile: blob{date 0, favorite_team,
+  favorite_player, intro, is_enable_myPES "NO"}}`. The reply fields error_favorite_team / _player / error_intro
+  are not needed: a bare NOERR keeps the new values.
+- Opening it sends `CMD_GET_PLAYERINFO {pid, user_id: blob{pid, pname{…}}}` (the player being looked at).
+  - The parser reads `pname` (blob; name in the header), `favoriteTeam`, `favoritePlayer` and `intro` at the
+    **top level** (parsebench, several placements in one run). Nothing nested is read for them.
+  - Missing fields show as "NotImplement", which is what the bare reply gave.
+  - The reply also has `manner` (OBJ) and `disconnect_rate` (STR); not decoded yet.
+- Live: values stored on the server showed in Edit Profile, and an edit in the game was saved.
 
 ### CMD_SET_LANGUAGE
 - Transport: gate ACCOUNT, `lang` ("US"). Both success and error handlers (slots 9 and 10) just "proceed",

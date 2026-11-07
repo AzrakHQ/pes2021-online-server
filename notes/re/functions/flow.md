@@ -239,6 +239,17 @@ thread that runs your gcalls.
   - 0x140e47a00(dlg, button, msgid) sets a button label (0x6c0019 = default OK).
 - Together with `trace 140e46f90` this lists every dialog with its name, msgid or text. [static]
 
+## Q4b. More main-menu item ids [live 2026-11-07]
+- **0x19 = Online Information**: TopMenu → LoginFlow → Online/Information/InformationMenuList ("Online
+  Information": date + title of news and private-list items; A opens the body).
+- **0x21 = Online Settings**: TopMenu/TopMenuOnlineSettingSub (Edit Profile, Match Block List, Edit Text Chat
+  Presets, Auto-login settings, Link KONAMI ID).
+- Posting a TopMenuNew event by name (`0x140e42e60(menu, 0, "18_info")`) goes through TopMenu/TopMenuModeInit,
+  which picks the mode from the selected *item id*, not from the event name. With a stale id it opened an offline
+  competition, so set the id (top_menu_go) instead.
+- Keys on the desktop: xdotool types through the PC's keyboard layout. On this PC (Arabic layout), Shift+letter
+  gave Arabic characters, so type test names in lowercase.
+
 ## Q5. Title screen, every message, parser bench
 
 See [parsebench.md](parsebench.md): `pesflow.py PORT title` leaves Intro/MenuTitle without keys (0x140a98d00),

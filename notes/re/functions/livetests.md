@@ -492,3 +492,11 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
   - Vtable +0x188 does nothing on the team select (base no-op 0x140e3eec0), so keys stay for these three screens.
 - **Idle end:** both copies idle → both report NO_OPERATION 39 s after kick-off (match.md). Closing copy 2's game
   afterwards was not counted against it (pesmanner fixed so every self-reported idle counts and later drops don't).
+- **Information list:** main-menu item 0x19 opens "Online Information". A message the host sent to the player
+  (private list) is listed there with its date and can be opened again.
+- **Avatars:** a served test pattern showed in Edit Profile. An edit in the avatar editor uploaded with
+  SET_AVATAR (49152 bytes) and came back unchanged. The other copy's Matchmaking screen showed it (menus.md).
+- **Profiles:** SET_PLAYERPROFILE carries a `profile` blob. GET_PLAYERINFO's top-level favoriteTeam /
+  favoritePlayer / intro fill Edit Profile (menus.md).
+- **Fixed on the way:** the service never loaded pesavatar (its import line had changed under a merge). Now a test
+  checks that every feature module is imported there.
