@@ -345,6 +345,26 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
   - Missing fields show as "NotImplement", which is what the bare reply gave.
   - The reply also has `manner` (OBJ) and `disconnect_rate` (STR); not decoded yet.
 - Live: values stored on the server showed in Edit Profile, and an edit in the game was saved.
+- **Other players' profiles** (e.g. Online Settings → Match Block List → A → User Details =
+  Online/UserList/UserListPlayerInfo, 7 pages with LB/RB) show two more rows:
+  - **Courtesy Rating** comes from `manner: blob{manner: "C" | "B" | "A" | "AA" | "AAA"}` (live: A, AA, AAA and
+    B shown as sent; missing → "C").
+  - **Sending `manner` as a plain string crashes the game when the profile opens** (live 2026-11-07; the scenario
+    runner caught it and relaunched).
+  - **Number of Disconnections** comes from `manner.disconnect_rate` (a std::string at Result+0x2a0). "HIGH",
+    "MIDDLE", "LOW", "high", "50", "0.5", "100" and "20" all showed "Low", so the values that change it are
+    still unknown [needs static reading].
+  - Pages 2+ are play-style analysis (Off. Awareness, Advanced Instructions, Favorite Move, Attacking Areas):
+    empty, from other commands.
+
+### Match Block List: CMD_GET_MATCHREJECTLIST / CMD_SET_MATCHREJECTPID — pesblock.py (2026-11-07)
+- Online Settings → Match Block List opens Online/UserList/UserList ("User List") from GET_MATCHREJECTLIST
+  {pid} → `reject_list` [blob{pid, pname}] + `reject_list_num` (live: the stored entry showed by name).
+- A on an entry offers: User Details, Play Coverage - Online Divisions, Play Analysis - myClub: Ranked Match,
+  Remove from Match Block List.
+- SET_MATCHREJECTPID {pid, reject_pid, is_reject YES/NO} [static packer 0x141d73b70] adds or removes one player.
+  Where a player first adds someone was not traced; removing was not run live.
+- The server never pairs two players in Quick Match / Divisions / Matchday when either has blocked the other.
 
 ### CMD_SET_LANGUAGE
 - Transport: gate ACCOUNT, `lang` ("US"). Both success and error handlers (slots 9 and 10) just "proceed",

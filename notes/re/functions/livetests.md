@@ -500,3 +500,6 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
   favoritePlayer / intro fill Edit Profile (menus.md).
 - **Fixed on the way:** the service never loaded pesavatar (its import line had changed under a merge). Now a test
   checks that every feature module is imported there.
+- **Profiles of others + block list:** Match Block List lists the blocked player. User Details shows their
+  team, player and comment and the **Courtesy Rating** from the server's rating. Number of Disconnections
+  ignores every value tried. `manner` sent as a string crashed the game; it must be a blob (menus.md).

@@ -1,0 +1,89 @@
+{
+ "name": "block-and-profile",
+ "inst": 1,
+ "variants": [
+  {
+   "name": "real"
+  }
+ ],
+ "steps": [
+  {
+   "home": true
+  },
+  {
+   "go": "settings"
+  },
+  {
+   "wait": "TopMenuOnlineSettingSub",
+   "timeout": 50
+  },
+  {
+   "sleep": 2
+  },
+  {
+   "key": [
+    "Down",
+    "Return"
+   ]
+  },
+  {
+   "wait": "Online/UserList/UserList",
+   "timeout": 20
+  },
+  {
+   "sleep": 2
+  },
+  {
+   "key": "Return"
+  },
+  {
+   "sleep": 2
+  },
+  {
+   "key": "Return"
+  },
+  {
+   "sleep": 5
+  },
+  {
+   "shot": "profile"
+  },
+  {
+   "key": "Escape"
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "key": [
+    "Down",
+    "Down",
+    "Down",
+    "Return"
+   ]
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "dialog": true,
+   "optional": true
+  },
+  {
+   "ok": 1,
+   "optional": true
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "reply": "CMD_SET_MATCHREJECTPID",
+   "since": "variant",
+   "timeout": 5,
+   "optional": true
+  },
+  {
+   "shot": "after"
+  }
+ ]
+}
