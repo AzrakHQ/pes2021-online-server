@@ -363,7 +363,10 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
   - Shown: Division badge, Rating, Matchday Class (from `matchday_rating_rank`; default "Expert"), Matches,
     W/D/L, Win Rate (computed), Consecutive Wins/Most Consecutive Wins, Avg Goals Scored/Conceded (goal /
     matches).
-  - "Teams Chosen in Last 5 Matches" comes from `rankmatch_teamLog`, not sent yet.
+  - "Teams Chosen in Last 5 Matches" comes from `rankmatch_teamLog`: a plain **list of team ids**, newest first
+    (live: [45, 101, 14, 50, 8] → Brazil, Arsenal, Argentina, Germany, France with flags/crests). The server
+    keeps the player's own team per Divisions match (SET_GAMETEAM).
+  - Page 3/7 "Club Information" (myClub: Team Name, Home Town, Acclaim) stays empty: no myClub.
 - `matchday_stats_single` blob {entry_count, group_win_count, pickup_count, best_rank, win_count, draw_count,
   lose_count} is read the same way (parsebench). Its page was not opened.
 
