@@ -122,10 +122,26 @@ def dialog_ok(p, cancel=False, button=None):
 TITLE_PRESS = 0x140a98d00     # menu::TitleStart "a button was pressed" (plays titleOut, then posts proceed)
 
 
+BIND_PADS = 0x141b52a60     # input manager: take the pressed device as the player's (what a real title press does)
+PADS_BOUND = 0x141b52380    # 1 once the player has a controller
+
+
+def bind_controller(p):
+    """Give the player a controller, as a real key press on the title screen does. Without it, keys work in menus
+    but nobody moves in a match, which then ends after 39 s for "no operation" (static 0x140a9a6c0 → 0x141b52a60;
+    live 2026-11-07: 0 → 1)."""
+    if p.call(PADS_BOUND) == 0:
+        p.gcall(BIND_PADS, 1)
+        import time
+        time.sleep(0.5)
+    return p.call(PADS_BOUND)
+
+
 def title_press(p):
-    """Leave the title screen (Intro/MenuTitle) without a key press."""
+    """Leave the title screen (Intro/MenuTitle) without a key press, with the player's controller bound."""
     for a, k, n in nodes(p):
         if "TitleStart" in (k or ""):
+            bind_controller(p)
             p.gcall(TITLE_PRESS, a)
             return k
     return None
@@ -231,6 +247,8 @@ if __name__ == "__main__":
             print(hex(a), k)
     elif cmd == "traffic":                  # pesflow.py PORT traffic [SECONDS]  (-> sent, <- received)
         traffic(p, int(sys.argv[3]) if len(sys.argv) > 3 else 60)
+    elif cmd == "bindpad":                  # pesflow.py PORT bindpad  (the player gets a controller; see title)
+        print(bind_controller(p))
     elif cmd == "noafk":                    # pesflow.py PORT noafk [off]  (test copies: no idle end in matches)
         print(noafk(p, not (len(sys.argv) > 3 and sys.argv[3] == "off")))
     elif cmd == "title":                    # pesflow.py PORT title   (title screen -> login, no keys)

@@ -535,3 +535,16 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
   - Autoplay's key presses do not count as activity: with them the match was still called off after 39 s.
 - **The idle trigger:** 0x14213cfe0 sets the flag, reports VIXT2253 and ends the match (match.md). `pesflow noafk`
   makes it return at once, in test copies only.
+- **A full-match replay plays to the end:** the Online Divisions match (197 chunks) replayed from the Match List
+  through both halves to the 90:00 "Full Time" result screen with player ratings, with no error (21:05 → 21:25).
+  The earlier GNCX_0003 at the end of a replay came from a recording of an abandoned match.
+- **Why keys never moved anyone in a match** [static, agent; fix live]:
+  - The idle check reads only the player's own controller devices.
+  - A real key press on the title screen makes the input manager take that device as the player's
+    (0x140a9a6c0 → `0x141b52a60(1)`). `pesflow title` called the title's press function directly, which
+    skipped that step, so the player had no controller: menus took keys, matches ignored them.
+  - `pesflow title` now calls 0x141b52a60(1) first (`pesflow PORT bindpad` does it alone); 0x141b52380 went 0 → 1.
+- **Online Co-op "1+1 vs COM"** [static, agent, not run]: one push after START_COOP_VSCOM_OPPONENT,
+  `CMD_WATCH_COOP_VSCOM_OPPONENT {result, owner_pid, my_team: blob{base_team_id}, com_team: blob{side, base_team_id,
+  com_level, pid: 4294967295}}` (pid as unsigned 0xFFFFFFFF; the game then builds the CPU team itself). It needs 2
+  humans in one group, which the current one-peer co-op can't connect.
