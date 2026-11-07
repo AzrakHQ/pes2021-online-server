@@ -1,7 +1,9 @@
 # Results group: post-match reporting, rating push, divisions and rankings
 
 ## Corrections from later findings (2026-11-05)
-- **Quick Match never shows the rating screen** (mode groups 13/19/28/29 only, static table; sweep.md). The verdict push still ends the 20 s wait.
+- **Quick Match never shows the rating screen** (mode groups 13/19/28/29 only, static table; sweep.md). The verdict
+  push still ends the 20 s wait. Pushed at END (live 2026-11-07), it also stops the second game from reporting the
+  link as lost when the first player leaves the result screens.
 - Value sets are known (sweep.md): `division` "D1"…"D12"/"NONE", ranking `sort` RATING/WIN_NUM/MATCH_NUM/WIN_STRAIGHT/WIN_RATE, `order` "ASC".
 
 

@@ -560,3 +560,14 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
     while the match ran) loses. The other wins 3-0, or with the real score if already ahead. Both idle → no winner.
 - quickmatch.py: on the Divisions main menu, "To Next Match" needs a moment after the season dialog; the script
   retries.
+- **Quick Match ends cleanly when the server pushes the verdict at full time** (2026-11-07, now the default for
+  every one-on-one match):
+  - Before, the first player to leave the result screens cut the link. The other game then reported
+    `SEND_ABNORMALEND {DISCONN_P2P, GNCX_0003}` and showed "This match will be abandoned. There has been a
+    connection problem between you and your opponent."
+  - With WATCH_GAMEADDPOINT pushed to both at END: no SEND_ABNORMALEND, both SEND_GAME_RESULT `NORMAL_END` with an
+    empty error_code, LEAVE_ROOM from both, and both copies went straight back to Matchmaking Settings.
+  - Ratings moved by the draw: 1016→1015, 984→985.
+  - Quick Match has no rating screen, so the push is never visible; it only ends the games' wait for it.
+- **A goal has reached the server before** (server-prev2.log, 2026-11-04): ADD_SCORE {goal_side AWAY,
+  goal_player_pid 2, goal_gameplayer_id_info…} from both games, 6 ms apart. That log ends before the match did.
