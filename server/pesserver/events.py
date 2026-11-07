@@ -114,8 +114,10 @@ def observe(svc, sess, msgid, req):
     if msgid == "CMD_CREATE_PLAYER" and pid is not None:
         feed(svc, f"New player: {name_of(svc, pid)}", "login")
         return
-    if msgid == "CMD_START_MATCHING" and pid is not None:
-        feed(svc, f"{name_of(svc, pid)} is looking for a match", "search")
+    if msgid in ("CMD_START_MATCHING", "CMD_START_COOP_MATCHING") and pid is not None:
+        from .adminextra import MODES, COOP
+        mode = COOP if msgid == "CMD_START_COOP_MATCHING" else MODES.get(str(req.get("matching_type") or "OC_QUICK"), "Quick Match")
+        feed(svc, f"{name_of(svc, pid)} is looking for a match in {mode}", "search")
         return
     if pid is None:
         return

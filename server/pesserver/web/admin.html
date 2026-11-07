@@ -480,6 +480,9 @@
   @media (max-width: 420px) { .kv.modes { grid-template-columns:minmax(0,1fr); gap:2px; } .kv.modes dt { margin-top:8px; font-size:13px; } }
   h3.rooms-h { margin-top:16px; }
   .pill.mode { margin-left:6px; }
+  table.divt { width:auto; min-width:min(100%, 620px); }
+  table.divt th, table.divt td { padding-right:28px; }
+  @media (max-width: 560px) { table.divt { min-width:0; } table.divt th, table.divt td { padding-right:8px; } }
   .chips.r-mode { align-items:center; padding-left:10px; border-left:1px solid var(--line); }
   .chips.r-mode .lbl { margin-right:2px; }
   @media (max-width: 700px) { .chips.r-mode { padding-left:0; border-left:0; } }
@@ -1256,8 +1259,8 @@ function badge(id, v, label) {
 
 function liveHtml(d, now, compact) {
   const phaseLabel = m => m.phase === "Full time" ? `<span class="pill neutral">Full time</span>`
-    : m.kickoff ? `<span class="pill live"><span class="dot"></span>${esc(m.phase)}</span> <span class="muted">&nbsp;kicked off ${ago(m.kickoff, now)}</span>`
-    : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}</span>${now - (m.started || now) > 300 ? `<span class="stuck small">Stuck? ${nm(m.home_name)} and ${nm(m.away_name)} can leave and search again.</span><span class="stuck-acts">${[[m.home, m.home_name], [m.away, m.away_name]].filter(x => x[0] != null).map(([pid, n]) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="lvdm-${pid}${compact ? "c" : ""}">Message ${nm(n)}</button>`).join("")}</span>` : ""}`;
+    : m.kickoff ? `<span class="pill live"><span class="dot"></span>${esc(m.phase)}</span> <span class="muted">&nbsp;kicked off ${ago(m.kickoff, now)}</span>${modeTag(m.mode)}`
+    : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}</span>${modeTag(m.mode)}${now - (m.started || now) > 300 ? `<span class="stuck small">Stuck? ${nm(m.home_name)} and ${nm(m.away_name)} can leave and search again.</span><span class="stuck-acts">${[[m.home, m.home_name], [m.away, m.away_name]].filter(x => x[0] != null).map(([pid, n]) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="lvdm-${pid}${compact ? "c" : ""}">Message ${nm(n)}</button>`).join("")}</span>` : ""}`;
   const going = d.live.filter(m => m.phase !== "Full time"), done = d.live.filter(m => m.phase === "Full time");
   const fin = done.length ? `<p class="finished">Just finished: ${done.map(m => `${esc(m.home_name)} ${m.home_score}–${m.away_score} ${esc(m.away_name)}`).join(" · ")}</p>` : "";
   return going.length ? `<ul class="list-plain">` + going.map(m => `
@@ -1265,7 +1268,7 @@ function liveHtml(d, now, compact) {
       <div class="side-n" title="${esc(m.home_name)}">${pname(m.home_name, m.home, `lv-${m.home}${compact ? "c" : ""}`)}</div>
       <div class="score${m.kickoff ? "" : " vs"}">${m.kickoff ? `<span aria-hidden="true">${m.home_score} – ${m.away_score}</span><span class="sr"> ${m.home_score} to ${m.away_score} </span>` : `<span aria-hidden="true">vs</span><span class="sr"> versus </span>`}</div>
       <div class="side-n away" title="${esc(m.away_name)}">${pname(m.away_name, m.away, `lv-${m.away}${compact ? "c" : ""}`)}</div>
-      <div class="phase">${phaseLabel(m)}${modeTag(m.mode)}</div>
+      <div class="phase">${phaseLabel(m)}</div>
     </li>`).join("") + `</ul>` + fin + roomsHtml(d, compact) : (fin ? fin : (d.rooms || []).length ? "" : d.searching === 1 ? `<p class="empty">One friend is looking for a match. Another friend needs to search in the same mode too.</p>`
     : `<p class="empty">No one is playing${compact ? "" : " right now"}. A match starts when two friends search in the same mode at the same time, or from a Friendly Match Lobby room.</p>`) + roomsHtml(d, compact);
 }
@@ -1342,9 +1345,6 @@ function renderOverview(d, r, pn, playing, ready) {
     for (const m of d.live) if (!m.kickoff && m.phase !== "Full time" && m.started && now - m.started > 300)
       attn.push(`<li><span>${I.warn} <b>${esc(m.home_name)} and ${esc(m.away_name)} have been getting ready for ${inMin(now - m.started)}.</b> One of them may be stuck on a loading screen: leaving and searching again usually fixes it.</span>` +
         [[m.home, m.home_name], [m.away, m.away_name]].filter(x => x[0] != null).map(([pid, n]) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="atdm-${pid}">Message ${nm(n)}</button>`).join("") + `</li>`);
-    const lone = d.searching === 1 ? d.online.find(p => p.searching_for) : null;
-    if (lone && lone.searching_since && now - lone.searching_since > 180)
-      attn.push(`<li><span>${I.warn} <b>${esc(lone.name)} has been looking for ${lone.searching_for && lone.searching_for !== "Quick Match" ? `an ${esc(lone.searching_for)} match` : "a match"} alone for ${inMin(now - lone.searching_since)}.</b> Nobody else is searching, so no match can start.</span><a href="#messages/msg-title">Message everyone ${I.right}</a></li>`);
     const nmOf = pid => esc(pidName(d, pid)), dmB = (pid, k) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="${k}-${pid}">Message ${nm(pidName(d, pid))}</button>`;
     const probs = d.problems || [], stuckPids = new Set(probs.flatMap(p => p.pids));
     for (const p of probs) {
@@ -1353,13 +1353,17 @@ function renderOverview(d, r, pn, playing, ready) {
       else if (p.kind === "coop_mod") attn.push(`<li><span>${I.warn} <b>${nmOf(p.pids[0])} is searching for Online Co-op, but their mod is too old for co-op.</b> Send them the mod again; Quick Match keeps working meanwhile.</span><a href="#invite">Send the mod ${I.right}</a></li>`);
       else if (p.kind === "coop_blocked") attn.push(`<li class="info"><span><b>${nmOf(p.pids[0])} and ${nmOf(p.pids[1])} are both searching for Online Co-op,</b> but one has the other on their co-op block list, so they won't be paired.</span></li>`);
     }
-    const sByMode = {};
-    for (const o of d.online) if (o.searching_for && !stuckPids.has(o.pid)) (sByMode[o.searching_for] = sByMode[o.searching_for] || []).push(o);
-    const modesS = Object.keys(sByMode);
-    if (modesS.length > 1 && modesS.every(k => sByMode[k].length === 1) && modesS.every(k => now - (sByMode[k][0].searching_since || now) > 60)) {
-      const ws = modesS.map(k => sByMode[k][0]);
-      attn.push(`<li><span>${I.warn} <b>${andList(ws.map(o => `${esc(o.name)} (${esc(o.searching_for)})`))} are searching in different modes,</b> so they aren't paired. Matches only start between friends in the same mode.</span>${ws.length <= 2 ? ws.map(o => dmB(o.pid, "mmdm")).join("") : `<a href="#messages/msg-title">Message everyone ${I.right}</a>`}</li>`);
-    }
+    // a friend with nobody else searching in their mode for 3+ minutes
+    const searchers = d.online.filter(o => o.searching_for), byMode = {};
+    for (const o of searchers) (byMode[o.searching_for] = byMode[o.searching_for] || []).push(o);
+    const alone = Object.values(byMode).filter(g => g.length === 1 && !stuckPids.has(g[0].pid) && g[0].searching_since && now - g[0].searching_since > 180).map(g => g[0]);
+    if (alone.length === 1 && searchers.length === 1)
+      attn.push(`<li><span>${I.warn} <b>${esc(alone[0].name)} has been searching in ${esc(alone[0].searching_for)} alone for ${inMin(now - alone[0].searching_since)}.</b> Nobody else is searching, so no match can start.</span><a href="#messages/msg-title">Message everyone ${I.right}</a></li>`);
+    else if (alone.length === 1) {
+      const o = alone[0], others = searchers.filter(x => x !== o), oModes = [...new Set(others.map(x => x.searching_for))];
+      attn.push(`<li><span>${I.warn} <b>${esc(o.name)} is the only friend searching in ${esc(o.searching_for)}</b> (for ${inMin(now - o.searching_since)}). ${andList(others.map(x => esc(x.name)))} ${others.length === 1 ? "is" : "are"} searching in ${andList(oModes.map(esc))}. Matches only start between friends in the same mode.</span>${dmB(o.pid, "mmdm")}</li>`);
+    } else if (alone.length > 1)
+      attn.push(`<li><span>${I.warn} <b>${andList(alone.map(o => `${esc(o.name)} (${esc(o.searching_for)})`))} are searching in different modes,</b> so they aren't paired. Matches only start between friends in the same mode.</span>${alone.length <= 2 ? alone.map(o => dmB(o.pid, "mmdm")).join("") : `<a href="#messages/msg-title">Message everyone ${I.right}</a>`}</li>`);
     const oldMods = d.online.filter(o => o.mod === "old" && !stuckPids.has(o.pid));
     if (oldMods.length && d.online.some(o => o.mod && o.mod !== "old"))
       attn.push(`<li><span>${I.warn} <b>${andList(oldMods.map(o => esc(o.name)))} ${oldMods.length === 1 ? "has" : "have"} an older mod</b> and can't be paired with friends on the current one. Send ${oldMods.length === 1 ? "them" : "each of them"} the mod again.</span><a href="#invite">Send the mod ${I.right}</a></li>`);
@@ -1431,15 +1435,16 @@ function renderOverview(d, r, pn, playing, ready) {
 }
 
 const courtTag = p => p.courtesy && p.courtesy.grade !== "A" ? ` <span class="pill ${p.courtesy.grade === "C" ? "warn" : "neutral"} tag" title="Courtesy rating ${p.courtesy.grade}: left ${p.courtesy.quits} of their last ${p.courtesy.matches} matches early">Courtesy ${p.courtesy.grade}</span>` : "";
+const ordinal = n => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
 function renderDivisions(d) {
   const dv = d.players.filter(p => p.division).sort((a, b) => a.division.div - b.division.div || b.division.points - a.division.points || a.name.localeCompare(b.name));
   $("c-div").hidden = !dv.length;
   if (!dv.length) return;
   const outlook = x => !x.top && x.points >= x.up ? `<span class="ok">going up</span>` : !x.bottom && x.points + 3 * (x.of - x.played) < x.down ? `<span class="warn">going down</span>`
     : `<span class="muted">${[!x.top ? `up at ${x.up}` : "", !x.bottom ? `down under ${x.down}` : ""].filter(Boolean).join(", ")}</span>`;
-  put("divs", `<div class="tablewrap"><table><caption class="sr">Online Divisions, top division first</caption><thead><tr><th scope="col">Player</th><th scope="col" class="num">Division</th><th scope="col">This season</th><th scope="col" class="hide-sm">All seasons</th></tr></thead><tbody>` +
+  put("divs", `<div class="tablewrap"><table class="divt"><caption class="sr">Online Divisions, top division first</caption><thead><tr><th scope="col">Player</th><th scope="col" class="num">Division</th><th scope="col">This season</th><th scope="col" class="hide-sm">Record</th></tr></thead><tbody>` +
     dv.map(p => { const x = p.division; return `<tr><td class="name"><span class="who">${avatar(p)}${pname(p.name, p.pid, "dv-" + p.pid)}</span></td><td class="num"><b>D${x.div}</b></td>` +
-      `<td><b>${x.points}</b> pts · ${x.played} of ${x.of} played<br><span class="small">${outlook(x)}</span></td><td class="hide-sm small muted">season ${x.season} · ${x.wins}W ${x.draws}D ${x.losses}L</td></tr>`; }).join("") +
+      `<td><b>${x.points}</b> pts · ${x.played} of ${x.of} played<br><span class="small">${outlook(x)}</span></td><td class="hide-sm small muted">${ordinal(x.season)} season · ${x.wins}W ${x.draws}D ${x.losses}L overall</td></tr>`; }).join("") +
     `</tbody></table></div><p class="note">D10 is where everyone starts and D1 is the top. A season is 10 matches: 3 points a win, 1 a draw. These matches also count in the league table above.</p>`);
 }
 function renderPlayers(d) {
@@ -1512,7 +1517,6 @@ function whenCell(t, now) {
   if (ui.rr[0] === "d") return hm.format(dt);
   return now - t < 86400 ? esc(ago(t, now)) : `<span class="d">${dShort.format(dt)}</span> <span class="t">${hm.format(dt)}</span>`;
 }
-const MODE_SHORT = {"Online Divisions": "Divisions", "Friendly Match Lobby": "Rooms", "Online Co-op": "Co-op"};
 function renderMatchday(d) {
   const md = d.matchday;
   $("c-md").hidden = !md;
@@ -1536,7 +1540,7 @@ function renderMatches(d, playing, ready, fromLoad) {
   const modes = d.modes || [];
   put("r-kind", st.abandoned || ui.re ? `<button type="button" data-re="1" data-key="re" aria-pressed="${ui.re}">Ended early <span class="n">${st.abandoned}</span></button>` : "");
   $("r-mode").hidden = !(modes.length > 1 || ui.rm);
-  put("r-mode", (modes.length > 1 || ui.rm ? `<span class="small muted lbl">Mode</span>` + modes.map(m => `<button type="button" data-rm="${esc(m)}" data-key="rm-${esc(m)}" aria-pressed="${ui.rm === m}">${esc(MODE_SHORT[m] || m)}</button>`).join("") : ""));
+  put("r-mode", (modes.length > 1 || ui.rm ? `<span class="small muted lbl">Mode</span><button type="button" data-rm="" data-key="rm-all" aria-pressed="${!ui.rm}">All modes</button>` + modes.map(m => `<button type="button" data-rm="${esc(m)}" data-key="rm-${esc(m)}" aria-pressed="${ui.rm === m}">${esc(m)}</button>`).join("") : ""));
   renderMatchday(d);
   if (!res.data) return;
   const q = ui.rq, shownRs = res.data.rows, total = res.data.total;
@@ -1555,7 +1559,7 @@ function renderMatches(d, playing, ready, fromLoad) {
     `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col class="hm"><col class="s"><col class="aw"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th></tr></thead><tbody>` +
     shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
       const early = r.reason || r.voided, score = `${r.home_name} ${r.home_score ?? "?"}–${r.away_score ?? "?"} ${r.away_name}`;
-      return `<tr${early ? ' class="has-note"' : ""}><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}${r.mode && r.mode !== "Quick Match" && !ui.rm ? `<span class="len-m mode-m"> · ${esc(MODE_SHORT[r.mode] || r.mode)}</span>` : ""}</td>
+      return `<tr${early ? ' class="has-note"' : ""}><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}${ui.rm ? "" : modeTag(r.mode || "Quick Match")}</td>
         <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.voided ? `<span class="pill neutral tag">not counted</span>` : r.reason ? `<span class="pill warn tag">ended early</span>` : ""}</td>
         <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}</td></tr>` +
         (early ? `<tr class="note-r"><td class="pad"></td><td colspan="3"><span class="small ${r.voided ? "muted" : ""}">${r.reason ? why(r) + ". " : ""}${r.voided ? "Not in the table." : "Counts as it stood."}</span> <button type="button" class="small needs-server" data-count="${r.id}" data-counted="${r.voided ? 1 : 0}" data-score="${esc(score)}" data-key="cnt-${r.id}">${r.voided ? "Count it again" : "Don't count it"}</button></td></tr>` : ""); }).join("") +
@@ -1621,7 +1625,7 @@ async function loadPlayer() {
   $("sh-t").textContent = p.name; $("sh-av").innerHTML = avatar(p);
   const list = sheetAll ? all : all.slice(0, 10);
   $("sh-b").innerHTML =
-    `<p class="small muted" style="margin:0 0 12px">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span> ${(o => o ? statusOf(last, o) + " · " : "")(last && last.online.find(x => x.pid === pid))}for ${dur(now - p.since)} · <span title="Address ${esc(p.ip)}">${where(p.ip)}</span>` : p.last_login ? "Last seen " + esc(ago(p.last_login, now)) : "Never signed in"}` +
+    `<p class="small muted" style="margin:0 0 12px">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span> ${(o => o ? statusOf(last, o) + (o.status === "Searching" && o.searching_since ? ` for ${inMin(now - o.searching_since)}` : "") + " · " : "")(last && last.online.find(x => x.pid === pid))}connected ${dur(now - p.since)} · <span title="Address ${esc(p.ip)}">${where(p.ip)}</span>` : p.last_login ? "Last seen " + esc(ago(p.last_login, now)) : "Never signed in"}` +
       ` · joined ${esc(dShort.format(new Date(p.created * 1000)))} · rating ${esc(p.rating ?? "–")}${rank ? ` · #${rank} in the table` : ""}${p.streak > 1 ? ` · ${p.streak} wins in a row` : ""}</p>` +
     `<div class="mstats"><div><b>${ms.length}</b><span>played</span></div><div><b>${w}–${dr}–${l}</b><span>won–drawn–lost</span></div><div><b>${gf}:${ga}</b><span>goals for:against</span></div><div><b>${ms.length ? Math.round(100 * w / ms.length) + "%" : "–"}</b><span>win rate</span></div></div>` +
     modesHtml(p, now) +
@@ -1639,18 +1643,21 @@ const MODS = {current: "Up to date", "no-coop": "Older (0.4): Quick Match works,
   old: "Old: they can't be paired with friends on the current mod. Send them the mod again."};
 function modesHtml(p, now) {
   const rows = [], names = pids => andList(pids.map(x => pname(pidName(last || {}, x), x, "cb-" + x)));
+  const o = last && last.online.find(x => x.pid === p.pid);
+  if (o) rows.push(["Now", statusOf(last, o) + (o.status === "Searching" && o.searching_since ? ` for ${inMin(now - o.searching_since)}` : "")]);
   const c = p.courtesy;
   if (c) rows.push(["Courtesy", `<b>${c.grade}</b> · ${c.quits ? `left ${c.quits} of their last ${plural(c.matches, "match", "matches")} early` : `no early exits in their last ${plural(c.matches, "match", "matches")}`}` +
     (c.early.length ? `<span class="small muted" style="display:block">${c.early.slice(0, 3).map(x => `${esc(x.why)}, ${esc(when(x.t, now))}`).join(" · ")}</span>` : "") +
     (c.quits ? `<button type="button" class="small needs-server" style="margin-top:6px" data-courtesy="${p.pid}" data-name="${esc(p.name)}">Clear record</button>` : "")]);
   const dv = p.division;
+  if (!dv && last && last.players.some(x => x.division)) rows.push(["Online Divisions", `<span class="muted">Not played yet</span>`]);
   if (dv) rows.push(["Online Divisions", `<b>D${dv.div}</b> · season ${dv.season}: ${plural(dv.points, "point")} from ${dv.played} of ${dv.of} matches<span class="small muted" style="display:block">${dv.wins}W ${dv.draws}D ${dv.losses}L in all seasons</span>`]);
   const md = p.matchday;
   if (md) rows.push(["Matchday", `${esc(md.side)} · ${plural(md.points, "point")} from ${plural(md.matches, "match", "matches")}`]);
   if ((p.coop_blocks || []).length) rows.push(["Co-op blocks", `Won't be paired in Online Co-op with ${names(p.coop_blocks)} (their own block list)`]);
   if ((p.coop_blocked_by || []).length) rows.push(["Blocked by", `${names(p.coop_blocked_by)} (in Online Co-op only)`]);
   if (p.mod) rows.push(["Mod", esc(MODS[p.mod] || p.mod)]);
-  return rows.length ? `<h3>Game modes</h3><dl class="kv modes">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : "";
+  return rows.length ? `<h3>Game modes and fair play</h3><dl class="kv modes">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : "";
 }
 function cachedPlayer(pid) {
   const c = last && last.players.find(x => x.pid === pid);
@@ -1952,7 +1959,7 @@ document.addEventListener("click", async e => {
   if (e.target.closest("[data-sheetall]")) { sheetAll = true; return loadPlayer(); }
   if (e.target.closest("[data-re]")) { ui.re = !ui.re; ui.rN = 25; if (last) render(last); loadResults(true); return; }
   const rmb = e.target.closest("[data-rm]");
-  if (rmb) { ui.rm = ui.rm === rmb.dataset.rm ? "" : rmb.dataset.rm; ui.rN = 25; if (last) render(last); loadResults(true); return; }
+  if (rmb) { ui.rm = rmb.dataset.rm; ui.rN = 25; if (last) render(last); loadResults(true); return; }
   const cy = e.target.closest("[data-courtesy]");
   if (cy) { if (await ask({title: `Clear ${cy.dataset.name}'s courtesy record?`, body: "Their courtesy rating goes back to A and their early exits are forgotten. Do this when those exits weren't their fault, such as a game crash or a power cut.", ok: "Clear record"}) === null) return;
     try { await api("/admin/api/player/courtesy", {method: "POST", body: JSON.stringify({pid: +cy.dataset.courtesy})}); toast(`${cy.dataset.name}'s courtesy record was cleared.`); }
@@ -2143,7 +2150,9 @@ $("dmform").onsubmit = async e => {
   const who = $("dm-to").selectedOptions[0] ? $("dm-to").selectedOptions[0].dataset.name : "";
   if (!pid) { $("dm-to").setAttribute("aria-invalid", "true"); text("dm-fit", "Choose who gets the message."); $("dm-fit").className = "small err"; return $("dm-to").focus(); }
   if (!title || !body) return fieldError("dm", title);
-  if (await msgCall("/admin/api/message/player", {pid, title, body}, `Sent. ${who} sees it the next time they sign in or open an online mode; this page shows when they've opened it.`)) { $("dm-title").value = ""; $("dm-body").value = ""; $("dm-to").value = ""; dmCount(); }
+  const isOn = last && last.online.some(o => o.pid === pid);
+  if (await msgCall("/admin/api/message/player", {pid, title, body}, isOn ? `Sent. ${who} is online, so it pops up as soon as they enter an online mode again (or sign in). This page shows when they've opened it.`
+                                                                         : `Sent. ${who} sees it the next time they sign in or open an online mode; this page shows when they've opened it.`)) { $("dm-title").value = ""; $("dm-body").value = ""; $("dm-to").value = ""; dmCount(); }
 };
 $("msg-clear").onclick = async () => { if (await ask({title: "Remove the message?", body: "Players stop seeing it in the game.", ok: "Remove", danger: true}) !== null) msgCall("/admin/api/message", {clear: true}, "Message removed."); };
 $("rs-min").addEventListener("change", () => { $("rs-min").dataset.touched = "1"; });
@@ -2214,17 +2223,17 @@ $("logout").onclick = logout; $("logout-m").onclick = logout;
 function statusOf(d, p) {
   const vs = opponent(d, p.name) || pending(d, p.name);
   const st = pending(d, p.name) ? "Getting ready"
-    : p.status === "Searching" && p.searching_for && p.searching_for !== "Quick Match" ? `Searching in ${p.searching_for}`
+    : p.status === "Searching" ? `Searching in ${p.searching_for || "Quick Match"}`
     : p.status === "In a match room" && p.room ? `In room “${p.room.length > 22 ? p.room.slice(0, 21) + "…" : p.room}”` : p.status;
-  return `<span class="nw">${esc(st)}</span>${vs ? ` vs <span class="nw">${esc(vs)}</span>` : ""}`;
+  return `<span class="st">${esc(st)}</span>${vs ? ` vs <span class="nw">${esc(vs)}</span>` : ""}`;
 }
-const modeTag = m => m && m !== "Quick Match" ? ` <span class="pill neutral tag mode">${esc(m)}</span>` : "";
+const modeTag = m => m && (m !== "Quick Match" || (last && (last.modes || []).length > 1)) ? ` <span class="pill neutral tag mode">${esc(m)}</span>` : "";
 const pidName = (d, pid) => ((d.players || []).find(p => p.pid === pid) || {}).name || "Player " + pid;
 function roomsHtml(d, compact) {
   const rs = (d.rooms || []).filter(r => r.state !== "Playing");
   if (!rs.length) return "";
   return `<h3 class="day rooms-h">Match rooms <span class="small muted" style="font-weight:400;text-transform:none;letter-spacing:0">Friendly Match Lobby</span></h3><ul class="list-plain mini rooms">` + rs.map(r =>
-    `<li><span class="grow"><b>${esc(r.name)}</b>${r.password ? ` <span class="small muted" title="Needs a password">(password)</span>` : ""}<br><span class="small muted">${r.members.map(pid => pname(pidName(d, pid), pid, `rm-${r.id}-${pid}${compact ? "c" : ""}`)).join(", ")} · ${esc(r.state)}</span></span><span class="r small muted">${r.members.length} of 2</span></li>`).join("") + `</ul>`;
+    `<li><span class="grow"><b>${esc(r.name)}</b>${r.password ? ` <span class="small muted" title="Needs a password">(password)</span>` : ""}<br><span class="small muted">${r.members.map(pid => pname(pidName(d, pid), pid, `rm-${r.id}-${pid}${compact ? "c" : ""}`)).join(", ")} · ${r.members.length < 2 ? "1 of 2 players, waiting for an opponent" : `2 of 2 players, ${r.state === "In the room" ? "getting ready to start" : esc(r.state.toLowerCase())}`}</span></span></li>`).join("") + `</ul>`;
 }
 function pending(d, name) {
   const m = d.live.find(m => !m.kickoff && m.phase !== "Full time" && (m.home_name === name || m.away_name === name));
