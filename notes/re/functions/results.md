@@ -279,6 +279,19 @@ gameend_reason triggers OLXH186.
   division) or by rating; page with start_index/view_num; BYID returns the window around the requester.
   Reply raw msgpack over HTTP like the other web API calls.
 
+- **Live 2026-11-07 (pesranking.py):**
+  - **Opening:** Online Stats (main-menu item 0x1a) → Overall Ranked Match Rankings sends HTTP
+    `CMD_GET_RANKING {urltype RANK, start_index 0, view_num 100, sort RATING, order ASC}`.
+  - **Bare reply:** "Unable to find any ranked users. *Rankings are updated regularly. *Users who have not yet
+    played 10 games will not be ranked in Win Rate rankings."
+  - **With the inline-map reply above:** a "Rating" list (rank, user name, the sort value as `point`; LB/RB =
+    5 pages) and a **User Information** panel: avatar, name, Division badge from `user.division` ("D7" → 7;
+    "" → "?"), Courtesy Rating from `user.manner`, Matches, W/D/L and Win Rate from `match_record`, then
+    Favorite Team, Favorite Player and Comment. "Last Updated" comes from `date`.
+  - **`user.manner` here is a plain string** ("B" showed B; an inline map {manner} was ignored → C), unlike
+    GET_PLAYERINFO, where it must be a blob.
+  - Footer: A User Information, X See Rank, Y Sort.
+
 ### CMD_GET_GAMERESULTS (match history list)
 - Gate, 7-key request (header + 3 keys, one default 'ALL' in ctor 0x141c76d90, names not resolved).
   CommandObject variants: plain (Online/Information/InformationCmdGetGameResults), RankMatch

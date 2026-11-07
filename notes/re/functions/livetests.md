@@ -514,3 +514,11 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
     reaches full time has not been watched yet.
 - **Match history:** "Last 20 results" lists our stored matches. Participating Users → opponent → Add to Match
   Block List works (menus.md).
+- **Rankings:** Online Stats → Overall Ranked Match Rankings lists the server's players with ratings, plus a
+  User Information panel (results.md).
+- **Own profile** (Online Stats → User Details): Courtesy Rating B and Number of Disconnections "Moderately
+  High", from probe1's two idle exits. The SEMI_HIGH_RATE label is confirmed.
+- **Tools lesson:** stopping tools/autoplay.sh mid-press left an arrow key held down, and every later key press to
+  the games was ignored. Running `xdotool keyup Right Up Left Down a s d w` fixed it; autoplay now releases its keys
+  on exit. Autoplay also never took the kick-off in today's Quick Match (both copies stayed at the kick-off
+  position until the idle end); not looked into yet.
