@@ -1,0 +1,126 @@
+{
+ "name": "profile-manner",
+ "inst": 1,
+ "variants": [
+  {
+   "name": "rate-50",
+   "patch": {
+    "patch": {
+     "CMD_GET_PLAYERINFO": {
+      "set": {
+       "manner": {
+        "__blob__": {
+         "manner": "A",
+         "disconnect_rate": "50"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "rate-0.5",
+   "patch": {
+    "patch": {
+     "CMD_GET_PLAYERINFO": {
+      "set": {
+       "manner": {
+        "__blob__": {
+         "manner": "A",
+         "disconnect_rate": "0.5"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "rate-100",
+   "patch": {
+    "patch": {
+     "CMD_GET_PLAYERINFO": {
+      "set": {
+       "manner": {
+        "__blob__": {
+         "manner": "A",
+         "disconnect_rate": "100"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "rate-20",
+   "patch": {
+    "patch": {
+     "CMD_GET_PLAYERINFO": {
+      "set": {
+       "manner": {
+        "__blob__": {
+         "manner": "A",
+         "disconnect_rate": "20"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ ],
+ "steps": [
+  {
+   "home": true
+  },
+  {
+   "go": "settings"
+  },
+  {
+   "wait": "TopMenuOnlineSettingSub",
+   "timeout": 50
+  },
+  {
+   "sleep": 2
+  },
+  {
+   "key": [
+    "Down",
+    "Return"
+   ]
+  },
+  {
+   "wait": "Online/UserList/UserList",
+   "timeout": 20
+  },
+  {
+   "sleep": 2
+  },
+  {
+   "key": "Return"
+  },
+  {
+   "sleep": 2
+  },
+  {
+   "key": "Return"
+  },
+  {
+   "reply": "CMD_GET_PLAYERINFO",
+   "timeout": 8,
+   "since": "variant",
+   "optional": true
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "screen": true
+  },
+  {
+   "shot": "profile"
+  }
+ ]
+}

@@ -227,6 +227,7 @@ def test_profile_round_trip(svc):
     r = pescmds.dispatch(svc, b, "CMD_GET_PLAYERINFO", {"pid": 2, "user_id": who})        # Bob looks at Ann
     assert (r["favoriteTeam"], r["favoritePlayer"], r["intro"]) == ("Arsenal", "Saka", "Hello")
     assert unb(r["pname"])["name"] == "Ann" and r["pid"] == 1
+    assert unb(r["manner"]) == {"manner": "A"}                                             # a blob, never a string
     assert pescmds.validate("CMD_GET_PLAYERINFO", r)
     r = pescmds.dispatch(svc, b, "CMD_GET_PLAYERINFO", {"pid": 2})                          # own, no profile yet
     assert r["favoriteTeam"] == "" and unb(r["pname"])["name"] == "Bob"

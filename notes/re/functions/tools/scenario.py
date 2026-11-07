@@ -164,7 +164,7 @@ class Runner:
         tries = 0
         while time.time() < end:
             s = pf.screen(self.probe()) or ""
-            if s.startswith("TopMenu/"):
+            if s == "TopMenu/TopMenuNew":            # (TopMenu/TopMenuOnlineSettingSub etc. are sub-menus)
                 return s
             if s.startswith("Intro/"):
                 self.reset_probe(); ps.login(self.inst); continue
@@ -323,6 +323,10 @@ class Runner:
                 if not st.get("optional"):
                     result = "FAIL"
                     break
+            except (RuntimeError, ValueError, KeyError, TimeoutError) as e:      # a step that could not run
+                log.append(f"- **ERROR** `{label}` → {e!r}")
+                result = "ERROR"
+                break
             except (Crash, ConnectionError, OSError, EOFError) as e:
                 time.sleep(2)
                 result = "CRASH" if not game_running(self.inst) else "ERROR"

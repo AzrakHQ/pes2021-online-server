@@ -6,7 +6,8 @@ How the game uses it (live 2026-11-07, notes/re/functions/menus.md "Profile"):
 - Opening a profile (your own in Edit Profile, other players' from user lists) sends CMD_GET_PLAYERINFO
   {user_id: blob{pid, pname}}. The reply's top-level `pname` blob, `favoriteTeam`, `favoritePlayer` and `intro`
   are what the screen shows (checked on the game's parser with tools/parsebench.py); missing ones show as
-  "NotImplement".
+  "NotImplement". Other players' profiles (e.g. from the Match Block List) also show Courtesy Rating from
+  manner: blob{manner: "C".."AAA"} and Number of Disconnections from manner.disconnect_rate.
 """
 import logging, time
 
@@ -81,8 +82,13 @@ def get_playerinfo(svc, sess, req):
     if not p:
         return {"result": NOERR}
     pr = profile(svc, who)
+    from . import pesmanner
+    # "Courtesy Rating" on the profile: manner is a blob{manner, disconnect_rate}; a plain string here crashes the
+    # game when the profile opens (live). Without it every player shows "C". disconnect_rate ("Number of
+    # Disconnections") is left out: Low is what it shows then, and the values that change it are not known yet.
+    manner = msgpack.packb({"manner": pesmanner.rating(svc, who)["grade"]}, use_bin_type=True)
     return {"result": NOERR, "pid": who, "pname": _pname(p), "favoriteTeam": pr.get("team") or "",
-            "favoritePlayer": pr.get("player") or "", "intro": pr.get("intro") or ""}
+            "favoritePlayer": pr.get("player") or "", "intro": pr.get("intro") or "", "manner": manner}
 
 
 def forget(svc, pid):
