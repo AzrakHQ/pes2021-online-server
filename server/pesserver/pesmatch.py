@@ -317,7 +317,10 @@ def _send_later(sess, msgid, rqid, kind, seq, body):
         log.info("push %s skipped: session has no live connection", msgid)
         return
     msg = Message(msgid, rqid, {**body, "_kind": kind, "_seq": seq})
-    asyncio.get_event_loop().create_task(sess.send(msg))
+    try:
+        asyncio.get_running_loop().create_task(sess.send(msg))
+    except RuntimeError:                              # no running loop (offline tools / unit tests): drop it
+        log.info("push %s skipped: no event loop", msgid)
 
 
 # ---- dev hook: re-push the last match notification in a chosen variant (no restart needed) -------
@@ -459,12 +462,12 @@ def change_gamephase(svc, sess, req):
     rid, room = _room_of(svc, pid)
     if room is not None:
         room.setdefault("phase", {})[pid] = str(req.get("phase", ""))
-        if ((os.environ.get("PESSERVER_VERDICT_AT_END") == "1" or room.get("lobby_room")
-             or room.get("mode") in ("OC_RANK", "MATCHDAY"))
+        if (os.environ.get("PESSERVER_VERDICT_AT_END", "1") != "0" and not room.get("coop")
                 and "pushed_at_end" not in room
                 and all(room["phase"].get(p) == "END" for p in room["members"])):
-            # At the final whistle, to every member. Always for a Friendly Match Lobby match: the room screen's
-            # "N Match(es)" and "Wins" counters only count this push (lobby2.md); a test switch for Quick Match.
+            # At the final whistle, to every member (every one-on-one match; PESSERVER_VERDICT_AT_END=0 turns it
+            # off). The Friendly Match Lobby's "N Match(es)" / "Wins" counters only count this push (lobby2.md),
+            # and with it neither game reports the link as lost when the first player leaves the result screens.
             room["pushed_at_end"] = True
             v = _verdict(svc, rid, room)
             for p in room["members"]:

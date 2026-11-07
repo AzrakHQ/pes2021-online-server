@@ -156,12 +156,15 @@ def _played(svc, monkeypatch, goals, end=True):
     pushed = []
     monkeypatch.setattr(pesmatch, "_send_later", lambda s, msgid, rq, k, sq, body: pushed.append((s.pes_pid, msgid, body)))
     a, b = _searching(svc, 1), _searching(svc, 2)
-    for phase in ("1ST", "2ND") + (("END",) if end else ()):
+    for phase in ("1ST", "2ND"):
         for s in (a, b):
             pescmds._dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": phase, "gtimer": 1})
     for gtimer, side in goals:
         for s in (a, b):                                    # both games report each goal
             pescmds._dispatch(svc, s, "CMD_ADD_SCORE", {"goal_side": side, "gtimer": gtimer})
+    if end:
+        for s in (a, b):                                    # (the verdict is pushed at the final whistle)
+            pescmds._dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "END", "gtimer": 2})
     pushed.clear()
     for s in (b, a):
         assert pescmds._dispatch(svc, s, "CMD_REQ_GAMEADDPOINT", {"pid": s.pes_pid}) == {"result": "NOERR"}
