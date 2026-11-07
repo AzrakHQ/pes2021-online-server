@@ -546,8 +546,8 @@ def forfeit(svc, rid, quitter):
     from .pescmds import _db
     room = _state(svc)["rooms"].get(rid)
     if not room or room.get("verdict") is not None or "forfeit" in room or len(room["members"]) != 2 \
-            or quitter not in room["members"]:
-        return False
+            or quitter not in room["members"] or room.get("coop"):
+        return False                          # (co-op: no rating to settle)
     room["forfeit"] = quitter
     room["verdict"] = None                                # (no push later either)
     home, away = room["owner"], next(p for p in room["members"] if p != room["owner"])
