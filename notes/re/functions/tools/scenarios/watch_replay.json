@@ -44,16 +44,13 @@
    "sleep": 3
   },
   {
+   "key": "Right"
+  },
+  {
+   "sleep": 2
+  },
+  {
    "key": "Return"
-  },
-  {
-   "sleep": 3
-  },
-  {
-   "key": [
-    "Right",
-    "Return"
-   ]
   },
   {
    "wait": "Online/Lobby/LobbyRoomList",
