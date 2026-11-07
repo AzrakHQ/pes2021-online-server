@@ -1,6 +1,6 @@
 #!/bin/sh
 # Builds the downloadable program: packaging/build.sh <output name>  ->  server/dist/<output name>
-# Needs: pip install pyinstaller msgpack cryptography, and mod/dinput8.dll (mod/build.sh, or the CI artifact).
+# Needs: pip install pyinstaller msgpack cryptography pyopenssl, and mod/dinput8.dll (mod/build.sh, or the CI artifact).
 # Runs in Git Bash on Windows too.
 set -eu
 cd "$(dirname "$0")/.."

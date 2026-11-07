@@ -1,4 +1,5 @@
 """The admin dashboard's data: totals, chart history, the biggest win, the player panel and the message meter."""
+import msgpack
 import time
 from pesserver import announce, events, pescmds
 from pesserver.accounts import Accounts
@@ -75,15 +76,23 @@ def test_message_to_one_player(tmp_path):
     announce.tell(svc, 2, "Hi Bob", "Final at 9", kind="note")
     snap = announce.snapshot(svc)
     assert snap["pending"] == 1 and snap["personal"][0]["pid"] == 2 and snap["personal"][0]["kind"] == "note"
-    announce.tell(svc, 2, "Hi again", "Final moved to 10", kind="note")         # replaces the unseen one
-    assert [m["title"] for m in announce.snapshot(svc)["personal"]] == ["Hi again"]
-    r = announce.urgent(svc, SimpleNamespace(pes_pid=2), {"pid": 2})
-    assert r["is_announcement"] == "YES" and announce.snapshot(svc)["pending"] == 0
-    assert events._st(svc)["feed"][0]["text"] == "Bob saw your message “Hi again”"
+    announce.tell(svc, 2, "Hi again", "Final moved to 10", kind="note")         # both wait in Bob's list
+    assert [m["title"] for m in announce.snapshot(svc)["personal"]] == ["Hi again", "Hi Bob"]
+    sess = SimpleNamespace(pes_pid=2)
+    item = msgpack.unpackb(announce.private_info_titles(svc, sess, {"pid": 2})["announce_info_list"][0])
+    assert item["title"] == "Hi again"
+    assert announce.snapshot(svc)["pending"] == 2                                # listed, not opened yet
+    announce.info_body(svc, sess, {"pid": 2, "announce_id": item["announce_id"], "is_private": "YES"})
+    assert [m["title"] for m in announce.snapshot(svc)["personal"]] == ["Hi Bob"]
+    assert events._st(svc)["feed"][0]["text"] == "Bob opened your message “Hi again”"
     assert announce.snapshot(svc)["seen_notes"][0]["title"] == "Hi again"
-    assert announce.urgent(svc, SimpleNamespace(pes_pid=2), {"pid": 2}) == {"result": "NOERR"}   # once only
+    announce.info_body(svc, sess, {"pid": 2, "announce_id": item["announce_id"], "is_private": "YES"})
+    assert len(announce.snapshot(svc)["seen_notes"]) == 1                       # opened again: noted once
+    assert announce.untell(svc, 2) and not announce.untell(svc, 2)              # takes back the unopened one only
+    assert [m["title"] for m in announce._load(svc)["inbox"]["2"]] == ["Hi again"]
     announce.tell(svc, 3, "Hey", "x", kind="note")
-    assert announce.untell(svc, 3) and not announce.untell(svc, 3)
+    mid = announce.snapshot(svc)["personal"][0]["id"]
+    assert not announce.untell(svc, 3, mid + 1) and announce.untell(svc, 3, mid)
     import random
     r = random.Random(2)
     try:

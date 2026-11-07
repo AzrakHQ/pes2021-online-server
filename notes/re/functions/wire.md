@@ -1,5 +1,9 @@
 # Group "wire": transport layers we have not seen on our wire, and the P2P packet format
 
+## Corrections from later findings (2026-11-06)
+- misc.md §4 (static + capture, 2026-11-06): the clear `seq | flags | 00 ff` datagram header is P2pTurnIoFailover's RTT probe/ack, not Clltcp; the Clltcp header is inside the RC4-encrypted dlcp record; UHP types = class | method; session type from GET_GAMERELAY `game_sycom` (P2P / SC). ktcdtls.md: the TURN DTLS leg's ktc framing (2-byte trailer, type byte).
+
+
 Static RE of PES2021.exe 1.01.00. Tags: **[static]** read in code at the address given, **[log]** seen in
 our traffic, **[inferred]**, **[guess]**. Working files (asm dumps, helper scripts) are in `findings/wire/`.
 

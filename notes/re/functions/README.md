@@ -20,7 +20,21 @@ summary is [docs/functions.html](../../../docs/functions.html); these files keep
 | [lobby.md](lobby.md) | where the room lobbies are in the menu (Kick Off list), how the menu table is built, other entry points |
 | [roomcrash.md](roomcrash.md) | room creation requirements: own room in the room list first, player-list field types, no duplicate player-list push (solved live) |
 | [roomlist.md](roomlist.md) | room-list entry: field types, where each is stored, every filter; why a room shows as "0 rooms" (limitTime NOSET) |
-| [livetests.md](livetests.md) | live tests 2026-11-05: TURN (dual-route SOFTWARE + DTLS leg), Live Update end to end, reconnect, AFK, Friendly Match Lobby (room creation works; second player's room list open) |
+| [spectate2.md](spectate2.md) | spectating with two copies: recording, the PES League lobby path to the watch list, replay from storage (works live); field lists in [peslg_path.md](peslg_path.md) |
+| [gncx_labels.md](gncx_labels.md) | GNCX_0006 = the DATAPACK compare; desync path (SYNC_FAILED); the address-label rule that picks the active side, and the deadlock risk in our reflexive-address rewrite |
+| [turnlinkup.md](turnlinkup.md) | how the match link-up uses TURN; the address-label rule that decides which side opens the link (relay-only match works) |
+| [coop2.md](coop2.md) | why Online Co-op stopped after matching (peer list never handed to the P2P layer); fixed by mod 0.5.0 + pescoop.py |
+| [turncycle.md](turncycle.md) | why TURN restarted every 21 s (DTLS socket re-created every 10 s) and the fix |
+| [matchday2.md](matchday2.md) | Matchday reply layouts (compe_info.info_overview, all_reward_info array, mainmenu_info) and the squad round trip |
+| [flow.md](flow.md) | the flow engine: current screen, live nodes, navigation and dialog calls (used by tools/pesflow.py) |
+| [parsebench.md](parsebench.md) | how a reply reaches its parser (rqid ignored, unregistered msgids dropped), running the game's parsers on our bytes, in-game message trace, title/login without keys |
+| [modes2.md](modes2.md) | Online Divisions (season = 10 matches, division_info blob, OC_RANK), events (no own menu), Matchday (group-stage recipe) |
+| [lobby2.md](lobby2.md) | Team Play Lobby (two humans start, but it only connects through Konami's game relay), the room counters (verdict push), room chat |
+| [livetests.md](livetests.md) | live tests 2026-11-05/06: TURN (DTLS leg working), Live Update end to end (keep listing it), reconnect, AFK, Friendly Match Lobby (a whole match and back to the room), duplicate-list crash confirmed |
+| [datacheck.md](datacheck.md) | DATAPACK check between peers (what must match), match-layer timers, why a RELOAD push crashes the client |
+| [dbgaps.md](dbgaps.md) | remaining Player/Team/PlayerAssignment fields, save container and key, Live Update reload details |
+| [ktcdtls.md](ktcdtls.md) | the TURN client's DTLS framing (2-byte trailer, type byte) and what a relay must send |
+| [misc.md](misc.md) | co-op group rules and 1v1 co-op recipe, spectating data format, dialog macros, match datagram header decoding |
 | [survey.md](survey.md) | catalogue counts, error codes, myClub / clans / PES League / Matchday / events |
 
 Tags in the reports: **[static]** read in code at the cited address, **[log]** seen in our traffic,
@@ -40,6 +54,28 @@ Tags in the reports: **[static]** read in code at the cited address, **[log]** s
   `cmd CMD_X` (request keys, reply fields, users of the command), `fn`, `refs`, `callers`, `str`, `rtti`,
   `disp 0xOFF [w]` (instructions using a struct offset). References are decoded from the function start, so
   instruction boundaries are always right.
+- `cpkwrite.py` — writes an uncompressed CPK shaped like the game's own. `mklivedata.py OUT.cpk --player ID:PARAM:DELTA --team-short TEAM:TXT --shirt TEAM:PLAYER:N` — a test Live Update plus the CHECK_CHEAT sums it should give.
+- `testserver/` — the runtime add-ons used for the live tests (lobby handlers, TURN-over-DTLS leg, switchable Live Update); see its README.
+- `probe.py` — client for the mod's **debug probe** (`server/mod/probe.c`, built only with `PROBE=1 sh build.sh`,
+  enabled per game copy with `PES2021ONLINE_PROBE=<port>`): read/write the game's memory, follow pointer chains,
+  trace any function (register arguments, caller, thread), call functions directly or on the game's window thread.
+  To get a probe DLL with the server's address and key written in, start a test server with
+  `PESSERVER_MOD_DLL=<probe dll>` and download `/mod/dinput8.dll?from=admin`. Never give it to players.
+- `pesflow.py` — game-state helpers on the probe: `pesflow.py PORT screen` (the current flow node), `nodes`
+  (live nodes with their C++ classes), `windows` (who has input, e.g. an open dialog), `ok` (confirm the dialog),
+  `go lobby|divisions|matchday|quick|coop|teamplay|tournament` (from the main menu, no key presses),
+  `wait SCREEN [TIMEOUT]` (wait for a screen, confirming dialogs on the way), `ok N` (pick button N first),
+  `title` (leave the title screen without keys), `traffic [S]` (every request/reply as the game sees it).
+  Addresses: `flow.md`, `parsebench.md`.
+- `probesession.py up 1|2|both` / `down` / `status` — one command from nothing to the main menu with the probe:
+  builds and stamps the probe DLL, starts the test server (real handlers + reply patches), installs, launches,
+  logs in; `down` restores the release DLL and cleans up. Runs from a checkout inside the game folder.
+- `scenario.py FILE.json [VARIANT…]` — scripted live tests: reply variants × navigation steps, crash detection,
+  report with dialogs, server-log problems and in-game traffic (`logs/scenarios/`). Example: `scenarios/`.
+- `parsebench.py PORT CMD SRC [SRC2]` — runs the game's own reply parser on our bytes (e.g. `last`, our last
+  reply) inside the running game and shows the parsed header, or the fields that differ between two bodies;
+  `--set`/`--del` edit the body first. Crashes inside the parser are caught by the probe. Uses `result_table.json`
+  (all 398 reply classes: size, ctor, dtor, parser).
 - `pesdb.py` (+ `cpk.py`) — reads the game database from the CPKs: `checksum`, `player <id>`, `team <id>`, `dump out.json`
   (`PES_GAME_DIR` = folder containing `game/`; no extra packages needed).
 - `classmap.py out.json` — every RTTI class with its base classes and vtables (~2 min).

@@ -253,6 +253,15 @@ def create_player(svc, sess, req):
 def get_dlc_filelist(svc, sess, req):
     # HTTP web-API to the FLOW URL (LiveDataSetFlow 0x1420ac3f0). Empty lists = nothing to download;
     # dlc_version must equal the client's ("1.00" -> 100, compared in state 4).
+    # A Live Update the host put in <data>/liveupdate/ is listed every time (liveupdate.py).
+    from . import liveupdate
+    # an HTTP command has no gate session: use the connection it came on, or the game gets the public
+    # address, which a game on the host's own network can't reach (SGJC_0007, seen live)
+    viewer = req.get("_http") or sess
+    e = liveupdate.entry(svc, f"http://{_addr(svc, viewer)}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}")
+    if e is not None:
+        return {"result": NOERR, "dlc_version": "1.00", "dlcfile_list_count": 1, "dlcfile_list": [e],
+                "variation_file_list_count": 0, "variation_file_list": []}
     return {"result": NOERR, "dlc_version": "1.00", "dlcfile_list_count": 0, "dlcfile_list": "",
             "variation_file_list_count": 0, "variation_file_list": ""}
 
@@ -283,7 +292,8 @@ def get_server_env(svc, sess, req):
             "match_client_timeout_init_not_end": 240, "match_client_timeout_cmd_lack": 180,
             "trigger_keep_alive": 1, "quality_check_wait_sec": 3600,
             "teamlobby_game_rating_border_normal": 600, "teamlobby_game_rating_border_hard": 700,
-            "matchrejectpid_max": 0, "is_revision_check": "YES"}
+            "matchrejectpid_max": 0, "is_revision_check": "YES",
+            "max_division": "D10"}           # Online Divisions: D10 (bottom) .. D1 (pesdivisions.py)
 
 
 # ---- MENU server -----------------------------------------------------------------------------------
@@ -377,7 +387,9 @@ def validate(msgid, resp):
         t = fields.get(k)
         if t == "STR" and not isinstance(v, (str, bytes)):
             bad.append(f"{k}: expected STR got {type(v).__name__}")
-        elif t == "NUM" and (isinstance(v, bool) or not isinstance(v, (int, float))):
+        elif t == "NUM" and (isinstance(v, bool) or not isinstance(v, (int, float))) and not (
+                isinstance(v, list) and all(isinstance(x, int) and not isinstance(x, bool) for x in v)):
+            # (the schema extractor types an int vector as NUM, e.g. sp_member_list, add_limit_rating)
             bad.append(f"{k}: expected NUM got {type(v).__name__}")
         elif t == "LIST" and not isinstance(v, list):
             bad.append(f"{k}: expected LIST got {type(v).__name__}")

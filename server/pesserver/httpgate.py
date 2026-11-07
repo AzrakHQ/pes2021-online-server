@@ -40,6 +40,16 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
                 if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
                     note_download(service, (writer.get_extra_info("peername") or ("",))[0])
+            elif method in ("GET", "HEAD") and route.startswith("/liveupdate/"):
+                from . import liveupdate
+                f = liveupdate.file_for(service, route[len("/liveupdate/"):])
+                if f is None:
+                    status, out, ctype = "404 Not Found", b"not found", "text/plain"
+                else:
+                    with open(f, "rb") as fh:
+                        out = fh.read()
+                    ctype = "application/octet-stream"
+                    log.info("Live Update %s sent to %s", os.path.basename(f), (writer.get_extra_info("peername") or ("",))[0])
             elif path.startswith("/status"):
                 from . import pesmatch
                 from . import identity
@@ -78,6 +88,10 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 msgid = form.get("msgid", "?")
                 from .protocol import record
                 record("rx", msgid, {**form, "_via": "http"})
+                # no gate session here: give handlers that build URLs the addresses of this connection
+                from types import SimpleNamespace
+                sock, peer = writer.get_extra_info("sockname") or ("",), writer.get_extra_info("peername") or ("",)
+                form["_http"] = SimpleNamespace(local_ip=sock[0], peer_ip=peer[0], pes_pid=None)
                 resp = pescmds.dispatch(service, None, msgid, form)
                 resp = {"msgid": msgid, "rqid": int(form.get("rqid", 0) or 0), **resp}
                 import msgpack
@@ -412,18 +426,19 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"Write a title and a message."}', "application/json"
         return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
-    if route == "/admin/api/message/player" and method == "POST":
+    if route in ("/admin/api/message/player", "/admin/api/players/message") and method == "POST":
         from . import announce
         try:
             req = json.loads(body or b"{}")
             pid = int(req.get("pid"))
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"pid"}', "application/json"
-        if not service.accounts.db.execute("SELECT 1 FROM pes_players WHERE pid=?", (pid,)).fetchone():
+        if pid not in service.online and not service.accounts.db.execute("SELECT 1 FROM pes_players WHERE pid=?", (pid,)).fetchone():
             return "404 Not Found", b'{"error":"That player is gone."}', "application/json"
         name = events.name_of(service, pid)
         if req.get("cancel"):
-            if announce.untell(service, pid):
+            mid = req.get("id")
+            if announce.untell(service, pid, int(mid) if isinstance(mid, (int, str)) and str(mid).isdigit() else None):
                 events.feed(service, f"The message to {name} was taken back", "msg")
             return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
         try:
@@ -479,9 +494,10 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         except ValueError:
             reason = ""
         try:
-            announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server." + reason)
+            announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server." + reason, kind="kick")
         except announce.TooLong:                  # a very long non-Latin reason: send the note without it
-            announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server.")
+            announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server.", kind="kick")
+        sess.kicked = True              # not an early exit for the courtesy rating
         sess.close()
         return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/results" and method == "POST":
@@ -521,6 +537,9 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         if name is None:
             return "404 Not Found", b'{"error":"That player is already gone."}', "application/json"
         announce.forget(service, pid)
+        from . import pescoop, pesmanner
+        pesmanner.forget(service, pid)
+        pescoop.forget(service, pid)
         sess = service.online.get(pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)

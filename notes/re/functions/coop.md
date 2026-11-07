@@ -1,5 +1,10 @@
 # Group "coop": online co-op (2v2 / 3v3, vs-COM) and spectating — static RE of PES2021.exe 1.01.00
 
+## Corrections from later findings (2026-11-06)
+- **Live (coop2.md, livetests.md): co-op never connected in 1.01.00** — the peer list is never handed to the P2P layer, and that layer takes one peer. "The session already handles 4–6 peers" below is wrong for P2P. Fixed for one human per side by mod 0.5.0 + server `pescoop.py`; a co-op Casual Match kicked off live. The server must also echo each player's own SYNC_PROGRESS notice, answer GET_GAMERELAY with `game_sycom "P2P"`, and send real `use_team_id` values (262143 on both sides crashes the match load).
+- misc.md §1 (static, 2026-11-06): the client accepts groups of 1–3 and any number of groups; with `force_alone:"YES"` two solo copies can play 1 v 1 co-op; exactly one `is_owner:"YES"` (HOME owner); match_data = base64 of 480 bytes (float32[70] + float32[50]); a GET reply with size 0 is accepted. Not tested live.
+
+
 Two halves. **Co-op** is below. **Spectating / watching** is in
 [spectate.md](spectate.md) (written by a sub-agent from the same brief). Its summary is at the end of this file.
 Working files are in the working folder (dumps not published; general tools in `notes/re/functions/tools/`):
@@ -262,7 +267,7 @@ Our 1v1 handlers already relay pid lists and gate the relay check on "all room m
 |---|---|---|---|
 | GET_COOP_MAINMENU_INFO | pid, online_mode, is_check_season_end | is_coop_banned, is_season_end, division STR, pre_season_rank, pre_season_rank_all_clan_num, division_change_type, is_exist_owner_clan, is_exist_new_request, is_exist_new_pending | `is_coop_banned:"NO", is_season_end:"NO"`, other flags "NO", ranks 0 [inferred: the factory compares "YES"] |
 | GET_COOP_QUICKMATCHOPTION / SET_… | set: is_vscom, cpu_level_min, cpu_level_max | is_vscom, force_alone, cpu_level_min/max (VERYEASY..LEGEND) | `is_vscom:"NO", force_alone:"NO", cpu_level_min:"NORMAL", cpu_level_max:"NORMAL"`; store SET |
-| GET_COOP_PROFILE | pid | user_info{pid, pname, coop_profile_data{is_follow, coop_level, coop_level_point, follower, coop_manner, online_match, vscom_match, match_data_size, match_data}} | level 1, points 0, manner "A", counts 0, empty match_data |
+| GET_COOP_PROFILE | pid | user_info{pid, pname} and, beside it at the top level, coop_profile_data{is_follow, coop_level, coop_level_point, follower, coop_manner, online_match, vscom_match, match_data_size, match_data} [live, parsebench 2026-11-07] | level 1, points 0, manner "A", counts 0, empty match_data |
 | GET_IS_JOIN_COOP_ROOM | pid | is_join_coop_room | `"NO"` (asked on the main menu; "YES" presumably offers a rejoin) |
 | GET_COOP_REJECT_LIST / SET_COOP_REJECT{set_reject_pid_list, unset_reject_pid_list} | – | reject_list[{pid, pname}], reject_list_num | empty list; store the block list and honour it in grouping |
 | GET/SET_MYCLUB_*COOP_MEMBER_LIST, GET_MATCHDAY_SP_*COOP*, GET_MYCLUB_CONFIRM_COOP_SQUAD | coop_player_list | squad trees (see `trees2.txt`) | MyClub / Matchday co-op only; out of scope for a first version |

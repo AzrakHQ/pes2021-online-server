@@ -372,26 +372,30 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>eFootball → Quick Match matchmaking</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Full matches: both halves, fouls, cards, half-time</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Results saved, then straight into the next match</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Kick Off → Friendly Match Lobby: make a room (with a password if you like), your friend picks it from the room list, both press Start Match, and you're back in the room for a rematch afterwards</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span>Linux, tested with two copies of the game on one PC, running under Proton</span></li>
         </ul>
       </div>
       <div class="card test">
         <h3>Ready, needs testers</h3>
         <ul class="check">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>eFootball → Matchday: one standing event, pick Home or Away and a team, every match adds points for your side (group stage only)</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>eFootball → Online Divisions: ten divisions, ten-match seasons with promotion and relegation (one match played so far, on one PC)</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Windows players: the mod is built for Windows, but so far it has only run on Linux under Proton</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Starting the game from the Steam client: our tests launched the game directly under Proton</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Steam Deck: same as Linux, not yet tried on a Deck</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Two separate PCs: connected between two homes once (Windows and Linux); that match ended at kick-off because the two games computed differently, fixed in mod 0.4.0 but not yet confirmed in a match</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Hosting from Windows, a Mac or a Steam Deck</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>The built-in relay for players whose routers block a direct connection: a match has kicked off and been played through it, but only between two copies on one PC so far</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Goals: every test match so far ended 0–0, so scoring hasn't been seen yet</span></li>
-        </ul>
+        
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>eFootball → Online Co-op → Casual Match: one player per side, with CPU teammates. Everyone needs the latest mod (Download the mod for friends)</span></li></ul>
       </div>
       <div class="card no">
         <h3>Not yet</h3>
         <ul class="check">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><span>myClub, events and official rankings</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><span>Rooms, lobbies and 2v2 co-op</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><span>A relay for players whose routers block direct connections</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><span>Online Co-op with two or three people on a side (the game connects to only one other player)</span></li>
         </ul>
       </div>
     </div>
@@ -650,7 +654,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       </ul>
       <div class="cmd"><span class="label">Windows PowerShell: replace 100.x.y.z with the host's Tailscale address</span><pre id="c-ts-win">$env:PUBLIC_IP="100.<wbr>x.<wbr>y.<wbr>z"; irm https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>ps1 | iex</pre><button class="copy" data-copy="c-ts-win" type="button">Copy</button></div>
       <div class="cmd"><span class="label">Linux, Steam Deck, Mac</span><pre id="c-ts">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>sh | PUBLIC_IP=100.<wbr>x.<wbr>y.<wbr>z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
-      <p>A built-in relay that removes this step is on the to-do list.</p>
+      <p>The server now has a built-in relay for exactly this case, on by default: when the two PCs can't reach each other, the match runs through the host's server instead (it needs a few more router ports, which the server opens with UPnP). So far it has only been tested on one PC, so Tailscale stays the safe fallback.</p>
     </details>
     <h3 class="faqh" id="faq-hosts">For hosts</h3>
     <details class="q" id="faq-host">
@@ -905,7 +909,7 @@ answer with a 16-byte key
     <div class="card next" style="margin-top:28px">
       <div>
         <h3>What's next, and how to help</h3>
-        <p class="small muted" style="margin:0">Next up: a relay so any two players can connect, an optional address book so a file survives an IP change, then rooms, co-op and maybe myClub. The most useful help right now is testing on Windows, Steam Deck and across two homes, and reporting what happens.</p>
+        <p class="small muted" style="margin:0">Next up: confirming the relay and the match rooms between two homes, Online Co-op, an optional address book so a file survives an IP change, and maybe myClub. The most useful help right now is testing on Windows, Steam Deck and across two homes, and reporting what happens.</p>
       </div>
       <div class="ctas">
         <a class="btn primary" href="protocol.html">Technical write-up →</a>

@@ -6,7 +6,8 @@ to `tls_port`, logs in with `id`/`pw` and trusts the DER certificate given in `s
 Each game then sends its relayed address with CMD_SEND_TURN_ADDRESS_DATA; we push it to the opponent as
 CMD_WATCH_TURN_ADDRESS_DATA. Details: notes/re/functions/net.md.
 
-Off unless TURN=1 (it is unconfirmed against the real game). Credentials use the TURN REST scheme:
+On by default (TURN=0 turns it off); tested live with the game on 2026-11-06, including a match played only
+over the relay. Credentials use the TURN REST scheme:
 username "<expiry>:<pid>", password base64(HMAC-SHA1(secret, username)).
 """
 import base64, datetime, ipaddress, logging, os, time
@@ -17,6 +18,7 @@ log = logging.getLogger("pesserver.turn")
 
 TLS_PORT = int(os.environ.get("TURN_TLS_PORT", "5349"))
 PLAIN_PORT = int(os.environ.get("TURN_PORT", "3479"))         # 3478 is our STUN; must be non-zero, unused
+DTLS_PORT = int(os.environ.get("TURN_DTLS_PORT", "5350"))     # UDP: the game's second leg, TURN over DTLS
 RELAY_PORTS = (int(os.environ.get("TURN_MIN_PORT", "49160")), int(os.environ.get("TURN_MAX_PORT", "49179")))
 REALM = "pes2021"
 CRED_TTL = 12 * 3600          # refreshes during a long session re-check the username, so hours, not 60 s
@@ -24,14 +26,14 @@ STATE = {"server": None, "dir": None, "secret": None, "cert_der": None, "ips": (
 
 
 def enabled():
-    return os.environ.get("TURN") == "1"
+    return os.environ.get("TURN", "1") != "0"
 
 
 def ports():
-    """Router ports to open when TURN runs: the TLS listener and the UDP relay range."""
+    """Router ports to open when TURN runs: the TLS listener, the DTLS leg and the UDP relay range."""
     if not enabled():
         return []
-    return [(TLS_PORT, "TCP")] + [(p, "UDP") for p in range(RELAY_PORTS[0], RELAY_PORTS[1] + 1)]
+    return [(TLS_PORT, "TCP"), (DTLS_PORT, "UDP")] + [(p, "UDP") for p in range(RELAY_PORTS[0], RELAY_PORTS[1] + 1)]
 
 
 def running():
@@ -89,7 +91,7 @@ def _cert(d, ips):
 
 
 async def start(svc, data_dir, lan, wan, extra_ips=()):
-    """Start the built-in TURN relay when TURN=1. Returns True if it runs; the server works without it."""
+    """Start the built-in TURN relay (unless TURN=0). Returns True if it runs; the server works without it."""
     if not enabled():
         return False
     from . import turnrelay
@@ -108,12 +110,14 @@ async def start(svc, data_dir, lan, wan, extra_ips=()):
 
     srv = turnrelay.TurnServer(STATE["secret"], REALM, RELAY_PORTS, advertise, own_ips=ips)
     try:
-        await srv.start("0.0.0.0", TLS_PORT, os.path.join(d, "turn.crt"), os.path.join(d, "turn.key"))
+        await srv.start("0.0.0.0", TLS_PORT, os.path.join(d, "turn.crt"), os.path.join(d, "turn.key"),
+                        dtls_port=DTLS_PORT)
     except OSError as e:
-        log.error("TURN relay could not listen on tcp/%d: %s", TLS_PORT, e)
+        log.error("TURN relay could not listen on tcp/%d or udp/%d: %s", TLS_PORT, DTLS_PORT, e)
+        srv.close()
         return False
     STATE["server"] = srv
-    log.info("TURN relay on tls/%d (relay udp %d-%d)", TLS_PORT, *RELAY_PORTS)
+    log.info("TURN relay on tls/%d + dtls/%s (relay udp %d-%d)", TLS_PORT, srv.dtls_port or "off", *RELAY_PORTS)
     return True
 
 

@@ -47,13 +47,14 @@ def test_news_list_body_and_one_box_per_player(tmp_path):
     assert call(svc, "CMD_GET_URGENT_ANNOUNCEMENT", pid=7)["is_announcement"] == "YES"
 
 
-def test_kick_note_comes_first_and_once(tmp_path):
+def test_kick_note_goes_to_the_players_own_list(tmp_path):
     svc = _svc(tmp_path)
     announce.set_news(svc, "News", "Body")
     announce.tell(svc, 3, "You were disconnected", "Reason: spam")
-    first = msgpack.unpackb(call(svc, "CMD_GET_URGENT_ANNOUNCEMENT", pid=3)["announcement_data"])
-    assert first["title"] == "You were disconnected"
+    # the box before Quick Match carries only the news; the note is in pid 3's Information list (pops up once)
     assert msgpack.unpackb(call(svc, "CMD_GET_URGENT_ANNOUNCEMENT", pid=3)["announcement_data"])["title"] == "News"
+    item = msgpack.unpackb(call(svc, "CMD_GET_PRIVATEINFOTITLELIST", pid=3)["announce_info_list"][0])
+    assert item["title"] == "You were disconnected" and item["popup_type"] == "ONCE"
 
 
 def test_restart_warning_and_expiry(tmp_path, monkeypatch):
@@ -97,8 +98,13 @@ def test_admin_routes(tmp_path):
             assert state["announce"]["news"]["body"] == "There" and state["announce"]["restart"]
             assert (await _http(port, "POST", "/admin/api/kick", b'{"pid": 4, "reason": "\\u0007"}', auth))[0] == 200
             assert closed == [4]
-            note = msgpack.unpackb(call(svc, "CMD_GET_URGENT_ANNOUNCEMENT", pid=4)["announcement_data"])
-            assert note["body"] == "The host disconnected you from this server."
+            item = msgpack.unpackb(call(svc, "CMD_GET_PRIVATEINFOTITLELIST", pid=4)["announce_info_list"][0])
+            body = call(svc, "CMD_GET_INFOBODY", pid=4, announce_id=item["announce_id"], is_private="YES")
+            assert msgpack.unpackb(body["announce_info"])["body"] == "The host disconnected you from this server."
+            code, out = await _http(port, "POST", "/admin/api/players/message", b'{"pid": 4, "title": "Hi", "body": "Game at 9"}', auth)
+            assert code == 200
+            assert call(svc, "CMD_GET_PRIVATEINFOTITLELIST", pid=4)["annnounce_info_list_num"] == 2
+            assert (await _http(port, "POST", "/admin/api/players/message", b'{"pid": 4, "title": ""}', auth))[0] == 400
             assert (await _http(port, "POST", "/admin/api/message", b'{"clear": true}', auth))[0] == 200
             assert (await _http(port, "POST", "/admin/api/restart", b'{"minutes": 0}', auth))[0] == 200
             assert announce.snapshot(svc)["news"] is None and announce.snapshot(svc)["restart"] is None

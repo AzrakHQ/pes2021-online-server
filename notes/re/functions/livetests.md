@@ -140,8 +140,334 @@ instrumented at runtime from a scratch launcher (no repo code changed). Tags: [l
   still showed **"Number of rooms 0"**. Code reading (roomlist.md) found why: the list hides rooms whose
   `gameenv.limitTime` is NOSET, and our test handler had kept the default NOSET because it looked for the
   settings as top-level SET_GAMEENV keys instead of unpacking the `game_env` blob (which said "MIDDLE").
-  Fix not yet tested live.
+  Fix confirmed live on 2026-11-06 (next section).
 - A player-list UPDATE pushed **after** the owner's ENTRY_GAME (21:17:08) did no harm, so the rule is narrower:
   no player-list push between the reply and the owner's ENTRY_GAME.
 - **Do not send `owner_pname.psn_user_id` as an empty msgpack list:** a room-list RELOAD in that form, pushed to
   both copies, ended **both** game processes within 0.25 s (same unchecked nested unpack as in roomcrash.md).
+
+## Friendly Match Lobby, whole room flow (2026-11-06) [live]
+Test handlers rebuilt with every rule above (own room into the room list after CREATEJOIN_ROOM; player list only as
+the reply before the owner's ENTRY_GAME; nested `psn_user_id` blobs; `game_env` unpacked from SET_GAMEENV, echoed
+as the room-list `gameenv`, then a room-list UPDATE). Copy 1 = owner (pid 1), copy 2 = Tester2 (pid 2).
+- Entering the lobby shows "No new Live Update available." (the mode entry checks Live Update), then the Match
+  Room List.
+- **Owner:** CREATEJOIN_ROOM → our ADD push → SET_GAMEENV (`game_env` blob: cpuLevel HARDEST, gametime 10, injury
+  YES, ball_type 22, exGame NO, pkOnOff NO, substitution 3, exSubstitution YES, limitTime MIDDLE) → our UPDATE push
+  → REQWATCHL_ROOMPLAYERLIST_NTL (reply) → ENTRY_GAME {entry FALSE, side HOME} → room screen.
+- **Second player's room list: "Number of rooms 1"** with the row "[001]Room Mohamed Rashad", Owner, Capacity 1/2
+  (`gamer_num`/`max_players`) and an "EN" tag (`owner_lang "en"`). This confirms the limitTime NOSET filter from
+  roomlist.md.
+- **Room details (before joining):** selecting the row sends REQWATCHL_ROOMPLAYERLIST_NTL {room_id 1} from a player
+  who is not a member; our reply (the room's list) gives the "Match Room Details" screen: Room Security, Language
+  English, Match Time 10 min., Injuries On, Time limit **Normal** (= MIDDLE), Overtime Off, PK Off, substitutions
+  3 (+1 in Extra Time); Home = the owner, Away = "Accepting Participants", button Enter.
+- **Join (Enter):**
+  - `JOIN_ROOM_NTL {room_id 1, is_invited "NO", password ""}`; we reply `{room_owner: blob{pid, pname (stock
+    _pname), NTL addresses}, room_stat "WAITING"}` and push a room-list UPDATE.
+  - The joiner then asks REQWATCHL_ROOMPLAYERLIST_NTL (reply) and sends ENTRY_GAME {entry FALSE, side AWAY}.
+  - We push a player-list UPDATE (2 players) to the owner only.
+  - The owner then sends `SEND_NOTICE {pid_list [1, 2], data {"notice_key":"ROOM_SHARE_INFO", from_pid 1,
+    has_team_data "NO", team_id 0, team_name "", team_power 0, chemistry 0}}` and an empty `SET_GAMEMEMBER`.
+    Our handler ignored this SET_GAMEMEMBER (nobody had entered yet) with no visible effect.
+  - Both screens: Home Mohamed Rashad, Away Tester2, "You can now start the match by selecting Start Match."
+- **"Start Match" is the ready flag:** it sends `ENTRY_GAME {entry TRUE, side}`. After our WATCH_ENTRY_GAME push
+  `{entry_count, entrygame [blob{pid, entryNum, gameNum}]}`, that side's "Pre-Match Preparations" OK turns green
+  and the owner sees "Please wait for everyone to select [Start Match]".
+- **Start:** when the second player also entered, the owner sent `SET_GAMEMEMBER` (empty request) again. We pushed
+  `WATCH_DECIDE_GAMEENV {game_env blob}` and `WATCH_ROOMSTATE {event StateChanged, state SETENV, owner_pid 1}` to
+  both. Both games then ran the normal match start within 8 s:
+  - GET_MATCHID, SEND_SYNC_NOTICE ("1," / "2,"), GET_SERVER_ENV;
+  - P2P SYSTEM_NOTICE START/END;
+  - CHANGE_GAMEPHASE DATASYNC;
+  - the owner's `SET_GAMEMEMBERENV {list_num 2, envlist [blob{pid 1, side HOME, sideLeader YES}, blob{pid 2,
+    side AWAY, sideLeader YES}]}` (our server's default reply was enough);
+  - CHANGE_GAMEPHASE TEAMSELECT.
+  **Both games showed the team selection screen** (Home / Away, a countdown showing 57 s when captured). Stopped there; the match itself is the
+  same session as Quick Match.
+- Player-list UPDATE pushes after a player's ENTRY_GAME, and to the owner when someone joins, were all harmless.
+
+## Second round, 2026-11-06 afternoon (two copies, test handlers + add-ons outside the repo) [live]
+Test server: the repo server plus `tools/lobbytest/` add-ons in the game folder (lobby handlers, `dtlsleg.py` =
+TURN-over-DTLS leg, `livedata.py` = switchable Live Update, `HELLO_MAX` to switch the mod's same-math hooks off).
+Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "testHome", pid 4 "TestAway").
+
+### Friendly Match Lobby: a whole match and back to the room
+- 10-minute match (Arsenal v Arsenal, autoplay on both): phases 1ST → 1ST_15MIN → 1ST_30MIN → BREAK1 (half
+  time, about 1.5 min) → 2ND → 2ND_15MIN → 2ND_30MIN → END, about 29 real minutes in all (15 game minutes ≈ 4.5 real
+  minutes with autoplay). No reconnects, no aborts.
+- After the "Full Time" stats screen (countdown 148 s, A = Confirm):
+  - each game sends HTTP `CMD_SET_PLAYDATA_MATCH` (play_data JSON, `gamemode` 26 = Friendly Match Lobby),
+    `CMD_SEND_STATS_DATA` and `CMD_SEND_GAME_RESULT {gameend_reason "NotImplement", game_phase END, side, scores}`;
+  - then `CMD_REQWATCHL_ROOMLIST` (a new watch request) and `CMD_LEAVE_GAME {pid}`.
+  - The player who confirms first leaves the match session; the other one, still on the stats screen, then
+    reports `SEND_ABNORMALEND {reason DISCONN_P2P, error_code GNCX_0003_0x20000000}`, sends its result with
+    `error_code GNCX_0003` and sees "This match will be abandoned. There has been a connection problem between you
+    and your opponent." (OK → back to the room). Same NOERR / DISCONN_P2P pair as in Quick Match.
+  - The first player waits in the room with "Please wait for all users to return to the Main Menu."
+  - When both have sent LEAVE_GAME, our `WATCH_ROOMSTATE {StateChanged, WAITING}` push brings both back to
+    "You can now start the match by selecting Start Match": a rematch is possible. The room still says
+    "0 Match(es)" and Wins 0–0 (the match was a draw; how the count rises is not known yet).
+- The room list keeps showing a room whose status is SETENV/GAME (Capacity 2/2). Selecting it gives
+  "Could not enter because a match is currently being played." from the client itself (no request sent).
+
+### Duplicate list crash: mechanism confirmed (datacheck.md Q3)
+- With both games in team selection we pushed a player-list `UPDATE` to copy 2 (no effect) and, 4 s later, a
+  player-list `RELOAD` to copy 1 (its list cache already held the room's players). Copy 1's process ended within
+  0.25 s; its Wine log shows `dispatch_exception code=e06d7363 (EXCEPTION_WINE_CXX_EXCEPTION)` right before.
+  This is the uncaught `std::out_of_range` from the watch-list merger's RELOAD loop.
+- **Rule:** send RELOAD only into an empty client cache (the reply to a new REQWATCHL_* request); every later push
+  is ADD / UPDATE / DEL.
+
+### Live Update: the server must keep listing it
+- The update is downloaded at boot (one HTTP GET), saved as LIVE00000000 and reported as `livedata_version`. But the
+  game asks for `CMD_GET_DLC_FILELIST` again when it enters an online mode (always `pid=0`). **If that second
+  list is empty, the game computes CHECK_CHEAT from the base data** (stock sums, no live-mode term), although it
+  still reports `livedata_version` "1.01"/"1.02". With the update listed every time, the sums were exactly as
+  pesdb.py predicts (`param_check_sum 25D6E9E6091EAC7425E05AF193DA6094`, Messi Speed +1). A reboot with the update
+  still listed does not download it again.
+- The mod's same-math hooks (0.4.0) have no effect on this (tested with them off).
+
+### Data mismatch (not settled cleanly)
+- Copy 1 with the Live Update, copy 2 stock. Both runs failed at the room start, but both were confounded by our
+  test handler: a stale room from an earlier session meant copy 2 joined the wrong room (13:55, owner:
+  "Unable to connect.") or the owner's SET_GAMEMEMBER crashed the test handler (14:45). The gate's reply to a
+  handler crash, `ERR_DATABASE`, shows "An unexpected problem has occurred while communicating with the PES 2021 server.
+  CODE:C_DYUN_0013". The handler is fixed (one room per player); the clean repeat is still to do.
+
+### TURN relay: the DTLS leg works (ktcdtls.md)
+- The game's TURN client uses stock OpenSSL 1.1.0i for DTLS, wrapped by Konami's ktc layer. That layer:
+  - appends 2 bytes after the last record of each application-data datagram it sends and adds 2 to that record's
+    length, so a standard DTLS server drops every record;
+  - ends every plaintext with a type byte (0x00 = plain message);
+  - reads incoming records unchanged, but drops any message whose last plaintext byte is not a known type.
+- Server fix (in `dtlsleg.py`): strip the 2 bytes and correct the length before OpenSSL, strip the 0x00 after
+  reading, and send replies with `SSL_write(message + b"\x00")`. Do not pad ChannelData on this leg.
+- With that, on the DTLS leg each game: Allocate → 401 → authenticated Allocate (LIFETIME 60, MOBILITY-TICKET) →
+  Refresh → **closes the TLS connection** (the TLS leg only bootstraps) → `CMD_SEND_TURN_ADDRESS_DATA {address,
+  address_data_size 7}` → (our `WATCH_TURN_ADDRESS_DATA` push to the opponent) → ChannelBind to the opponent's
+  relayed address → ChannelData both ways (≈295 bytes first, then ≈40-byte packets every 5 s) and a Refresh every
+  5 s.
+- The address blob is 20 bytes: `00`, the relayed port big-endian, the IPv4 address in little-endian byte order,
+  then zeros (`00 c00a 6401a8c0` = 192.168.1.100:49162).
+- The match itself ran over the direct path. **Open:** every 21.4 s each game asks for the TURN list again and
+  rebuilds both legs (new allocations, new address published). The DTLS-leg Allocate success must not carry the
+  dual-route SOFTWARE directive (we fixed that; the cycle stayed).
+
+### TURN restart cycle: fixed (turncycle.md)
+- The game's DTLS socket is re-created every 10 s while DSCP is on (`Network.DscpEnable`, default true), so the
+  client's UDP source port changes while the DTLS session stays. A relay keyed by (ip, port) stops answering, the
+  next Refresh "ping" waits 10 s, and the client restarts TURN: that was the 21.4 s cycle.
+- With session roaming in `dtlsleg.py` (a record from an unknown port of a known IP that decrypts with a session's
+  keys moves that session and its relayed traffic to the new port), the log showed "session moved" for both
+  games every 10.0 s, Refresh answered every 5 s, and no new TURN list request for 70+ s. Fixed.
+- Alternative without relay changes: `GET_SERVER_ENV.proto_opt {"P2P":{"Network":{"DscpEnable":false}}}`
+  (static; not tested).
+
+### A match forced onto the relay: not yet
+- Both games given unreachable P2P addresses (192.0.2.1:9 in the player list and `room_owner`), relay working:
+  after SYSTEM_NOTICE START/END no ChannelData moved and about 10 s later the owner left with
+  `LEAVE_ROOM {error_code MXNV_0013}` (MXNV476, OnlineModeTaskMatchSession.cpp line 476) and saw C_DYUN_0013.
+  So the P2P link-up does not fall back to the TURN route on its own.
+- Repeat with `GET_SERVER_ENV.proto_opt {"P2P":{"Network":{"NetworkIoConnectionTimeoutUs":40000000,
+  "DscpEnable":false},"Session":{"ConnectionTimeoutUs":30000000}}}`: **proto_opt is honoured** — no DTLS port
+  changes at all (DscpEnable false), and the failure moved from ChannelBind + 10 s to ChannelBind + 30.3 s
+  (`Session.ConnectionTimeoutUs`). START was sent to the right peer, addresses were exchanged and channels bound
+  both ways, but no END and **no ChannelData at all**: the kps session never sent over TURN.
+- **Cause and fix (turnlinkup.md):** kps sorts the two `ip:port` labels and only the side with the lower one opens
+  the link. Both games saw 192.0.2.1:9 sort below their own 192.168.1.100, so both waited. With the owner shown
+  as **192.0.2.1:9** and the guest as **203.0.113.1:9** (host_addr and reflexive_addr, in the player list and
+  JOIN_ROOM_NTL), the owner sent 14 bytes of ChannelData right after the binds, got 270 back (the key
+  exchange), and **the match ran entirely over our relay**: DATASYNC, TEAMSELECT, ENTRY, 1ST (kick-off,
+  played), 10,000+ relayed packets, no END notice, no direct game-to-game UDP. **A relay-only match works.**
+- Consequence for real matches (inferred): the same label rule can leave both players waiting between homes
+  (P2P or relay); the server should check the order of the labels it hands out and fix it when both would wait.
+
+### Online Co-op, 1 vs 1 (misc.md §1/§3, coop2.md)
+- Menu: eFootball → Online Co-op → Casual Match / Clan Match / CO-OP Stats / CO-OP Settings (+ "Co-op Room
+  List"). Entry: JOIN_ONLINE_MODE COOP, the usual mode-entry commands, GET_CLAN_LIST, GET_COOP_PROFILE,
+  GET_COOP_REJECT_LIST, GET_COOP_MAINMENU_INFO, GET_IS_JOIN_COOP_ROOM. Casual Match → GET_COOP_QUICKMATCHOPTION →
+  "Matchmaking Settings" (VS Settings 3 vs 3, Match Level, Guest User; locked at co-op level 1) →
+  SET_COOP_QUICKMATCHOPTION.
+- **SYNC_PROGRESS must be echoed:** after "Go to Matchmaking" each copy sends `SEND_NOTICE {pid_list:[self],
+  data {"notice_key":"SYNC_PROGRESS","pid_list":[self]}}` and waits up to 30 s for its own group's members in a
+  WATCH_NOTICE. Our 1v1 relay never sends a notice back to its sender; with an echo the copy continues with
+  `START_COOP_MATCHING {matching_type ONLINE_COOP, coop_player_info_list [blob{pid, is_good_reputation,
+  guest_kind, user_id blob{pid, pname}, owner_pid}], use_team_id 262143, retry_num 0}`.
+- After our WATCH_COOP_MATCHING FINISH push (two solo groups), both copies start the session:
+  - with GET_GAMERELAY `game_sycom ""`: CreateMultiplaySession fails (`SEND_MATCHING_RESULT error_code
+    MXNV_0010`, pid 0 and zero addresses). Co-op takes its network type from `game_sycom` ("P2P" = 1);
+    Quick Match forces type 1 itself.
+  - with `game_sycom "P2P"`: SEND_SYNC_NOTICE, the TURN list and SEND_TURN_ADDRESS_DATA follow, but
+    `SEND_SYSTEM_NOTICE {pid_list [], data "START:pid=0;…"}`, SET_GAMERELAY_CHECK_RES `ER_CONNECT` after 30 s
+    and `LEAVE_ROOM MXNV_0013`.
+  - Cause (coop2.md, static): the peer list is right, but co-op never calls the function that hands it to the
+    P2P layer (0x141092720, called only by Quick Match and the lobby room), so NtlImpl has no own pid and no
+    peers. It also passes at most one peer, so P2P could carry 1 v 1 co-op at most; 2v2/3v3 used Konami's game
+    relay ("SC"). **Server-side fix: none; it needs a mod patch** (call 0x141092720 after 0x141134c00 at
+    0x1411346c3, and copy the peer addresses in 0x14110fe00).
+
+### Dialogs photographed (misc.md §3 list; the error was forced on one copy)
+| Reply | On screen | Then |
+|---|---|---|
+| JOIN_ONLINE_MODE → ERR_DIFFERENT_PATCHVERSION | "Your version of PES 2021 is out of date. Please update to the latest version and reconnect." | main menu |
+| CHECK_CHEAT → ERR_PARAMCHECK_FAILED | "Invalid player data found.", then a second dialog "Unable to load content data. The data may be corrupted, or conditions for use may not have been met. CODE:CCWR_0014" | main menu |
+| GET_LOBBYLIST → ERR_MODE_BLOCKED | "Some of our online services are currently unavailable. Please refer to Online Information for further details." | main menu |
+| JOIN_LOBBY → ERR_LOBBYUSERMAX | "Cannot participate due to full quota." | main menu |
+| GET_BLOCKLIST → ERR_DATABASE | "An error occurred while accessing the PES 2021 database." | main menu |
+| CREATEJOIN_ROOM → ERR_ROOMCREATELIMIT | "You cannot create any more Match Rooms." | back to Match Room Settings |
+| GET_MANNER_WARN `warn_kind A_TO_B` | "Your courtesy rating has fallen to "B". Please ensure that the number of times you disconnect does not increase any further. Users with a "B" courtesy rating are subject to the following restrictions. · You will be more likely to be paired with users who have "B" or "C" courtesy ratings. · If your courtesy rating remains at "B" for some time, it will eventually fall to "C", thereby making you subject to further restrictions." | continues into the lobby |
+| LOGIN → ERR_INVALID_ACCOUNT | "It has been noted that you have acted in direct breach of our Operation Policy and Terms of Use. Therefore, we have suspended your account in line with our policy on violations. Thank you for your understanding." | main menu, offline (the online menus are gone) |
+| SET_GAMEMEMBER → ERR_DATABASE (our test handler crashed; the gate answers a handler crash with ERR_DATABASE) | "An unexpected problem has occurred while communicating with the PES 2021 server. CODE:C_DYUN_0013" | room |
+- `{re}`/`{rf}` show as "PES 2021" in these texts, as misc.md says.
+
+### Data mismatch, clean repeat
+- Fresh server, one room. Copy 1 with the Live Update (`param_check_sum …DA6094`), copy 2 stock (`…DBAE73`):
+  - `is_revision_check` absent (= YES): the room start ran GET_MATCHID … SYSTEM_NOTICE START/END, then both
+    copies sent `LEAVE_ROOM {error_code GNCX_0006}` 2 s later and showed "Unable to connect." GNCX_0006 is
+    GNCX556 (OnlineModeMultiplay.cpp line 556, fn 0x1410001f0), **not the MXNV_0017 "DATAPACK error" that
+    datacheck.md predicted**. Code reading later (gncx_labels.md): it is the same sum compare, reported by the multiplay object one tick before the match task. It depends on the same switch.
+  - `is_revision_check "NO"` (same two copies, new room): DATASYNC, SET_GAMEMEMBERENV, TEAMSELECT — both reached
+    team selection. So a sum mismatch blocks the match only while `is_revision_check` is YES, as datacheck.md Q1 says. (Playing a
+    whole match with different data was not tried; datacheck.md warns of desync.)
+
+### In the server itself (branch lobby-relay, 2026-11-06 17:10)
+- `pesrooms.py` + `turndtls.py`, no test add-ons, `TURN=1`: copy 1 created a room (room-list ADD, game_env
+  UPDATE, player-list reply, ENTRY_GAME, room screen); copy 2 saw "[001]Room testHome" and joined; both pressed
+  Start Match; "match 1 starts"; START/END; DTLS legs up in 0.02 s; both relay addresses forwarded; channels
+  bound; DATASYNC, TEAMSELECT; the DTLS associations followed the game's port change every 10 s, and the TURN
+  list was fetched once (no restart cycle).
+
+### Online Co-op fixed: mod 0.5.0 + pescoop.py (2026-11-06 evening) [live]
+- Mod 0.5.0 hooks the co-op peer-list builder (0x141134c00: afterwards it calls 0x141092720, as Quick Match does)
+  and the WATCH_COOP_MATCHING handler (0x14110fe00: afterwards it copies each member's host/reflexive address and
+  NAT type from the parsed reply into the member record). Only on the exact 1.01.00 code; the id line says
+  `coop1`. Mod log: "co-op: addresses of 2 of 2 member(s) kept", "co-op: 1 peer(s) handed to the P2P layer".
+- Server (`pescoop.py`, branch coop-mod): force_alone matching of two `coop1` players with equal game data,
+  the WATCH_COOP_MATCHING push, a room (GET_GAMERELAY says "P2P" for it), SYNC_PROGRESS echoed to its sender.
+- Result: START:pid=<peer> / END both ways (direct link up), SET_GAMERELAY_CHECK_RES NOERR, DATASYNC,
+  GET_COOP_MATCH_DATA, MATCHMENU, GAMELOAD, ENTRY, 1ST — **an Online Co-op Casual Match kicked off and played**
+  (testHome + COM2 + COM3 v TestAway + COM5 + COM6). Repeated on main after the lobby/relay merge (relay on).
+- With `use_team_id` 262143 ("no team") on both sides the match menu showed blank crests and both games crashed
+  in GAMELOAD (access violation writing address 8 at 0x1403db255). Co-op has no team-select screen; the server
+  must assign each side a real team (pescoop picks two from the Quick Match team list).
+### Server features checked live (branch lobby-relay, 2026-11-06 18:05–18:20)
+- **Live Update from the data folder** (`liveupdate.py`): a CPK in `<data>/liveupdate/` was listed with
+  dlc_version "101" and fetched with one HTTP GET from `/liveupdate/<name>`, then applied (the "No Live Update
+  changes to Condition Rating" notice); the game's CHECK_CHEAT then reported the updated sum. The first try
+  failed with **"Communication error CODE:SGJC_0007_0"** (LiveDataSetFlow line 809, download error): the URL
+  carried the server's *public* address because HTTP commands have no gate session, and a game on the host's
+  own network can't reach the public address. Fixed by building the URL from the address the HTTP request
+  came in on. An update is also downloaded on entering an online mode, not only at boot.
+- **Room join with different data**: owner with the update, friend stock → JOIN_ROOM_NTL `ERR_DIFFDCVERSION`
+  → the friend sees **"Data Pack Incompatible."** and stays in the room list (instead of "Unable to connect."
+  two seconds after kick-off).
+- Room chat (SEND_TEXTCHAT relay) is built but was not tried live (typing in the chat box was not driven).
+
+## Third round, 2026-11-06 evening (main's server + `tools/testserver/spectest.py`) [live]
+
+### Spectating: record a match, watch it from storage (spectate2.md)
+- **Recording.** With GET_MATCHID `upload "YES"` both copies sent `START_SEND_GAME_SEQUENCE_DATA {pid}` right after
+  GET_MATCHID, then `SEND_GAME_SEQUENCE_DATA` about every 5 s through DATASYNC, TEAMSELECT and play. Each message
+  is 3 kB or more and arrives as 0x70–0x72 fragments (3 frames, ~3,040 bytes). The first one held 115 records,
+  types 0 (header) and 2, starting `00 00 00 00 27 74 …`. The server kept the first uploader's stream (35 chunks, about 3 minutes in all, kick-off and 3 minutes of play) and dropped the other copy's 33 messages. The stream was closed
+  when the other copy quit (SEND_ABNORMALEND), with `03 00` + `END_OF_DATA` appended by the server.
+- **Viewer path, server replies only (no game-file change):** eFootball → **Online Tournament** →
+  JOIN_ONLINE_MODE / JOIN_PESLEAGUE_COMPE_MODE / GET_PESLEAGUE_MAINMENU_INFO / GET_PESLEAGUE_COMPE_LIST (all with
+  `mode`/`online_mode` "PESLEAGUE") → our competition card "Friends Replays · 1 vs 1 · Eligible" → "Enter this
+  Competition. Proceed?" Yes → GET_PESLEAGUE_COMPE_INFO → a notice that ratings are made uniform → team select
+  with the national teams we listed (France chosen: team_id 8) → "Enter FRANCE into Competition. Proceed?" Yes →
+  JOIN_PESLEAGUE_COMPE, GET_PESLEAGUE_1VS1_MAINMENU_INFO.
+  - **Correction:** with the competition fields only at the top level of COMPE_INFO, the game opened the
+    "eFootball League" 1v1 menu ("Calculating final competition results…"). With the same fields also inside a
+    `compe_data` blob, it went to the **PES League lobby**: GET_LOBBYLIST `lobby_type "PESLEAGUE"`, JOIN_LOBBY,
+    GET_BLOCKLIST, a first GET_WATCHING_MATCH_LIST, REQWATCHL_ROOMLIST → Match Room List with "X Match List".
+  - X → GET_WATCHING_MATCH_LIST {match_category "PESLEAGUE_LOBBY", compe_id 1, index 0} → "Match List": our
+    entry "Player2 0 - 0 Player3", Brazil v France flags, "In Progress" → A → "Spectate Match / User List".
+- **Watching:** Spectate Match → GET_SERVER_ENV → **HTTP GET `<WATCHING_GAME>/<match_id>/1.enc`, 2.enc, … every
+  0.2 s** until the last chunk (the URL id is the match_id from the list) → the stadium → **the recorded match
+  replays**: kick-off with name tags "Player 2"/"Player 3" from our list, then live play (clock running).
+  Replay from storage works with two copies; the chunk format (IV + AES-256-CBC, flag byte 0, items, END_OF_DATA)
+  is confirmed.
+
+### Live Update: team data (Team.bin + PlayerAssignment.bin) is reloaded
+- A Live Update with FC Barcelona's short name "BAR" → "BRX" (Team.bin), Messi's FCB shirt 10 → 11
+  (PlayerAssignment.bin) and Messi Speed +1: in an offline Local Match FC Barcelona v Anderlecht the scoreboard
+  shows **"BRX 0 0 AND"**. CHECK_CHEAT afterwards: `entry_check_sum 1E21A8301DFF00C9DBE591735FF8746A` — **exactly
+  the pesdb.py prediction** (stock …A82F…), `param_check_sum 25D6E9E6…6094` as predicted. So Team.bin and
+  PlayerAssignment.bin from a Live Update override the base data, and the entry checksum model is confirmed.
+- A second update (Speed +3…+15 for the 11 Arsenal starters): `param_check_sum 25D6EA22091EAC5325E05ADB93DA60E7`,
+  exactly as predicted.
+
+### Login "server full"
+- LOGIN → `ERR_FREE_TO_PLAY_FULL`: "Due to excessive traffic on the PES 2021 server, login is currently restricted.
+  Please try reconnecting again later."
+
+### A match with different player data (check off): no desync seen
+- Copy 1 on a Live Update with the 11 Arsenal starters 3–15 Speed faster (sum `…60E7`), copy 2 stock (`…AE73`),
+  `GET_SERVER_ENV.is_revision_check "NO"`, Friendly Match Lobby, Arsenal v Arsenal, autoplay on both.
+- The match ran normally through 1ST and **1ST_15MIN** (same gtimer 12750 from both copies); no SYNC_FAILED,
+  no abnormal end. The two minimaps, captured at the same moment at about 16:00, show **every player in the same
+  place**. Stopped there (gncx_labels.md's stop point).
+- So the match simulation does not visibly diverge with different player stats over 16 minutes. Most likely the
+  team data is exchanged at DATASYNC (TaskSyncTeamData), so both sides simulate with the same data
+  [inferred]; the CHECK_CHEAT sums (and the server refusing mismatched friends) remain the only guard that
+  friends play with the same data, and "check off" is a fairness question, not a crash.
+### Online Divisions menu and search (2026-11-06 19:12–19:20, modes2.md)
+- Bare GET_DIVISION_INFO: the season-end path runs every time (GET_DIVISION_INFO ×2, FINISH_SEASON, "Season
+  Results", "You have been promoted to Division 11.", then an empty screen after GET_DIVISION_INFO
+  `is_season_end:"YES"`). So today Online Divisions is unusable.
+- With a `division_info` blob (D10, `other_match_num` 10, one history entry of 3 points): the Online Divisions
+  screen shows Division 10, the D9 line at 12, 3 points, "W 1-0" and the opponent crest from `enemy_team_id`.
+- "To Next Match": GET_OFTEN_USED_TEAM_LIST → team select ("Season Points Info", "Frequently Selected Teams") →
+  GET_QUICKMATCHOPTION → Matchmaking Settings → START_MATCHING `matching_type "OC_RANK"` from both copies →
+  paired by the Quick Match code → "View Opponent: Connection status with opponent. Proceed?" (Find Another /
+  Proceed). Stopped there.
+
+### Online Divisions in the server (pesdivisions.py, 2026-11-06 19:36–20:20)
+- New player: "Division 10. This is the first of 10 games this season. You will need to obtain at least 0
+  Season Points to stay in the division. Get 12 or more Season Points to earn a promotion." then the empty
+  Divisions chart (D9 line at 12).
+- Two copies: To Next Match → team select → START_MATCHING OC_RANK → paired (Divisions and Quick Match players
+  are now separate queues) → View Opponent → Proceed → a full 10-minute match (0-0).
+- At END the server recorded a draw (+1) for both and pushed the verdict to both: both showed **"Changes in
+  rating"** (1000 > 1000), a screen Quick Match never shows. Then GET_DIVISION_INFO ×3 and the Divisions chart
+  with the first match **"D 0-0", 1 point**.
+- Open: the history shows no crest (`enemy_team_id` 0: the server doesn't learn the opponent's team); a
+  season end (10 matches) with FINISH_SEASON and promotion is covered by unit tests only.
+
+### Matchday in the server (pesmatchday.py, 2026-11-06 20:45–22:07, modes2.md §C, matchday2.md)
+- eFootball → Matchday: JOIN_MATCHDAY_MODE → GET_MATCHDAY_LIST → the event card ("Friends Matchday", "Group Match
+  Stage ends in: 30d0h", "Eligible") → "Enter this Competition. Proceed?" → GET_MATCHDAY_INFO → side choice →
+  team (only the side's leagues) → "You cannot change your Side/Team later" → JOIN_MATCHDAY {compe_id,
+  entry_matchday_group, team_id, sp_gameplan_data, sp_member_list} → GET_MATCHDAY_SP_GAMEPLAN → GET_MATCHDAY_INFO →
+  GET_MATCHDAY_MAINMENU_INFO → the Matchday menu (Start Match, Game Plan, Side Ranking, Competition Details, the
+  Home/Away bar, Event Points).
+- Bugs found on the way: the event map must be one level down in `compe_info.info_overview` (flat keys are
+  ignored → compe_id 0 and "The Group Match Stage has ended."); a guessed `all_reward_info` blob crashed the game
+  (it is an array read without a type check); an empty GET_MATCHDAY_SP_GAMEPLAN left the line-ups empty and both
+  games crashed in GAMELOAD (access violation 0x141afae35).
+- Start Match on both → START_MATCHING `matching_type "MATCHDAY"` → paired → full match (0-0) → verdict at END →
+  GET_MATCHDAY_ACHIEVEMENT_REWARD → "Match Rewards: 1 Points" → the menu shows Home 1 – Away 1, Event Points 1.
+- Also new: SET_GAMETEAM (both team ids, sent at the match menu) is stored, so the Online Divisions history shows
+  the opponent's team.
+
+## 2026-11-07: courtesy warnings, co-op profile layout, player messages (probe tools, one copy)
+
+Run with `tools/probesession.py up 1`, `tools/scenario.py` (scenarios/courtesy.json, courtesy_real.json,
+messages.json, private_popup.json) and `tools/parsebench.py`. No key presses except the player name.
+- **Courtesy warnings:** all four `warn_kind` dialogs shown and read (menus.md table). DOWN_C is "…remains
+  high", STILL_C is "…has fallen to C". OK continues into the Friendly Match Lobby. With the server's own
+  rule (pesmanner.py): one early exit gave DOWN_B at the online login, and a second one gave A_TO_B on the next
+  lobby entry, shown once each.
+- **GET_COOP_PROFILE layout** (parsebench, four candidate placements in one reply): only a **top-level**
+  `coop_profile_data` blob is read, beside `user_info{pid, pname}`. The KB table had it inside user_info.
+  GET_COOP_REJECT_LIST: `reject_list` blobs {pid, pname} are read (2 entries, 0xb0 bytes each).
+- **Player messages:**
+  - A PERSONAL_INFO item in GET_PRIVATEINFOTITLELIST pops up once (MenuInformationNoticeTask) at login or on
+    entering an online mode, right after the box before Quick Match (MenuUrgentAnnouncement).
+  - Once closed, it never popped up again, even after a game restart.
+  - Server change: player messages and the kick note go through the private list only (the box gave a
+    duplicate).
+- **Tools:** pesflow now closes both message windows like dialogs (vtable +0x188). Escape is the game's back
+  key once no window is open. `scenario.py` got `relaunch`, `"since": "variant"` and `reply … "ok": true`.

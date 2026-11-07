@@ -1,0 +1,5283 @@
+{
+ "CMD_ACCEPT_CLAN_ENTRY": {
+  "creator": [
+   "0x14113bb90"
+  ],
+  "ctor": "0x141e0b940",
+  "dtor": "0x141e0bb30",
+  "parser": "0x141e0c230",
+  "result_class": "CmdAcceptClanEntryResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b317d0"
+ },
+ "CMD_ACCEPT_CLAN_INVITE": {
+  "creator": [
+   "0x14113bd80"
+  ],
+  "ctor": "0x141e0c7e0",
+  "dtor": "0x141e0c9d0",
+  "parser": "0x141e0d0d0",
+  "result_class": "CmdAcceptClanInviteResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b31a50"
+ },
+ "CMD_ADD_FOUL": {
+  "creator": [
+   "0x1410e6d50"
+  ],
+  "ctor": "0x141d1bba0",
+  "dtor": "0x141d1be30",
+  "parser": "0x141d1ce60",
+  "result_class": "CmdAddFoulResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0e098"
+ },
+ "CMD_ADD_MYCLUB_AUCTION_WATCH_LIST": {
+  "creator": [
+   "0x1410dbcb0"
+  ],
+  "ctor": "0x141cf1700",
+  "dtor": "0x141cf18f0",
+  "parser": "0x141cf1ff0",
+  "result_class": "CmdAddMyclubAuctionWatchListResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b07c08"
+ },
+ "CMD_ADD_MYCLUB_AUCTION_WISH_LIST": {
+  "creator": [
+   "0x1410aa7d0"
+  ],
+  "ctor": "0x141c0ab10",
+  "dtor": "0x141c0ae60",
+  "parser": "0x141c0b930",
+  "result_class": "CmdAddMyclubAuctionWishListResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae7468"
+ },
+ "CMD_ADD_SCORE": {
+  "creator": [
+   "0x1410e70e0"
+  ],
+  "ctor": "0x141d1d510",
+  "dtor": "0x141d1d7d0",
+  "parser": "0x141d1e5a0",
+  "result_class": "CmdAddScoreResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0e470"
+ },
+ "CMD_AUTH_STEAM": {
+  "creator": [
+   "0x141e48750"
+  ],
+  "ctor": "0x141e48920",
+  "dtor": "0x141e48c40",
+  "parser": "0x141e49160",
+  "result_class": "CmdAuthSteamResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b3a4b8"
+ },
+ "CMD_BUY_MYCLUB_MARKET_COACH": {
+  "creator": [
+   "0x1411032f0",
+   "0x141d8b1b0"
+  ],
+  "ctor": "0x141d8ae60",
+  "dtor": "0x141d8b1b0",
+  "parser": "0x141d8ba10",
+  "result_class": "CmdBuyMyclubMarketCoachResult",
+  "size": [
+   "0x2f8"
+  ],
+  "vt": "0x142b1f3d8"
+ },
+ "CMD_CANCEL_CLAN_ENTRY": {
+  "creator": [
+   "0x14113c830"
+  ],
+  "ctor": "0x141e0f280",
+  "dtor": "0x141e0f470",
+  "parser": "0x141e0fb70",
+  "result_class": "CmdCancelClanEntryResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b32040"
+ },
+ "CMD_CANCEL_CLAN_INVITE": {
+  "creator": [
+   "0x14113ca20"
+  ],
+  "ctor": "0x141e10120",
+  "dtor": "0x141e10310",
+  "parser": "0x141e10a10",
+  "result_class": "CmdCancelClanInviteResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b322c0"
+ },
+ "CMD_CANCEL_COOP_GROUP_MATCHING": {
+  "creator": [
+   "0x141110ab0"
+  ],
+  "ctor": "0x141dcd200",
+  "dtor": "0x141dcd3f0",
+  "parser": "0x141dcda90",
+  "result_class": "CmdCancelCoopGroupMatchingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b288a0"
+ },
+ "CMD_CANCEL_COOP_MATCHING": {
+  "creator": [
+   "0x141110c70"
+  ],
+  "ctor": "0x141dce040",
+  "dtor": "0x141dce230",
+  "parser": "0x141dce8d0",
+  "result_class": "CmdCancelCoopMatchingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b28b10"
+ },
+ "CMD_CANCEL_MATCHDAY_ENTRY_PICKUP_MATCH": {
+  "creator": [
+   "0x1410ddea0"
+  ],
+  "ctor": "0x141cfac50",
+  "dtor": "0x141cfae40",
+  "parser": "0x141cfb540",
+  "result_class": "CmdCancelMatchdayEntryPickupMatchResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b092a0"
+ },
+ "CMD_CANCEL_MATCHING": {
+  "creator": [
+   "0x1410e7470"
+  ],
+  "ctor": "0x141d1eb50",
+  "dtor": "0x141d1ed40",
+  "parser": "0x141d1f3e0",
+  "result_class": "CmdCancelMatchingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0e6e0"
+ },
+ "CMD_CHANGE_GAMEPHASE": {
+  "creator": [
+   "0x1410e7680"
+  ],
+  "ctor": "0x141d1f9c0",
+  "dtor": "0x141d1fbe0",
+  "parser": "0x141d20350",
+  "result_class": "CmdChangeGamephaseResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0e968"
+ },
+ "CMD_CHECK_CHEAT": {
+  "creator": [
+   "0x1410e78a0"
+  ],
+  "ctor": "0x141d209e0",
+  "dtor": "0x141d20ca0",
+  "parser": "0x141d21650",
+  "result_class": "CmdCheckCheatResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0ec58"
+ },
+ "CMD_CHECK_LOCAL_GAMERELAY_PLAYER": {
+  "creator": [
+   "0x140ff6e30",
+   "0x141b9c6f0"
+  ],
+  "ctor": "0x141b9c2e0",
+  "dtor": "0x141b9c6f0",
+  "parser": "0x141b9cdc0",
+  "result_class": "CmdCheckLocalGamerelayPlayerResult",
+  "size": [
+   "0x240"
+  ],
+  "vt": "0x142ad74b8"
+ },
+ "CMD_CHECK_MYCLUB_STORE": {
+  "creator": [
+   "0x1410b7360",
+   "0x141c45c90"
+  ],
+  "ctor": "0x141c45960",
+  "dtor": "0x141c45c90",
+  "parser": "0x141c46300",
+  "result_class": "CmdCheckMyclubStoreResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142aefa88"
+ },
+ "CMD_CHECK_STRING": {
+  "creator": [
+   "0x141211240"
+  ],
+  "ctor": "0x141e47980",
+  "dtor": "0x141e47ba0",
+  "parser": "0x141e48290",
+  "result_class": "CmdCheckStringResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b3a180"
+ },
+ "CMD_CONFIRM_CLAN_REQUEST": {
+  "creator": [
+   "0x14113cc10"
+  ],
+  "ctor": "0x141e11020",
+  "dtor": "0x141e11220",
+  "parser": "0x141e12610",
+  "result_class": "CmdConfirmClanRequestResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b32630"
+ },
+ "CMD_COPY_MYCLUB_SQUAD": {
+  "creator": [
+   "0x14109e370"
+  ],
+  "ctor": "0x141bd95c0",
+  "dtor": "0x141bd97e0",
+  "parser": "0x141bd9fa0",
+  "result_class": "CmdCopyMyclubSquadResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142ae0018"
+ },
+ "CMD_CREATEJOIN_COOP_ROOM": {
+  "creator": [
+   "0x14113d780"
+  ],
+  "ctor": "0x141e176b0",
+  "dtor": "0x141e17910",
+  "parser": "0x141e19400",
+  "result_class": "CmdCreatejoinCoopRoomResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b331f0"
+ },
+ "CMD_CREATEJOIN_ROOM": {
+  "creator": [
+   "0x1410e7e80"
+  ],
+  "ctor": "0x141d21e50",
+  "dtor": "0x141d22270",
+  "parser": "0x141d232a0",
+  "result_class": "CmdCreatejoinRoomResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b0eff8"
+ },
+ "CMD_CREATE_CLAN": {
+  "creator": [
+   "0x14112f190"
+  ],
+  "ctor": "0x141de8030",
+  "dtor": "0x141de8250",
+  "parser": "0x141de89b0",
+  "result_class": "CmdCreateClanResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b2d158"
+ },
+ "CMD_CREATE_MYCLUB_SQUAD": {
+  "creator": [
+   "0x141097e80"
+  ],
+  "ctor": "0x141bbfb20",
+  "dtor": "0x141bbfd40",
+  "parser": "0x141bc0500",
+  "result_class": "CmdCreateMyclubSquadResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142adc6f8"
+ },
+ "CMD_CREATE_MYCLUB_STAFF": {
+  "creator": [
+   "0x1410c8170"
+  ],
+  "ctor": "0x141c958b0",
+  "dtor": "0x141c95b60",
+  "parser": "0x141c96dd0",
+  "result_class": "CmdCreateMyclubStaffResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142afae88"
+ },
+ "CMD_CREATE_MYCLUB_TEAM": {
+  "creator": [
+   "0x141103a70"
+  ],
+  "ctor": "0x141d8d980",
+  "dtor": "0x141d8dc80",
+  "parser": "0x141d8eba0",
+  "result_class": "CmdCreateMyclubTeamResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1f7a8"
+ },
+ "CMD_CREATE_PLAYER": {
+  "creator": [
+   "0x1410e8be0"
+  ],
+  "ctor": "0x141d23970",
+  "dtor": "0x141d23b90",
+  "parser": "0x141d24280",
+  "result_class": "CmdCreatePlayerResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0f280"
+ },
+ "CMD_DELETE_MYCLUB_AUCTION_WATCH_LIST": {
+  "creator": [
+   "0x1410dc9c0"
+  ],
+  "ctor": "0x141cf5450",
+  "dtor": "0x141cf5670",
+  "parser": "0x141cf5e30",
+  "result_class": "CmdDeleteMyclubAuctionWatchListResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b08668"
+ },
+ "CMD_DELETE_MYCLUB_AUCTION_WISH_LIST": {
+  "creator": [
+   "0x1410af010"
+  ],
+  "ctor": "0x141c16810",
+  "dtor": "0x141c16a10",
+  "parser": "0x141c174e0",
+  "result_class": "CmdDeleteMyclubAuctionWishListResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae8fe8"
+ },
+ "CMD_DELETE_MYCLUB_SQUAD": {
+  "creator": [
+   "0x1410a08a0"
+  ],
+  "ctor": "0x141be1e70",
+  "dtor": "0x141be2060",
+  "parser": "0x141be2760",
+  "result_class": "CmdDeleteMyclubSquadResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae1580"
+ },
+ "CMD_DISCONNECT": {
+  "creator": [
+   "0x14120fee0"
+  ],
+  "ctor": "0x141e40ff0",
+  "dtor": "0x141e41210",
+  "parser": "0x141e41900",
+  "result_class": "CmdDisconnectResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b38fb0"
+ },
+ "CMD_END_STEAM_STORE": {
+  "creator": [
+   "0x141e3d110"
+  ],
+  "ctor": "0x141e3d2f0",
+  "dtor": "0x141e3d610",
+  "parser": "0x141e3dbc0",
+  "result_class": "CmdEndSteamStoreResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b38448"
+ },
+ "CMD_END_STORE_TRANSACTION": {
+  "creator": [
+   "0x14120de60",
+   "0x141e34e30"
+  ],
+  "ctor": "0x141e34b70",
+  "dtor": "0x141e34e30",
+  "parser": "0x141e35570",
+  "result_class": "CmdEndStoreTransactionResult",
+  "size": [
+   "0x1f8"
+  ],
+  "vt": "0x142b36e60"
+ },
+ "CMD_ENTRY_CLAN": {
+  "creator": [
+   "0x141130ce0"
+  ],
+  "ctor": "0x141dfd180",
+  "dtor": "0x141dfd370",
+  "parser": "0x141dfda70",
+  "result_class": "CmdEntryClanResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b2f958"
+ },
+ "CMD_ENTRY_GAME": {
+  "creator": [
+   "0x1410e9000",
+   "0x141d24bc0"
+  ],
+  "ctor": "0x141d24890",
+  "dtor": "0x141d24bc0",
+  "parser": "0x141d25350",
+  "result_class": "CmdEntryGameResult",
+  "size": [
+   "0x1f8"
+  ],
+  "vt": "0x142b0f560"
+ },
+ "CMD_ENTRY_MYCLUB_WEEKLY_RANKING": {
+  "creator": [
+   "0x1410bcc40"
+  ],
+  "ctor": "0x141c60be0",
+  "dtor": "0x141c60e00",
+  "parser": "0x141c61560",
+  "result_class": "CmdEntryMyclubWeeklyRankingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af39d8"
+ },
+ "CMD_EXCHANGE_E_FOOTBALL_POINT": {
+  "creator": [
+   "0x141cfcc60"
+  ],
+  "ctor": "0x141cfcdc0",
+  "dtor": "0x141cfd080",
+  "parser": "0x141cfd540",
+  "result_class": "CmdExchangeEFootballPointResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b098c8"
+ },
+ "CMD_EXPEL_CLAN_MEMBER": {
+  "creator": [
+   "0x141131280"
+  ],
+  "ctor": "0x141e00440",
+  "dtor": "0x141e00630",
+  "parser": "0x141e00d30",
+  "result_class": "CmdExpelClanMemberResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b30170"
+ },
+ "CMD_EXTEND_MYCLUB_COACH": {
+  "creator": [
+   "0x1410a2fe0"
+  ],
+  "ctor": "0x141bee190",
+  "dtor": "0x141bee3c0",
+  "parser": "0x141beeb80",
+  "result_class": "CmdExtendMyclubCoachResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142ae3250"
+ },
+ "CMD_EXTEND_MYCLUB_GAMEPLAYER": {
+  "creator": [
+   "0x1410a5fa0"
+  ],
+  "ctor": "0x141bf7640",
+  "dtor": "0x141bf78e0",
+  "parser": "0x141bf8200",
+  "result_class": "CmdExtendMyclubGameplayerResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae48d0"
+ },
+ "CMD_EXTEND_MYCLUB_ITEM_GAMEPLAYER": {
+  "creator": [
+   "0x1410a82f0"
+  ],
+  "ctor": "0x141c005d0",
+  "dtor": "0x141c007d0",
+  "parser": "0x141c00ed0",
+  "result_class": "CmdExtendMyclubItemGameplayerResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae5d18"
+ },
+ "CMD_FINISH_SEASON": {
+  "creator": [
+   "0x1410e93b0"
+  ],
+  "ctor": "0x141d25ad0",
+  "dtor": "0x141d25cc0",
+  "parser": "0x141d26360",
+  "result_class": "CmdFinishSeasonResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0f7d0"
+ },
+ "CMD_FOLLOW_USER": {
+  "creator": [
+   "0x141131480"
+  ],
+  "ctor": "0x141e013a0",
+  "dtor": "0x141e015b0",
+  "parser": "0x141e02c60",
+  "result_class": "CmdFollowUserResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b30508"
+ },
+ "CMD_GET_AVATAR_HTTP": {
+  "creator": [
+   "0x141bb0fb0",
+   "0x141bb1520"
+  ],
+  "ctor": "0x141bb1150",
+  "dtor": "0x141bb1520",
+  "parser": "0x141bb1b90",
+  "result_class": "CmdGetAvatarHttpResult",
+  "size": [
+   "0xc1f8"
+  ],
+  "vt": "0x142ada4f8"
+ },
+ "CMD_GET_BLOCKLIST": {
+  "creator": [
+   "0x1410e98d0"
+  ],
+  "ctor": "0x141d26900",
+  "dtor": "0x141d26ba0",
+  "parser": "0x141d274c0",
+  "result_class": "CmdGetBlocklistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b0fb70"
+ },
+ "CMD_GET_CHALLENGECODE": {
+  "creator": [
+   "0x1410ea020"
+  ],
+  "ctor": "0x141d27fb0",
+  "dtor": "0x141d281b0",
+  "parser": "0x141d287e0",
+  "result_class": "CmdGetChallengecodeResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b0fe18"
+ },
+ "CMD_GET_CLAN_INFO": {
+  "creator": [
+   "0x14112f7b0"
+  ],
+  "ctor": "0x141decef0",
+  "dtor": "0x141ded0f0",
+  "parser": "0x141dedec0",
+  "result_class": "CmdGetClanInfoResult",
+  "size": [
+   "0x468"
+  ],
+  "vt": "0x142b2e138"
+ },
+ "CMD_GET_CLAN_LIST": {
+  "creator": [
+   "0x1411301c0"
+  ],
+  "ctor": "0x141df41b0",
+  "dtor": "0x141df4670",
+  "parser": "0x141df5280",
+  "result_class": "CmdGetClanListResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b2efa8"
+ },
+ "CMD_GET_CLAN_MEMBER_MODE": {
+  "creator": [
+   "0x141131f50"
+  ],
+  "ctor": "0x141e09a20",
+  "dtor": "0x141e09c70",
+  "parser": "0x141e0a320",
+  "result_class": "CmdGetClanMemberModeResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b31550"
+ },
+ "CMD_GET_CLAN_PENDING_LIST": {
+  "creator": [
+   "0x141130910"
+  ],
+  "ctor": "0x141dfb0e0",
+  "dtor": "0x141dfb330",
+  "parser": "0x141dfb9e0",
+  "result_class": "CmdGetClanPendingListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b2f6e0"
+ },
+ "CMD_GET_CLAN_RANKING": {
+  "creator": [
+   "0x141de0ed0"
+  ],
+  "ctor": "0x141de10f0",
+  "dtor": "0x141de15c0",
+  "parser": "0x141de2b50",
+  "result_class": "CmdGetClanRankingResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b2c4a0"
+ },
+ "CMD_GET_CLAN_RANKING_BYID": {
+  "creator": [
+   "0x141de4820"
+  ],
+  "ctor": "0x141de4a70",
+  "dtor": "0x141de4e70",
+  "parser": "0x141de6240",
+  "result_class": "CmdGetClanRankingByidResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b2cec0"
+ },
+ "CMD_GET_CLAN_REQUEST_LIST": {
+  "creator": [
+   "0x141130500"
+  ],
+  "ctor": "0x141df8fb0",
+  "dtor": "0x141df9200",
+  "parser": "0x141df9940",
+  "result_class": "CmdGetClanRequestListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b2f368"
+ },
+ "CMD_GET_CLAN_SETTINGS": {
+  "creator": [
+   "0x14112f580"
+  ],
+  "ctor": "0x141deacb0",
+  "dtor": "0x141deaea0",
+  "parser": "0x141deb550",
+  "result_class": "CmdGetClanSettingsResult",
+  "size": [
+   "0x370"
+  ],
+  "vt": "0x142b2d8e0"
+ },
+ "CMD_GET_CLAN_SIMPLE_INFO_LIST": {
+  "creator": [
+   "0x14112fa90"
+  ],
+  "ctor": "0x141df1bb0",
+  "dtor": "0x141df1e70",
+  "parser": "0x141df27c0",
+  "result_class": "CmdGetClanSimpleInfoListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b2e5e0"
+ },
+ "CMD_GET_COMPEV_INFO": {
+  "creator": [
+   "0x1410c43c0"
+  ],
+  "ctor": "0x141c83470",
+  "dtor": "0x141c83fe0",
+  "parser": "0x141c849d0",
+  "result_class": "CmdGetCompevInfoResult",
+  "size": [
+   "0x670"
+  ],
+  "vt": "0x142af8bb8"
+ },
+ "CMD_GET_COMPEV_LIST": {
+  "creator": [
+   "0x1410c62f0",
+   "0x141c8d8e0"
+  ],
+  "ctor": "0x141c8d2f0",
+  "dtor": "0x141c8d8e0",
+  "parser": "0x141c8e250",
+  "result_class": "CmdGetCompevListResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142af9c80"
+ },
+ "CMD_GET_COMPEV_MAINMENU_INFO": {
+  "creator": [
+   "0x1410d05c0",
+   "0x141cb8030"
+  ],
+  "ctor": "0x141cb7c40",
+  "dtor": "0x141cb8030",
+  "parser": "0x141cb8830",
+  "result_class": "CmdGetCompevMainmenuInfoResult",
+  "size": [
+   "0x248"
+  ],
+  "vt": "0x142aff958"
+ },
+ "CMD_GET_COMPEV_MYENTRY_COMPEID": {
+  "creator": [
+   "0x1410d1d30",
+   "0x141cbe710"
+  ],
+  "ctor": "0x141cbe390",
+  "dtor": "0x141cbe710",
+  "parser": "0x141cbee40",
+  "result_class": "CmdGetCompevMyentryCompeidResult",
+  "size": [
+   "0x220"
+  ],
+  "vt": "0x142b008a8"
+ },
+ "CMD_GET_COOP_LEVEL_RESULT": {
+  "creator": [
+   "0x14107bbf0"
+  ],
+  "ctor": "0x141ba7f40",
+  "dtor": "0x141ba85c0",
+  "parser": "0x141ba8ec0",
+  "result_class": "CmdGetCoopLevelResultResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142ad93d8"
+ },
+ "CMD_GET_COOP_MAINMENU_INFO": {
+  "creator": [
+   "0x14112df10",
+   "0x141ddf7c0"
+  ],
+  "ctor": "0x141ddf200",
+  "dtor": "0x141ddf7c0",
+  "parser": "0x141ddffb0",
+  "result_class": "CmdGetCoopMainmenuInfoResult",
+  "size": [
+   "0x2b8"
+  ],
+  "vt": "0x142b2b9d8"
+ },
+ "CMD_GET_COOP_MATCH_DATA": {
+  "creator": [
+   "0x1411123e0"
+  ],
+  "ctor": "0x141dd3650",
+  "dtor": "0x141dd3860",
+  "parser": "0x141dd3f00",
+  "result_class": "CmdGetCoopMatchDataResult",
+  "size": [
+   "0x3d8"
+  ],
+  "vt": "0x142b29850"
+ },
+ "CMD_GET_COOP_PROFILE": {
+  "creator": [
+   "0x1410b6830"
+  ],
+  "ctor": "0x141c3f070",
+  "dtor": "0x141c3f280",
+  "parser": "0x141c3f940",
+  "result_class": "CmdGetCoopProfileResult",
+  "size": [
+   "0x4e0"
+  ],
+  "vt": "0x142aeeeb0"
+ },
+ "CMD_GET_COOP_QUICKMATCHOPTION": {
+  "creator": [
+   "0x14110de10",
+   "0x141dbe720"
+  ],
+  "ctor": "0x141dbe320",
+  "dtor": "0x141dbe720",
+  "parser": "0x141dbed90",
+  "result_class": "CmdGetCoopQuickmatchoptionResult",
+  "size": [
+   "0x250"
+  ],
+  "vt": "0x142b26ab8"
+ },
+ "CMD_GET_COOP_REJECT_LIST": {
+  "creator": [
+   "0x141131d10"
+  ],
+  "ctor": "0x141e07f60",
+  "dtor": "0x141e081b0",
+  "parser": "0x141e08860",
+  "result_class": "CmdGetCoopRejectListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b311e0"
+ },
+ "CMD_GET_COOP_ROOMLIST": {
+  "creator": [
+   "0x14113cf40"
+  ],
+  "ctor": "0x141e12bd0",
+  "dtor": "0x141e14100",
+  "parser": "0x141e152c0",
+  "result_class": "CmdGetCoopRoomlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b32d78"
+ },
+ "CMD_GET_COOP_ROOM_MEMBER": {
+  "creator": [
+   "0x14113fc40"
+  ],
+  "ctor": "0x141e2c980",
+  "dtor": "0x141e2cbd0",
+  "parser": "0x141e2d2e0",
+  "result_class": "CmdGetCoopRoomMemberResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b35e40"
+ },
+ "CMD_GET_COOP_ROOM_OPTION": {
+  "creator": [
+   "0x14113e3e0",
+   "0x141e1f1b0"
+  ],
+  "ctor": "0x141e1ecb0",
+  "dtor": "0x141e1f1b0",
+  "parser": "0x141e1f880",
+  "result_class": "CmdGetCoopRoomOptionResult",
+  "size": [
+   "0x4f8"
+  ],
+  "vt": "0x142b342a8"
+ },
+ "CMD_GET_DIVISION_INFO": {
+  "creator": [
+   "0x1410ea210",
+   "0x141d29710"
+  ],
+  "ctor": "0x141d28ee0",
+  "dtor": "0x141d29710",
+  "parser": "0x141d29fc0",
+  "result_class": "CmdGetDivisionInfoResult",
+  "size": [
+   "0x2d0"
+  ],
+  "vt": "0x142b103c0"
+ },
+ "CMD_GET_DIVISION_POINT_INFO": {
+  "creator": [
+   "0x1410ea9d0"
+  ],
+  "ctor": "0x141d2bd10",
+  "dtor": "0x141d2bfb0",
+  "parser": "0x141d2c8f0",
+  "result_class": "CmdGetDivisionPointInfoResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b10790"
+ },
+ "CMD_GET_DIVISION_RANKING": {
+  "creator": [
+   "0x141d2d230"
+  ],
+  "ctor": "0x141d2d3d0",
+  "dtor": "0x141d2dc40",
+  "parser": "0x141d2ed10",
+  "result_class": "CmdGetDivisionRankingResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b10fe0"
+ },
+ "CMD_GET_DIVISION_RANKING_BYID": {
+  "creator": [
+   "0x141d30470"
+  ],
+  "ctor": "0x141d30650",
+  "dtor": "0x141d309e0",
+  "parser": "0x141d318f0",
+  "result_class": "CmdGetDivisionRankingByidResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b11760"
+ },
+ "CMD_GET_DLC_FILELIST": {
+  "creator": [
+   "0x141d33050",
+   "0x141d33800"
+  ],
+  "ctor": "0x141d33220",
+  "dtor": "0x141d33800",
+  "parser": "0x141d34a90",
+  "result_class": "CmdGetDlcFilelistResult",
+  "size": [
+   "0x218"
+  ],
+  "vt": "0x142b11f38"
+ },
+ "CMD_GET_DMM_NOTIFICATION": {
+  "creator": [
+   "0x1410dd1d0"
+  ],
+  "ctor": "0x141cf73e0",
+  "dtor": "0x141cf8320",
+  "parser": "0x141cf8f80",
+  "result_class": "CmdGetDmmNotificationResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b08fb8"
+ },
+ "CMD_GET_DMM_PLAYERINFO": {
+  "creator": [
+   "0x1410e6a80",
+   "0x141d1ad50"
+  ],
+  "ctor": "0x141d1aaa0",
+  "dtor": "0x141d1ad50",
+  "parser": "0x141d1b3c0",
+  "result_class": "CmdGetDmmPlayerinfoResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b0dcb0"
+ },
+ "CMD_GET_EFP_MOST_RECENTLY_EXPIRED_POINTS": {
+  "creator": [
+   "0x141bba720",
+   "0x141bbacf0"
+  ],
+  "ctor": "0x141bba8c0",
+  "dtor": "0x141bbacf0",
+  "parser": "0x141bbb4d0",
+  "result_class": "CmdGetEfpMostRecentlyExpiredPointsResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142adbc18"
+ },
+ "CMD_GET_ENTRY_GAME": {
+  "creator": [
+   "0x141098d70"
+  ],
+  "ctor": "0x141bc2de0",
+  "dtor": "0x141bc3030",
+  "parser": "0x141bc3820",
+  "result_class": "CmdGetEntryGameResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142adcf88"
+ },
+ "CMD_GET_EULA_AREA_LIST": {
+  "creator": [
+   "0x14108d2f0"
+  ],
+  "ctor": "0x141baa760",
+  "dtor": "0x141baaa10",
+  "parser": "0x141bab3c0",
+  "result_class": "CmdGetEulaAreaListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ad9758"
+ },
+ "CMD_GET_EULA_NATION_CODE": {
+  "creator": [
+   "0x14109b0f0",
+   "0x141bcd660"
+  ],
+  "ctor": "0x141bcd330",
+  "dtor": "0x141bcd660",
+  "parser": "0x141bcdc60",
+  "result_class": "CmdGetEulaNationCodeResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142ade5f8"
+ },
+ "CMD_GET_EULA_NATION_LIST": {
+  "creator": [
+   "0x14109deb0"
+  ],
+  "ctor": "0x141bd7c50",
+  "dtor": "0x141bd8060",
+  "parser": "0x141bd88e0",
+  "result_class": "CmdGetEulaNationListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142adfd48"
+ },
+ "CMD_GET_EVENT_CATEGORY_LIST": {
+  "creator": [
+   "0x14105ee30"
+  ],
+  "ctor": "0x141ba0d80",
+  "dtor": "0x141ba1160",
+  "parser": "0x141ba19f0",
+  "result_class": "CmdGetEventCategoryListResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142ad82e8"
+ },
+ "CMD_GET_E_FOOTBALL_POINT": {
+  "creator": [
+   "0x141d09db0"
+  ],
+  "ctor": "0x141d09f10",
+  "dtor": "0x141d0a1d0",
+  "parser": "0x141d0a660",
+  "result_class": "CmdGetEFootballPointResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b0b5d8"
+ },
+ "CMD_GET_FOLLOW_LIST": {
+  "creator": [
+   "0x141131680"
+  ],
+  "ctor": "0x141e03210",
+  "dtor": "0x141e03630",
+  "parser": "0x141e03e60",
+  "result_class": "CmdGetFollowListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b308f8"
+ },
+ "CMD_GET_GAMERELAY": {
+  "creator": [
+   "0x141c51250",
+   "0x141c517c0"
+  ],
+  "ctor": "0x141c513b0",
+  "dtor": "0x141c517c0",
+  "parser": "0x141c51da0",
+  "result_class": "CmdGetGamerelayResult",
+  "size": [
+   "0x220"
+  ],
+  "vt": "0x142af1540"
+ },
+ "CMD_GET_GAMERELAY_QUALITYCHECKLIST": {
+  "creator": [
+   "0x141d36310",
+   "0x141d36890"
+  ],
+  "ctor": "0x141d36470",
+  "dtor": "0x141d36890",
+  "parser": "0x141d37590",
+  "result_class": "CmdGetGamerelayQualitychecklistResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142b12630"
+ },
+ "CMD_GET_GAMERESULTS": {
+  "creator": [
+   "0x1410c17e0"
+  ],
+  "ctor": "0x141c76ec0",
+  "dtor": "0x141c77140",
+  "parser": "0x141c77920",
+  "result_class": "CmdGetGameresultsResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142af6bf8"
+ },
+ "CMD_GET_GAME_SCORE": {
+  "creator": [
+   "0x1410c9570",
+   "0x141c9d2d0"
+  ],
+  "ctor": "0x141c9cfb0",
+  "dtor": "0x141c9d2d0",
+  "parser": "0x141c9d940",
+  "result_class": "CmdGetGameScoreResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142afbc08"
+ },
+ "CMD_GET_GAME_TEAM_LIST": {
+  "creator": [
+   "0x1410cbaa0"
+  ],
+  "ctor": "0x141ca6010",
+  "dtor": "0x141ca62c0",
+  "parser": "0x141ca6c00",
+  "result_class": "CmdGetGameTeamListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142afd308"
+ },
+ "CMD_GET_GLOBALINFOTITLELIST": {
+  "creator": [
+   "0x1410c0ef0"
+  ],
+  "ctor": "0x141c73a30",
+  "dtor": "0x141c73d50",
+  "parser": "0x141c746b0",
+  "result_class": "CmdGetGlobalinfotitlelistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142af6570"
+ },
+ "CMD_GET_GP_ACHIEVEMENT": {
+  "creator": [
+   "0x1410c6fe0"
+  ],
+  "ctor": "0x141c8ffa0",
+  "dtor": "0x141c90200",
+  "parser": "0x141c908b0",
+  "result_class": "CmdGetGpAchievementResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142af9f58"
+ },
+ "CMD_GET_HEROSTATS": {
+  "creator": [
+   "0x1410ec870",
+   "0x141d388c0"
+  ],
+  "ctor": "0x141d38560",
+  "dtor": "0x141d388c0",
+  "parser": "0x141d38f30",
+  "result_class": "CmdGetHerostatsResult",
+  "size": [
+   "0x240"
+  ],
+  "vt": "0x142b12a28"
+ },
+ "CMD_GET_INFOBODY": {
+  "creator": [
+   "0x14105f4e0"
+  ],
+  "ctor": "0x141ba3230",
+  "dtor": "0x141ba3740",
+  "parser": "0x141ba40a0",
+  "result_class": "CmdGetInfobodyResult",
+  "size": [
+   "0x438"
+  ],
+  "vt": "0x142ad88a8"
+ },
+ "CMD_GET_IPANDPORT_NTL": {
+  "creator": [
+   "0x1410d9ad0"
+  ],
+  "ctor": "0x141ce6ac0",
+  "dtor": "0x141ce6d10",
+  "parser": "0x141ce73b0",
+  "result_class": "CmdGetIpandportNtlResult",
+  "size": [
+   "0x220"
+  ],
+  "vt": "0x142b066d0"
+ },
+ "CMD_GET_IS_JOIN_COOP_ROOM": {
+  "creator": [
+   "0x1410b8f90",
+   "0x141c505d0"
+  ],
+  "ctor": "0x141c50320",
+  "dtor": "0x141c505d0",
+  "parser": "0x141c50c40",
+  "result_class": "CmdGetIsJoinCoopRoomResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142af1158"
+ },
+ "CMD_GET_IS_KONAMIID_COOPERATION": {
+  "creator": [
+   "0x141dda160",
+   "0x141dda950"
+  ],
+  "ctor": "0x141dda3e0",
+  "dtor": "0x141dda950",
+  "parser": "0x141ddb110",
+  "result_class": "CmdGetIsKonamiidCooperationResult",
+  "size": [
+   "0x230"
+  ],
+  "vt": "0x142b2aac0"
+ },
+ "CMD_GET_KONAMIID_FUNCTIONAL_BLOCKADE": {
+  "creator": [
+   "0x141dd9200",
+   "0x141dd96d0"
+  ],
+  "ctor": "0x141dd9350",
+  "dtor": "0x141dd96d0",
+  "parser": "0x141dd9b50",
+  "result_class": "CmdGetKonamiidFunctionalBlockadeResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b2a640"
+ },
+ "CMD_GET_KONAMIID_LINK_URL": {
+  "creator": [
+   "0x141ddb890",
+   "0x141ddbfa0"
+  ],
+  "ctor": "0x141ddbb10",
+  "dtor": "0x141ddbfa0",
+  "parser": "0x141ddc690",
+  "result_class": "CmdGetKonamiidLinkUrlResult",
+  "size": [
+   "0x1f8"
+  ],
+  "vt": "0x142b2af30"
+ },
+ "CMD_GET_LOBBYINFO": {
+  "creator": [
+   "0x1410ecd10",
+   "0x141d3a0a0"
+  ],
+  "ctor": "0x141d39ca0",
+  "dtor": "0x141d3a0a0",
+  "parser": "0x141d3a710",
+  "result_class": "CmdGetLobbyinfoResult",
+  "size": [
+   "0x250"
+  ],
+  "vt": "0x142b12d48"
+ },
+ "CMD_GET_LOBBYLIST": {
+  "creator": [
+   "0x1410ed570"
+  ],
+  "ctor": "0x141d3b0f0",
+  "dtor": "0x141d3b400",
+  "parser": "0x141d3be20",
+  "result_class": "CmdGetLobbylistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b13120"
+ },
+ "CMD_GET_MAINTENANCE_INFO": {
+  "creator": [
+   "0x1410e5510",
+   "0x141d129d0"
+  ],
+  "ctor": "0x141d12710",
+  "dtor": "0x141d129d0",
+  "parser": "0x141d12fd0",
+  "result_class": "CmdGetMaintenanceInfoResult",
+  "size": [
+   "0x1f8"
+  ],
+  "vt": "0x142b0cb48"
+ },
+ "CMD_GET_MANNER_WARN": {
+  "creator": [
+   "0x1410ede20",
+   "0x141d3ccd0"
+  ],
+  "ctor": "0x141d3ca20",
+  "dtor": "0x141d3ccd0",
+  "parser": "0x141d3d340",
+  "result_class": "CmdGetMannerWarnResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b13400"
+ },
+ "CMD_GET_MATCHDAY_ACHIEVEMENT_REWARD": {
+  "creator": [
+   "0x1410e5b50"
+  ],
+  "ctor": "0x141d14830",
+  "dtor": "0x141d14a90",
+  "parser": "0x141d151a0",
+  "result_class": "CmdGetMatchdayAchievementRewardResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b0d210"
+ },
+ "CMD_GET_MATCHDAY_FINAL_RESULT_INFO": {
+  "creator": [
+   "0x1410b5f20"
+  ],
+  "ctor": "0x141c3b210",
+  "dtor": "0x141c3b530",
+  "parser": "0x141c3bc40",
+  "result_class": "CmdGetMatchdayFinalResultInfoResult",
+  "size": [
+   "0x220"
+  ],
+  "vt": "0x142aee560"
+ },
+ "CMD_GET_MATCHDAY_INFO": {
+  "creator": [
+   "0x1410d2f40"
+  ],
+  "ctor": "0x141cc2170",
+  "dtor": "0x141cc3170",
+  "parser": "0x141cc3cd0",
+  "result_class": "CmdGetMatchdayInfoResult",
+  "size": [
+   "0x6d8"
+  ],
+  "vt": "0x142b022e0"
+ },
+ "CMD_GET_MATCHDAY_LIST": {
+  "creator": [
+   "0x1410ced50",
+   "0x141cb1a00"
+  ],
+  "ctor": "0x141cb0630",
+  "dtor": "0x141cb1a00",
+  "parser": "0x141cb2320",
+  "result_class": "CmdGetMatchdayListResult",
+  "size": [
+   "0x218"
+  ],
+  "vt": "0x142afef68"
+ },
+ "CMD_GET_MATCHDAY_MAINMENU_INFO": {
+  "creator": [
+   "0x1410da290"
+  ],
+  "ctor": "0x141ce9af0",
+  "dtor": "0x141cea330",
+  "parser": "0x141ceaaa0",
+  "result_class": "CmdGetMatchdayMainmenuInfoResult",
+  "size": [
+   "0x348"
+  ],
+  "vt": "0x142b07348"
+ },
+ "CMD_GET_MATCHDAY_RANKING": {
+  "creator": [
+   "0x1410a0cf0"
+  ],
+  "ctor": "0x141be2d20",
+  "dtor": "0x141be3110",
+  "parser": "0x141be3ac0",
+  "result_class": "CmdGetMatchdayRankingResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142ae1a08"
+ },
+ "CMD_GET_MATCHDAY_RANKING_BYID": {
+  "creator": [
+   "0x1410a0d90"
+  ],
+  "ctor": "0x141be5130",
+  "dtor": "0x141be5390",
+  "parser": "0x141be5b10",
+  "result_class": "CmdGetMatchdayRankingByidResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142ae1db8"
+ },
+ "CMD_GET_MATCHDAY_SP_ALL_COOP_MEMBER_LIST": {
+  "creator": [
+   "0x14110c970"
+  ],
+  "ctor": "0x141dbb1c0",
+  "dtor": "0x141dbb420",
+  "parser": "0x141dbbb70",
+  "result_class": "CmdGetMatchdaySpAllCoopMemberListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b26378"
+ },
+ "CMD_GET_MATCHDAY_SP_CONFIRM_COOP_SQUAD": {
+  "creator": [
+   "0x14110cfa0",
+   "0x141dbcc30"
+  ],
+  "ctor": "0x141dbc810",
+  "dtor": "0x141dbcc30",
+  "parser": "0x141dbd320",
+  "result_class": "CmdGetMatchdaySpConfirmCoopSquadResult",
+  "size": [
+   "0xa10"
+  ],
+  "vt": "0x142b267b0"
+ },
+ "CMD_GET_MATCHDAY_SP_GAMEPLAN": {
+  "creator": [
+   "0x1410991c0"
+  ],
+  "ctor": "0x141bc4240",
+  "dtor": "0x141bc44b0",
+  "parser": "0x141bc4bc0",
+  "result_class": "CmdGetMatchdaySpGameplanResult",
+  "size": [
+   "0x9e8"
+  ],
+  "vt": "0x142add270"
+ },
+ "CMD_GET_MATCHDAY_WATCH_MATCH_REWARD": {
+  "creator": [
+   "0x141097c00",
+   "0x141bbd930"
+  ],
+  "ctor": "0x141bbcc90",
+  "dtor": "0x141bbd930",
+  "parser": "0x141bbe180",
+  "result_class": "CmdGetMatchdayWatchMatchRewardResult",
+  "size": [
+   "0x200"
+  ],
+  "vt": "0x142adc420"
+ },
+ "CMD_GET_MATCHID": {
+  "creator": [
+   "0x140ff75f0",
+   "0x141b9a6d0"
+  ],
+  "ctor": "0x141b9a3a0",
+  "dtor": "0x141b9a6d0",
+  "parser": "0x141b9acd0",
+  "result_class": "CmdGetMatchidResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142ad6e90"
+ },
+ "CMD_GET_MATCHREJECTLIST": {
+  "creator": [
+   "0x1410b8b40"
+  ],
+  "ctor": "0x141c4e7c0",
+  "dtor": "0x141c4ea20",
+  "parser": "0x141c4f160",
+  "result_class": "CmdGetMatchrejectlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142af0e98"
+ },
+ "CMD_GET_MATCH_ANALYZE": {
+  "creator": [
+   "0x1410c9c30"
+  ],
+  "ctor": "0x141c9e4a0",
+  "dtor": "0x141c9e8f0",
+  "parser": "0x141c9f290",
+  "result_class": "CmdGetMatchAnalyzeResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142afc3d8"
+ },
+ "CMD_GET_MATCH_ANALYZE_ENV": {
+  "creator": [
+   "0x1410d3db0",
+   "0x141ccd660"
+  ],
+  "ctor": "0x141ccd240",
+  "dtor": "0x141ccd660",
+  "parser": "0x141ccdcd0",
+  "result_class": "CmdGetMatchAnalyzeEnvResult",
+  "size": [
+   "0x228"
+  ],
+  "vt": "0x142b02b88"
+ },
+ "CMD_GET_MYCLUB_ACHIEVEMENTLIST": {
+  "creator": [
+   "0x1410abdb0"
+  ],
+  "ctor": "0x141c0d7e0",
+  "dtor": "0x141c0de60",
+  "parser": "0x141c0e820",
+  "result_class": "CmdGetMyclubAchievementlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae7e68"
+ },
+ "CMD_GET_MYCLUB_AGENT_BOX_INFO": {
+  "creator": [
+   "0x1410b3cb0"
+  ],
+  "ctor": "0x141c2dc30",
+  "dtor": "0x141c2e050",
+  "parser": "0x141c2e880",
+  "result_class": "CmdGetMyclubAgentBoxInfoResult",
+  "size": [
+   "0x370"
+  ],
+  "vt": "0x142aecad0"
+ },
+ "CMD_GET_MYCLUB_AGENT_DRAW_RATE": {
+  "creator": [
+   "0x1410cc480",
+   "0x141ca89b0"
+  ],
+  "ctor": "0x141ca86c0",
+  "dtor": "0x141ca89b0",
+  "parser": "0x141ca9080",
+  "result_class": "CmdGetMyclubAgentDrawRateResult",
+  "size": [
+   "0x230"
+  ],
+  "vt": "0x142afd920"
+ },
+ "CMD_GET_MYCLUB_ALL_COOP_MEMBER_LIST": {
+  "creator": [
+   "0x141111360",
+   "0x141dd0710"
+  ],
+  "ctor": "0x141dd03e0",
+  "dtor": "0x141dd0710",
+  "parser": "0x141dd0fd0",
+  "result_class": "CmdGetMyclubAllCoopMemberListResult",
+  "size": [
+   "0x1f8"
+  ],
+  "vt": "0x142b29230"
+ },
+ "CMD_GET_MYCLUB_AUCTION_PRICE_RANKING": {
+  "creator": [
+   "0x1410bfae0"
+  ],
+  "ctor": "0x141c6c020",
+  "dtor": "0x141c6c380",
+  "parser": "0x141c6ccc0",
+  "result_class": "CmdGetMyclubAuctionPriceRankingResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142af55b0"
+ },
+ "CMD_GET_MYCLUB_AUCTION_REPORT_LIST": {
+  "creator": [
+   "0x1410b4390"
+  ],
+  "ctor": "0x141c30a90",
+  "dtor": "0x141c312d0",
+  "parser": "0x141c31b00",
+  "result_class": "CmdGetMyclubAuctionReportListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142aecf98"
+ },
+ "CMD_GET_MYCLUB_AUCTION_SCOUT_DETAIL": {
+  "creator": [
+   "0x1410d70b0"
+  ],
+  "ctor": "0x141cda530",
+  "dtor": "0x141cda720",
+  "parser": "0x141cdae30",
+  "result_class": "CmdGetMyclubAuctionScoutDetailResult",
+  "size": [
+   "0x2d8"
+  ],
+  "vt": "0x142b04cb0"
+ },
+ "CMD_GET_MYCLUB_AUCTION_SCOUT_TENDER_USERINFOLIST": {
+  "creator": [
+   "0x1410ba6f0"
+  ],
+  "ctor": "0x141c58ea0",
+  "dtor": "0x141c590f0",
+  "parser": "0x141c59800",
+  "result_class": "CmdGetMyclubAuctionScoutTenderUserinfolistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142af27e0"
+ },
+ "CMD_GET_MYCLUB_AUCTION_SUCCESSFUL_BID_INFO": {
+  "creator": [
+   "0x1410bce60"
+  ],
+  "ctor": "0x141c61b60",
+  "dtor": "0x141c61df0",
+  "parser": "0x141c62750",
+  "result_class": "CmdGetMyclubAuctionSuccessfulBidInfoResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142af3d48"
+ },
+ "CMD_GET_MYCLUB_AUCTION_WATCH_LIST": {
+  "creator": [
+   "0x1410d77d0"
+  ],
+  "ctor": "0x141cdd170",
+  "dtor": "0x141cdd3f0",
+  "parser": "0x141cddb60",
+  "result_class": "CmdGetMyclubAuctionWatchListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b052e8"
+ },
+ "CMD_GET_MYCLUB_AUCTION_WISH_LIST": {
+  "creator": [
+   "0x1410b18b0"
+  ],
+  "ctor": "0x141c22380",
+  "dtor": "0x141c22710",
+  "parser": "0x141c22fa0",
+  "result_class": "CmdGetMyclubAuctionWishListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142aeac78"
+ },
+ "CMD_GET_MYCLUB_CLOUDMATCH_BONUS": {
+  "creator": [
+   "0x1410b6e70",
+   "0x141c422c0"
+  ],
+  "ctor": "0x141c41fe0",
+  "dtor": "0x141c422c0",
+  "parser": "0x141c42b10",
+  "result_class": "CmdGetMyclubCloudmatchBonusResult",
+  "size": [
+   "0x358"
+  ],
+  "vt": "0x142aef770"
+ },
+ "CMD_GET_MYCLUB_CLOUD_SQUADID": {
+  "creator": [
+   "0x1410aecd0"
+  ],
+  "ctor": "0x141c158d0",
+  "dtor": "0x141c15ac0",
+  "parser": "0x141c16160",
+  "result_class": "CmdGetMyclubCloudSquadidResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142ae8ce8"
+ },
+ "CMD_GET_MYCLUB_COACHLIST": {
+  "creator": [
+   "0x1410b9c40"
+  ],
+  "ctor": "0x141c55450",
+  "dtor": "0x141c556a0",
+  "parser": "0x141c55d50",
+  "result_class": "CmdGetMyclubCoachlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142af2178"
+ },
+ "CMD_GET_MYCLUB_COACH_CONTRACT_NORMA": {
+  "creator": [
+   "0x1410babc0",
+   "0x141c5ac90"
+  ],
+  "ctor": "0x141c5a9c0",
+  "dtor": "0x141c5ac90",
+  "parser": "0x141c5b360",
+  "result_class": "CmdGetMyclubCoachContractNormaResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142af2b28"
+ },
+ "CMD_GET_MYCLUB_COMMENTARY_INFO": {
+  "creator": [
+   "0x1410b8350",
+   "0x141c4c2e0"
+  ],
+  "ctor": "0x141c4bd50",
+  "dtor": "0x141c4c2e0",
+  "parser": "0x141c4ced0",
+  "result_class": "CmdGetMyclubCommentaryInfoResult",
+  "size": [
+   "0x268"
+  ],
+  "vt": "0x142af0b30"
+ },
+ "CMD_GET_MYCLUB_COM_MATCH_INFO": {
+  "creator": [
+   "0x141104160",
+   "0x141d8f430"
+  ],
+  "ctor": "0x141d8f150",
+  "dtor": "0x141d8f430",
+  "parser": "0x141d8faa0",
+  "result_class": "CmdGetMyclubComMatchInfoResult",
+  "size": [
+   "0x220"
+  ],
+  "vt": "0x142b1fb08"
+ },
+ "CMD_GET_MYCLUB_CONFIRM_COOP_SQUAD": {
+  "creator": [
+   "0x141113670"
+  ],
+  "ctor": "0x141dd6b30",
+  "dtor": "0x141dd6e90",
+  "parser": "0x141dd7540",
+  "result_class": "CmdGetMyclubConfirmCoopSquadResult",
+  "size": [
+   "0xb10"
+  ],
+  "vt": "0x142b2a2e0"
+ },
+ "CMD_GET_MYCLUB_DEFAULT_COACHLIST": {
+  "creator": [
+   "0x1411045f0"
+  ],
+  "ctor": "0x141d90740",
+  "dtor": "0x141d90db0",
+  "parser": "0x141d915e0",
+  "result_class": "CmdGetMyclubDefaultCoachlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b200f8"
+ },
+ "CMD_GET_MYCLUB_DEFAULT_RENTAL_GAMEPLAYERLIST": {
+  "creator": [
+   "0x141107460"
+  ],
+  "ctor": "0x141d9ea40",
+  "dtor": "0x141d9eca0",
+  "parser": "0x141d9f5e0",
+  "result_class": "CmdGetMyclubDefaultRentalGameplayerlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b22460"
+ },
+ "CMD_GET_MYCLUB_EFP_EXCHANGE_STORELIST": {
+  "creator": [
+   "0x1410e6160"
+  ],
+  "ctor": "0x141d18360",
+  "dtor": "0x141d18bb0",
+  "parser": "0x141d193e0",
+  "result_class": "CmdGetMyclubEfpExchangeStorelistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b0d9c0"
+ },
+ "CMD_GET_MYCLUB_FEATURE_PLAYER_LIST": {
+  "creator": [
+   "0x1410bc2d0",
+   "0x141c5eb60"
+  ],
+  "ctor": "0x141c5e830",
+  "dtor": "0x141c5eb60",
+  "parser": "0x141c5f1d0",
+  "result_class": "CmdGetMyclubFeaturePlayerListResult",
+  "size": [
+   "0x200"
+  ],
+  "vt": "0x142af3460"
+ },
+ "CMD_GET_MYCLUB_GAMEPLAYERLIST": {
+  "creator": [
+   "0x1410c7230",
+   "0x141c91420"
+  ],
+  "ctor": "0x141c910f0",
+  "dtor": "0x141c91420",
+  "parser": "0x141c91af0",
+  "result_class": "CmdGetMyclubGameplayerlistResult",
+  "size": [
+   "0x200"
+  ],
+  "vt": "0x142afa938"
+ },
+ "CMD_GET_MYCLUB_GAMEPLAYER_EXPERIENCE": {
+  "creator": [
+   "0x1410c5450"
+  ],
+  "ctor": "0x141c88f20",
+  "dtor": "0x141c89260",
+  "parser": "0x141c89b70",
+  "result_class": "CmdGetMyclubGameplayerExperienceResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142af90e0"
+ },
+ "CMD_GET_MYCLUB_GAME_BONUS": {
+  "creator": [
+   "0x1410c2150",
+   "0x141c79f30"
+  ],
+  "ctor": "0x141c79940",
+  "dtor": "0x141c79f30",
+  "parser": "0x141c7a820",
+  "result_class": "CmdGetMyclubGameBonusResult",
+  "size": [
+   "0x300"
+  ],
+  "vt": "0x142af7398"
+ },
+ "CMD_GET_MYCLUB_HISTORYLIST": {
+  "creator": [
+   "0x1410e3650"
+  ],
+  "ctor": "0x141d0ad30",
+  "dtor": "0x141d0b330",
+  "parser": "0x141d0bc30",
+  "result_class": "CmdGetMyclubHistorylistResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b0bc90"
+ },
+ "CMD_GET_MYCLUB_INCREASED_COINLIST": {
+  "creator": [
+   "0x14109eb90",
+   "0x141bdaa00"
+  ],
+  "ctor": "0x141bda640",
+  "dtor": "0x141bdaa00",
+  "parser": "0x141bdb320",
+  "result_class": "CmdGetMyclubIncreasedCoinlistResult",
+  "size": [
+   "0x218"
+  ],
+  "vt": "0x142ae04b8"
+ },
+ "CMD_GET_MYCLUB_IS_FIRST_AGENT_MULTIPLE": {
+  "creator": [
+   "0x14110a590",
+   "0x141dae820"
+  ],
+  "ctor": "0x141dae570",
+  "dtor": "0x141dae820",
+  "parser": "0x141daee90",
+  "result_class": "CmdGetMyclubIsFirstAgentMultipleResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b24208"
+ },
+ "CMD_GET_MYCLUB_IS_FIRST_MEMBERLIST": {
+  "creator": [
+   "0x14110a8f0",
+   "0x141daf840"
+  ],
+  "ctor": "0x141daf590",
+  "dtor": "0x141daf840",
+  "parser": "0x141dafeb0",
+  "result_class": "CmdGetMyclubIsFirstMemberlistResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b244c8"
+ },
+ "CMD_GET_MYCLUB_IS_MARKET_COACH_AVAILABLE": {
+  "creator": [
+   "0x1410c5a70",
+   "0x141c8b370"
+  ],
+  "ctor": "0x141c8b0c0",
+  "dtor": "0x141c8b370",
+  "parser": "0x141c8ba40",
+  "result_class": "CmdGetMyclubIsMarketCoachAvailableResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142af93d0"
+ },
+ "CMD_GET_MYCLUB_ITEMLIST": {
+  "creator": [
+   "0x1410a2990"
+  ],
+  "ctor": "0x141beca50",
+  "dtor": "0x141becca0",
+  "parser": "0x141bed520",
+  "result_class": "CmdGetMyclubItemlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae2f60"
+ },
+ "CMD_GET_MYCLUB_LEGEND_GAMEPLAYERLIST": {
+  "creator": [
+   "0x1410d4a90"
+  ],
+  "ctor": "0x141ccf7a0",
+  "dtor": "0x141ccfa00",
+  "parser": "0x141cd00b0",
+  "result_class": "CmdGetMyclubLegendGameplayerlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b03418"
+ },
+ "CMD_GET_MYCLUB_LOGIN_BONUS": {
+  "creator": [
+   "0x1410a52c0",
+   "0x141bf43d0"
+  ],
+  "ctor": "0x141bf4070",
+  "dtor": "0x141bf43d0",
+  "parser": "0x141bf4a40",
+  "result_class": "CmdGetMyclubLoginBonusResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142ae4280"
+ },
+ "CMD_GET_MYCLUB_MAINMENU_INFO": {
+  "creator": [
+   "0x1410a71e0",
+   "0x141bfcce0"
+  ],
+  "ctor": "0x141bfc760",
+  "dtor": "0x141bfcce0",
+  "parser": "0x141bfd5f0",
+  "result_class": "CmdGetMyclubMainmenuInfoResult",
+  "size": [
+   "0x3a8"
+  ],
+  "vt": "0x142ae5728"
+ },
+ "CMD_GET_MYCLUB_MAIN_SQUAD": {
+  "creator": [
+   "0x1410a93a0",
+   "0x141c05bc0"
+  ],
+  "ctor": "0x141c051a0",
+  "dtor": "0x141c05bc0",
+  "parser": "0x141c06500",
+  "result_class": "CmdGetMyclubMainSquadResult",
+  "size": [
+   "0xaf0"
+  ],
+  "vt": "0x142ae70f8"
+ },
+ "CMD_GET_MYCLUB_MARKET_AGENTLIST": {
+  "creator": [
+   "0x1410b1400"
+  ],
+  "ctor": "0x141c1f120",
+  "dtor": "0x141c1fc00",
+  "parser": "0x141c20550",
+  "result_class": "CmdGetMyclubMarketAgentlistResult",
+  "size": [
+   "0x200"
+  ],
+  "vt": "0x142aea878"
+ },
+ "CMD_GET_MYCLUB_MARKET_COACHLIST": {
+  "creator": [
+   "0x141104a80"
+  ],
+  "ctor": "0x141d93040",
+  "dtor": "0x141d932a0",
+  "parser": "0x141d93950",
+  "result_class": "CmdGetMyclubMarketCoachlistResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b20630"
+ },
+ "CMD_GET_MYCLUB_PLAYER_NUMBER_FIXATION": {
+  "creator": [
+   "0x1410bb050"
+  ],
+  "ctor": "0x141c5bd80",
+  "dtor": "0x141c5bfd0",
+  "parser": "0x141c5c710",
+  "result_class": "CmdGetMyclubPlayerNumberFixationResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142af2e10"
+ },
+ "CMD_GET_MYCLUB_PRESENTLIST": {
+  "creator": [
+   "0x1410b7740"
+  ],
+  "ctor": "0x141c46ad0",
+  "dtor": "0x141c46d30",
+  "parser": "0x141c473e0",
+  "result_class": "CmdGetMyclubPresentlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142aefe50"
+ },
+ "CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST": {
+  "creator": [
+   "0x141104ed0"
+  ],
+  "ctor": "0x141d954e0",
+  "dtor": "0x141d957a0",
+  "parser": "0x141d96040",
+  "result_class": "CmdGetMyclubProcurableGameplayerlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b20930"
+ },
+ "CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST_RARITY": {
+  "creator": [
+   "0x14110b0a0"
+  ],
+  "ctor": "0x141db20a0",
+  "dtor": "0x141db2330",
+  "parser": "0x141db2aa0",
+  "result_class": "CmdGetMyclubProcurableGameplayerlistRarityResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b24af8"
+ },
+ "CMD_GET_MYCLUB_PROCURABLE_GAMEPLAYERLIST_SCOUT": {
+  "creator": [
+   "0x141105680",
+   "0x141d96e60"
+  ],
+  "ctor": "0x141d96b40",
+  "dtor": "0x141d96e60",
+  "parser": "0x141d97c80",
+  "result_class": "CmdGetMyclubProcurableGameplayerlistScoutResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142b20d58"
+ },
+ "CMD_GET_MYCLUB_PROCURABLE_SCOUTLIST_GAMEPLAYER": {
+  "creator": [
+   "0x14110ac50"
+  ],
+  "ctor": "0x141db05b0",
+  "dtor": "0x141db0810",
+  "parser": "0x141db0f20",
+  "result_class": "CmdGetMyclubProcurableScoutlistGameplayerResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b24808"
+ },
+ "CMD_GET_MYCLUB_RANKING": {
+  "creator": [
+   "0x141d98910"
+  ],
+  "ctor": "0x141d98b20",
+  "dtor": "0x141d98fe0",
+  "parser": "0x141d9a260",
+  "result_class": "CmdGetMyclubRankingResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b215a8"
+ },
+ "CMD_GET_MYCLUB_RANKING_BYID": {
+  "creator": [
+   "0x141d9ba30"
+  ],
+  "ctor": "0x141d9bc80",
+  "dtor": "0x141d9c080",
+  "parser": "0x141d9d180",
+  "result_class": "CmdGetMyclubRankingByidResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b21d70"
+ },
+ "CMD_GET_MYCLUB_REFINE_SEARCH_AUCTION_LIST": {
+  "creator": [
+   "0x1410d5a90"
+  ],
+  "ctor": "0x141cd3a80",
+  "dtor": "0x141cd4090",
+  "parser": "0x141cd53f0",
+  "result_class": "CmdGetMyclubRefineSearchAuctionListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b03d78"
+ },
+ "CMD_GET_MYCLUB_RENTAL_GAMEPLAYERLIST": {
+  "creator": [
+   "0x141107bb0"
+  ],
+  "ctor": "0x141da1bf0",
+  "dtor": "0x141da1e40",
+  "parser": "0x141da24f0",
+  "result_class": "CmdGetMyclubRentalGameplayerlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b22ac8"
+ },
+ "CMD_GET_MYCLUB_SCOUTLIST": {
+  "creator": [
+   "0x1410b64c0"
+  ],
+  "ctor": "0x141c3d610",
+  "dtor": "0x141c3d870",
+  "parser": "0x141c3df20",
+  "result_class": "CmdGetMyclubScoutlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142aeeb08"
+ },
+ "CMD_GET_MYCLUB_SERVER_ENV": {
+  "creator": [
+   "0x1410cfc80",
+   "0x141cb6040"
+  ],
+  "ctor": "0x141cb5c10",
+  "dtor": "0x141cb6040",
+  "parser": "0x141cb67c0",
+  "result_class": "CmdGetMyclubServerEnvResult",
+  "size": [
+   "0x220"
+  ],
+  "vt": "0x142aff5e0"
+ },
+ "CMD_GET_MYCLUB_SQUADLIST": {
+  "creator": [
+   "0x1410cd160",
+   "0x141cabfe0"
+  ],
+  "ctor": "0x141cabb80",
+  "dtor": "0x141cabfe0",
+  "parser": "0x141cac7d0",
+  "result_class": "CmdGetMyclubSquadlistResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142afe3f8"
+ },
+ "CMD_GET_MYCLUB_SQUAD_BONUS_TARGET_PLAYERLIST": {
+  "creator": [
+   "0x1410a8780"
+  ],
+  "ctor": "0x141c017d0",
+  "dtor": "0x141c01a30",
+  "parser": "0x141c02400",
+  "result_class": "CmdGetMyclubSquadBonusTargetPlayerlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae60e0"
+ },
+ "CMD_GET_MYCLUB_SQUAD_GAMEPLAN": {
+  "creator": [
+   "0x1410cbfd0"
+  ],
+  "ctor": "0x141ca75e0",
+  "dtor": "0x141ca77f0",
+  "parser": "0x141ca7ef0",
+  "result_class": "CmdGetMyclubSquadGameplanResult",
+  "size": [
+   "0x9d8"
+  ],
+  "vt": "0x142afd5e0"
+ },
+ "CMD_GET_MYCLUB_STAFF_LIST": {
+  "creator": [
+   "0x1410c9190"
+  ],
+  "ctor": "0x141c9aa30",
+  "dtor": "0x141c9ac90",
+  "parser": "0x141c9bb00",
+  "result_class": "CmdGetMyclubStaffListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142afb920"
+ },
+ "CMD_GET_MYCLUB_USER_INFO": {
+  "creator": [
+   "0x141108250",
+   "0x141da50a0"
+  ],
+  "ctor": "0x141da4b00",
+  "dtor": "0x141da50a0",
+  "parser": "0x141da5710",
+  "result_class": "CmdGetMyclubUserInfoResult",
+  "size": [
+   "0x318"
+  ],
+  "vt": "0x142b22f38"
+ },
+ "CMD_GET_MYCLUB_VSCOM_OPPONENT": {
+  "creator": [
+   "0x141108b40",
+   "0x141da71a0"
+  ],
+  "ctor": "0x141da6be0",
+  "dtor": "0x141da71a0",
+  "parser": "0x141da7b80",
+  "result_class": "CmdGetMyclubVscomOpponentResult",
+  "size": [
+   "0x1400"
+  ],
+  "vt": "0x142b23630"
+ },
+ "CMD_GET_MYCLUB_WEEKLYPOINT_RESULT": {
+  "creator": [
+   "0x1410cc970",
+   "0x141caa340"
+  ],
+  "ctor": "0x141ca9e90",
+  "dtor": "0x141caa340",
+  "parser": "0x141caabf0",
+  "result_class": "CmdGetMyclubWeeklypointResultResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142afddd8"
+ },
+ "CMD_GET_MYCLUB_WEEKLY_RANKING": {
+  "creator": [
+   "0x141db3450",
+   "0x141db3b60"
+  ],
+  "ctor": "0x141db3630",
+  "dtor": "0x141db3b60",
+  "parser": "0x141db5490",
+  "result_class": "CmdGetMyclubWeeklyRankingResult",
+  "size": [
+   "0x220"
+  ],
+  "vt": "0x142b25630"
+ },
+ "CMD_GET_MYCLUB_WEEKLY_RANKING_BASIC_INFO": {
+  "creator": [
+   "0x1410c07e0"
+  ],
+  "ctor": "0x141c70e00",
+  "dtor": "0x141c71430",
+  "parser": "0x141c71ae0",
+  "result_class": "CmdGetMyclubWeeklyRankingBasicInfoResult",
+  "size": [
+   "0x450"
+  ],
+  "vt": "0x142af6120"
+ },
+ "CMD_GET_MYCLUB_WEEKLY_RANKING_BYID": {
+  "creator": [
+   "0x141db7430",
+   "0x141db7b70"
+  ],
+  "ctor": "0x141db7650",
+  "dtor": "0x141db7b70",
+  "parser": "0x141db90d0",
+  "result_class": "CmdGetMyclubWeeklyRankingByidResult",
+  "size": [
+   "0x220"
+  ],
+  "vt": "0x142b26068"
+ },
+ "CMD_GET_OFFMODE_PLAYER_PARAMETERLIST": {
+  "creator": [
+   "0x14101fad0",
+   "0x141b9ef90"
+  ],
+  "ctor": "0x141b9ebe0",
+  "dtor": "0x141b9ef90",
+  "parser": "0x141b9fc90",
+  "result_class": "CmdGetOffmodePlayerParameterlistResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142ad7dc8"
+ },
+ "CMD_GET_OFTEN_USED_TEAM_LIST": {
+  "creator": [
+   "0x1410ee170"
+  ],
+  "ctor": "0x141d3da40",
+  "dtor": "0x141d3dca0",
+  "parser": "0x141d3e350",
+  "result_class": "CmdGetOftenUsedTeamListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b136c0"
+ },
+ "CMD_GET_ONLINE_AD_FILE": {
+  "creator": [
+   "0x141119be0",
+   "0x141dde210"
+  ],
+  "ctor": "0x141dddea0",
+  "dtor": "0x141dde210",
+  "parser": "0x141dde9c0",
+  "result_class": "CmdGetOnlineAdFileResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142b2b620"
+ },
+ "CMD_GET_PESLEAGUE_1VS1_MAINMENU_INFO": {
+  "creator": [
+   "0x1410b4d10",
+   "0x141c35e60"
+  ],
+  "ctor": "0x141c35b00",
+  "dtor": "0x141c35e60",
+  "parser": "0x141c36530",
+  "result_class": "CmdGetPesleague1vs1MainmenuInfoResult",
+  "size": [
+   "0x240"
+  ],
+  "vt": "0x142aed958"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_INFO": {
+  "creator": [
+   "0x14109a310",
+   "0x141bc7c90"
+  ],
+  "ctor": "0x141bc6da0",
+  "dtor": "0x141bc7c90",
+  "parser": "0x141bc8450",
+  "result_class": "CmdGetPesleagueCompeInfoResult",
+  "size": [
+   "0x7a8"
+  ],
+  "vt": "0x142ade318"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_LIST": {
+  "creator": [
+   "0x14109c9c0",
+   "0x141bd55a0"
+  ],
+  "ctor": "0x141bd4790",
+  "dtor": "0x141bd55a0",
+  "parser": "0x141bd6040",
+  "result_class": "CmdGetPesleagueCompeListResult",
+  "size": [
+   "0x228"
+  ],
+  "vt": "0x142adf9a8"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_OVERVIEW_INFO": {
+  "creator": [
+   "0x1410a19d0",
+   "0x141be9a90"
+  ],
+  "ctor": "0x141be97e0",
+  "dtor": "0x141be9a90",
+  "parser": "0x141bea160",
+  "result_class": "CmdGetPesleagueCompeOverviewInfoResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142ae2628"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_PARTICIPATION_RIGHT": {
+  "creator": [
+   "0x1410a6d00"
+  ],
+  "ctor": "0x141bfa4b0",
+  "dtor": "0x141bfa880",
+  "parser": "0x141bfaf90",
+  "result_class": "CmdGetPesleagueCompeParticipationRightResult",
+  "size": [
+   "0x340"
+  ],
+  "vt": "0x142ae50a0"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_RANKING": {
+  "creator": [
+   "0x1410afcf0",
+   "0x141c1a9c0"
+  ],
+  "ctor": "0x141c1a1f0",
+  "dtor": "0x141c1a9c0",
+  "parser": "0x141c1b2e0",
+  "result_class": "CmdGetPesleagueCompeRankingResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142ae9c30"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_RANKING_BYID": {
+  "creator": [
+   "0x1410b2b10",
+   "0x141c28c80"
+  ],
+  "ctor": "0x141c28940",
+  "dtor": "0x141c28c80",
+  "parser": "0x141c293c0",
+  "result_class": "CmdGetPesleagueCompeRankingByidResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142aebd60"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_RESULT_LIST": {
+  "creator": [
+   "0x1410acb60"
+  ],
+  "ctor": "0x141c10800",
+  "dtor": "0x141c111b0",
+  "parser": "0x141c11b00",
+  "result_class": "CmdGetPesleagueCompeResultListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae8408"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_REWARD_INFO": {
+  "creator": [
+   "0x1410a4f20",
+   "0x141bf32a0"
+  ],
+  "ctor": "0x141bf2ff0",
+  "dtor": "0x141bf32a0",
+  "parser": "0x141bf3970",
+  "result_class": "CmdGetPesleagueCompeRewardInfoResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142ae3e30"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_REWARD_LIST": {
+  "creator": [
+   "0x1410a8e90"
+  ],
+  "ctor": "0x141c02f20",
+  "dtor": "0x141c03180",
+  "parser": "0x141c03890",
+  "result_class": "CmdGetPesleagueCompeRewardListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae64e0"
+ },
+ "CMD_GET_PESLEAGUE_COMPE_TEAM_LIST": {
+  "creator": [
+   "0x14109f920"
+  ],
+  "ctor": "0x141bdea40",
+  "dtor": "0x141bdeca0",
+  "parser": "0x141bdf3b0",
+  "result_class": "CmdGetPesleagueCompeTeamListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae0d78"
+ },
+ "CMD_GET_PESLEAGUE_MAINMENU_INFO": {
+  "creator": [
+   "0x1410985d0",
+   "0x141bc0f40"
+  ],
+  "ctor": "0x141bc0bd0",
+  "dtor": "0x141bc0f40",
+  "parser": "0x141bc1670",
+  "result_class": "CmdGetPesleagueMainmenuInfoResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142adc9e0"
+ },
+ "CMD_GET_PLATFORM_SESSION": {
+  "creator": [
+   "0x1410e57e0"
+  ],
+  "ctor": "0x141d13750",
+  "dtor": "0x141d13960",
+  "parser": "0x141d14060",
+  "result_class": "CmdGetPlatformSessionResult",
+  "size": [
+   "0x2d8"
+  ],
+  "vt": "0x142b0cde0"
+ },
+ "CMD_GET_PLAYERINFO": {
+  "creator": [
+   "0x141141740",
+   "0x141e2fd40"
+  ],
+  "ctor": "0x141e2f2e0",
+  "dtor": "0x141e2fd40",
+  "parser": "0x141e30ad0",
+  "result_class": "CmdGetPlayerinfoResult",
+  "size": [
+   "0x7b0"
+  ],
+  "vt": "0x142b36ad8"
+ },
+ "CMD_GET_PLAYER_DATA": {
+  "creator": [
+   "0x1410ee5a0",
+   "0x141d3ee50"
+  ],
+  "ctor": "0x141d3eb70",
+  "dtor": "0x141d3ee50",
+  "parser": "0x141d3f450",
+  "result_class": "CmdGetPlayerDataResult",
+  "size": [
+   "0x2a0"
+  ],
+  "vt": "0x142b139d8"
+ },
+ "CMD_GET_PLAYER_PARAMETERLIST": {
+  "creator": [
+   "0x141102c90",
+   "0x141d89810"
+  ],
+  "ctor": "0x141d894a0",
+  "dtor": "0x141d89810",
+  "parser": "0x141d8a120",
+  "result_class": "CmdGetPlayerParameterlistResult",
+  "size": [
+   "0x200"
+  ],
+  "vt": "0x142b1edd0"
+ },
+ "CMD_GET_POSITION_RATING": {
+  "creator": [
+   "0x1410af470"
+  ],
+  "ctor": "0x141c17a90",
+  "dtor": "0x141c17d40",
+  "parser": "0x141c18720",
+  "result_class": "CmdGetPositionRatingResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae93c0"
+ },
+ "CMD_GET_PRIVATEINFOTITLELIST": {
+  "creator": [
+   "0x1410b1df0"
+  ],
+  "ctor": "0x141c23f10",
+  "dtor": "0x141c242f0",
+  "parser": "0x141c24ca0",
+  "result_class": "CmdGetPrivateinfotitlelistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142aeb168"
+ },
+ "CMD_GET_QUICKMATCHOPTION": {
+  "creator": [
+   "0x1410ee910",
+   "0x141d409a0"
+  ],
+  "ctor": "0x141d404c0",
+  "dtor": "0x141d409a0",
+  "parser": "0x141d41010",
+  "result_class": "CmdGetQuickmatchoptionResult",
+  "size": [
+   "0x290"
+  ],
+  "vt": "0x142b13d40"
+ },
+ "CMD_GET_RANDOMSELECTION_LOTTERY_LIST": {
+  "creator": [
+   "0x1410fefd0"
+  ],
+  "ctor": "0x141d7bdd0",
+  "dtor": "0x141d7c030",
+  "parser": "0x141d7c740",
+  "result_class": "CmdGetRandomselectionLotteryListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b1d198"
+ },
+ "CMD_GET_RANKING": {
+  "creator": [
+   "0x141d41b30"
+  ],
+  "ctor": "0x141d41d10",
+  "dtor": "0x141d420a0",
+  "parser": "0x141d42f80",
+  "result_class": "CmdGetRankingResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b14440"
+ },
+ "CMD_GET_RANKING_BYID": {
+  "creator": [
+   "0x141d446e0"
+  ],
+  "ctor": "0x141d44900",
+  "dtor": "0x141d44cc0",
+  "parser": "0x141d45c30",
+  "result_class": "CmdGetRankingByidResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b14b98"
+ },
+ "CMD_GET_ROOM_BESTPLAYER": {
+  "creator": [
+   "0x1410ba380"
+  ],
+  "ctor": "0x141c57b00",
+  "dtor": "0x141c57d50",
+  "parser": "0x141c585a0",
+  "result_class": "CmdGetRoomBestplayerResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142af2470"
+ },
+ "CMD_GET_SERVER_ENV": {
+  "creator": [
+   "0x141210d30",
+   "0x141e46350"
+  ],
+  "ctor": "0x141e45ee0",
+  "dtor": "0x141e46350",
+  "parser": "0x141e46950",
+  "result_class": "CmdGetServerEnvResult",
+  "size": [
+   "0x290"
+  ],
+  "vt": "0x142b39ef8"
+ },
+ "CMD_GET_STEAM_STORE_STATE": {
+  "creator": [
+   "0x141e3e0b0",
+   "0x141e3e680"
+  ],
+  "ctor": "0x141e3e290",
+  "dtor": "0x141e3e680",
+  "parser": "0x141e3ec60",
+  "result_class": "CmdGetSteamStoreStateResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b38820"
+ },
+ "CMD_GET_STORELINK": {
+  "creator": [
+   "0x141ddcd30",
+   "0x141ddd270"
+  ],
+  "ctor": "0x141ddcec0",
+  "dtor": "0x141ddd270",
+  "parser": "0x141ddd760",
+  "result_class": "CmdGetStorelinkResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b2b2c0"
+ },
+ "CMD_GET_STORE_PRODUCT_LIST": {
+  "creator": [
+   "0x14120e080"
+  ],
+  "ctor": "0x141e35d20",
+  "dtor": "0x141e36590",
+  "parser": "0x141e36e10",
+  "result_class": "CmdGetStoreProductListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b37308"
+ },
+ "CMD_GET_STORE_TRANSACTION_STATE": {
+  "creator": [
+   "0x14120e330",
+   "0x141e38490"
+  ],
+  "ctor": "0x141e380d0",
+  "dtor": "0x141e38490",
+  "parser": "0x141e38b00",
+  "result_class": "CmdGetStoreTransactionStateResult",
+  "size": [
+   "0x248"
+  ],
+  "vt": "0x142b37698"
+ },
+ "CMD_GET_SVRLIST": {
+  "creator": [
+   "0x1410f00d0",
+   "0x141233fd0"
+  ],
+  "ctor": "0x141d47520",
+  "dtor": "0x141d47950",
+  "parser": "0x141d48430",
+  "result_class": "CmdGetSvrlistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b14f90"
+ },
+ "CMD_GET_SVRTIME": {
+  "creator": [
+   "0x1410f0420"
+  ],
+  "ctor": "0x141d49110",
+  "dtor": "0x141d49300",
+  "parser": "0x141d49930",
+  "result_class": "CmdGetSvrtimeResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b15228"
+ },
+ "CMD_GET_SVRVERSION": {
+  "creator": [
+   "0x1410f0700",
+   "0x141d4a730"
+  ],
+  "ctor": "0x141d4a070",
+  "dtor": "0x141d4a730",
+  "parser": "0x141d4af80",
+  "result_class": "CmdGetSvrversionResult",
+  "size": [
+   "0x2f0"
+  ],
+  "vt": "0x142b15688"
+ },
+ "CMD_GET_TRIAL_URLLIST": {
+  "creator": [
+   "0x141d74750"
+  ],
+  "ctor": "0x141d74990",
+  "dtor": "0x141d74d80",
+  "parser": "0x141d75670",
+  "result_class": "CmdGetTrialUrllistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b1be60"
+ },
+ "CMD_GET_TURN_SERVER_LIST": {
+  "creator": [
+   "0x141e4d2b0",
+   "0x141e4da00"
+  ],
+  "ctor": "0x141e4d450",
+  "dtor": "0x141e4da00",
+  "parser": "0x141e4e650",
+  "result_class": "CmdGetTurnServerListResult",
+  "size": [
+   "0xa48"
+  ],
+  "vt": "0x142b3b3d0"
+ },
+ "CMD_GET_URGENT_ANNOUNCEMENT": {
+  "creator": [
+   "0x1410bf080",
+   "0x141c6a690"
+  ],
+  "ctor": "0x141c6a180",
+  "dtor": "0x141c6a690",
+  "parser": "0x141c6b0f0",
+  "result_class": "CmdGetUrgentAnnouncementResult",
+  "size": [
+   "0x298"
+  ],
+  "vt": "0x142af5198"
+ },
+ "CMD_GET_URLLIST": {
+  "creator": [
+   "0x1410f1080"
+  ],
+  "ctor": "0x141d4bf50",
+  "dtor": "0x141d4c310",
+  "parser": "0x141d4ce30",
+  "result_class": "CmdGetUrllistResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b15a18"
+ },
+ "CMD_GET_WATCHING_MATCH_LIST": {
+  "creator": [
+   "0x14109b6f0"
+  ],
+  "ctor": "0x141bcf5c0",
+  "dtor": "0x141bd05c0",
+  "parser": "0x141bd11e0",
+  "result_class": "CmdGetWatchingMatchListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142adf028"
+ },
+ "CMD_INVITE_CLAN": {
+  "creator": [
+   "0x141130ec0"
+  ],
+  "ctor": "0x141dfe030",
+  "dtor": "0x141dfe230",
+  "parser": "0x141dfeff0",
+  "result_class": "CmdInviteClanResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b2fc70"
+ },
+ "CMD_JOIN_BLOCK": {
+  "creator": [
+   "0x1410f1550"
+  ],
+  "ctor": "0x141d4d920",
+  "dtor": "0x141d4db10",
+  "parser": "0x141d4e1b0",
+  "result_class": "CmdJoinBlockResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b15cb0"
+ },
+ "CMD_JOIN_COMPEV": {
+  "creator": [
+   "0x1410c8c60"
+  ],
+  "ctor": "0x141c99990",
+  "dtor": "0x141c99be0",
+  "parser": "0x141c9a470",
+  "result_class": "CmdJoinCompevResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142afb488"
+ },
+ "CMD_JOIN_COMPEV_MODE": {
+  "creator": [
+   "0x1410ca640"
+  ],
+  "ctor": "0x141ca0e70",
+  "dtor": "0x141ca1090",
+  "parser": "0x141ca17f0",
+  "result_class": "CmdJoinCompevModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142afc690"
+ },
+ "CMD_JOIN_COOP_ROOM": {
+  "creator": [
+   "0x14113db30"
+  ],
+  "ctor": "0x141e19af0",
+  "dtor": "0x141e19d40",
+  "parser": "0x141e1a5d0",
+  "result_class": "CmdJoinCoopRoomResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b33488"
+ },
+ "CMD_JOIN_LOBBY": {
+  "creator": [
+   "0x1410f1ab0",
+   "0x141d4ea10"
+  ],
+  "ctor": "0x141d4e760",
+  "dtor": "0x141d4ea10",
+  "parser": "0x141d4f080",
+  "result_class": "CmdJoinLobbyResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b15f70"
+ },
+ "CMD_JOIN_MATCHDAY": {
+  "creator": [
+   "0x1410d54a0"
+  ],
+  "ctor": "0x141cd24b0",
+  "dtor": "0x141cd26e0",
+  "parser": "0x141cd3130",
+  "result_class": "CmdJoinMatchdayResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b037a0"
+ },
+ "CMD_JOIN_MATCHDAY_MODE": {
+  "creator": [
+   "0x1410d6db0"
+  ],
+  "ctor": "0x141cd96f0",
+  "dtor": "0x141cd98e0",
+  "parser": "0x141cd9f80",
+  "result_class": "CmdJoinMatchdayModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b048b0"
+ },
+ "CMD_JOIN_OFFLINE_MODE": {
+  "creator": [
+   "0x1410f1ed0"
+  ],
+  "ctor": "0x141d4f7b0",
+  "dtor": "0x141d4f9d0",
+  "parser": "0x141d50130",
+  "result_class": "CmdJoinOfflineModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b16200"
+ },
+ "CMD_JOIN_ONLINE_MODE": {
+  "creator": [
+   "0x1410f2560"
+  ],
+  "ctor": "0x141d507f0",
+  "dtor": "0x141d50ae0",
+  "parser": "0x141d51570",
+  "result_class": "CmdJoinOnlineModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b16520"
+ },
+ "CMD_JOIN_PESLEAGUE_COMPE": {
+  "creator": [
+   "0x1410b6190"
+  ],
+  "ctor": "0x141c3c700",
+  "dtor": "0x141c3c8f0",
+  "parser": "0x141c3d060",
+  "result_class": "CmdJoinPesleagueCompeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142aee7e8"
+ },
+ "CMD_JOIN_PESLEAGUE_COMPE_MODE": {
+  "creator": [
+   "0x1410b6ab0"
+  ],
+  "ctor": "0x141c410b0",
+  "dtor": "0x141c412d0",
+  "parser": "0x141c41a30",
+  "result_class": "CmdJoinPesleagueCompeModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142aef148"
+ },
+ "CMD_JOIN_ROOM_NTL": {
+  "creator": [
+   "0x1410f2fe0",
+   "0x141d51f40"
+  ],
+  "ctor": "0x141d51b70",
+  "dtor": "0x141d51f40",
+  "parser": "0x141d52730",
+  "result_class": "CmdJoinRoomNtlResult",
+  "size": [
+   "0x2f0"
+  ],
+  "vt": "0x142b16908"
+ },
+ "CMD_LEAVE_BLOCK": {
+  "creator": [
+   "0x1410f3e80"
+  ],
+  "ctor": "0x141d540d0",
+  "dtor": "0x141d542c0",
+  "parser": "0x141d54960",
+  "result_class": "CmdLeaveBlockResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b16b80"
+ },
+ "CMD_LEAVE_CLAN": {
+  "creator": [
+   "0x1411310a0"
+  ],
+  "ctor": "0x141dff5a0",
+  "dtor": "0x141dff790",
+  "parser": "0x141dffe90",
+  "result_class": "CmdLeaveClanResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b2fee8"
+ },
+ "CMD_LEAVE_COMPEV": {
+  "creator": [
+   "0x1410dce20"
+  ],
+  "ctor": "0x141cf6410",
+  "dtor": "0x141cf6630",
+  "parser": "0x141cf6d90",
+  "result_class": "CmdLeaveCompevResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b088f8"
+ },
+ "CMD_LEAVE_COMPEV_MODE": {
+  "creator": [
+   "0x1410e24d0"
+  ],
+  "ctor": "0x141d05960",
+  "dtor": "0x141d05b50",
+  "parser": "0x141d061f0",
+  "result_class": "CmdLeaveCompevModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0abd0"
+ },
+ "CMD_LEAVE_COOP_ROOM": {
+  "creator": [
+   "0x14113dd90"
+  ],
+  "ctor": "0x141e1ab80",
+  "dtor": "0x141e1ad70",
+  "parser": "0x141e1b470",
+  "result_class": "CmdLeaveCoopRoomResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b33700"
+ },
+ "CMD_LEAVE_GAME": {
+  "creator": [
+   "0x1410e5350"
+  ],
+  "ctor": "0x141d118e0",
+  "dtor": "0x141d11ad0",
+  "parser": "0x141d12170",
+  "result_class": "CmdLeaveGameResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0c870"
+ },
+ "CMD_LEAVE_LOBBY": {
+  "creator": [
+   "0x1410976a0"
+  ],
+  "ctor": "0x141bbbec0",
+  "dtor": "0x141bbc0b0",
+  "parser": "0x141bbc6e0",
+  "result_class": "CmdLeaveLobbyResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142adbeb0"
+ },
+ "CMD_LEAVE_MATCHDAY": {
+  "creator": [
+   "0x1410d74d0"
+  ],
+  "ctor": "0x141cdc300",
+  "dtor": "0x141cdc4f0",
+  "parser": "0x141cdcb90",
+  "result_class": "CmdLeaveMatchdayResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b04f20"
+ },
+ "CMD_LEAVE_MATCHDAY_MODE": {
+  "creator": [
+   "0x1410d8180"
+  ],
+  "ctor": "0x141ce0010",
+  "dtor": "0x141ce0200",
+  "parser": "0x141ce08a0",
+  "result_class": "CmdLeaveMatchdayModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b05800"
+ },
+ "CMD_LEAVE_MYCLUB_AUCTION_SCOUT_DETAIL": {
+  "creator": [
+   "0x1410df7c0"
+  ],
+  "ctor": "0x141d00520",
+  "dtor": "0x141d00710",
+  "parser": "0x141d00db0",
+  "result_class": "CmdLeaveMyclubAuctionScoutDetailResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0a180"
+ },
+ "CMD_LEAVE_OFFLINE_MODE": {
+  "creator": [
+   "0x1410f4190"
+  ],
+  "ctor": "0x141d54f40",
+  "dtor": "0x141d55160",
+  "parser": "0x141d558c0",
+  "result_class": "CmdLeaveOfflineModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b16e10"
+ },
+ "CMD_LEAVE_ONLINE_MODE": {
+  "creator": [
+   "0x1410f43b0"
+  ],
+  "ctor": "0x141d55ea0",
+  "dtor": "0x141d560c0",
+  "parser": "0x141d56820",
+  "result_class": "CmdLeaveOnlineModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b170a0"
+ },
+ "CMD_LEAVE_PESLEAGUE_COMPE": {
+  "creator": [
+   "0x1410b8040"
+  ],
+  "ctor": "0x141c4aed0",
+  "dtor": "0x141c4b0c0",
+  "parser": "0x141c4b760",
+  "result_class": "CmdLeavePesleagueCompeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af0530"
+ },
+ "CMD_LEAVE_PESLEAGUE_COMPE_MODE": {
+  "creator": [
+   "0x1410b9930"
+  ],
+  "ctor": "0x141c54610",
+  "dtor": "0x141c54800",
+  "parser": "0x141c54ea0",
+  "result_class": "CmdLeavePesleagueCompeModeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af1bf0"
+ },
+ "CMD_LEAVE_ROOM": {
+  "creator": [
+   "0x1410a1e90"
+  ],
+  "ctor": "0x141bea890",
+  "dtor": "0x141beaab0",
+  "parser": "0x141beb1a0",
+  "result_class": "CmdLeaveRoomResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae28b0"
+ },
+ "CMD_LOCK_FOLLOW_USER": {
+  "creator": [
+   "0x141131870"
+  ],
+  "ctor": "0x141e052f0",
+  "dtor": "0x141e05510",
+  "parser": "0x141e05cd0",
+  "result_class": "CmdLockFollowUserResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b30bb8"
+ },
+ "CMD_LOGIN": {
+  "creator": [
+   "0x1410f46a0"
+  ],
+  "ctor": "0x141d57010",
+  "dtor": "0x141d573f0",
+  "parser": "0x141d58420",
+  "result_class": "CmdLoginResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b17480"
+ },
+ "CMD_LOGIN_TRIAL": {
+  "creator": [
+   "0x141d786a0"
+  ],
+  "ctor": "0x141d78990",
+  "dtor": "0x141d78db0",
+  "parser": "0x141d794d0",
+  "result_class": "CmdLoginTrialResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1ca28"
+ },
+ "CMD_RECONNECT": {
+  "creator": [
+   "0x141233c00"
+  ],
+  "ctor": "0x141e51ca0",
+  "dtor": "0x141e51f90",
+  "parser": "0x141e52940",
+  "result_class": "CmdReconnectResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142b3bd18"
+ },
+ "CMD_RECV_MYCLUB_ACHIEVEMENT_BONUS": {
+  "creator": [
+   "0x1410b5240"
+  ],
+  "ctor": "0x141c37300",
+  "dtor": "0x141c377d0",
+  "parser": "0x141c38180",
+  "result_class": "CmdRecvMyclubAchievementBonusResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142aede90"
+ },
+ "CMD_RECV_MYCLUB_PRESENT": {
+  "creator": [
+   "0x141cd67d0"
+  ],
+  "ctor": "0x141cd6970",
+  "dtor": "0x141cd6d90",
+  "parser": "0x141cd7f00",
+  "result_class": "CmdRecvMyclubPresentResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b04600"
+ },
+ "CMD_REENTRY_COMPEV": {
+  "creator": [
+   "0x1410c1330"
+  ],
+  "ctor": "0x141c75fe0",
+  "dtor": "0x141c761d0",
+  "parser": "0x141c768d0",
+  "result_class": "CmdReentryCompevResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af67f0"
+ },
+ "CMD_REJECT_CLAN_REQUEST": {
+  "creator": [
+   "0x14113c510"
+  ],
+  "ctor": "0x141e0d6e0",
+  "dtor": "0x141e0d8e0",
+  "parser": "0x141e0ecd0",
+  "result_class": "CmdRejectClanRequestResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b31db8"
+ },
+ "CMD_RENT_MYCLUB_GAMEPLAYER": {
+  "creator": [
+   "0x1411097b0"
+  ],
+  "ctor": "0x141daa760",
+  "dtor": "0x141daa990",
+  "parser": "0x141dab160",
+  "result_class": "CmdRentMyclubGameplayerResult",
+  "size": [
+   "0x338"
+  ],
+  "vt": "0x142b23c70"
+ },
+ "CMD_REQWATCHL_BLOCK_MATCH_LIST": {
+  "creator": [
+   "0x1410f53f0",
+   "0x141d5a0a0"
+  ],
+  "ctor": "0x141d59810",
+  "dtor": "0x141d5a0a0",
+  "parser": "0x141d5a8f0",
+  "result_class": "CmdReqwatchlBlockMatchListResult",
+  "size": [
+   "0x228"
+  ],
+  "vt": "0x142b17cf0"
+ },
+ "CMD_REQWATCHL_COOP_ROOM_MEMBER": {
+  "creator": [
+   "0x14113f5c0",
+   "0x141e28e30"
+  ],
+  "ctor": "0x141e28470",
+  "dtor": "0x141e28e30",
+  "parser": "0x141e29680",
+  "result_class": "CmdReqwatchlCoopRoomMemberResult",
+  "size": [
+   "0x228"
+  ],
+  "vt": "0x142b35718"
+ },
+ "CMD_REQWATCHL_ROOMLIST": {
+  "creator": [
+   "0x1410e0460",
+   "0x141d02740"
+  ],
+  "ctor": "0x141d01350",
+  "dtor": "0x141d02740",
+  "parser": "0x141d03090",
+  "result_class": "CmdReqwatchlRoomlistResult",
+  "size": [
+   "0x228"
+  ],
+  "vt": "0x142b0a910"
+ },
+ "CMD_REQWATCHL_ROOMPLAYERLIST_NTL": {
+  "creator": [
+   "0x141095910",
+   "0x141bb78a0"
+  ],
+  "ctor": "0x141bb6e60",
+  "dtor": "0x141bb78a0",
+  "parser": "0x141bb80f0",
+  "result_class": "CmdReqwatchlRoomplayerlistNtlResult",
+  "size": [
+   "0x228"
+  ],
+  "vt": "0x142adb720"
+ },
+ "CMD_REQWATCH_ERROR_COOP_ROOM_TO_MATCHING": {
+  "creator": [
+   "0x14113f820",
+   "0x141e2bae0"
+  ],
+  "ctor": "0x141e2b7b0",
+  "dtor": "0x141e2bae0",
+  "parser": "0x141e2c1b0",
+  "result_class": "CmdReqwatchErrorCoopRoomToMatchingResult",
+  "size": [
+   "0x210"
+  ],
+  "vt": "0x142b35a20"
+ },
+ "CMD_REQWATCH_MYCLUB_AUCTION_REFUNDED_GP": {
+  "creator": [
+   "0x141093830"
+  ],
+  "ctor": "0x141bb3630",
+  "dtor": "0x141bb3950",
+  "parser": "0x141bb4220",
+  "result_class": "CmdReqwatchMyclubAuctionRefundedGpResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142adab70"
+ },
+ "CMD_REQWATCH_ROOM_XUIDONE_LIST": {
+  "creator": [
+   "0x1410a0650"
+  ],
+  "ctor": "0x141be0cf0",
+  "dtor": "0x141be0f40",
+  "parser": "0x141be1650",
+  "result_class": "CmdReqwatchRoomXuidoneListResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ae1300"
+ },
+ "CMD_REQ_GAMEADDPOINT": {
+  "creator": [
+   "0x1410f5230"
+  ],
+  "ctor": "0x141d589d0",
+  "dtor": "0x141d58bc0",
+  "parser": "0x141d59260",
+  "result_class": "CmdReqGameaddpointResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b176f0"
+ },
+ "CMD_RESET_MYCLUB_AGENT_BOX": {
+  "creator": [
+   "0x1410d8480"
+  ],
+  "ctor": "0x141ce0e50",
+  "dtor": "0x141ce1040",
+  "parser": "0x141ce1740",
+  "result_class": "CmdResetMyclubAgentBoxResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b05a80"
+ },
+ "CMD_RESET_MYCLUB_TEAM": {
+  "creator": [
+   "0x1410da570"
+  ],
+  "ctor": "0x141ceeef0",
+  "dtor": "0x141cef0e0",
+  "parser": "0x141cef780",
+  "result_class": "CmdResetMyclubTeamResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b075c0"
+ },
+ "CMD_RETURN_COOP_ROOM": {
+  "creator": [
+   "0x14113e910"
+  ],
+  "ctor": "0x141e21b40",
+  "dtor": "0x141e21d30",
+  "parser": "0x141e22430",
+  "result_class": "CmdReturnCoopRoomResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b34528"
+ },
+ "CMD_ROLLBACK_STORE_TRANSACTION": {
+  "creator": [
+   "0x14120fb60"
+  ],
+  "ctor": "0x141e3f360",
+  "dtor": "0x141e3f550",
+  "parser": "0x141e3fc50",
+  "result_class": "CmdRollbackStoreTransactionResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b38ab8"
+ },
+ "CMD_SELL_MYCLUB_COACH": {
+  "creator": [
+   "0x1410dc2a0"
+  ],
+  "ctor": "0x141cf3440",
+  "dtor": "0x141cf3630",
+  "parser": "0x141cf3d30",
+  "result_class": "CmdSellMyclubCoachResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b08128"
+ },
+ "CMD_SELL_MYCLUB_GAMEPLAYER": {
+  "creator": [
+   "0x1410de090"
+  ],
+  "ctor": "0x141cfbb90",
+  "dtor": "0x141cfbdc0",
+  "parser": "0x141cfc5c0",
+  "result_class": "CmdSellMyclubGameplayerResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b09560"
+ },
+ "CMD_SELL_MYCLUB_SCOUT": {
+  "creator": [
+   "0x1410a6630"
+  ],
+  "ctor": "0x141bf8cb0",
+  "dtor": "0x141bf8eb0",
+  "parser": "0x141bf9d20",
+  "result_class": "CmdSellMyclubScoutResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142ae4c58"
+ },
+ "CMD_SEND_ABNORMALEND": {
+  "creator": [
+   "0x1410f5ac0"
+  ],
+  "ctor": "0x141d5ce70",
+  "dtor": "0x141d5d0c0",
+  "parser": "0x141d5d880",
+  "result_class": "CmdSendAbnormalendResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b17fc0"
+ },
+ "CMD_SEND_ALIVE": {
+  "creator": [
+   "0x1410f6180"
+  ],
+  "ctor": "0x141d5de60",
+  "dtor": "0x141d5e080",
+  "parser": "0x141d5e7e0",
+  "result_class": "CmdSendAliveResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b18240"
+ },
+ "CMD_SEND_ALIVEPLAYER": {
+  "creator": [
+   "0x1410f6590"
+  ],
+  "ctor": "0x141d5edf0",
+  "dtor": "0x141d5eff0",
+  "parser": "0x141d5f7a0",
+  "result_class": "CmdSendAliveplayerResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b184d0"
+ },
+ "CMD_SEND_AUTHORIZATION_CODE": {
+  "creator": [
+   "0x141d5fc60"
+  ],
+  "ctor": "0x141d5feb0",
+  "dtor": "0x141d60390",
+  "parser": "0x141d60b00",
+  "result_class": "CmdSendAuthorizationCodeResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b18928"
+ },
+ "CMD_SEND_COOP_ALIVE": {
+  "creator": [
+   "0x14110e4c0"
+  ],
+  "ctor": "0x141dc08e0",
+  "dtor": "0x141dc0ad0",
+  "parser": "0x141dc11d0",
+  "result_class": "CmdSendCoopAliveResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b27020"
+ },
+ "CMD_SEND_DOWNLOAD_STATS_DATA": {
+  "creator": [
+   "0x141211830"
+  ],
+  "ctor": "0x141e498d0",
+  "dtor": "0x141e49c20",
+  "parser": "0x141e4a940",
+  "result_class": "CmdSendDownloadStatsDataResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b3a838"
+ },
+ "CMD_SEND_GAME_RESULT": {
+  "creator": [
+   "0x1410bd8f0"
+  ],
+  "ctor": "0x141c63380",
+  "dtor": "0x141c63790",
+  "parser": "0x141c65ad0",
+  "result_class": "CmdSendGameResultResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af4620"
+ },
+ "CMD_SEND_GAME_SEQUENCE_DATA": {
+  "creator": [
+   "0x141233390"
+  ],
+  "ctor": "0x141e50610",
+  "dtor": "0x141e50840",
+  "parser": "0x141e51610",
+  "result_class": "CmdSendGameSequenceDataResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b3ba20"
+ },
+ "CMD_SEND_HEARTBEAT": {
+  "creator": [
+   "0x14120fcf0"
+  ],
+  "ctor": "0x141e401f0",
+  "dtor": "0x141e403e0",
+  "parser": "0x141e40a10",
+  "result_class": "CmdSendHeartbeatResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b38d30"
+ },
+ "CMD_SEND_IPANDPORT_NTL": {
+  "creator": [
+   "0x1410f6aa0",
+   "0x141212600"
+  ],
+  "ctor": "0x141d612d0",
+  "dtor": "0x141d614d0",
+  "parser": "0x141d623f0",
+  "result_class": "CmdSendIpandportNtlResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b18c80"
+ },
+ "CMD_SEND_LOG": {
+  "creator": [
+   "0x1421a9030"
+  ],
+  "ctor": "0x1423d9c10",
+  "dtor": "0x1423d9e60",
+  "parser": "0x1423da680",
+  "result_class": "CmdSendLogResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142c6c070"
+ },
+ "CMD_SEND_MATCHING_RESULT": {
+  "creator": [
+   "0x1410c2a90"
+  ],
+  "ctor": "0x141c7e230",
+  "dtor": "0x141c7e4f0",
+  "parser": "0x141c7fe40",
+  "result_class": "CmdSendMatchingResultResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af7860"
+ },
+ "CMD_SEND_MATCH_ANALYZE": {
+  "creator": [
+   "0x1410b2310"
+  ],
+  "ctor": "0x141c26610",
+  "dtor": "0x141c269a0",
+  "parser": "0x141c28390",
+  "result_class": "CmdSendMatchAnalyzeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142aeb8e0"
+ },
+ "CMD_SEND_MATCH_TEAM_INFO": {
+  "creator": [
+   "0x1410f7450"
+  ],
+  "ctor": "0x141d62a00",
+  "dtor": "0x141d62c00",
+  "parser": "0x141d63cc0",
+  "result_class": "CmdSendMatchTeamInfoResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b19050"
+ },
+ "CMD_SEND_MYCLUB_MATCH_RATING": {
+  "creator": [
+   "0x141099d10"
+  ],
+  "ctor": "0x141bc5520",
+  "dtor": "0x141bc5750",
+  "parser": "0x141bc6540",
+  "result_class": "CmdSendMyclubMatchRatingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142add630"
+ },
+ "CMD_SEND_MYCLUB_PROGRESS_STATUS": {
+  "creator": [
+   "0x141109e50",
+   "0x141dad740"
+  ],
+  "ctor": "0x141dad450",
+  "dtor": "0x141dad740",
+  "parser": "0x141dade70",
+  "result_class": "CmdSendMyclubProgressStatusResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b23f48"
+ },
+ "CMD_SEND_MYCLUB_READ_ACHIEVEMENTLIST": {
+  "creator": [
+   "0x1410b33e0"
+  ],
+  "ctor": "0x141c2be30",
+  "dtor": "0x141c2c030",
+  "parser": "0x141c2c7e0",
+  "result_class": "CmdSendMyclubReadAchievementlistResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142aec290"
+ },
+ "CMD_SEND_NOTICE": {
+  "creator": [
+   "0x1410f7f30"
+  ],
+  "ctor": "0x141d64310",
+  "dtor": "0x141d64540",
+  "parser": "0x141d64d40",
+  "result_class": "CmdSendNoticeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b192e8"
+ },
+ "CMD_SEND_PSID": {
+  "creator": [
+   "0x1410f8310"
+  ],
+  "ctor": "0x141d65330",
+  "dtor": "0x141d65550",
+  "parser": "0x141d65d10",
+  "result_class": "CmdSendPsidResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b19590"
+ },
+ "CMD_SEND_STATS_DATA": {
+  "creator": [
+   "0x1410f8720"
+  ],
+  "ctor": "0x141d66350",
+  "dtor": "0x141d66580",
+  "parser": "0x141d672c0",
+  "result_class": "CmdSendStatsDataResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b19900"
+ },
+ "CMD_SEND_STORE_TRANSACTION_ERROR_INFO": {
+  "creator": [
+   "0x14120eb70"
+  ],
+  "ctor": "0x141e3ac10",
+  "dtor": "0x141e3aed0",
+  "parser": "0x141e3bab0",
+  "result_class": "CmdSendStoreTransactionErrorInfoResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b37d30"
+ },
+ "CMD_SEND_SYNC_NOTICE": {
+  "creator": [
+   "0x1412106e0"
+  ],
+  "ctor": "0x141e43f70",
+  "dtor": "0x141e441a0",
+  "parser": "0x141e449a0",
+  "result_class": "CmdSendSyncNoticeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b397a0"
+ },
+ "CMD_SEND_SYSTEM_NOTICE": {
+  "creator": [
+   "0x141210090"
+  ],
+  "ctor": "0x141e41f50",
+  "dtor": "0x141e42180",
+  "parser": "0x141e42980",
+  "result_class": "CmdSendSystemNoticeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b39250"
+ },
+ "CMD_SEND_TAMPER_DATA": {
+  "creator": [
+   "0x1410f8ce0"
+  ],
+  "ctor": "0x141d678e0",
+  "dtor": "0x141d67b30",
+  "parser": "0x141d683c0",
+  "result_class": "CmdSendTamperDataResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b19bb8"
+ },
+ "CMD_SEND_TEXTCHAT": {
+  "creator": [
+   "0x1410e29d0"
+  ],
+  "ctor": "0x141d08d30",
+  "dtor": "0x141d08fc0",
+  "parser": "0x141d098f0",
+  "result_class": "CmdSendTextchatResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0b280"
+ },
+ "CMD_SEND_TRIAL_AUTHORIZATION_CODE_CLIENT": {
+  "creator": [
+   "0x141d760e0"
+  ],
+  "ctor": "0x141d76330",
+  "dtor": "0x141d766f0",
+  "parser": "0x141d76e30",
+  "result_class": "CmdSendTrialAuthorizationCodeClientResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b1c278"
+ },
+ "CMD_SEND_TRIAL_ID": {
+  "creator": [
+   "0x141d77450"
+  ],
+  "ctor": "0x141d77700",
+  "dtor": "0x141d77af0",
+  "parser": "0x141d781b0",
+  "result_class": "CmdSendTrialIdResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1c648"
+ },
+ "CMD_SEND_TURN_ADDRESS_DATA": {
+  "creator": [
+   "0x1412123e0"
+  ],
+  "ctor": "0x141e4f5c0",
+  "dtor": "0x141e4f7b0",
+  "parser": "0x141e4ffc0",
+  "result_class": "CmdSendTurnAddressDataResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b3b6c8"
+ },
+ "CMD_SEND_WATCHING_RESULT": {
+  "creator": [
+   "0x1410e5d60"
+  ],
+  "ctor": "0x141d17030",
+  "dtor": "0x141d17320",
+  "parser": "0x141d17db0",
+  "result_class": "CmdSendWatchingResultResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0d510"
+ },
+ "CMD_SET_AVATAR": {
+  "creator": [
+   "0x141093f10"
+  ],
+  "ctor": "0x141bb5dc0",
+  "dtor": "0x141bb5fe0",
+  "parser": "0x141bb68b0",
+  "result_class": "CmdSetAvatarResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142adb108"
+ },
+ "CMD_SET_CLAN_SETTINGS": {
+  "creator": [
+   "0x14112f3a0"
+  ],
+  "ctor": "0x141de8f70",
+  "dtor": "0x141de9170",
+  "parser": "0x141dea700",
+  "result_class": "CmdSetClanSettingsResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b2d530"
+ },
+ "CMD_SET_COOP_MATCH_DATA": {
+  "creator": [
+   "0x1411127c0"
+  ],
+  "ctor": "0x141dd46f0",
+  "dtor": "0x141dd48e0",
+  "parser": "0x141dd5220",
+  "result_class": "CmdSetCoopMatchDataResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b29b20"
+ },
+ "CMD_SET_COOP_MATCH_READY": {
+  "creator": [
+   "0x14113df90"
+  ],
+  "ctor": "0x141e1ba50",
+  "dtor": "0x141e1bc70",
+  "parser": "0x141e1c430",
+  "result_class": "CmdSetCoopMatchReadyResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b33990"
+ },
+ "CMD_SET_COOP_PLAYER_GRADE": {
+  "creator": [
+   "0x141112b70"
+  ],
+  "ctor": "0x141dd5890",
+  "dtor": "0x141dd5ac0",
+  "parser": "0x141dd6580",
+  "result_class": "CmdSetCoopPlayerGradeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b29e38"
+ },
+ "CMD_SET_COOP_QUICKMATCHOPTION": {
+  "creator": [
+   "0x14110e250"
+  ],
+  "ctor": "0x141dbf7b0",
+  "dtor": "0x141dbfa40",
+  "parser": "0x141dc0330",
+  "result_class": "CmdSetCoopQuickmatchoptionResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b26d98"
+ },
+ "CMD_SET_COOP_REJECT": {
+  "creator": [
+   "0x141131a90"
+  ],
+  "ctor": "0x141e06340",
+  "dtor": "0x141e065b0",
+  "parser": "0x141e06da0",
+  "result_class": "CmdSetCoopRejectResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b30ee0"
+ },
+ "CMD_SET_COOP_ROOM_GUEST": {
+  "creator": [
+   "0x1410bb8f0"
+  ],
+  "ctor": "0x141c5d050",
+  "dtor": "0x141c5d250",
+  "parser": "0x141c5e280",
+  "result_class": "CmdSetCoopRoomGuestResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af3160"
+ },
+ "CMD_SET_COOP_ROOM_OPTION": {
+  "creator": [
+   "0x14113e1b0"
+  ],
+  "ctor": "0x141e1ca30",
+  "dtor": "0x141e1cc60",
+  "parser": "0x141e1e700",
+  "result_class": "CmdSetCoopRoomOptionResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b33dd0"
+ },
+ "CMD_SET_COOP_ROOM_TO_MATCHING": {
+  "creator": [
+   "0x14113eb00"
+  ],
+  "ctor": "0x141e22a40",
+  "dtor": "0x141e22c40",
+  "parser": "0x141e233e0",
+  "result_class": "CmdSetCoopRoomToMatchingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b347c8"
+ },
+ "CMD_SET_CURRENTPLAYER": {
+  "creator": [
+   "0x1410f9370",
+   "0x141d695b0"
+  ],
+  "ctor": "0x141d68d40",
+  "dtor": "0x141d695b0",
+  "parser": "0x141d6ad20",
+  "result_class": "CmdSetCurrentplayerResult",
+  "size": [
+   "0x2f8"
+  ],
+  "vt": "0x142b1a380"
+ },
+ "CMD_SET_DMM_NOTIFICATION_ACTION": {
+  "creator": [
+   "0x1410e2da0"
+  ],
+  "ctor": "0x141ba5fa0",
+  "dtor": "0x141ba61c0",
+  "parser": "0x141ba6990",
+  "result_class": "CmdSetDmmNotificationActionResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ad8b60"
+ },
+ "CMD_SET_GAMEENV": {
+  "creator": [
+   "0x1410ce190"
+  ],
+  "ctor": "0x141caee50",
+  "dtor": "0x141caf320",
+  "parser": "0x141cb0040",
+  "result_class": "CmdSetGameenvResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142afe780"
+ },
+ "CMD_SET_GAMEMEMBER": {
+  "creator": [
+   "0x1410fa1f0"
+  ],
+  "ctor": "0x141d6bc30",
+  "dtor": "0x141d6be20",
+  "parser": "0x141d6c450",
+  "result_class": "CmdSetGamememberResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1a5f0"
+ },
+ "CMD_SET_GAMEMEMBERENV": {
+  "creator": [
+   "0x1410fa560"
+  ],
+  "ctor": "0x141d6ca60",
+  "dtor": "0x141d6cc60",
+  "parser": "0x141d6d6b0",
+  "result_class": "CmdSetGamememberenvResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1a8d0"
+ },
+ "CMD_SET_GAMEPLAYER_PLAYTIME": {
+  "creator": [
+   "0x1410fad50"
+  ],
+  "ctor": "0x141d6dd20",
+  "dtor": "0x141d6df50",
+  "parser": "0x141d6eeb0",
+  "result_class": "CmdSetGameplayerPlaytimeResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1acc8"
+ },
+ "CMD_SET_GAMERELAY_CHECK_RES": {
+  "creator": [
+   "0x1410df330"
+  ],
+  "ctor": "0x141cff080",
+  "dtor": "0x141cff340",
+  "parser": "0x141cfff70",
+  "result_class": "CmdSetGamerelayCheckResResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b09ef8"
+ },
+ "CMD_SET_GAMERELAY_MATCH_QUALITY": {
+  "creator": [
+   "0x1410e45d0"
+  ],
+  "ctor": "0x141d0d790",
+  "dtor": "0x141d0d980",
+  "parser": "0x141d0e080",
+  "result_class": "CmdSetGamerelayMatchQualityResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b0bf48"
+ },
+ "CMD_SET_GAMERELAY_QUALITY": {
+  "creator": [
+   "0x1410fb300"
+  ],
+  "ctor": "0x141d6f4c0",
+  "dtor": "0x141d6f6c0",
+  "parser": "0x141d6ffb0",
+  "result_class": "CmdSetGamerelayQualityResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1af98"
+ },
+ "CMD_SET_GAMETEAM": {
+  "creator": [
+   "0x1410fb610"
+  ],
+  "ctor": "0x141d70560",
+  "dtor": "0x141d70750",
+  "parser": "0x141d70e50",
+  "result_class": "CmdSetGameteamResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1b228"
+ },
+ "CMD_SET_GP_ACHIEVEMENT": {
+  "creator": [
+   "0x141093450"
+  ],
+  "ctor": "0x141bb2490",
+  "dtor": "0x141bb26f0",
+  "parser": "0x141bb2e40",
+  "result_class": "CmdSetGpAchievementResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142ada7c8"
+ },
+ "CMD_SET_GUEST": {
+  "creator": [
+   "0x1410c8840"
+  ],
+  "ctor": "0x141c98260",
+  "dtor": "0x141c984d0",
+  "parser": "0x141c99370",
+  "result_class": "CmdSetGuestResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142afb1d0"
+ },
+ "CMD_SET_LANGUAGE": {
+  "creator": [
+   "0x1410fb860"
+  ],
+  "ctor": "0x141d71430",
+  "dtor": "0x141d71650",
+  "parser": "0x141d71d40",
+  "result_class": "CmdSetLanguageResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1b4b0"
+ },
+ "CMD_SET_LOCAL_GAMERELAY_LIST": {
+  "creator": [
+   "0x141b9d890"
+  ],
+  "ctor": "0x141b9db30",
+  "dtor": "0x141b9de40",
+  "parser": "0x141b9e500",
+  "result_class": "CmdSetLocalGamerelayListResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ad7868"
+ },
+ "CMD_SET_MATCHDAY_SP_COOP_MEMBER_LIST": {
+  "creator": [
+   "0x1410b0cf0"
+  ],
+  "ctor": "0x141c1de70",
+  "dtor": "0x141c1e070",
+  "parser": "0x141c1eb70",
+  "result_class": "CmdSetMatchdaySpCoopMemberListResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142aea218"
+ },
+ "CMD_SET_MATCHDAY_SP_GAMEPLAN": {
+  "creator": [
+   "0x14109b280"
+  ],
+  "ctor": "0x141bce4b0",
+  "dtor": "0x141bce6b0",
+  "parser": "0x141bcefd0",
+  "result_class": "CmdSetMatchdaySpGameplanResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ade8e8"
+ },
+ "CMD_SET_MATCHDAY_START_WATCH_MATCH": {
+  "creator": [
+   "0x141093d10"
+  ],
+  "ctor": "0x141bb4ed0",
+  "dtor": "0x141bb50c0",
+  "parser": "0x141bb57c0",
+  "result_class": "CmdSetMatchdayStartWatchMatchResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142adae30"
+ },
+ "CMD_SET_MATCHREJECTPID": {
+  "creator": [
+   "0x1410fc390"
+  ],
+  "ctor": "0x141d738b0",
+  "dtor": "0x141d73ad0",
+  "parser": "0x141d74290",
+  "result_class": "CmdSetMatchrejectpidResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1ba90"
+ },
+ "CMD_SET_MYCLUB_ACHIEVEMENT": {
+  "creator": [
+   "0x1410af880"
+  ],
+  "ctor": "0x141c192b0",
+  "dtor": "0x141c194d0",
+  "parser": "0x141c19c30",
+  "result_class": "CmdSetMyclubAchievementResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae9688"
+ },
+ "CMD_SET_MYCLUB_ADD_UNIFORM_ID": {
+  "creator": [
+   "0x1410cf890"
+  ],
+  "ctor": "0x141cb4d10",
+  "dtor": "0x141cb4f00",
+  "parser": "0x141cb5600",
+  "result_class": "CmdSetMyclubAddUniformIdResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142aff218"
+ },
+ "CMD_SET_MYCLUB_CLOUD_SQUAD": {
+  "creator": [
+   "0x14109fe40"
+  ],
+  "ctor": "0x141bdfc00",
+  "dtor": "0x141bdfe50",
+  "parser": "0x141be0740",
+  "result_class": "CmdSetMyclubCloudSquadResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae1058"
+ },
+ "CMD_SET_MYCLUB_CLUB_EDITION_INFO": {
+  "creator": [
+   "0x1410db770"
+  ],
+  "ctor": "0x141cefd90",
+  "dtor": "0x141ceff90",
+  "parser": "0x141cf1150",
+  "result_class": "CmdSetMyclubClubEditionInfoResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b07980"
+ },
+ "CMD_SET_MYCLUB_COOP_MEMBER_LIST": {
+  "creator": [
+   "0x1410d1330"
+  ],
+  "ctor": "0x141cbbfa0",
+  "dtor": "0x141cbc1d0",
+  "parser": "0x141cbcde0",
+  "result_class": "CmdSetMyclubCoopMemberListResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b002c8"
+ },
+ "CMD_SET_MYCLUB_HOMETOWN": {
+  "creator": [
+   "0x14109c270"
+  ],
+  "ctor": "0x141bd34c0",
+  "dtor": "0x141bd37f0",
+  "parser": "0x141bd4130",
+  "result_class": "CmdSetMyclubHometownResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142adf398"
+ },
+ "CMD_SET_MYCLUB_ICONIC_MOMENT_VIEW": {
+  "creator": [
+   "0x1410dc640"
+  ],
+  "ctor": "0x141cf44f0",
+  "dtor": "0x141cf4710",
+  "parser": "0x141cf4e70",
+  "result_class": "CmdSetMyclubIconicMomentViewResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b083d0"
+ },
+ "CMD_SET_MYCLUB_MAIN_SQUAD": {
+  "creator": [
+   "0x1410a2110"
+  ],
+  "ctor": "0x141beb7a0",
+  "dtor": "0x141beba50",
+  "parser": "0x141bec4a0",
+  "result_class": "CmdSetMyclubMainSquadResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae2c18"
+ },
+ "CMD_SET_MYCLUB_PLAYER_NUMBER_FIXATION": {
+  "creator": [
+   "0x1410bc7c0"
+  ],
+  "ctor": "0x141c5fb30",
+  "dtor": "0x141c5fd30",
+  "parser": "0x141c60600",
+  "result_class": "CmdSetMyclubPlayerNumberFixationResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af3740"
+ },
+ "CMD_SET_MYCLUB_PROTECTED_DISABLE": {
+  "creator": [
+   "0x1410d40c0"
+  ],
+  "ctor": "0x141cce8b0",
+  "dtor": "0x141cceab0",
+  "parser": "0x141ccf1f0",
+  "result_class": "CmdSetMyclubProtectedDisableResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b02e28"
+ },
+ "CMD_SET_MYCLUB_PROTECTED_ENABLE": {
+  "creator": [
+   "0x1410d3330"
+  ],
+  "ctor": "0x141ccb280",
+  "dtor": "0x141ccb480",
+  "parser": "0x141ccbbc0",
+  "result_class": "CmdSetMyclubProtectedEnableResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b025c8"
+ },
+ "CMD_SET_MYCLUB_SQUAD_COACH": {
+  "creator": [
+   "0x1410a5720"
+  ],
+  "ctor": "0x141bf64c0",
+  "dtor": "0x141bf66b0",
+  "parser": "0x141bf6ff0",
+  "result_class": "CmdSetMyclubSquadCoachResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae4570"
+ },
+ "CMD_SET_MYCLUB_SQUAD_GAMEPLAN": {
+  "creator": [
+   "0x1410a7c60"
+  ],
+  "ctor": "0x141bff5c0",
+  "dtor": "0x141bff7b0",
+  "parser": "0x141c00020",
+  "result_class": "CmdSetMyclubSquadGameplanResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae5a28"
+ },
+ "CMD_SET_MYCLUB_SQUAD_GAMEPLAYER": {
+  "creator": [
+   "0x1410aae70"
+  ],
+  "ctor": "0x141c0bfd0",
+  "dtor": "0x141c0c240",
+  "parser": "0x141c0d230",
+  "result_class": "CmdSetMyclubSquadGameplayerResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae7850"
+ },
+ "CMD_SET_MYCLUB_SQUAD_NAME": {
+  "creator": [
+   "0x1410b0780"
+  ],
+  "ctor": "0x141c1ce80",
+  "dtor": "0x141c1d0a0",
+  "parser": "0x141c1d860",
+  "result_class": "CmdSetMyclubSquadNameResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae9ef8"
+ },
+ "CMD_SET_MYCLUB_TEAM_BASE": {
+  "creator": [
+   "0x1410b38a0"
+  ],
+  "ctor": "0x141c2cd90",
+  "dtor": "0x141c2cf80",
+  "parser": "0x141c2d680",
+  "result_class": "CmdSetMyclubTeamBaseResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142aec510"
+ },
+ "CMD_SET_MYCLUB_TEAM_NAME": {
+  "creator": [
+   "0x1410b5990"
+  ],
+  "ctor": "0x141c39f80",
+  "dtor": "0x141c3a240",
+  "parser": "0x141c3ac60",
+  "result_class": "CmdSetMyclubTeamNameResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142aee1e0"
+ },
+ "CMD_SET_MYCLUB_VSCOM_GAMERESULT": {
+  "creator": [
+   "0x14108db20",
+   "0x141bace00"
+  ],
+  "ctor": "0x141bac4f0",
+  "dtor": "0x141bace00",
+  "parser": "0x141baf480",
+  "result_class": "CmdSetMyclubVscomGameresultResult",
+  "size": [
+   "0x3a0"
+  ],
+  "vt": "0x142ada0f0"
+ },
+ "CMD_SET_MYCLUB_WISHLIST_AT_TOP": {
+  "creator": [
+   "0x1410c30a0"
+  ],
+  "ctor": "0x141c803f0",
+  "dtor": "0x141c805e0",
+  "parser": "0x141c80ce0",
+  "result_class": "CmdSetMyclubWishlistAtTopResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af7ae8"
+ },
+ "CMD_SET_PLATFORM_SESSION": {
+  "creator": [
+   "0x1410d19c0"
+  ],
+  "ctor": "0x141cbd3b0",
+  "dtor": "0x141cbd5a0",
+  "parser": "0x141cbddb0",
+  "result_class": "CmdSetPlatformSessionResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b00580"
+ },
+ "CMD_SET_PLAYDATA_MATCH": {
+  "creator": [
+   "0x141c149a0"
+  ],
+  "ctor": "0x141c14b40",
+  "dtor": "0x141c14e30",
+  "parser": "0x141c152f0",
+  "result_class": "CmdSetPlaydataMatchResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ae8a48"
+ },
+ "CMD_SET_PLAYERPROFILE": {
+  "creator": [
+   "0x1410d2770",
+   "0x141cc0e10"
+  ],
+  "ctor": "0x141cc0860",
+  "dtor": "0x141cc0e10",
+  "parser": "0x141cc1870",
+  "result_class": "CmdSetPlayerprofileResult",
+  "size": [
+   "0x230"
+  ],
+  "vt": "0x142b00f30"
+ },
+ "CMD_SET_POSITION_RATING": {
+  "creator": [
+   "0x1410d7d10"
+  ],
+  "ctor": "0x141cdf070",
+  "dtor": "0x141cdf290",
+  "parser": "0x141cdfa60",
+  "result_class": "CmdSetPositionRatingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b05588"
+ },
+ "CMD_SET_QUICKMATCHOPTION": {
+  "creator": [
+   "0x1410fbbf0"
+  ],
+  "ctor": "0x141d72440",
+  "dtor": "0x141d72760",
+  "parser": "0x141d732d0",
+  "result_class": "CmdSetQuickmatchoptionResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1b7e8"
+ },
+ "CMD_SET_ROOM_OPTION": {
+  "creator": [
+   "0x1410de930"
+  ],
+  "ctor": "0x141cfdce0",
+  "dtor": "0x141cfdfa0",
+  "parser": "0x141cfe9d0",
+  "result_class": "CmdSetRoomOptionResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b09bb8"
+ },
+ "CMD_SET_WEEKLY_INFORMATION_ACTION": {
+  "creator": [
+   "0x1410972d0"
+  ],
+  "ctor": "0x141ba6f70",
+  "dtor": "0x141ba7190",
+  "parser": "0x141ba7960",
+  "result_class": "CmdSetWeeklyInformationActionResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ad8e28"
+ },
+ "CMD_START_COOP_GROUP_MATCHING": {
+  "creator": [
+   "0x14110e680"
+  ],
+  "ctor": "0x141dc1860",
+  "dtor": "0x141dc1b20",
+  "parser": "0x141dc2540",
+  "result_class": "CmdStartCoopGroupMatchingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b27310"
+ },
+ "CMD_START_COOP_MATCHING": {
+  "creator": [
+   "0x14110ed00"
+  ],
+  "ctor": "0x141dc2b90",
+  "dtor": "0x141dc2dc0",
+  "parser": "0x141dc41b0",
+  "result_class": "CmdStartCoopMatchingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b276d0"
+ },
+ "CMD_START_COOP_VSCOM_OPPONENT": {
+  "creator": [
+   "0x141111b50"
+  ],
+  "ctor": "0x141dd20e0",
+  "dtor": "0x141dd2370",
+  "parser": "0x141dd30a0",
+  "result_class": "CmdStartCoopVscomOpponentResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b295b8"
+ },
+ "CMD_START_MATCHDAY_ENTRY_PICKUP_MATCH": {
+  "creator": [
+   "0x1410dc0b0"
+  ],
+  "ctor": "0x141cf25a0",
+  "dtor": "0x141cf2790",
+  "parser": "0x141cf2e90",
+  "result_class": "CmdStartMatchdayEntryPickupMatchResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b07ea0"
+ },
+ "CMD_START_MATCHDAY_PICKUP_MATCHING": {
+  "creator": [
+   "0x1410b3190"
+  ],
+  "ctor": "0x141c2af30",
+  "dtor": "0x141c2b120",
+  "parser": "0x141c2b820",
+  "result_class": "CmdStartMatchdayPickupMatchingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142aebff0"
+ },
+ "CMD_START_MATCHING": {
+  "creator": [
+   "0x1410fd570"
+  ],
+  "ctor": "0x141d79d40",
+  "dtor": "0x141d7a170",
+  "parser": "0x141d7b820",
+  "result_class": "CmdStartMatchingResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b1ced0"
+ },
+ "CMD_START_SEND_GAME_SEQUENCE_DATA": {
+  "creator": [
+   "0x140ff6510"
+  ],
+  "ctor": "0x141b9b4a0",
+  "dtor": "0x141b9b690",
+  "parser": "0x141b9bd30",
+  "result_class": "CmdStartSendGameSequenceDataResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142ad7110"
+ },
+ "CMD_START_STEAM_STORE": {
+  "creator": [
+   "0x141e3bf70"
+  ],
+  "ctor": "0x141e3c180",
+  "dtor": "0x141e3c4d0",
+  "parser": "0x141e3caf0",
+  "result_class": "CmdStartSteamStoreResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b380c8"
+ },
+ "CMD_START_STORE_TRANSACTION": {
+  "creator": [
+   "0x14120e910"
+  ],
+  "ctor": "0x141e397b0",
+  "dtor": "0x141e399d0",
+  "parser": "0x141e3a430",
+  "result_class": "CmdStartStoreTransactionResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142b379c8"
+ },
+ "CMD_SYNC_COMPEV_PROGRESS": {
+  "creator": [
+   "0x1410c3a80"
+  ],
+  "ctor": "0x141c82520",
+  "dtor": "0x141c82710",
+  "parser": "0x141c82e80",
+  "result_class": "CmdSyncCompevProgressResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142af8058"
+ },
+ "CMD_TENDER_MYCLUB_AUCTION_SCOUT": {
+  "creator": [
+   "0x1410e4e80"
+  ],
+  "ctor": "0x141d0f910",
+  "dtor": "0x141d0fb40",
+  "parser": "0x141d10370",
+  "result_class": "CmdTenderMyclubAuctionScoutResult",
+  "size": [
+   "0x2e0"
+  ],
+  "vt": "0x142b0c600"
+ },
+ "CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION": {
+  "creator": [
+   "0x1410b7be0"
+  ],
+  "ctor": "0x141c48cd0",
+  "dtor": "0x141c491e0",
+  "parser": "0x141c49960",
+  "result_class": "CmdTenderMyclubAuctionScoutFinalroundReservationResult",
+  "size": [
+   "0x2e0"
+  ],
+  "vt": "0x142af02c0"
+ },
+ "CMD_TENDER_MYCLUB_AUCTION_SCOUT_FINALROUND_RESERVATION_CANCEL": {
+  "creator": [
+   "0x1410b94e0"
+  ],
+  "ctor": "0x141c52700",
+  "dtor": "0x141c52900",
+  "parser": "0x141c53010",
+  "result_class": "CmdTenderMyclubAuctionScoutFinalroundReservationCancelResult",
+  "size": [
+   "0x2e0"
+  ],
+  "vt": "0x142af1970"
+ },
+ "CMD_TRADE_MYCLUB_GAMEPLAYER": {
+  "creator": [
+   "0x1410d0c60"
+  ],
+  "ctor": "0x141cb9350",
+  "dtor": "0x141cb9550",
+  "parser": "0x141cb9d10",
+  "result_class": "CmdTradeMyclubGameplayerResult",
+  "size": [
+   "0x330"
+  ],
+  "vt": "0x142afff60"
+ },
+ "CMD_UPDATE_MYCLUB_COACH_CONTRACT": {
+  "creator": [
+   "0x1410c5dd0"
+  ],
+  "ctor": "0x141c8c140",
+  "dtor": "0x141c8c390",
+  "parser": "0x141c8caa0",
+  "result_class": "CmdUpdateMyclubCoachContractResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142af9678"
+ },
+ "CMD_USE_MYCLUB_ADAPTABILITY_RATE_ITEM": {
+  "creator": [
+   "0x14109f330"
+  ],
+  "ctor": "0x141bdc1c0",
+  "dtor": "0x141bdc5e0",
+  "parser": "0x141bdcd60",
+  "result_class": "CmdUseMyclubAdaptabilityRateItemResult",
+  "size": [
+   "0x2d0"
+  ],
+  "vt": "0x142ae0ad0"
+ },
+ "CMD_USE_MYCLUB_ADD_POSITION_APTITUDE_ITEM": {
+  "creator": [
+   "0x1410d3760"
+  ],
+  "ctor": "0x141ccc180",
+  "dtor": "0x141ccc3d0",
+  "parser": "0x141cccb50",
+  "result_class": "CmdUseMyclubAddPositionAptitudeItemResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142b02890"
+ },
+ "CMD_USE_MYCLUB_ADD_SKILL_ITEM": {
+  "creator": [
+   "0x1410d2130"
+  ],
+  "ctor": "0x141cbf720",
+  "dtor": "0x141cbf970",
+  "parser": "0x141cc0080",
+  "result_class": "CmdUseMyclubAddSkillItemResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b00b68"
+ },
+ "CMD_USE_MYCLUB_AGENT": {
+  "creator": [
+   "0x1410be4a0",
+   "0x141c66490"
+  ],
+  "ctor": "0x141c660f0",
+  "dtor": "0x141c66490",
+  "parser": "0x141c66d60",
+  "result_class": "CmdUseMyclubAgentResult",
+  "size": [
+   "0x200"
+  ],
+  "vt": "0x142af4dc0"
+ },
+ "CMD_USE_MYCLUB_ITEM_RECOVERY": {
+  "creator": [
+   "0x1410c3400"
+  ],
+  "ctor": "0x141c81360",
+  "dtor": "0x141c815c0",
+  "parser": "0x141c81e80",
+  "result_class": "CmdUseMyclubItemRecoveryResult",
+  "size": [
+   "0x1d8"
+  ],
+  "vt": "0x142af7dd0"
+ },
+ "CMD_USE_MYCLUB_MANAGEMENT_ITEM": {
+  "creator": [
+   "0x1410a13f0"
+  ],
+  "ctor": "0x141be7190",
+  "dtor": "0x141be7380",
+  "parser": "0x141be7b00",
+  "result_class": "CmdUseMyclubManagementItemResult",
+  "size": [
+   "0x2d0"
+  ],
+  "vt": "0x142ae2350"
+ },
+ "CMD_USE_MYCLUB_SCOUT": {
+  "creator": [
+   "0x1410bffc0"
+  ],
+  "ctor": "0x141c6dbd0",
+  "dtor": "0x141c6ddd0",
+  "parser": "0x141c6ec30",
+  "result_class": "CmdUseMyclubScoutResult",
+  "size": [
+   "0x330"
+  ],
+  "vt": "0x142af5c70"
+ },
+ "CMD_USE_MYCLUB_STAFF": {
+  "creator": [
+   "0x1410cac10",
+   "0x141ca21d0"
+  ],
+  "ctor": "0x141ca1e60",
+  "dtor": "0x141ca21d0",
+  "parser": "0x141ca40d0",
+  "result_class": "CmdUseMyclubStaffResult",
+  "size": [
+   "0x288"
+  ],
+  "vt": "0x142afcf40"
+ },
+ "CMD_USE_MYCLUB_TACTICAL_TRAINING": {
+  "creator": [
+   "0x1410a48d0"
+  ],
+  "ctor": "0x141bef3a0",
+  "dtor": "0x141bf0040",
+  "parser": "0x141bf0cf0",
+  "result_class": "CmdUseMyclubTacticalTrainingResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142ae3b10"
+ },
+ "CMD_WATCH_BREAKUP_COOP_ROOM": {
+  "creator": [
+   "0x14113f1b0"
+  ],
+  "ctor": "0x141e26730",
+  "dtor": "0x141e26920",
+  "parser": "0x141e26f50",
+  "result_class": "CmdWatchBreakupCoopRoomResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b34f10"
+ },
+ "CMD_WATCH_CHECK_ALIVE_PLAYER": {
+  "creator": [
+   "0x1410d8910"
+  ],
+  "ctor": "0x141ce1cf0",
+  "dtor": "0x141ce1ee0",
+  "parser": "0x141ce2580",
+  "result_class": "CmdWatchCheckAlivePlayerResult",
+  "size": [
+   "0x1d0"
+  ],
+  "vt": "0x142b05d00"
+ },
+ "CMD_WATCH_COOP_GROUP_MATCHING": {
+  "creator": [
+   "0x14110f550",
+   "0x141dc4ee0"
+  ],
+  "ctor": "0x141dc4760",
+  "dtor": "0x141dc4ee0",
+  "parser": "0x141dc5730",
+  "result_class": "CmdWatchCoopGroupMatchingResult",
+  "size": [
+   "0x248"
+  ],
+  "vt": "0x142b27e48"
+ },
+ "CMD_WATCH_COOP_MATCHING": {
+  "creator": [
+   "0x14110fd60",
+   "0x141dc9190"
+  ],
+  "ctor": "0x141dc8d80",
+  "dtor": "0x141dc9190",
+  "parser": "0x141dc9a70",
+  "result_class": "CmdWatchCoopMatchingResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142b285f8"
+ },
+ "CMD_WATCH_COOP_MATCHING_CONDITION": {
+  "creator": [
+   "0x141110f60",
+   "0x141dcf290"
+  ],
+  "ctor": "0x141dcee80",
+  "dtor": "0x141dcf290",
+  "parser": "0x141dcf900",
+  "result_class": "CmdWatchCoopMatchingConditionResult",
+  "size": [
+   "0x258"
+  ],
+  "vt": "0x142b28e68"
+ },
+ "CMD_WATCH_COOP_ROOM_OPTION": {
+  "creator": [
+   "0x14113ed50",
+   "0x141e23e80"
+  ],
+  "ctor": "0x141e23980",
+  "dtor": "0x141e23e80",
+  "parser": "0x141e24480",
+  "result_class": "CmdWatchCoopRoomOptionResult",
+  "size": [
+   "0x4f8"
+  ],
+  "vt": "0x142b34c98"
+ },
+ "CMD_WATCH_COOP_ROOM_TO_MATCHING_MEMBER": {
+  "creator": [
+   "0x14113f340"
+  ],
+  "ctor": "0x141e274f0",
+  "dtor": "0x141e27740",
+  "parser": "0x141e27d80",
+  "result_class": "CmdWatchCoopRoomToMatchingMemberResult",
+  "size": [
+   "0x1e0"
+  ],
+  "vt": "0x142b351a0"
+ },
+ "CMD_WATCH_COOP_VSCOM_OPPONENT": {
+  "creator": [
+   "0x1410d8d70"
+  ],
+  "ctor": "0x141ce2b30",
+  "dtor": "0x141ce30c0",
+  "parser": "0x141ce3780",
+  "result_class": "CmdWatchCoopVscomOpponentResult",
+  "size": [
+   "0x14f0"
+  ],
+  "vt": "0x142b063e0"
+ },
+ "CMD_WATCH_DECIDE_GAMEENV": {
+  "creator": [
+   "0x1410ff600"
+  ],
+  "ctor": "0x141d7cf60",
+  "dtor": "0x141d7d150",
+  "parser": "0x141d7d790",
+  "result_class": "CmdWatchDecideGameenvResult",
+  "size": [
+   "0x2a8"
+  ],
+  "vt": "0x142b1d490"
+ },
+ "CMD_WATCH_ENTRY_GAME": {
+  "creator": [
+   "0x1410e4830"
+  ],
+  "ctor": "0x141d0e620",
+  "dtor": "0x141d0e870",
+  "parser": "0x141d0eeb0",
+  "result_class": "CmdWatchEntryGameResult",
+  "size": [
+   "0x1e8"
+  ],
+  "vt": "0x142b0c1e8"
+ },
+ "CMD_WATCH_GAMEADDPOINT": {
+  "creator": [
+   "0x1410fff70",
+   "0x141d7edc0"
+  ],
+  "ctor": "0x141d7e660",
+  "dtor": "0x141d7edc0",
+  "parser": "0x141d7f540",
+  "result_class": "CmdWatchGameaddpointResult",
+  "size": [
+   "0x248"
+  ],
+  "vt": "0x142b1d990"
+ },
+ "CMD_WATCH_GAMERELAY_CHECK_RES": {
+  "creator": [
+   "0x141098b50",
+   "0x141bc20e0"
+  ],
+  "ctor": "0x141bc1e30",
+  "dtor": "0x141bc20e0",
+  "parser": "0x141bc26e0",
+  "result_class": "CmdWatchGamerelayCheckResResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142adcc98"
+ },
+ "CMD_WATCH_MATCHDAY_PICKUP_MATCHING": {
+  "creator": [
+   "0x1410b4790",
+   "0x141c33510"
+  ],
+  "ctor": "0x141c32fc0",
+  "dtor": "0x141c33510",
+  "parser": "0x141c33e60",
+  "result_class": "CmdWatchMatchdayPickupMatchingResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142aed560"
+ },
+ "CMD_WATCH_MATCHDAY_PICKUP_USER": {
+  "creator": [
+   "0x1410e27d0"
+  ],
+  "ctor": "0x141d06790",
+  "dtor": "0x141d06980",
+  "parser": "0x141d06fc0",
+  "result_class": "CmdWatchMatchdayPickupUserResult",
+  "size": [
+   "0x220"
+  ],
+  "vt": "0x142b0afb0"
+ },
+ "CMD_WATCH_MATCHING": {
+  "creator": [
+   "0x141100c60",
+   "0x141d822e0"
+  ],
+  "ctor": "0x141d81090",
+  "dtor": "0x141d822e0",
+  "parser": "0x141d82ac0",
+  "result_class": "CmdWatchMatchingResult",
+  "size": [
+   "0x270"
+  ],
+  "vt": "0x142b1e168"
+ },
+ "CMD_WATCH_MATCHING_CONDITION": {
+  "creator": [
+   "0x141101c90",
+   "0x141d862b0"
+  ],
+  "ctor": "0x141d85f70",
+  "dtor": "0x141d862b0",
+  "parser": "0x141d868b0",
+  "result_class": "CmdWatchMatchingConditionResult",
+  "size": [
+   "0x218"
+  ],
+  "vt": "0x142b1e488"
+ },
+ "CMD_WATCH_MYCLUB_AUCTION_SCOUT_DETAIL": {
+  "creator": [
+   "0x1410d9f30"
+  ],
+  "ctor": "0x141ce8400",
+  "dtor": "0x141ce86d0",
+  "parser": "0x141ce8d10",
+  "result_class": "CmdWatchMyclubAuctionScoutDetailResult",
+  "size": [
+   "0x258"
+  ],
+  "vt": "0x142b06a48"
+ },
+ "CMD_WATCH_NOTICE": {
+  "creator": [
+   "0x141102030",
+   "0x141d87450"
+  ],
+  "ctor": "0x141d871a0",
+  "dtor": "0x141d87450",
+  "parser": "0x141d87a50",
+  "result_class": "CmdWatchNoticeResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b1e738"
+ },
+ "CMD_WATCH_PUNCHING_DATA": {
+  "creator": [
+   "0x141211be0"
+  ],
+  "ctor": "0x141e4aee0",
+  "dtor": "0x141e4b110",
+  "parser": "0x141e4b740",
+  "result_class": "CmdWatchPunchingDataResult",
+  "size": [
+   "0x208"
+  ],
+  "vt": "0x142b3ab00"
+ },
+ "CMD_WATCH_ROOMSTATE": {
+  "creator": [
+   "0x141102240",
+   "0x141d884d0"
+  ],
+  "ctor": "0x141d88140",
+  "dtor": "0x141d884d0",
+  "parser": "0x141d88ae0",
+  "result_class": "CmdWatchRoomstateResult",
+  "size": [
+   "0x238"
+  ],
+  "vt": "0x142b1ea50"
+ },
+ "CMD_WATCH_SYNC_NOTICE": {
+  "creator": [
+   "0x141210a80",
+   "0x141e451f0"
+  ],
+  "ctor": "0x141e44f40",
+  "dtor": "0x141e451f0",
+  "parser": "0x141e457f0",
+  "result_class": "CmdWatchSyncNoticeResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b39a48"
+ },
+ "CMD_WATCH_SYSTEM_NOTICE": {
+  "creator": [
+   "0x141210430",
+   "0x141e431d0"
+  ],
+  "ctor": "0x141e42f20",
+  "dtor": "0x141e431d0",
+  "parser": "0x141e437d0",
+  "result_class": "CmdWatchSystemNoticeResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b394f8"
+ },
+ "CMD_WATCH_TEXTCHAT": {
+  "creator": [
+   "0x1410ad870",
+   "0x141c13b70"
+  ],
+  "ctor": "0x141c137d0",
+  "dtor": "0x141c13b70",
+  "parser": "0x141c14170",
+  "result_class": "CmdWatchTextchatResult",
+  "size": [
+   "0x238"
+  ],
+  "vt": "0x142ae8720"
+ },
+ "CMD_WATCH_TURN_ADDRESS_DATA": {
+  "creator": [
+   "0x141211f20"
+  ],
+  "ctor": "0x141e4c400",
+  "dtor": "0x141e4c610",
+  "parser": "0x141e4cc40",
+  "result_class": "CmdWatchTurnAddressDataResult",
+  "size": [
+   "0x1f0"
+  ],
+  "vt": "0x142b3ad90"
+ }
+}

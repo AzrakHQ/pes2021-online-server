@@ -12,7 +12,9 @@ for f in musl-math/*.c; do
   $CC -O2 -march=x86-64 -mno-fma -ffp-contract=off -fno-fast-math -fno-builtin -Imusl-math -Imusl-math/include -Imusl-math/mingw -include musl-math/pesm_names.h \
     -c "$f" -o "$OBJ/$(basename "$f" .c).o"
 done
-$CC -O2 -march=x86-64 -Wall -Wno-unused-function -ffp-contract=off -shared -o "$OUT" \
+# PROBE=1: a debug build with the script probe (probe.c); never ship it.
+EXTRA=""; [ "${PROBE:-0}" = 1 ] && EXTRA="-DPES_PROBE"
+$CC -O2 -march=x86-64 -Wall -Wno-unused-function -ffp-contract=off $EXTRA -shared -o "$OUT" \
   pes2021online.c monocypher/monocypher.c monocypher/monocypher-ed25519.c minhook/src/hook.c minhook/src/buffer.c minhook/src/trampoline.c minhook/src/hde/hde64.c \
   "$OBJ"/*.o dinput8.def -lws2_32 -lwinhttp -lbcrypt -luser32 -lgdi32 -ladvapi32 -static-libgcc -s -Wl,--no-insert-timestamp
 echo "built $OUT ($(wc -c < "$OUT") bytes)"

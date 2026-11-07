@@ -1,5 +1,9 @@
 # Hidden room lobbies (Free / Team Play / spectate): how the top menu is built and how to reach them
 
+## Corrections from later findings (2026-11-06)
+- **PES League lobby reached live** (2026-11-06): the lobby choice comes from GET_PESLEAGUE_COMPE_INFO `match_type "PES_LEAGUE_MATCH_1VS1_LOBBY"` sent inside a `compe_data` blob (top-level only gives the 1v1 menu); `lobby_type` is "PESLEAGUE" (spectate2.md).
+
+
 > **Confirmed live (2026-11-05):** Kick Off → scroll past Cup → **Friendly Match Lobby** is there (8th item). Entering it runs the Lobby flow described here; see livetests.md for what the game sent.
 
 
@@ -148,8 +152,8 @@ US-English string dump from dt80, asm dumps `topmenu_build.asm`, `aaf280.asm`, `
   WatchMatch (see spectate.md).
 
 ## Still unknown
-- The AFP slot count of `p_subMenu`, i.e. that exactly 7 rows show. A 10-second live test settles it: scroll Kick
-  Off past Cup.
+- ~~The AFP slot count of `p_subMenu`~~ answered live: Kick Off scrolls past Cup to Friendly Match Lobby
+  (5 rows visible at a time on the screenshot).
 - The exact reply field that fills the PES League competition's +0x34. It is probably `match_type` in
   GET_PESLEAGUE_COMPE_LIST, possibly also in GET_PESLEAGUE_COMPE_INFO. Settle it by reading 0x14109a4e0 /
   0x14109cd10 to where the enum is stored, or by a live test with a fake competition.

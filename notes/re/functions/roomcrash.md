@@ -1,5 +1,9 @@
 # Room crash after CREATEJOIN: partial static analysis (incomplete)
 
+## Corrections from later findings (2026-11-06)
+- **Mechanism found** (datacheck.md Q3, confirmed live 2026-11-06 with `e06d7363` in the Wine log): the duplicate player list was a RELOAD into a non-empty watch-list cache; the merger's `std::map::at` loop throws `std::out_of_range`, nothing catches it, the process exits. Not a use-after-free.
+
+
 > **Solved live (2026-11-05, 21:08):** the exit came from our test server pushing a **second copy of the player list** 50 ms after replying to REQWATCHL_ROOMPLAYERLIST_NTL. With the list sent only as the reply (and the own room pushed into the room list first, `pname.psn_user_id` as a nested blob), the owner sends CMD_ENTRY_GAME and shows the room screen. The two requirements below still hold. The bisection is in livetests.md. Why a duplicate list ends the process is not known (the 20:12 re-test that "still exits" had the push enabled).
 
 
@@ -74,7 +78,9 @@ game was gone by then [log server-lobby*.log]. **So state 2 can never succeed as
    enough.
 
 ## Still unknown
-- The mechanism that ends the process. A Wine log that keeps everything (+seh, plus the exit code of the
+> Item 2 answered live: with the room-list fix and no duplicate player-list push, the owner sends ENTRY_GAME (livetests.md).
+
+- The mechanism that ends the process (now: why a duplicate player list before ENTRY_GAME ends it). A Wine log that keeps everything (+seh, plus the exit code of the
   process) from the next run would settle it.
 - Whether the room-list fix alone stops the exit. Test: push the ADD with CREATEJOIN, then watch for
   ENTRY_GAME, or for LEAVE_ROOM (which would mean error 130 still happens).

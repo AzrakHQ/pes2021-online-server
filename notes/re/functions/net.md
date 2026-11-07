@@ -1,6 +1,7 @@
 # Group "net": P2P, NTL, TURN relay, game relay — PES 2021 1.01.00 (static RE)
 
 ## Corrections from later findings (2026-11-05)
+- **DTLS leg works** (ktcdtls.md, live 2026-11-06): ktc wraps stock OpenSSL 1.1.0i and adds a 2-byte trailer to its app-data datagrams plus a type byte at the end of every plaintext. A server that strips the trailer and replies `SSL_write(msg + 0x00)` gets the full flow up to CMD_SEND_TURN_ADDRESS_DATA and relayed ChannelData. The TLS leg only bootstraps (closed once the DTLS allocation exists). Open: the whole TURN session restarts every 21.4 s.
 - The "dual route" SOFTWARE directive is **required, not optional**. After allocating, Turn::Impl needs the relay's SOFTWARE to be `HOST:PORT,<text>,0`, otherwise it restarts the session every second. With it, the game opens a second leg over DTLS/UDP and only publishes its relay address once that works. (Live test, livetests.md.)
 - The coturn run's instant disconnect was **not** caused by mobility: our relay granted mobility and the game still disconnected until the SOFTWARE directive was sent.
 - Settled live: REQUESTED-TRANSPORT is UDP (0x11); the client sends MOBILITY-TICKET and SOFTWARE "ktc-0.0.0"; a failing TURN path does not break the match.

@@ -1,6 +1,6 @@
 # Room list shows "Number of rooms 0": REQWATCHL_ROOMLIST entry vs. parser, model and list filter
 
-> **Status (2026-11-05):** static analysis plus our logs; the fix (real `game_env`, room-list UPDATE after SET_GAMEENV) has **not been tested live yet**.
+> **Status:** static analysis plus our logs (2026-11-05). **Confirmed live on 2026-11-06:** with the real `game_env` (limitTime MIDDLE) and a room-list UPDATE after SET_GAMEENV, the second player sees "Number of rooms 1" and the room row, and can join (livetests.md).
 
 Tags: [static] = read in code at the address, [log] = our server logs from the 2026-11-05 live test, [inferred], [guess].
 Disassembly dumps stay in the working folder (not published).
@@ -124,5 +124,5 @@ and the owner's ENTRY_GAME.
   player opened Refine Search.
 - What the owner_lang code (0x1410526a0 → enum function 0x141b99e80, an obfuscated jump) maps "en" vs. "US" to.
   It is display only.
-- Live check: send the corrected UPDATE after SET_GAMEENV. Copy 2 should then show "Number of rooms 1" and the row.
-  That is the first proving signal; stop the test there.
+- ~~Live check~~ done 2026-11-06: copy 2 showed "Number of rooms 1" and the row. The "EN" tag appeared for
+  owner_lang "en".

@@ -9,7 +9,8 @@ log = logging.getLogger("pesserver.gate")
 
 # The mod starts each gate connection with one line naming its install, before the game's first
 # frame: b"PESID1 <32 hex>\n" (40 bytes, mod 0.3.0, hello version 2) or b"PESID2 <32 hex> <features>\n"
-# (mod 0.4.0+, hello version 3; "math1" = the game gets the mod's same-math functions). The game's own
+# (mod 0.4.0+, hello version 3; "math1" = the game gets the mod's same-math functions; mod 0.5.0+ "coop1" =
+# its Online Co-op fix is in, pescoop.py). The game's own
 # first bytes are a frame header XORed with 5b9f2e64 (first byte 0x5b), so they can't be confused.
 # Accounts are then stored by this id instead of the Steam id, which every copy that doesn't really
 # run through Steam shares; matchmaking pairs only games with the same math (pesmatch.py).
@@ -111,6 +112,11 @@ async def serve(service, codec_factory, host="0.0.0.0", port=10000, idle=300):
                 events.disconnected(service, sess)
             except Exception:  # noqa: BLE001
                 log.exception("events.disconnected")
+            try:
+                from . import pesrooms
+                pesrooms.disconnected(service, sess)
+            except Exception:  # noqa: BLE001
+                log.exception("pesrooms.disconnected")
             service.disconnected(sess)
             writer.close()
             log.info("disconnect %s", peer)

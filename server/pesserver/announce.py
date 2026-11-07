@@ -4,6 +4,11 @@
   screen at sign-in, and title + body open as a pop-up when the player reaches the main menu.
 - Box before Quick Match (CMD_GET_URGENT_ANNOUNCEMENT): asked each time a player enters an online mode;
   the reply's title and body open as a dialog with OK. We serve each message once per player.
+- Messages to one player (CMD_GET_PRIVATEINFOTITLELIST + CMD_GET_INFOBODY is_private): the message goes into that
+  player's own "Online Information" list (last INBOX_MAX, for INBOX_DAYS), same layout as the news. The game asks
+  for the list at login and on entering an online mode, pops up each new item once (popup_type ONCE; it remembers
+  closed items across restarts) and keeps it in the list. Seen live 2026-11-07. (Until then these messages went
+  through the box before Quick Match; with both, the player got the same text twice in a row.)
 - Planned restart (CMD_GET_MAINTENANCE_INFO): asked on "Go to Matchmaking"; maintenance_warn "YES" with a
   unix time makes the game's own "maintenance starting at HH:MM today... start a match now?" Yes/No dialog.
 
@@ -19,6 +24,7 @@ from .pescmds import NOERR, blobs, cmd
 log = logging.getLogger("pesserver.announce")
 
 TITLE_MAX, BODY_MAX, REASON_MAX = 60, 600, 200
+INBOX_MAX, INBOX_DAYS = 5, 30
 RESTART_GRACE = 15 * 60        # keep warning this long after the planned time, then forget it
 _lock = threading.Lock()
 _STATE = {}                    # data_dir -> dict
@@ -40,7 +46,8 @@ def _load(svc):
         st.setdefault("seen", [])            # pids that got the news box before Quick Match
         st.setdefault("restart", None)       # unix time
         st.setdefault("personal", {})        # str(pid) -> {id, title, body}
-        st.setdefault("seen_notes", [])      # notes players have seen, newest first (the admin page lists them)
+        st.setdefault("inbox", {})           # str(pid) -> [{id, title, body, date, kind, seen}], newest last
+        st.setdefault("seen_notes", [])      # messages players have opened, newest first (the admin page lists them)
         st.setdefault("history", [])         # earlier messages to everyone, newest first
         if st["restart"] and st["restart"] < time.time():
             st["restart"] = None             # starting up after the planned time: the restart happened
@@ -78,12 +85,13 @@ def snapshot(svc):
             st["restart"] = r = None
             _save(svc)
         n = st["news"]
+        waiting = sorted(({"pid": int(k), "id": m["id"], "title": m["title"], "body": m["body"], "sent": m.get("date"),
+                           "kind": m.get("kind", "note")}
+                          for k in list(st["inbox"]) for m in _inbox(st, k) if not m.get("seen")),
+                         key=lambda x: (-(x["sent"] or 0), -x["id"]))
         return {"news": n and {"title": n["title"], "body": n["body"], "date": n["date"], "seen": len(st["seen"])},
-                "restart": r, "pending": len(st["personal"]),
-                "seen_notes": st["seen_notes"][:8], "history": st["history"][:6],
-                "personal": sorted(({"pid": int(k), "title": v["title"], "body": v["body"], "sent": v.get("sent"),
-                                     "kind": v.get("kind", "note")} for k, v in st["personal"].items()),
-                                   key=lambda x: -(x["sent"] or 0))}
+                "restart": r, "pending": len(waiting), "personal": waiting,
+                "seen_notes": st["seen_notes"][:8], "history": st["history"][:6]}
 
 
 class TooLong(ValueError):
@@ -98,15 +106,15 @@ def _check_size(reply):
 
 
 def fits(title, body, personal=False):
-    """How much of the game's message box a draft fills (the admin page's live meter): 0-100+.
-    personal: a note for one player (the box before Quick Match), which has less around it."""
+    """How much of the game's message frame a draft fills (the admin page's live meter): 0-100+.
+    personal: a message for one player's Information list."""
     from . import ncl
     try:
         news = {"id": 2_000_000_000, "title": clean(title, TITLE_MAX, lines=False), "body": clean(body, BODY_MAX),
                 "date": int(time.time())}
     except ValueError:
         return 0
-    reply = _urgent_reply(news, {}) if personal else _body_reply(news)
+    reply = _body_reply(news, _PERSONAL if personal else None)
     size = len(ncl.bf_encrypt(ncl.pack_plain({"msgid": "CMD_GET_INFOBODY", "rqid": 99999, **reply})))
     return round(100 * size / (ncl.MAX_BODY - 16))
 
@@ -149,25 +157,34 @@ def set_restart(svc, minutes):
         _save(svc)
 
 
-def tell(svc, pid, title, body, kind="kick"):
-    """A one-time message for one player, shown in a box the next time they enter an online mode (the game only
-    shows server text when it asks for it). A newer note replaces one they haven't seen yet."""
-    msg = {"id": int(time.time()) % 2_000_000_000, "title": clean(title, TITLE_MAX, False),
-           "body": clean(body, BODY_MAX), "sent": time.time(), "kind": kind}
-    _check_size(_urgent_reply(msg, {}))
+def tell(svc, pid, title, body, kind="note"):
+    """A message for one player: pops up once at their next login or online-mode entry, then stays in their
+    Information list. kind "note" (from the admin) or "kick" (the reason they were disconnected)."""
     with _lock:
         st = _load(svc)
-        st["personal"][str(pid)] = msg
+        box = st["inbox"].get(str(pid), [])
+        msg = {"id": max([int(time.time()) % 2_000_000_000] + [m["id"] + 1 for m in box]),
+               "title": clean(title, TITLE_MAX, False), "body": clean(body, BODY_MAX), "date": int(time.time()),
+               "kind": kind, "seen": None}
+        _check_size(_body_reply(msg, _PERSONAL))
+        st["inbox"][str(pid)] = (box + [msg])[-INBOX_MAX:]
         _save(svc)
 
 
-def untell(svc, pid):
-    """Take back a note the player hasn't seen yet. Returns False if there was none."""
+def untell(svc, pid, mid=None):
+    """Take back messages the player hasn't opened yet (one, with mid). Returns False if there was none."""
     with _lock:
         st = _load(svc)
-        gone = st["personal"].pop(str(pid), None) is not None
+        box = st["inbox"].get(str(pid), [])
+        keep = [m for m in box if m.get("seen") or (mid is not None and m["id"] != mid)]
+        if len(keep) == len(box):
+            return False
+        if keep:
+            st["inbox"][str(pid)] = keep
+        else:
+            st["inbox"].pop(str(pid), None)
         _save(svc)
-    return gone
+    return True
 
 
 def forget(svc, pid):
@@ -175,7 +192,9 @@ def forget(svc, pid):
     with _lock:
         st = _load(svc)
         st["personal"].pop(str(pid), None)
+        st["inbox"].pop(str(pid), None)
         st["seen"] = [p for p in st["seen"] if p != pid]
+        st["seen_notes"] = [n for n in st["seen_notes"] if n.get("pid") != pid]
         _save(svc)
 
 
@@ -198,17 +217,63 @@ def global_info_titles(svc, sess, req):
     return {"result": NOERR, "announce_info_list": blobs([_basic(n)]), "annnounce_info_list_num": 1}
 
 
+def _inbox(st, pid, now=None):
+    """The player's messages still kept (drops old ones)."""
+    cut = (now or time.time()) - INBOX_DAYS * 86400
+    box = [m for m in st["inbox"].get(str(pid), []) if m.get("date", 0) >= cut]
+    if box:
+        st["inbox"][str(pid)] = box
+    else:
+        st["inbox"].pop(str(pid), None)
+    return box
+
+
+@cmd("CMD_GET_PRIVATEINFOTITLELIST")
+def private_info_titles(svc, sess, req):
+    pid = req.get("pid") or getattr(sess, "pes_pid", None)
+    with _lock:
+        box = _inbox(_load(svc), pid)
+    if not box:
+        return {"result": NOERR}
+    items = [{**_basic(m), **_PERSONAL} for m in reversed(box)]
+    return {"result": NOERR, "announce_info_list": blobs(items), "annnounce_info_list_num": len(items)}
+
+
 @cmd("CMD_GET_INFOBODY")
 def info_body(svc, sess, req):
+    aid = req.get("announce_id")
     with _lock:
-        n = _load(svc)["news"]
-    if not n or req.get("announce_id") != n["id"]:
+        st = _load(svc)
+        n = st["news"]
+        if str(req.get("is_private", "")).upper() == "YES" or not n or aid != n["id"]:
+            pid = req.get("pid") or getattr(sess, "pes_pid", None)
+            m = next((m for m in _inbox(st, pid) if m["id"] == aid), None)
+            if m:
+                first = not m.get("seen")
+                if first:                         # the pop-up asks for the body: the player has it on screen now
+                    m["seen"] = int(time.time())
+                    if m.get("kind", "note") == "note":
+                        st["seen_notes"].insert(0, {"pid": pid, "title": m["title"], "seen": m["seen"], "sent": m.get("date")})
+                        del st["seen_notes"][8:]
+                    _save(svc)
+                reply = _body_reply(m, _PERSONAL)
+        else:
+            m = None
+    if m:
+        if first and m.get("kind", "note") == "note":
+            from . import events
+            events.feed(svc, f"{events.name_of(svc, pid)} opened your message “{m['title']}”", "msg")
+        return reply
+    if not n or aid != n["id"]:
         return {"result": NOERR}
     return _body_reply(n)
 
 
-def _body_reply(n):
-    info = {"announce_basic_info": msgpack.packb(_basic(n)), "body": n["body"], "link_url": "",
+_PERSONAL = {"announce_type": "PERSONAL_INFO", "popup_type": "ONCE"}
+
+
+def _body_reply(n, over=None):
+    info = {"announce_basic_info": msgpack.packb({**_basic(n), **(over or {})}), "body": n["body"], "link_url": "",
             "direct_move": "NO", "use_template": "NO", "template_id": 0,
             "banner_file_info": msgpack.packb({"filename": "", "hash_str": ""}), "compe_name": "",
             "compe_start_time": 0}
@@ -228,17 +293,6 @@ def urgent(svc, sess, req):
             return {"result": NOERR}
         _save(svc)
     log.info("showing %r to pid %s", msg["title"], pid)
-    if msg.get("kind") == "note":                 # the admin page shows that it arrived
-        with _lock:
-            st["seen_notes"].insert(0, {"pid": pid, "title": msg["title"], "seen": time.time(), "sent": msg.get("sent")})
-            del st["seen_notes"][8:]
-            _save(svc)
-        from . import events
-        events.feed(svc, f"{events.name_of(svc, pid)} saw your message “{msg['title']}”", "msg")
-    return _urgent_reply(msg, req)
-
-
-def _urgent_reply(msg, req):
     data = {"announcement_id": msg["id"], "online_mode": req.get("online_mode", "QUICK"),
             "announcement_type": req.get("announcement_type", "PRE_MAIN"), "read_check": "NO",
             "title": msg["title"], "body": msg["body"]}

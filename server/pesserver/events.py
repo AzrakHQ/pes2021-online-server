@@ -119,6 +119,9 @@ def observe(svc, sess, msgid, req):
     side = "home" if pid == lv["home"] else "away"
     if msgid == "CMD_CHANGE_GAMEPHASE":
         raw = str(req.get("phase", ""))
+        if raw == "END" and lv["kickoff"] and not lv.get("end_seen"):
+            lv["end_seen"] = True                  # full time: later DISCONN_* reports are the normal exit
+            _manner("match_end", svc, lv)
         if raw and raw != lv["raw_phase"] and side == "home":        # both clients report; log once
             lv["raw_phase"], lv["phase"] = raw, PHASES.get(raw, raw.title())
             if raw == "1ST" and not lv["kickoff"]:
@@ -126,6 +129,8 @@ def observe(svc, sess, msgid, req):
                 feed(svc, f"Kick-off: {lv['home_name']} vs {lv['away_name']}", "match")
             elif raw == "BREAK1":
                 feed(svc, f"Half-time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "match")
+    elif msgid == "CMD_SEND_ABNORMALEND":
+        _manner("abnormal_end", svc, lv, pid, req.get("reason", ""))
     elif msgid == "CMD_ADD_SCORE":
         # goals arrive as CMD_ADD_SCORE {goal_side, goal_player_pid, gtimer, ...} from BOTH games, with
         # the same game clock; count each (gtimer, side) once. (There is no CMD_ADD_GOAL in the game.)
@@ -166,6 +171,14 @@ def observe(svc, sess, msgid, req):
             _st(svc)["live"].pop(rid, None)
 
 
+def _manner(fn, *a):
+    try:
+        from . import pesmanner
+        getattr(pesmanner, fn)(*a)
+    except Exception:  # noqa: BLE001 - the courtesy rating must never break the match feed
+        log.exception("pesmanner.%s", fn)
+
+
 def disconnected(svc, sess):
     pid = getattr(sess, "pes_pid", None)
     if pid is None or not getattr(sess, "connected_at", None) or svc.online.get(pid) is not sess:
@@ -181,6 +194,8 @@ def disconnected(svc, sess):
     for rid, lv in list(_st(svc)["live"].items()):
         if pid in (lv["home"], lv["away"]) and lv["phase"] != "Full time":
             _note_left(svc, lv, pid)
+            if not getattr(sess, "kicked", False):
+                _manner("dropped", svc, lv, pid)
             feed(svc, f"Match ended early: {name_of(svc, pid)} disconnected", "warn")
             _st(svc)["live"].pop(rid, None)
 

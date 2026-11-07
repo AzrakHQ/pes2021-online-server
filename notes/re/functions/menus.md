@@ -1,6 +1,7 @@
 # Group "menus": fair-play checks, news/info, profile/account, store
 
 ## Corrections from later findings (2026-11-05)
+- datacheck.md Q1 (static, 2026-11-06): the peers exchange revision, param_check_sum and entry_check_sum; only **param then entry** are compared (exact strings) → MXNV_0017 "DATAPACK error"; revision is never compared; peer record missing for 60 s → MXNV_0015; `GET_SERVER_ENV.is_revision_check` must be exactly "YES" (default when absent) to compare; "NO" skips it. Live confirmation still to do.
 - On-screen codes: CCWR450 is shown as **CCWR_0014**, CCWR455 as **CCWR_0015**, CCWR211 as **CCWR_0003** (tag + sub-code; messages.md).
 - `regstate(id)` in param_check_sum is **not** a registration flag: it is the player's weekly condition from PlayerWeekly.bin, used only in live-data mode, otherwise the constant 5 (db.md, confirmed live in livetests.md).
 
@@ -114,20 +115,20 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
   (0x14138b950, the "Online/Match/ProcWarningManner" flow). Sent twice per session in our logs. [static, log]
 - Reply: `warn_kind` STR (Result+0xb8). Slot 9 (0x1410edf57) maps it [static]:
 
-  | warn_kind | kind | message id |
-  |---|---|---|
-  | "DOWN_B" | 1 | 0x20100c0 |
-  | "A_TO_B" | 2 | 0x20100c1 |
-  | "DOWN_C" | 3 | 0x20100c2 |
-  | "STILL_C" | 4 | 0x20100c3 |
-  | anything else / missing | 0 | no dialog |
+  | warn_kind | kind | message id | text (live 2026-11-07) |
+  |---|---|---|---|
+  | "DOWN_B" | 1 | 0x20100c0 | "The number of times you have failed to properly complete matches is increasing. …" |
+  | "A_TO_B" | 2 | 0x20100c1 | "Your courtesy rating has fallen to "B". …" |
+  | "DOWN_C" | 3 | 0x20100c2 | "The number of times you have failed to properly complete matches remains high. …" |
+  | "STILL_C" | 4 | 0x20100c3 | "Your courtesy rating has fallen to "C". …" |
+  | anything else / missing | 0 | no dialog | |
 
   The value is stored at obj+0x120. The tasks open a dialog (0x140fdf5f0 / 0x14138b880) with that message and
-  wait until it is closed. The letters are fair-play grades A/B/C ("your rating dropped to B", "…from A to B",
-  "…to C", "still C"). [inferred]
+  wait until it is closed. **Correction (live):** the names don't say what the texts say. DOWN_C is the "remains
+  high" warning (at B), and STILL_C is the fall to C. The dialog is a DialogProceed; OK continues into the mode.
 - Errors: non-NOERR → the task finishes silently with no dialog (state 3). [static 0x140fdf4da]
-- Server should: send bare NOERR (no warning). Later, compute a disconnect rate from match results and send
-  "DOWN_B"/"DOWN_C" etc. to warn rage-quitters. The game only displays the warning; matchmaking restrictions
+- Server (pesmanner.py, 2026-11-07): rates each player on their last 10 matches and sends one warning per
+  early exit: still A → DOWN_B, falls to B → A_TO_B, at B → DOWN_C, falls to C or another at C → STILL_C. The game only displays the warning; matchmaking restrictions
   (ERR_COMPE_JOIN_MANNER, ERR_COOPMANNER_NOTMET) are separate errors.
 
 ### CMD_SEND_LOG — live-update log upload
@@ -179,6 +180,13 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
   UI text is UTF-8). [inferred]
 - `date`: u32. Probably Unix seconds, like maintenance_time, which is definitely epoch → `_localtime64_s`.
   [inferred]
+- **Private list, live 2026-11-07:** the game asks for GET_PRIVATEINFOTITLELIST at login and on every online-mode
+  entry (right after GET_URGENT_ANNOUNCEMENT). A new PERSONAL_INFO item with popup_type ONCE pops up at once: the
+  game fetches its body with CMD_GET_INFOBODY {is_private "YES"} and shows it in an `onlinelogin::
+  MenuInformationNoticeTask` window (A = vtable +0x188 closes it). After it was closed, it did not pop up again,
+  even after a game restart. Items it had already shown did not pop up again with any popup_type
+  (EVERYTIME, DAILY, "", NONE, none). The box before Quick Match is an `onlinelogin::MenuUrgentAnnouncement`
+  window, closed the same way.
 - Server should: **yes, our server can publish its own news.** Send elements with
   `announce_type:"NO_BANNER_INFO"` (no image needed), a unique `announce_id`, `title`, `priority`,
   `popup_type:"ONCE"`, `date:<unix>`, `event_id:0`, and serve the body via CMD_GET_INFOBODY. Keep sending bare

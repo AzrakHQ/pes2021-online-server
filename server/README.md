@@ -8,7 +8,7 @@ server from source, building the program, and how the code is laid out.
 Requires Python 3.10+.
 
 ```bash
-pip install msgpack cryptography
+pip install msgpack cryptography pyopenssl
 cd server
 sh mod/build.sh mod/dinput8.dll          # the mod (needs gcc-mingw-w64-x86-64); optional
 python3 -m pesserver --data data         # same as the downloaded program: banner, admin page, feed
@@ -45,6 +45,7 @@ Environment variables:
 | `PESSERVER_HTTP_PORT` | port used in URL lists (default 8080) |
 | `PESSERVER_RXLOG` | path of a JSONL log of every decoded message (optional) |
 | `UPNP` | `0` = don't open router ports |
+| `TURN` | `0` = don't run the built-in relay for players who can't connect directly (on by default: TLS 5349 + DTLS UDP 5350 + relay UDP 49160–49179, opened with UPnP; needs pyOpenSSL) |
 | `UPDATE_CHECK` | `0` = don't ask GitHub whether a newer server is out |
 | `ADMIN_PASSWORD` | fixed admin password (default: random, saved in `<data>/admin_password`) |
 | `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
@@ -56,8 +57,13 @@ Environment variables:
 | `pesserver/ncl.py` | wire codec: XOR + MD5 frame, Blowfish body, zlib + msgpack payload, session-key switch |
 | `pesserver/pescmds.py` | command handlers for gate, account and menu; reply validation against `schemas.json` |
 | `pesserver/pesmatch.py` | Quick Match queue and pairing, `CMD_WATCH_MATCHING` push, game relay info, peer notice relay |
+| `pesserver/pesmatchday.py` | Matchday: one standing event (group stage only), Home/Away sides, the player's squad stored and returned, points per player and side |
+| `pesserver/pesdivisions.py` | Online Divisions: D10 (bottom) to D1, ten-match seasons the game counts down, win 3 / draw 1 / loss 0, promotion and relegation on FINISH_SEASON; OC_RANK players get their own matchmaking queue |
+| `pesserver/pesrooms.py` | Friendly Match Lobby: block, room list, create/join, player list, ready (ENTRY_GAME), owner start, back to the room after a match. Rules (never push a RELOAD list, etc.): `notes/re/functions/rooms.md` |
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |
+| `pesserver/liveupdate.py`, `cpkread.py` | the host's Live Update: the newest CPK in `<data>/liveupdate/` is offered to every game (CMD_GET_DLC_FILELIST) and served at `/liveupdate/<name>`; build one with `notes/re/functions/tools/mklivedata.py` |
+| `pesserver/turn.py`, `turnrelay.py`, `turndtls.py` | the relay: TURN list and credentials; TURN over TLS (first leg, sends the dual-route directive); TURN over DTLS with the game's framing (second leg, the one the match uses). Details: `notes/re/functions/ktcdtls.md`, `turncycle.md`, `turnlinkup.md` |
 | `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner |
 | `pesserver/identity.py` | the server's Ed25519 identity, signed notes and hellos for the mod, writing settings into the mod DLL |
 | `pesserver/gamesetup.py` | admin page "The server computer" card: finds PES copies on this computer and installs the mod |

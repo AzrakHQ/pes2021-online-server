@@ -1,0 +1,88 @@
+{
+ "name": "courtesy-warnings",
+ "inst": 1,
+ "variants": [
+  {
+   "name": "DOWN_B",
+   "patch": {
+    "patch": {
+     "CMD_GET_MANNER_WARN": {
+      "set": {
+       "warn_kind": "DOWN_B"
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "A_TO_B",
+   "patch": {
+    "patch": {
+     "CMD_GET_MANNER_WARN": {
+      "set": {
+       "warn_kind": "A_TO_B"
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "DOWN_C",
+   "patch": {
+    "patch": {
+     "CMD_GET_MANNER_WARN": {
+      "set": {
+       "warn_kind": "DOWN_C"
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "STILL_C",
+   "patch": {
+    "patch": {
+     "CMD_GET_MANNER_WARN": {
+      "set": {
+       "warn_kind": "STILL_C"
+      }
+     }
+    }
+   }
+  }
+ ],
+ "steps": [
+  {
+   "home": true
+  },
+  {
+   "go": "lobby"
+  },
+  {
+   "reply": "CMD_GET_MANNER_WARN", "ok": true,
+   "timeout": 60
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "dialog": true
+  },
+  {
+   "shot": "warning"
+  },
+  {
+   "ok": true
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "screen": true
+  },
+  {
+   "dialog": true,
+   "optional": true
+  }
+ ]
+}

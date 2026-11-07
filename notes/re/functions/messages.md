@@ -1,5 +1,9 @@
 # Group msg: what the player sees (message ids, error dialogs, on-screen codes)
 
+## Corrections from later findings (2026-11-06)
+- misc.md §3 (static, 2026-11-06): `{re}`/`{rf}` both expand to "PES 2021"; the three 0x14114e7e0 checks are "GATE / ACCOUNT / MENU connection up"; 0x1410f8010 fills CMD_SEND_NOTICE; 0x141070880 is a Matchday task, not a command. Live: SET_GAMEMEMBER `ERR_DATABASE` → "An unexpected problem has occurred while communicating with the PES 2021 server. CODE:C_DYUN_0013".
+
+
 Working files are in the working folder (not published):
 - The full message-id → text dump (1563 ids) is not published; `data/server_errors.tsv` has the texts of every server reply. Macro tokens `\x11xx` are shown as `{xx}`.
 - `server_errors.tsv`: all 764 rows of the client's server-error table, with the text the player sees.
@@ -134,8 +138,9 @@ String tables came from dt80_100E_x64.cpk (`use/string/all.str`, `common/string/
 - Courtesy rating (GET_MANNER_WARN warn_kind):
   - DOWN_B → 0x20100c0 "The number of times you have failed to properly complete matches is increasing…".
   - A_TO_B → 0x20100c1 "Your courtesy rating has fallen to \"B\"…".
-  - DOWN_C → 0x20100c2.
-  - STILL_C → 0x20100c3. Full texts: resolve the id with the string tables (see above).
+  - DOWN_C → 0x20100c2 "The number of times you have failed to properly complete matches remains high…".
+  - STILL_C → 0x20100c3 "Your courtesy rating has fallen to \"C\"…". (Live 2026-11-07; the names don't match
+    the texts, see menus.md.)
 - Live update (LiveDataSetFlow):
   - 0xf90042 "Live Update in progress."
   - 0xf90043 "Unable to implement Live Update Data."

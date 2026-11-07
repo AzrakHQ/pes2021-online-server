@@ -45,6 +45,21 @@ def _remote(sess):
     return ip.is_global or ip in ipaddress.ip_network("100.64.0.0/10")
 
 
+def _for_viewer(svc, addrs, pid, viewer):
+    """A player's NTL addresses as another player should get them. reflexive_addr stays exactly as reported:
+    the game picks which side opens the match link by comparing its own reflexive label with the one it got
+    for the peer (only the "lower" side opens it), so a rewritten reflexive address can leave both sides
+    waiting (MXNV_0013; notes/re/functions/gncx_labels.md, turnlinkup.md). The address a remote friend can
+    actually reach goes into host_addr instead (a connection candidate, never a label); if even that fails,
+    the TURN relay carries the match."""
+    out = dict(addrs)
+    if viewer is not None and pid != _pid(viewer) and "reflexive_addr" in out:
+        seen = _visible_addr(svc, out["reflexive_addr"], viewer)
+        if seen is not out["reflexive_addr"] and seen != out["reflexive_addr"]:
+            out["host_addr"] = seen
+    return out
+
+
 def _visible_addr(svc, blob, viewer):
     """A game on the server's own network gets its "public" (reflexive) address from our STUN server
     over the LAN, so it reports its LAN IP (seen live: 192.168.1.100, or 127.0.0.1 on the server PC).
@@ -89,9 +104,8 @@ def get_ipandport(svc, sess, req):
     for k in ("host_addr", "reflexive_addr", "relayed_addr"):
         if k in info:
             out[k] = info[k]
-    if "reflexive_addr" in out and pid != _pid(sess):
-        out["reflexive_addr"] = _visible_addr(svc, out["reflexive_addr"], sess)
-    return out
+    return {**out, **_for_viewer(svc, {k: out[k] for k in ("host_addr", "reflexive_addr", "relayed_addr") if k in out},
+                                 pid, sess)}
 
 
 @cmd("CMD_GET_LOBBYLIST")
@@ -155,8 +169,7 @@ def _member(svc, pid, owner, order, viewer=None):
          "side": "HOME" if owner else "AWAY"}
     m.update({k: v for k, v in _state(svc)["ntl"].get(pid, {}).items()
               if k in ("host_addr", "reflexive_addr", "relayed_addr", "ntl_nat_type")})
-    if "reflexive_addr" in m and viewer is not None and _pid(viewer) != pid:
-        m["reflexive_addr"] = _visible_addr(svc, m["reflexive_addr"], viewer)
+    m.update(_for_viewer(svc, {k: m[k] for k in ("host_addr", "reflexive_addr") if k in m}, pid, viewer))
     return msgpack.packb(m, use_bin_type=True, unicode_errors="surrogateescape")
 
 
@@ -198,13 +211,14 @@ def send_tamper_data(svc, sess, req):
 
 
 def _game_data(sess):
-    """What must be equal for two games to play: the player-database sum and the game versions.
+    """What must be equal for two games to play: both CHECK_CHEAT sums (the games compare param_check_sum,
+    then entry_check_sum, before kick-off; datacheck.md) and the game versions.
     None for a game that never sent them (it is paired with anyone, as before)."""
     sums, ver = getattr(sess, "pes_sums", None), getattr(sess, "pes_versions", None)
     if not sums or not sums.get("param"):
         return None
     ver = ver or {}
-    return (sums["param"], ver.get("patch_version", ""), ver.get("dlc_version", ""))
+    return (sums["param"], sums.get("entry", ""), ver.get("patch_version", ""), ver.get("dlc_version", ""))
 
 
 def _same_math(sess):
@@ -212,6 +226,10 @@ def _same_math(sess):
     Such a game and one using the C runtime's (Microsoft's on Windows, Wine's under Proton) compute
     different numbers and fall out of sync at kick-off (SYNC_FAILED, RMYN393), so they aren't paired."""
     return "math1" in getattr(sess, "mod_features", ())
+
+
+def _matching_type(sess):
+    return str((getattr(sess, "pes_match_req", None) or {}).get("matching_type") or "OC_QUICK")
 
 
 def _compatible(sa, sb):
@@ -248,6 +266,8 @@ def _next_pair(svc):
     q = _state(svc)["queue"]
     for i in range(len(q)):
         for j in range(i + 1, len(q)):
+            if _matching_type(q[i][1]) != _matching_type(q[j][1]):
+                continue                                  # Quick Match vs Online Divisions: different queues
             if _compatible(q[i][1], q[j][1]):
                 return i, j
             _note_mismatch(svc, q[i][0], q[j][0], q[i][1], q[j][1])
@@ -262,7 +282,7 @@ def _try_pair(svc):
         st["queue"] = [x for k, x in enumerate(st["queue"]) if k not in (i, j)]
         _forget_mismatch(st, a, b)
         room = st["next_room"]; st["next_room"] += 1
-        st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time()}
+        st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time(), "mode": _matching_type(sa)}
         log.info("MATCH FOUND room %d: owner %s vs %s", room, a, b)
         for pid in (a, b):
             viewer = sa if pid == a else sb
@@ -326,6 +346,13 @@ def admin_push(svc, params):
 
 
 # ---- after the match: game relay + relay check -----------------------------------------------------
+def _int(v):
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return 0
+
+
 def _room_of(svc, pid):
     for rid, r in sorted(_state(svc)["rooms"].items(), reverse=True):
         if pid in r["members"]:
@@ -339,6 +366,11 @@ def get_gamerelay(svc, sess, req):
     ip = advertised_addr(svc, sess)
     out = {"result": NOERR, "gamerelay_index": 0, "grid": 1, "ip_addr": ip,
            "port": int(os.environ.get("PESSERVER_RELAY_PORT", "7600")), "game_sycom": ""}
+    # Co-op takes its network mode from game_sycom ("" = none: CreateMultiplaySession fails, MXNV_0010);
+    # Quick Match and the lobby set P2P themselves. This request comes over HTTP, so the pid is in it.
+    from . import pescoop
+    if pescoop.in_coop_room(svc, _pid(sess) or _int(req.get("pid"))):
+        out["game_sycom"] = "P2P"
     log.info("GAMERELAY pid %s -> %s", _pid(sess), out)
     return out
 
@@ -369,6 +401,9 @@ def _relay_notice(watch_msgid):
             pids = [pids]
         data = req.get("data", "")
         delivered = []
+        # A co-op player waits for its own SYNC_PROGRESS notice (TaskSyncProgress expects every member of its
+        # group, itself included, to show up in a received notice), so that one also goes back to the sender.
+        echo = watch_msgid == "CMD_WATCH_NOTICE" and '"SYNC_PROGRESS"' in str(data)
         # The game's pid_list grows by one copy per match ([1], [1, 1], [1, 1, 1]... seen live);
         # deliver once per player, in order, and never back to the sender.
         targets = []
@@ -377,7 +412,7 @@ def _relay_notice(watch_msgid):
                 p = int(p)
             except (TypeError, ValueError):
                 continue
-            if p not in targets and p != _pid(sess):
+            if p not in targets and (p != _pid(sess) or echo):
                 targets.append(p)
         for p in targets:
             s = svc.online.get(p)
@@ -416,14 +451,31 @@ def change_gamephase(svc, sess, req):
     rid, room = _room_of(svc, pid)
     if room is not None:
         room.setdefault("phase", {})[pid] = str(req.get("phase", ""))
-        if (os.environ.get("PESSERVER_VERDICT_AT_END") == "1" and "pushed_at_end" not in room
+        if ((os.environ.get("PESSERVER_VERDICT_AT_END") == "1" or room.get("lobby_room")
+             or room.get("mode") in ("OC_RANK", "MATCHDAY"))
+                and "pushed_at_end" not in room
                 and all(room["phase"].get(p) == "END" for p in room["members"])):
-            # Test-session switch: also push at the final whistle to every member (unconfirmed path).
+            # At the final whistle, to every member. Always for a Friendly Match Lobby match: the room screen's
+            # "N Match(es)" and "Wins" counters only count this push (lobby2.md); a test switch for Quick Match.
             room["pushed_at_end"] = True
             v = _verdict(svc, rid, room)
             for p in room["members"]:
                 if (s := svc.online.get(p)) is not None and v is not None:
                     _send_later(s, "CMD_WATCH_GAMEADDPOINT", 0, 0x60, 1, v)
+    return {"result": NOERR}
+
+
+@cmd("CMD_SET_GAMETEAM")
+def set_gameteam(svc, sess, req):
+    """Both games send the two team ids at the match menu, before kick-off: keep them with the match
+    (Online Divisions shows the opponent's crest in its history)."""
+    rid, room = _room_of(svc, _pid(sess))
+    if room is not None:
+        try:
+            room["teams"] = {room["owner"]: int(req.get("home_team_id") or 0),
+                             next(p for p in room["members"] if p != room["owner"]): int(req.get("away_team_id") or 0)}
+        except (StopIteration, TypeError, ValueError):
+            pass
     return {"result": NOERR}
 
 
@@ -489,6 +541,12 @@ def _verdict(svc, rid, room):
     winner = "WINNER_HOME" if result[home] == 1 else "WINNER_AWAY" if result[away] == 1 else "WINNER_NONE"
     room["verdict"] = {"result": NOERR, "player_count": 2, "player_list": [msgpack.packb(x, use_bin_type=True) for x in players],
                        "winner_side": winner, "gameend_reason": "NORMAL_END", "is_pk": "NO"}
+    if room.get("mode") == "OC_RANK":
+        from . import pesdivisions
+        pesdivisions.record(svc, room)
+    elif room.get("mode") == "MATCHDAY":
+        from . import pesmatchday
+        pesmatchday.record(svc, room)
     log.info("VERDICT room %s %d-%d: %s", rid, score["HOME"], score["AWAY"],
              {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
     events.feed(svc, "Ratings: " + ", ".join(f"{events.name_of(svc, p)} {old[p][0]} → {new[p][0]}" for p in (home, away)),
