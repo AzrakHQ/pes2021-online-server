@@ -168,10 +168,11 @@ def get_matchday_achievement_reward(svc, sess, req):
         r = db.execute("SELECT COALESCE(SUM(points), 0) FROM pes_matchday_match WHERE pid=? AND compe_id=? AND fetched=0",
                        (pid, COMPE_ID)).fetchone()
         db.execute("UPDATE pes_matchday_match SET fetched=1 WHERE pid=? AND compe_id=?", (pid, COMPE_ID))
-    # The points screen shows "Breakdown: Gameplay Review <gameplay_quality>, Squad Rating x<squad_rating>". Our
-    # points are win 3 / draw 1 / loss 0, so: the review is the points and the squad factor 1.
+    # The points screen shows "Breakdown: Gameplay Review <gameplay_quality/10>, Squad Rating x<squad_rating/10>"
+    # (whole numbers in tenths: 1 shows "0.1", live 2026-11-07). Our points are win 3 / draw 1 / loss 0, so the
+    # review is the points and the squad factor 1.0.
     pts = int(r[0])
-    return {"result": NOERR, "add_matchday_point": pts, "gameplay_quality": pts, "squad_rating": 1,
+    return {"result": NOERR, "add_matchday_point": pts, "gameplay_quality": pts * 10, "squad_rating": 10,
             "achievement_reward_list": []}
 
 

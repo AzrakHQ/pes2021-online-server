@@ -359,7 +359,8 @@ from key order. The nested maps are gate **blobs**.
   - screens: MatchResult → MenuRating → **MatchdayPointResultOnline** "Match Rewards: 1 Points" (Breakdown:
     Gameplay Review 0.0, Squad Rating ×0.0) → MenuMainMatchday with the side bars Home 1 / Away 1 and Event
     Points 1.
-  - The breakdown values come from a reply field not filled yet.
+  - The breakdown comes from GET_MATCHDAY_ACHIEVEMENT_REWARD `gameplay_quality` and `squad_rating`, whole numbers
+    in **tenths** (live: 1 → "0.1", "× 0.1"; 2.5 is stored as 2). The server sends points × 10 and 10 (× 1.0).
 
 ## Server changes, in order
 1. `pesmatch`: queue by `matching_type` (and compe_id for MATCHDAY). Keep the room's mode.

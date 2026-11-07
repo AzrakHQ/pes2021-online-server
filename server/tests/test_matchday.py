@@ -37,3 +37,10 @@ def test_event_info_join_and_points(svc):
         gm = unb(unb(pescmds._dispatch(svc, b, "CMD_GET_MATCHDAY_MAINMENU_INFO", {"compe_id": 1})["mainmenu_info"])["group_match_info"])
         assert (gm["total_matchday_point_group_a"], gm["total_matchday_point_group_b"], gm["matchday_point"]) == (3, 0, 0)
     asyncio.run(go())
+
+
+def test_points_screen_breakdown_in_tenths(svc):
+    """Match Rewards: Gameplay Review and Squad Rating are shown in tenths (1 -> "0.1", live 2026-11-07)."""
+    from types import SimpleNamespace
+    r = pescmds._dispatch(svc, SimpleNamespace(pes_pid=1), "CMD_GET_MATCHDAY_ACHIEVEMENT_REWARD", {"pid": 1})
+    assert r["squad_rating"] == 10 and r["gameplay_quality"] == r["add_matchday_point"] * 10
