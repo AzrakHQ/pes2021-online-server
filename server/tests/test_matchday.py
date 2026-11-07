@@ -60,3 +60,4 @@ def test_side_ranking(svc):
     assert [unb(e["pname"])["pid"] for e in ents] == [3, 1]                   # my side only, by points
     assert [e["rank"] for e in ents] == [1, 2] and ents[0]["matchday_point"] == 7 and ents[0]["team_id"] == 108
     assert unb(unb(ents[1]["pname"])["pname"])["name"] == "Ann"
+    assert pesmatchday.side_rank(svc, 1) == 2 and pesmatchday.side_rank(svc, 2) == 1 and pesmatchday.side_rank(svc, 9) == 0

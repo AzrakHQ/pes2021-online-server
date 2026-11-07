@@ -147,7 +147,8 @@ def get_matchday_mainmenu_info(svc, sess, req):
     tot = _totals(svc)
     pa, pb = tot.get("MATCHDAY_GROUP_A", (0, 0))[0], tot.get("MATCHDAY_GROUP_B", (0, 0))[0]
     ratio = round(100 * pa / (pa + pb)) if pa + pb else 50
-    gm = _pack({"matchday_point": e["points"], "matchday_rank": 0, "matchday_ranking_user_num": sum(n for _, n in tot.values()),
+    gm = _pack({"matchday_point": e["points"], "matchday_rank": side_rank(svc, pid),
+                "matchday_ranking_user_num": sum(n for _, n in tot.values()),
                 "matchday_ratio": ratio, "total_matchday_point_group_a": pa, "total_matchday_point_group_b": pb,
                 "pickup_match_score_group_a": 0, "pickup_match_score_group_b": 0, "is_hide_graph": "NO"})
     pu = _pack({"pickup_users_group_a": [], "pickup_user_group_a_num": 0, "pickup_users_group_b": [],
@@ -218,19 +219,28 @@ def record(svc, room):
                 log.info("MATCHDAY %s: %s (+%d)", me, res, POINTS[res])
 
 
+def _side_rows(svc, pid):
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        me = db.execute("SELECT grp FROM pes_matchday WHERE pid=? AND compe_id=?", (pid, COMPE_ID)).fetchone()
+        return db.execute("SELECT m.pid, m.team_id, m.points, m.matches, p.name FROM pes_matchday m JOIN pes_players p "
+                          "ON p.pid=m.pid WHERE m.compe_id=? AND m.grp=? ORDER BY m.points DESC, m.matches ASC, m.pid",
+                          (COMPE_ID, me[0] if me else "")).fetchall()
+
+
+def side_rank(svc, pid):
+    """The player's place in their side (0 = not entered: the game shows "-")."""
+    return next((i for i, r in enumerate(_side_rows(svc, pid), 1) if r[0] == pid), 0)
+
+
 @cmd("CMD_GET_MATCHDAY_RANKING")
 def get_matchday_ranking(svc, sess, req):
     """Side Ranking: the players of the requester's side, by Matchday points (then fewer matches). Each entry is a
     blob {pname: blob{pid, pname: blob{name, ...}}, entry_name, team_id, rank, matchday_point, recode_date}
     (layout checked on the game's parser, 2026-11-07)."""
     pid = pesmatch._pid(sess)
-    db = _db(svc)
-    with svc.accounts.lock, db:
-        _setup(db)
-        me = db.execute("SELECT grp FROM pes_matchday WHERE pid=? AND compe_id=?", (pid, COMPE_ID)).fetchone()
-        rows = db.execute("SELECT m.pid, m.team_id, m.points, m.matches, p.name FROM pes_matchday m JOIN pes_players p "
-                          "ON p.pid=m.pid WHERE m.compe_id=? AND m.grp=? ORDER BY m.points DESC, m.matches ASC, m.pid",
-                          (COMPE_ID, me[0] if me else ""), ).fetchall()
+    rows = _side_rows(svc, pid)
     try:
         start, n = max(0, int(req.get("start_index") or 0)), max(1, min(100, int(req.get("view_num") or 100)))
     except (TypeError, ValueError):
