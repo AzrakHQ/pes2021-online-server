@@ -44,12 +44,14 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 from . import pesreplay                     # match replays: /r/<match_id>/<N>.enc
                 parts = route.split("/")
                 f = pesreplay.chunk_file(service, parts[2], parts[3]) if len(parts) == 4 else None
-                if f is None:
-                    status, out, ctype = "404 Not Found", b"not found", "text/plain"
-                else:
+                try:
+                    if f is None:
+                        raise OSError("no such chunk")
                     with open(f, "rb") as fh:
                         out = fh.read()
                     ctype = "application/octet-stream"
+                except OSError:                              # (also: pruned between the check and the read)
+                    status, out, ctype = "404 Not Found", b"not found", "text/plain"
             elif method in ("GET", "HEAD") and route.startswith("/liveupdate/"):
                 from . import liveupdate
                 f = liveupdate.file_for(service, route[len("/liveupdate/"):])
@@ -572,6 +574,9 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         name = pescmds.delete_player(service, pid)
         if name is None:
             return "404 Not Found", b'{"error":"That player is already gone."}', "application/json"
+        sess = service.online.get(pid)
+        if sess is not None:
+            sess.kicked = True          # closing it below is not an early exit (no forfeit, no courtesy mark)
         announce.forget(service, pid)
         from . import pescoop, pesmanner, adminextra
         pesmanner.forget(service, pid)
@@ -582,7 +587,9 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         pesavatar.forget(service, pid)
         pesprofile.forget(service, pid)
         pesblock.forget(service, pid)
-        sess = service.online.get(pid)
+        from . import pesdivisions, pesmatchday
+        pesdivisions.forget(service, pid)
+        pesmatchday.forget(service, pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)
         events.feed(service, f"{name} was deleted by the admin", "warn")

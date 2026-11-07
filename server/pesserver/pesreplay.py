@@ -168,7 +168,12 @@ def observe(svc, sess, msgid, req):
     if not _live or msgid not in ("CMD_CHANGE_GAMEPHASE", "CMD_LEAVE_GAME", "CMD_SEND_ABNORMALEND", "CMD_LEAVE_ROOM"):
         return
     pid = pesmatch._pid(sess)
-    mid = next((m for m, st in _live.items() if st["uploader"] == pid), None)
+    rid, _room = pesmatch._room_of(svc, pid)
+    if msgid == "CMD_SEND_ABNORMALEND":
+        # either player's early end ends the match: close the recording of that room, whoever records it
+        mid = next((m for m, st in _live.items() if st.get("rid") == rid and pid in (st["home"], st["away"])), None)
+    else:
+        mid = next((m for m, st in _live.items() if st["uploader"] == pid and st.get("rid") == rid), None)
     if mid is None:
         return
     if msgid == "CMD_CHANGE_GAMEPHASE":
@@ -180,6 +185,12 @@ def observe(svc, sess, msgid, req):
                 close(svc, mid, "full time")
         return
     close(svc, mid, msgid[4:].lower())
+
+
+def disconnected(svc, pid):
+    """The player's connection closed: close every recording they were part of (a crash, a closed game)."""
+    for mid in [m for m, st in list(_live.items()) if pid in (st["uploader"], st["home"], st["away"])]:
+        close(svc, mid, "disconnect")
 
 
 def chunk_file(svc, mid, name):

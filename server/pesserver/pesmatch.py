@@ -517,6 +517,27 @@ def _elo(ra, rb, score):
     return round(ra + ELO_K * (score - 1 / (1 + 10 ** ((rb - ra) / 400))))
 
 
+def _forfeit_row(svc, rid, room, quitter, hs, as_, insert_if_missing=False):
+    """Make the saved result (pes_matches: Last 20 results, rankings, the admin table) say what the forfeit says."""
+    from . import events
+    from .pescmds import _db
+    db = _db(svc)
+    home, away = room["owner"], next(p for p in room["members"] if p != room["owner"])
+    try:
+        events._st(svc)                      # (creates the table and its newer columns)
+        with svc.accounts.lock, db:
+            cur = db.execute("UPDATE pes_matches SET home_score=?, away_score=?, reason='FORFEIT', left_pid=? "
+                             "WHERE id=(SELECT MAX(id) FROM pes_matches WHERE room=? AND home_pid=? AND away_pid=? "
+                             "AND ended >= ?)", (hs, as_, quitter, rid, home, away, room.get("t", 0)))
+            if cur.rowcount == 0 and insert_if_missing:
+                db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name,"
+                           " home_score, away_score, reason, left_pid) VALUES (?,?,?,?,?,?,?,?,?,'FORFEIT',?)",
+                           (rid, room.get("t", time.time()), time.time(), home, away, events.name_of(svc, home),
+                            events.name_of(svc, away), hs, as_, quitter))
+    except Exception:  # noqa: BLE001 - the forfeit itself already counted
+        log.exception("saving the forfeit result")
+
+
 def forfeit(svc, rid, quitter):
     """A match after kick-off that one player left early (pesmanner decides who): the quitter loses and the other
     player wins, 3-0 unless the winner was already ahead. Ratings, Online Divisions and Matchday count it, as if it
@@ -552,6 +573,15 @@ def forfeit(svc, rid, quitter):
     elif room.get("mode") == "MATCHDAY":
         from . import pesmatchday
         pesmatchday.record(svc, scored)
+    hs = sum(1 for _, g in goals if g == "HOME")
+    as_ = sum(1 for _, g in goals if g == "AWAY")
+    room["forfeit_score"] = (hs, as_)
+    _forfeit_row(svc, rid, room, quitter, hs, as_)
+    try:                                       # the games' own SEND_GAME_RESULT may still arrive: fix it up after
+        import asyncio
+        asyncio.get_running_loop().call_later(45, _forfeit_row, svc, rid, room, quitter, hs, as_, True)
+    except RuntimeError:
+        pass
     log.info("FORFEIT room %s: pid %s left early, pid %s wins (%s)", rid, quitter, winner,
              {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
     events.feed(svc, f"{events.name_of(svc, quitter)} left the match early: {events.name_of(svc, winner)} wins", "result")
@@ -562,6 +592,8 @@ def _verdict(svc, rid, room):
     """The WATCH_GAMEADDPOINT body for a finished match; ratings are updated once per room."""
     if "verdict" in room:
         return room["verdict"]
+    if room.get("quit_pending"):
+        return None                          # a player left early: the forfeit decides this match (pesmanner)
     if "END" not in room.get("phase", {}).values() or len(room["members"]) != 2:
         return None
     from . import events

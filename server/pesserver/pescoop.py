@@ -107,6 +107,9 @@ def set_coop_reject(svc, sess, req):
     with svc.accounts.lock, db:
         _setup(db)
         for t in add:
+            n = db.execute("SELECT COUNT(*) FROM pes_coop_reject WHERE pid=?", (pid,)).fetchone()[0]
+            if n >= 400 or not db.execute("SELECT 1 FROM pes_players WHERE pid=?", (t,)).fetchone():
+                continue
             db.execute("INSERT OR IGNORE INTO pes_coop_reject (pid, target) VALUES (?,?)", (pid, t))
         for t in drop:
             db.execute("DELETE FROM pes_coop_reject WHERE pid=? AND target=?", (pid, t))

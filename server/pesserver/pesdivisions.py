@@ -164,3 +164,12 @@ def record(svc, room):
                            "best_streak=MAX(best_streak, CASE WHEN ?='WIN' THEN streak+1 ELSE 0 END) WHERE pid=?",
                            (res, res, me))
                 log.info("DIVISION %s: %s %d-%d vs %s (+%d)", me, res, score["HOME"], score["AWAY"], other, POINTS[res])
+
+
+def forget(svc, pid):
+    """A deleted player: their records go, so a new player who gets the same number starts clean."""
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        db.execute("DELETE FROM pes_division WHERE pid=?", (pid,))
+        db.execute("DELETE FROM pes_division_match WHERE pid=?", (pid,))

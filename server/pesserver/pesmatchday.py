@@ -255,3 +255,12 @@ def get_matchday_ranking(svc, sess, req):
         lst.append(_pack({"pname": _pack({"pid": p, "pname": pname}), "entry_name": "", "team_id": int(team or 0),
                           "rank": rank, "matchday_point": int(pts or 0), "recode_date": now}))
     return {"result": NOERR, "rank_list": lst, "list_num": len(lst), "list_max": len(rows), "update_date": now}
+
+
+def forget(svc, pid):
+    """A deleted player: their records go, so a new player who gets the same number starts clean."""
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        db.execute("DELETE FROM pes_matchday WHERE pid=?", (pid,))
+        db.execute("DELETE FROM pes_matchday_match WHERE pid=?", (pid,))

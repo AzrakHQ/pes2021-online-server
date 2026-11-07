@@ -236,7 +236,7 @@ def _inbox(st, pid, now=None):
 
 @cmd("CMD_GET_PRIVATEINFOTITLELIST")
 def private_info_titles(svc, sess, req):
-    pid = req.get("pid") or getattr(sess, "pes_pid", None)
+    pid = getattr(sess, "pes_pid", None) or req.get("pid")      # the session's own player first
     with _lock:
         box = _inbox(_load(svc), pid)
     if not box:
@@ -252,7 +252,7 @@ def info_body(svc, sess, req):
         st = _load(svc)
         n = st["news"]
         if str(req.get("is_private", "")).upper() == "YES" or not n or aid != n["id"]:
-            pid = req.get("pid") or getattr(sess, "pes_pid", None)
+            pid = getattr(sess, "pes_pid", None) or req.get("pid")      # the session's own player first
             m = next((m for m in _inbox(st, pid) if m["id"] == aid), None)
             if m:
                 first = not m.get("seen")
@@ -288,7 +288,7 @@ def _body_reply(n, over=None):
 
 @cmd("CMD_GET_URGENT_ANNOUNCEMENT")
 def urgent(svc, sess, req):
-    pid = req.get("pid") or getattr(sess, "pes_pid", None)
+    pid = getattr(sess, "pes_pid", None) or req.get("pid")      # the session's own player first
     with _lock:
         st = _load(svc)
         msg = st["personal"].pop(str(pid), None)
@@ -319,7 +319,7 @@ REPLAY_INTRO = "Every online match is recorded; the newest 20 are kept."
 @cmd("CMD_GET_LOBBYINFO")
 def lobby_info(svc, sess, req):
     """The lobby's notice window, once per player and lobby (a first-visit how-it-works note)."""
-    pid = req.get("pid") or getattr(sess, "pes_pid", None)
+    pid = getattr(sess, "pes_pid", None) or req.get("pid")      # the session's own player first
     if not isinstance(pid, int):
         return {"result": NOERR, "has_info": "NO"}
     replays = getattr(sess, "pes_lobby_type", "FREE") == "PESLEAGUE"      # the Match Replays lobby (pesreplay)

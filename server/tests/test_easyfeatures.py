@@ -105,6 +105,7 @@ def test_coop_block_list(svc):
 
 def test_blocked_players_are_not_paired_in_coop(svc):
     from pesserver import pescoop
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
     a, b = Sess(1), Sess(2)
     for s in (a, b):
         s.mod_features = ("coop1",)
@@ -460,3 +461,52 @@ def test_often_used_teams(svc):
     r = pescmds.dispatch(svc, a, "CMD_GET_OFTEN_USED_TEAM_LIST", {"pid": 1})
     assert r["used_team_id_list"] == [101, 45] and r["last_used_team_id"] == 101
     assert pescmds.validate("CMD_GET_OFTEN_USED_TEAM_LIST", r)
+
+
+def test_review_fixes(svc):
+    """Fixes from the 2026-11-08 review: block list rules, session pid first, forfeit in the saved result,
+    no normal verdict while a forfeit is pending, deleted players leave nothing behind."""
+    from pesserver import pesblock, pesdivisions
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
+    a, b = Sess(1), Sess(2)
+    svc.online.update({1: a, 2: b})
+    a.pes_username, b.pes_username = "u1", "u2"
+    pescmds.dispatch(svc, a, "CMD_SET_MATCHREJECTPID", {"pid": 1, "reject_pid": 999, "is_reject": "YES"})
+    assert pesblock.rejects(svc, 1) == []                        # nobody called 999
+    announce.tell(svc, 2, "Private", "for Bob only")
+    r = pescmds.dispatch(svc, a, "CMD_GET_PRIVATEINFOTITLELIST", {"pid": 2})   # Ann asks for Bob's list
+    assert r == {"result": "NOERR"}
+    # a quit: the forfeit decides, a normal verdict does not sneak in first
+    lv = _live_match(svc, 9, a, b)
+    pescmds.dispatch(svc, b, "CMD_SEND_ABNORMALEND", {"reason": "GIVEUP"})
+    room = pesmatch._state(svc)["rooms"][9]
+    room["phase"] = {1: "END", 2: "1ST"}
+    assert pesmatch._verdict(svc, 9, room) is None
+    events._st(svc)
+    db = svc.accounts.db
+    with svc.accounts.lock, db:
+        db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name, home_score,"
+                   " away_score, reason) VALUES (9, 0, ?, 1, 2, 'Ann', 'Bob', 0, 1, 'GIVEUP')", (__import__("time").time(),))
+    lv["forfeit_decide"]()
+    row = db.execute("SELECT home_score, away_score, reason, left_pid FROM pes_matches WHERE room=9").fetchone()
+    assert tuple(row) == (3, 0, "FORFEIT", 2)
+    # delete Bob: nothing of his stays behind
+    pescmds.delete_player(svc, 2)
+    pesdivisions.forget(svc, 2)
+    assert db.execute("SELECT COUNT(*) FROM pes_division_match WHERE pid=2").fetchone()[0] == 0
+    assert db.execute("SELECT COUNT(*) FROM pes_matches WHERE left_pid=2").fetchone()[0] == 0
+
+
+def test_replay_closed_when_the_recorder_drops(svc):
+    from pesserver import pesreplay
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
+    a, b = Sess(1), Sess(2)
+    a.pes_username, b.pes_username = "u1", "u2"
+    pesmatch._state(svc)["rooms"][4] = {"owner": 1, "members": [1, 2], "t": 1793900000}
+    mid = pescmds.dispatch(svc, a, "CMD_GET_MATCHID", {})["match_id"]
+    pescmds.dispatch(svc, a, "CMD_START_SEND_GAME_SEQUENCE_DATA", {"pid": 1})
+    assert mid in pesreplay._live
+    pesreplay.disconnected(svc, 1)
+    assert mid not in pesreplay._live
+    meta = dict(pesreplay.recordings(svc))[mid]
+    assert meta["closed"] is True

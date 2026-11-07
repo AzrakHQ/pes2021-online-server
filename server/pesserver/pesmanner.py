@@ -91,9 +91,15 @@ def _schedule(svc, lv):
     if lv.get("forfeit_scheduled"):
         return
     lv["forfeit_scheduled"] = True
+    from . import pesmatch
+    room = pesmatch._state(svc)["rooms"].get(lv.get("room"))
+    if room is not None:
+        room["quit_pending"] = True          # no normal verdict while the forfeit is being decided
 
     def decide():
         marked = _marked(lv)
+        if room is not None:
+            room.pop("quit_pending", None)
         if len(marked) == 1:
             from . import pesmatch
             try:
@@ -162,7 +168,7 @@ def warning(svc, pid):
 
 @cmd("CMD_GET_MANNER_WARN")
 def get_manner_warn(svc, sess, req):
-    pid = req.get("pid") or getattr(sess, "pes_pid", None)
+    pid = getattr(sess, "pes_pid", None) or req.get("pid")      # the session's own player first
     if not isinstance(pid, int):
         return {"result": NOERR}
     kind = warning(svc, pid)

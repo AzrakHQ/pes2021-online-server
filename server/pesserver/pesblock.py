@@ -12,6 +12,7 @@ import msgpack
 from .pescmds import NOERR, cmd, _db
 
 log = logging.getLogger("pesserver.block")
+MAX = 400                         # = GET_SERVER_ENV matchrejectpid_max
 
 
 def _setup(db):
@@ -55,6 +56,10 @@ def set_matchrejectpid(svc, sess, req):
     with svc.accounts.lock, db:
         _setup(db)
         if on:
+            exists = db.execute("SELECT 1 FROM pes_players WHERE pid=?", (target,)).fetchone()
+            n = db.execute("SELECT COUNT(*) FROM pes_match_reject WHERE pid=?", (pid,)).fetchone()[0]
+            if not exists or n >= MAX:
+                return {"result": NOERR}                       # (the game itself stops at MAX)
             db.execute("INSERT OR IGNORE INTO pes_match_reject (pid, target) VALUES (?,?)", (pid, target))
         else:
             db.execute("DELETE FROM pes_match_reject WHERE pid=? AND target=?", (pid, target))

@@ -117,6 +117,12 @@ async def serve(service, codec_factory, host="0.0.0.0", port=10000, idle=300):
                 pesrooms.disconnected(service, sess)
             except Exception:  # noqa: BLE001
                 log.exception("pesrooms.disconnected")
+            try:
+                from . import pesreplay
+                if getattr(sess, "pes_pid", None) is not None and service.online.get(sess.pes_pid) is sess:
+                    pesreplay.disconnected(service, sess.pes_pid)
+            except Exception:  # noqa: BLE001
+                log.exception("pesreplay.disconnected")
             service.disconnected(sess)
             writer.close()
             log.info("disconnect %s", peer)

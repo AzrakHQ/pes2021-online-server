@@ -171,7 +171,7 @@ def delete_player(svc, pid):
             return None
         db.execute("DELETE FROM pes_players WHERE pid=?", (pid,))
         try:
-            for col in ("home_pid", "away_pid"):
+            for col in ("home_pid", "away_pid", "left_pid"):
                 db.execute(f"UPDATE pes_matches SET {col}=NULL WHERE {col}=?", (pid,))
         except sqlite3.OperationalError:                # no matches table yet
             pass
