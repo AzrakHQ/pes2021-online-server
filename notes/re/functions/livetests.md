@@ -586,3 +586,12 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
   - handlers use the session's pid before a pid in the request (private messages, courtesy warnings);
   - block lists only take real players, at most 400;
   - a replay chunk pruned mid-download is a 404.
+- **Friendly Match Lobby, a whole match after the 2026-11-07 changes** (copy 1 owner, copy 2 joins, unattended):
+  - Room created and joined by keys (lobby2/rooms.md steps). Start Match on both → LobbyMatchMenu → kick-off
+    00:26:50 → END 00:38:42.
+  - Verdict to both at END → SEND_GAME_RESULT `NORMAL_END` / `NOERR` from both, no SEND_ABNORMALEND →
+    LEAVE_GAME from both → WATCH_ROOMSTATE WAITING → both back in the room with "**1 Match(es)**", Wins 0–0
+    (a draw), ready for a rematch.
+  - The replay was recorded (195 chunks, closed by the game's end item). Before 2026-11-07 the second player always
+    got "This match will be abandoned…" here.
+  - The owner's first Start Match press was lost (the room screen was still loading); a second press worked.
