@@ -132,6 +132,10 @@ S = msgpack str, N = int, B = nested msgpack blob, [B] = array of blobs. Reply f
 ### CMD_GET_LOBBYINFO — lobby notice text
 - Request `lobby_id` N. Reply `has_info` S (YES/NO), `title` S, `sentence_info` S, `sentence_intro` S.
 - Server: `{has_info:"NO"}` (or YES + server MOTD). [static]
+- **Live 2026-11-07:** has_info YES opens screen Online/Lobby/LobbyLobbyInfo, a `menuutility::OnlineInformationNotice`
+  window. It shows `title` as the heading, then `sentence_info` and `sentence_intro` as two paragraphs (`\n`
+  works), with an OK button. A (vtable +0x188 = 0x140ec5ff0) closes it, and the room list follows. Escape does not
+  close it. The server shows a short how-it-works note once per player (announce.py).
 
 ### CMD_GET_BLOCKLIST — list blocks in the joined lobby (**must implement**)
 - Request: none. Reply (0x141d274c0): `count` N, `bklist` [B{`name` S, `player_num` N, `max_player_num` N, `block_id` N}]. Empty → "nodata".

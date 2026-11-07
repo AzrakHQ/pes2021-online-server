@@ -1,0 +1,5 @@
+{"name": "lobby-welcome", "inst": 1,
+ "variants": [{"name": "first"}, {"name": "second"}],
+ "steps": [{"home": true}, {"go": "lobby"}, {"reply": "CMD_GET_LOBBYINFO", "ok": true, "timeout": 60},
+           {"sleep": 3}, {"screen": true}, {"shot": "notice"}, {"ok": true, "optional": true},
+           {"wait": "LobbyRoomList", "timeout": 30, "ok": false}]}

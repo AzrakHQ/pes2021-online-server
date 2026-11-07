@@ -216,6 +216,15 @@ Watchdog arms: OUTPLAY_LONG(long_outofplay), LOAD_TIMEOUT(init_not_end), CMD_LAC
   LOAD_TIMEOUT/QVHE1459 and /MMGC_0002_0_262143 (×2 each), GAMERELAY/EYRH1530, DEGRADE_SC/EYRH1530.
 - Reply: result only; through the game queue only ERR_CHEAT matters. Documented: ERR_DATABASE, ERR_NOTINROOM,
   ERR_ROOMNOTFOUND.
+- **Live 2026-11-07** (two copies, Quick Match, no input after kick-off):
+  - **Both** games sent `SEND_ABNORMALEND {reason NO_OPERATION, error_code VIXT2253_0x1a000000}` 39 s after the
+    1ST phase, 5 ms apart.
+  - Both then sent REQ_GAMEADDPOINT 10 s later and SEND_GAME_RESULT {game_phase 1ST, error_code VIXT2253}.
+  - With one idle player only that player reports NO_OPERATION, and the other reports DISCONN_SC (livetests.md).
+  - The courtesy rating (pesmanner.py) marks every player whose own game reports GIVEUP/EXIT/NO_OPERATION. A
+    connection that drops after any early-end report doesn't count.
+  - Pausing from the keyboard (Escape, BackSpace, P, Tab) did nothing at the kick-off of an online match, so the
+    pause-menu quit (GIVEUP/EXIT) is still unconfirmed live.
 - **Server should:** reply NOERR; store {room, pid, reason, error_code, phase, gtimer}; mark the match abnormal and,
   if the match was running, treat the *other* player as the one who stayed (DISCONN_* from the reporter usually
   means the peer left). Ignore DISCONN_P2P/GNCX_0003 that arrives after both sent CHANGE_GAMEPHASE END.

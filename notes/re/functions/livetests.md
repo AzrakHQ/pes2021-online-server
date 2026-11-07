@@ -471,3 +471,24 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
     duplicate).
 - **Tools:** pesflow now closes both message windows like dialogs (vtable +0x188). Escape is the game's back
   key once no window is open. `scenario.py` got `relaunch`, `"since": "variant"` and `reply … "ok": true`.
+
+## 2026-11-07 (later): Divisions season end, lobby notice, two-copy Quick Match, idle end
+
+- **Side-by-side test server** (tools/probesession.py, default): the host's own server keeps running.
+  - The test server uses ports 30000 (gate), 28080 (web), 28443, 23478, 25349/23479/25350 (TURN), 27600, and its
+    own data folder `<game folder>/testdata` (own players, identity and admin password).
+  - netshim (`NETSHIM_PORTMAP`) moves the game's fixed ports there.
+  - Only the game's STUN probe (UDP sendto) still reaches port 3478 of the host's server. It is harmless: it only
+    tells the game its own address.
+- **Divisions season end:** the game picks promotion / relegation / stay itself, from the points and thresholds of
+  the reply before FINISH_SEASON. The rules match the server's, and FINISH_SEASON comes before the is_season_end
+  YES request. Details in modes2.md.
+- **Lobby notice** (GET_LOBBYINFO has_info YES): a notice window with title and two paragraphs (rooms.md).
+- **Quick Match without key guessing:**
+  - `pesflow go quick` → (dialogs) → QuickTeamSelect.
+  - Return ×2 (team, then confirm) → QuickMatchSettings → Return → QuickSearching (START_MATCHING). The server
+    paired the two copies at once.
+  - Online/Quick/QuickMatchMenu (Kick Off highlighted) → Return on both → GAMELOAD → ENTRY → 1ST, about 50 s.
+  - Vtable +0x188 does nothing on the team select (base no-op 0x140e3eec0), so keys stay for these three screens.
+- **Idle end:** both copies idle → both report NO_OPERATION 39 s after kick-off (match.md). Closing copy 2's game
+  afterwards was not counted against it (pesmanner fixed so every self-reported idle counts and later drops don't).

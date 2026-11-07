@@ -68,29 +68,38 @@ def rating(svc, pid):
 
 
 # ---- fed by events.py (it already follows every running match) -------------------------------------
+def _marked(lv):
+    return lv.setdefault("manner_marked", set())
+
+
 def match_end(svc, lv):
-    """Both games reached full time (CHANGE_GAMEPHASE END): a complete match for both."""
+    """Both games reached full time (CHANGE_GAMEPHASE END): a complete match for whoever wasn't marked."""
     if lv.get("manner_done") or not lv.get("kickoff"):
         return
     lv["manner_done"] = True
     for pid in (lv.get("home"), lv.get("away")):
-        _add(svc, pid, False)
+        if pid not in _marked(lv):
+            _add(svc, pid, False)
 
 
 def abnormal_end(svc, lv, pid, reason):
-    """CMD_SEND_ABNORMALEND from pid's own game while the match was running."""
+    """CMD_SEND_ABNORMALEND from pid's own game while the match was running. Every player whose own game reports a
+    self-caused end is marked (live 2026-11-07: with both players idle, both games report NO_OPERATION within a
+    few ms). After any such report the match is over, so a connection that drops later doesn't count."""
     if lv.get("manner_done") or not lv.get("kickoff") or lv.get("end_seen"):
         return
-    if str(reason).upper() in SELF_REASONS:
-        lv["manner_done"] = True
+    lv["abnormal"] = True
+    if str(reason).upper() in SELF_REASONS and pid not in _marked(lv):
+        _marked(lv).add(pid)
         _add(svc, pid, True, str(reason).upper())
 
 
 def dropped(svc, lv, pid):
-    """pid's connection to the server closed while the match was running."""
-    if lv.get("manner_done") or not lv.get("kickoff") or lv.get("end_seen"):
+    """pid's connection to the server closed while the match was still running (no early-end report yet)."""
+    if lv.get("manner_done") or not lv.get("kickoff") or lv.get("end_seen") or lv.get("abnormal"):
         return
     lv["manner_done"] = True
+    _marked(lv).add(pid)
     _add(svc, pid, True, "DISCONNECTED")
 
 

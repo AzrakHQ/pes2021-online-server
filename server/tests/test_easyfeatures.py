@@ -150,3 +150,29 @@ def test_lobby_welcome_once_per_player(svc):
     assert pescmds.dispatch(svc, b, "CMD_GET_LOBBYINFO", {"lobby_id": 1})["has_info"] == "YES"
     announce.forget(svc, 1)                      # a deleted player's number starts clean
     assert pescmds.dispatch(svc, a, "CMD_GET_LOBBYINFO", {"lobby_id": 1})["has_info"] == "YES"
+
+
+def test_both_idle_both_marked_and_a_later_drop_does_not_count(svc):
+    a, b = Sess(1), Sess(2)
+    svc.online.update({1: a, 2: b})
+    b.connected_at = 1
+
+    def both_idle():                   # live 2026-11-07: both games report NO_OPERATION within 5 ms
+        pescmds.dispatch(svc, b, "CMD_SEND_ABNORMALEND", {"reason": "NO_OPERATION"})
+        pescmds.dispatch(svc, a, "CMD_SEND_ABNORMALEND", {"reason": "NO_OPERATION"})
+        events.disconnected(svc, b)    # then one of them closes the game
+    _match(svc, 1, 1, 2, a, b, both_idle)
+    assert pesmanner.rating(svc, 1)["quits"] == 1 and pesmanner.rating(svc, 2)["quits"] == 1
+    assert pesmanner.rating(svc, 2)["matches"] == 1          # not counted twice
+
+
+def test_opponent_link_lost_then_drop_is_not_blamed(svc):
+    a, b = Sess(1), Sess(2)
+    svc.online.update({1: a, 2: b})
+    b.connected_at = 1
+
+    def link_lost():                   # a network problem: both see the link go, then one closes the game
+        pescmds.dispatch(svc, a, "CMD_SEND_ABNORMALEND", {"reason": "DISCONN_P2P"})
+        events.disconnected(svc, b)
+    _match(svc, 1, 1, 2, a, b, link_lost)
+    assert pesmanner.rating(svc, 1)["quits"] == 0 and pesmanner.rating(svc, 2)["quits"] == 0

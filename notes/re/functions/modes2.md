@@ -135,6 +135,27 @@ rating-screen groups {13,19,28,29}, 0x141379262) → ProcWarningManner → ProcC
   (`0_promotion` → MenuDivisionPromotionRelegation, or `1_normal`) → ProcPostSeasonEnd → MenuMain.
   Which reply field picks promotion vs normal was not traced (menu::MenuOnlineSeasonResult vtable 0x14277f658)
   [needs live test]. FINISH_SEASON errors: ERR_DATABASE → generic DBMS_0013.
+- **Season end, live 2026-11-07** (scenarios/divisions_season.json, divisions_screens.json,
+  divisions_boundaries.json; one copy, GET_DIVISION_INFO patched):
+  - **Order:** GET_DIVISION_INFO {is_season_end NO} twice → **CMD_FINISH_SEASON** → GET_DIVISION_INFO
+    {is_season_end YES} → Online/DivMatch/MenuSeasonResults. FINISH_SEASON comes *before* the YES request (the
+    note above had it the other way round).
+  - **The game decides the outcome itself.** It uses the season's points (sum of history division_point) and the
+    thresholds of the reply from before FINISH_SEASON. What the server sends after FINISH_SEASON makes no
+    difference: the screens were the same with the YES reply saying D10, D9 or D8.
+    - Points ≥ promotion_point → MenuDivisionPromotionRelegation: "Congratulations! You have been promoted to
+      Division N". With points ≥ doublerank_promotion_point it skips a division (30 points in D10 → "Division 8").
+    - Points < demotion_point → MenuDivisionNormalDialog "Unfortunately, you have been relegated to Division N+1."
+      (D9: 6 points relegated, 7 stayed. D5 with 0 points: "relegated to Division 6".)
+    - Otherwise "You will be in Division 9 again next season." (D9: 7 and 14 points stayed, 15 promoted).
+  - These are the same rules as pesdivisions.FINISH_SEASON (≥ double → up 2, ≥ promotion → up 1, < demotion →
+    down 1), so the game and the server agree.
+  - **Season Results screen:** User Information (name, division icon, Matches = number of history entries, W/D/L
+    and win rate from `match_record`), then Season Points (points needed for promotion, points earned).
+    `match_record` therefore means this season, not the career (server fixed 2026-11-07).
+  - Then the main screen shows the new season's dialog from the next reply: "Division 10 / This is the first of 10
+    games this season. / You will need to obtain at least 0 Season Points to stay in the division. / Get 12 or
+    more Season Points to earn a promotion."
 
 ### A4. Minimal implementation spec (one season that never ends by date, 10 divisions)
 The client has no season calendar. The "season" is just `other_match_num` counting down [static]. So:
