@@ -242,6 +242,11 @@ thread that runs your gcalls.
 ## Q4b. More main-menu item ids [live 2026-11-07]
 - **0x19 = Online Information**: TopMenu → LoginFlow → Online/Information/InformationMenuList ("Online
   Information": date + title of news and private-list items; A opens the body).
+- **0x1a = Online Stats** (TopMenu → LoginFlow → Online/Information/InformationSubMenu): User Details, Overall
+  Ranked Match Rankings, Last 20 results, eFootball League results.
+- **0x17 = Online Tournament / PES League** (`tournament`): PesLgProcGetMainMenuInfo → PesLgCompeList. With
+  pesreplay's "Match Replays" competition this is the way to the replay lobby.
+- Keyboard: the pad's X button is the **a** key (e.g. "X Match List" in the PES League lobby).
 - **0x21 = Online Settings**: TopMenu/TopMenuOnlineSettingSub (Edit Profile, Match Block List, Edit Text Chat
   Presets, Auto-login settings, Link KONAMI ID).
 - Posting a TopMenuNew event by name (`0x140e42e60(menu, 0, "18_info")`) goes through TopMenu/TopMenuModeInit,

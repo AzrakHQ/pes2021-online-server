@@ -503,3 +503,14 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
 - **Profiles of others + block list:** Match Block List lists the blocked player. User Details shows their
   team, player and comment and the **Courtesy Rating** from the server's rating. Number of Disconnections
   ignores every value tried. `manner` sent as a string crashed the game; it must be a blob (menus.md).
+- **Match replays through the real server (pesreplay.py):**
+  - A Quick Match between the two copies was recorded: 26 chunks, 132 KB, closed by the idle end.
+  - Online Tournament → "Match Replays" card → Yes → team (France) → Yes → PES League lobby (Match Room List,
+    "X Match List" = the **a** key).
+  - The Match List showed "probe1 0 - 0 robe2", Arsenal v Arsenal (from SET_GAMETEAM). A → Spectate Match → the
+    game fetched all 26 `/r/<match_id>/N.enc` → the stadium (Emirates) → the replay.
+  - At its end the game showed "An unexpected problem has occurred while communicating with the PES 2021 server.
+    CODE:GNCX_0003", probably because the recorded match itself ended abnormally (idle). A replay of a match that
+    reaches full time has not been watched yet.
+- **Match history:** "Last 20 results" lists our stored matches. Participating Users → opponent → Add to Match
+  Block List works (menus.md).

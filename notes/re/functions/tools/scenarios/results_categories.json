@@ -1,0 +1,1022 @@
+{
+ "name": "results-categories",
+ "inst": 1,
+ "variants": [
+  {
+   "name": "a",
+   "patch": {
+    "patch": {
+     "CMD_GET_GAMERESULTS": {
+      "set": {
+       "rlist": {
+        "__blobs__": [
+         {
+          "date": 1794060000,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "FREE",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "FREE",
+          "gameend_reason": "NORMAL_END"
+         },
+         {
+          "date": 1794060060,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "MULTI",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "MULTI",
+          "gameend_reason": "NORMAL_END"
+         },
+         {
+          "date": 1794060120,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "OC_RANKING",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "OC_RANKING",
+          "gameend_reason": "NORMAL_END"
+         },
+         {
+          "date": 1794060180,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "ONLINE_COOP",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "ONLINE_COOP",
+          "gameend_reason": "NORMAL_END"
+         }
+        ]
+       },
+       "rlist_num": 4
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "b",
+   "patch": {
+    "patch": {
+     "CMD_GET_GAMERESULTS": {
+      "set": {
+       "rlist": {
+        "__blobs__": [
+         {
+          "date": 1794060000,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "PES_LEAGUE",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "PES_LEAGUE",
+          "gameend_reason": "NORMAL_END"
+         },
+         {
+          "date": 1794060060,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "RANK",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "RANK",
+          "gameend_reason": "NORMAL_END"
+         },
+         {
+          "date": 1794060120,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "QUICK_MATCH",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "QUICK_MATCH",
+          "gameend_reason": "NORMAL_END"
+         },
+         {
+          "date": 1794060180,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "PESLEAGUE_LO",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "PESLEAGUE_LOBBY",
+          "gameend_reason": "NORMAL_END"
+         }
+        ]
+       },
+       "rlist_num": 4
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "c",
+   "patch": {
+    "patch": {
+     "CMD_GET_GAMERESULTS": {
+      "set": {
+       "rlist": {
+        "__blobs__": [
+         {
+          "date": 1794060000,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "OC_MULTI",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "OC_MULTI",
+          "gameend_reason": "NORMAL_END"
+         },
+         {
+          "date": 1794060060,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "ONLINE_VSCOM",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "ONLINE_VSCOM_COOP",
+          "gameend_reason": "NORMAL_END"
+         },
+         {
+          "date": 1794060120,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "MYCLUB_FREE",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "MYCLUB_FREE",
+          "gameend_reason": "NORMAL_END"
+         },
+         {
+          "date": 1794060180,
+          "ex_type": "",
+          "pk_flag": "NO",
+          "no_match": "NO",
+          "player": {
+           "__blobs__": [
+            {
+             "pid": 1,
+             "pname": {
+              "__blob__": {
+               "name": "MYCLUB_RANK",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "HOME",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            },
+            {
+             "pid": 2,
+             "pname": {
+              "__blob__": {
+               "name": "robe2",
+               "xuid_one": "",
+               "is_deleted": "NO",
+               "psn_user_id": {
+                "__blob__": {
+                 "account_id": 0,
+                 "online_id": "",
+                 "is_valid_cache": "YES"
+                }
+               }
+              }
+             },
+             "side": "AWAY",
+             "is_com": "NO",
+             "cpu_level": "NORMAL",
+             "is_follow": "NO",
+             "is_guest": "NO"
+            }
+           ]
+          },
+          "team": [
+           101,
+           108
+          ],
+          "score": {
+           "__blobs__": [
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            },
+            {
+             "score_1st": 0,
+             "score_2nd": 0,
+             "score_ex1st": 0,
+             "score_ex2nd": 0,
+             "score_pk": 0
+            }
+           ]
+          },
+          "match_category": "MYCLUB_RANK",
+          "gameend_reason": "NORMAL_END"
+         }
+        ]
+       },
+       "rlist_num": 4
+      }
+     }
+    }
+   }
+  }
+ ],
+ "steps": [
+  {
+   "home": true
+  },
+  {
+   "go": "0x1a"
+  },
+  {
+   "wait": "InformationSubMenu",
+   "timeout": 40
+  },
+  {
+   "sleep": 2
+  },
+  {
+   "key": [
+    "Down",
+    "Down",
+    "Return"
+   ]
+  },
+  {
+   "wait": "InformationOldMatchRecord",
+   "timeout": 20
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "shot": "list"
+  }
+ ]
+}

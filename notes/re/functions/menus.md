@@ -365,6 +365,39 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
 - SET_MATCHREJECTPID {pid, reject_pid, is_reject YES/NO} [static packer 0x141d73b70] adds or removes one player.
   Where a player first adds someone was not traced; removing was not run live.
 - The server never pairs two players in Quick Match / Divisions / Matchday when either has blocked the other.
+- **Live 2026-11-07:**
+  - With pid 1 blocking pid 2, two copies searching Quick Match were never paired.
+  - **Adding a block in the game:** main-menu item 0x1a "Online Stats" (User Details, Overall Ranked Match
+    Rankings, **Last 20 results**, eFootball League Competition Results, eFootball League Past Competitions) →
+    Last 20 results (Online/Information/InformationOldMatchRecord, from CMD_GET_GAMERESULTS {pid,
+    game_res_type "ALL", pesleague_compe_id 0}) → A "Participating Users" → the opponent → **"Add to Match
+    Block List"** → confirm → `SET_MATCHREJECTPID {pid 1, reject_pid 2, is_reject YES}` → GET_MATCHREJECTLIST →
+    "Added".
+  - It needs GET_SERVER_ENV `matchrejectpid_max` > 0: the server sent 0 until 2026-11-07, which made every Add
+    say the list is full [static 0x140bdcd75].
+  - The profile-analysis agent's notes: "Add" is offered only in past-results lists (also Divisions → Past Game
+    Results, myClub → Game Results); "Remove" only in the Match Block List. Chat presets are kept in the local
+    save only; no server command exists for them.
+- **Number of Disconnections** values [static 0x1410a41f0, table 0x1437f33f0]: "LOW_RATE" = Low, "SEMI_HIGH_RATE"
+  = Moderately High, "HIGH_RATE" = High, anything else = Low (exact, case-sensitive, inside `manner`). The server
+  maps early exits: 0–1 LOW_RATE, 2–3 SEMI_HIGH_RATE, 4+ HIGH_RATE.
+
+### CMD_GET_GAMERESULTS — the "Last 20 results" list (pesresults.py, live 2026-11-07)
+- The reply `rlist` [blob{date, ex_type, pk_flag, no_match, player [blob{pid, pname, side, is_com, cpu_level,
+  is_follow, is_guest}], team [home id, away id], score [blob{score_1st, …} × 2], match_category,
+  gameend_reason}] + `rlist_num` fills it. It shows date/time, names, score, Win/Draw/Lose and team crests.
+- The header label comes from `match_category`: "MATCHDAY" → Matchday; "ONLINE_COOP" and "PESLEAGUE_LOBBY" →
+  no label. OC_QUICK, OC_RANK, OC_FREE, FREE, MULTI, OC_RANKING, PES_LEAGUE, RANK, QUICK_MATCH, OC_MULTI,
+  ONLINE_VSCOM_COOP, MYCLUB_FREE and MYCLUB_RANK all → "Online Divisions" (a fallback?). The table is still to
+  be read.
+- "RANK" (Divisions → Past Game Results) gets the Online Divisions matches only.
+
+### CMD_SEND_MATCH_ANALYZE / CMD_GET_MATCH_ANALYZE — Play Analysis (pesresults.py) [static, agent 2026-11-07]
+- SEND {pid, analyze_data_type ONLINE_DIVISIONS|MYCLUB_DIVISIONS, analyze_data: {46 ints + game_res STR +
+  intercept_area [9 ints]}} is sent after Online Divisions (gamemode 24) and myClub matches; Quick Match sends none.
+- GET {pid, target_pid, analyze_data_type} → `analyze_data_size` + `analyze_data_list` [inline maps, the same 46
+  keys]. The game uses the last 10 and does the aggregation itself, so the server stores the uploads and returns
+  them. Not run live yet (needs a finished Divisions match).
 
 ### CMD_SET_LANGUAGE
 - Transport: gate ACCOUNT, `lang` ("US"). Both success and error handlers (slots 9 and 10) just "proceed",
