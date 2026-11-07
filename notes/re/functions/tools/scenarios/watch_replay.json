@@ -44,6 +44,12 @@
    "sleep": 3
   },
   {
+   "key": "Return"
+  },
+  {
+   "sleep": 3
+  },
+  {
    "key": [
     "Right",
     "Return"
@@ -79,7 +85,7 @@
    "key": "Return"
   },
   {
-   "watch": 120,
+   "watch": 1000,
    "ok": false,
    "until": "WatchMatchEnd"
   },
