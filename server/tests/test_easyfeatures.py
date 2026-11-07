@@ -210,7 +210,7 @@ def test_every_feature_module_is_loaded_by_the_service():
     src = pathlib.Path(__file__).resolve().parents[1].joinpath("pesserver", "service.py").read_text()
     line = next(l for l in src.splitlines() if "register their handlers" in l)
     for mod in ("pesrooms", "pescoop", "pesdivisions", "pesmatchday", "pesmanner", "pesavatar", "pesprofile",
-                "pesblock", "announce"):
+                "pesblock", "pesreplay", "announce"):
         assert re.search(rf"\b{mod}\b", line), mod
 
 
@@ -252,3 +252,40 @@ def test_match_block_list_keeps_players_apart(svc):
     asyncio.run(go())
     pescmds.dispatch(svc, a, "CMD_SET_MATCHREJECTPID", {"pid": 1, "reject_pid": 2, "is_reject": "NO"})
     assert not pesblock.blocked(svc, 1, 2)
+
+
+def test_replay_recorded_and_listed(svc):
+    import base64
+    from pesserver import pesreplay
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
+    a, b = Sess(1), Sess(2)
+    a.pes_username, b.pes_username = "u1", "u2"
+    pesmatch._state(svc)["rooms"][7] = {"owner": 1, "members": [1, 2], "t": 1793900000,
+                                        "goals": {(10, "HOME"), (20, "HOME"), (30, "AWAY")}, "teams": {1: 101, 2: 108}}
+    r = pescmds.dispatch(svc, a, "CMD_GET_MATCHID", {})
+    mid = r["match_id"]
+    assert r["upload"] == "YES" and mid
+    for s in (a, b):                                   # both games start uploading; Ann's was first
+        assert pescmds.dispatch(svc, s, "CMD_START_SEND_GAME_SEQUENCE_DATA", {"pid": s.pes_pid}) == {"result": "NOERR"}
+
+    def rec(kind, data):
+        return msgpack.packb({"type": kind, "data": base64.b64encode(data.ljust(256, b"\0")).decode(),
+                              "data_len": len(data)}, use_bin_type=True)
+    pescmds.dispatch(svc, a, "CMD_SEND_GAME_SEQUENCE_DATA", {"match_id": mid, "game_seq_data": [rec(0, b"HDR"), rec(2, b"AB")]})
+    pescmds.dispatch(svc, b, "CMD_SEND_GAME_SEQUENCE_DATA", {"match_id": mid, "game_seq_data": [rec(2, b"XX")]})   # dropped
+    pescmds.dispatch(svc, a, "CMD_LEAVE_GAME", {"pid": 1})                                                         # closes it
+    f1, f2 = pesreplay.chunk_file(svc, mid, "1.enc"), pesreplay.chunk_file(svc, mid, "2.enc")
+    assert pesreplay._dec(open(f1, "rb").read()) == b"\x00HDRAB"
+    assert pesreplay._dec(open(f2, "rb").read()) == b"\x00\x03\x00END_OF_DATA"
+    assert pesreplay.chunk_file(svc, mid, "3.enc") is None and pesreplay.chunk_file(svc, "../x", "1.enc") is None
+    lst = pescmds.dispatch(svc, b, "CMD_GET_WATCHING_MATCH_LIST", {"match_category": "PESLEAGUE_LOBBY", "index": 0})
+    assert lst["match_list_num"] == 1
+    e = unb(lst["match_list"][0])
+    gr = unb(e["game_result"])
+    assert e["match_id"] == mid and gr["team"] == [101, 108]
+    assert [unb(unb(p)["pname"])["name"] for p in gr["player"]] == ["Ann", "Bob"]
+    assert [unb(s)["score_1st"] for s in gr["score"]] == [2, 1]
+    info = pescmds.dispatch(svc, b, "CMD_GET_PESLEAGUE_COMPE_INFO", {"compe_id": 1})
+    assert unb(info["compe_data"])["match_type"] == "PES_LEAGUE_MATCH_1VS1_LOBBY"
+    urls = {unb(u)["type"]: unb(u)["url"] for u in pescmds.dispatch(svc, b, "CMD_GET_URLLIST", {})["ulist"]}
+    assert urls["WATCHING_GAME"].endswith("/r")

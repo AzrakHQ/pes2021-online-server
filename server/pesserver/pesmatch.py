@@ -437,7 +437,10 @@ def get_matchid(svc, sess, req):
     rid, room = _room_of(svc, _pid(sess))
     if room is not None and "match_id" not in room:
         room["match_id"] = f"{int(room['t'])}{rid:06d}"
-    return {"result": NOERR, "match_id": room["match_id"] if room else "", "upload": "NO"}
+    from . import pesreplay
+    mid = room["match_id"] if room else ""
+    # upload YES: the players' games send the match stream, which pesreplay keeps as a replay
+    return {"result": NOERR, "match_id": mid, "upload": "YES" if mid and pesreplay.enabled() else "NO"}
 
 
 # ---- match record and the rating verdict (CMD_WATCH_GAMEADDPOINT) ---------------------------------

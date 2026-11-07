@@ -81,8 +81,9 @@ def get_urllist(svc, sess, req):
     base = f"http://{_addr(svc, sess)}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}"
     # Short paths keep 53 entries inside one frame (body <= 0x410); the HTTP API routes on the POSTed
     # msgid, not the path, and document pages accept any path.
-    ulist = [{"type": t, "url": f"{base}/u{i}"} for i, t in enumerate(
+    ulist = [{"type": t, "url": f"{base}/r" if t == "WATCHING_GAME" else f"{base}/u{i}"} for i, t in enumerate(
              [x for x in os.environ.get("PESSERVER_URLTYPES", ",".join(URL_TYPES)).split(",") if x])]
+    # (WATCHING_GAME: the game downloads match replays from <url>/<match_id>/<N>.enc, pesreplay.py)
     return {"result": NOERR, "url_num": len(ulist), "ulist": blobs(ulist)}
 
 
@@ -402,6 +403,11 @@ def validate(msgid, resp):
 
 def dispatch(svc, sess, msgid, req):
     resp = _dispatch(svc, sess, msgid, req)
+    try:
+        from . import pesreplay
+        pesreplay.observe(svc, sess, msgid, req)
+    except Exception:  # noqa: BLE001 - replays must never break the game
+        log.exception("pesreplay.observe %s", msgid)
     try:
         from . import events
         events.observe(svc, sess, msgid, req)
