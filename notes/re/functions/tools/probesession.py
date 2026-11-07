@@ -113,7 +113,7 @@ def start_server(rp, st):
            "PATCH_CTL": PATCH, "PATCH_TXLOG": REPLIES}
     if ALT:
         os.makedirs(TESTDATA, exist_ok=True)
-        env.update({k: str(v) for k, v in ALT_PORTS.items()}, TEST_DATA=TESTDATA)
+        env.update({k: str(v) for k, v in ALT_PORTS.items()}, TEST_DATA=TESTDATA, ADVERTISE_GATE_PORT="10000")
     for kv in os.environ.get("SERVER_ENV", "").split():
         k, _, v = kv.partition("="); env[k] = v
     out = open(SERVER_OUT, "a")

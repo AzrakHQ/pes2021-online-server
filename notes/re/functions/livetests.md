@@ -595,3 +595,10 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
   - The replay was recorded (195 chunks, closed by the game's end item). Before 2026-11-07 the second player always
     got "This match will be abandoned…" here.
   - The owner's first Start Match press was lost (the room screen was still loading); a second press worked.
+- **Online Co-op after the 2026-11-07 changes** (copy 1 and copy 2, Casual Match): both paired in one room
+  (WATCH_COOP_MATCHING FINISH) → DATASYNC → MATCHMENU → GAMELOAD → ENTRY → 1ST on both, no crash; the replay
+  recording started at kick-off. Stopped there; the end of a co-op match is unchanged (no verdict at END, no forfeit).
+  - Test-tool bug found on the way: the side-by-side test server told the game its own gate port (30000). The mod
+    sends its id line (install id, `coop1`, `math1`) only on connections to port 10000, so the server logged "mod
+    without the co-op fix" and each restart made new install-id accounts. Fixed: `ADVERTISE_GATE_PORT=10000`
+    (netshim maps 10000 to the test port).

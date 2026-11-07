@@ -1,6 +1,7 @@
 """Run the repo server in host mode with test add-ons from this folder. Test-only; the repo code is not changed.
 Usage, from pes2021-private-server/server:
   UPNP=0 PES_CONSOLE=0 PYTHONUNBUFFERED=1 PYTHONPATH=$PWD python3 <this file> > <log> 2>&1
+ADVERTISE_GATE_PORT=10000 tells the game that gate port (side-by-side tests: netshim maps it to the real one).
 TEST_DATA=<dir> uses that data folder instead of the host's (own players, identity, admin password).
 Add-ons (env):
   PATCH_CTL=<file.json>  replypatch.py: edit/err any real reply from a control file, log every reply (scenario.py)
@@ -24,6 +25,11 @@ if os.environ.get("COOP") == "1":
     import cooptest  # noqa: F401,E402
 if os.environ.get("LIVEDATA") == "1":
     import livedata  # noqa: F401,E402
+if os.environ.get("ADVERTISE_GATE_PORT"):
+    # side-by-side test server (probesession): tell the game the standard gate port, which netshim maps to ours.
+    # The mod adds its id line (install id, "coop1", "math1") only on connections to port 10000.
+    from pesserver import pescmds  # noqa: E402
+    pescmds._port = lambda svc, _p=int(os.environ["ADVERTISE_GATE_PORT"]): _p
 from pesserver.__main__ import main  # noqa: E402
 if os.environ.get("LOBBYTEST") == "1":
     lobbytest.install_err_overrides()   # after every add-on registered its handlers
