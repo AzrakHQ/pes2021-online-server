@@ -1,0 +1,93 @@
+{
+ "name": "watch-replay",
+ "inst": 1,
+ "variants": [
+  {
+   "name": "newest"
+  }
+ ],
+ "steps": [
+  {
+   "home": true
+  },
+  {
+   "go": "tournament"
+  },
+  {
+   "wait": "PesLgCompeList",
+   "timeout": 60
+  },
+  {
+   "sleep": 2
+  },
+  {
+   "key": "Return"
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "ok": 1,
+   "optional": true
+  },
+  {
+   "wait": "PesLgCompeTeamSelect",
+   "timeout": 30
+  },
+  {
+   "sleep": 6
+  },
+  {
+   "key": "Return"
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "key": [
+    "Right",
+    "Return"
+   ]
+  },
+  {
+   "wait": "Online/Lobby/LobbyRoomList",
+   "timeout": 60
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "key": "a"
+  },
+  {
+   "wait": "LobbyWatchingMatchList",
+   "timeout": 20
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "shot": "list"
+  },
+  {
+   "key": "Return"
+  },
+  {
+   "sleep": 2
+  },
+  {
+   "key": "Return"
+  },
+  {
+   "watch": 120,
+   "ok": false,
+   "until": "WatchMatchEnd"
+  },
+  {
+   "shot": "playing"
+  },
+  {
+   "screen": true
+  }
+ ]
+}

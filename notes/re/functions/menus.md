@@ -357,6 +357,16 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
   - Pages 2+ are play-style analysis (Off. Awareness, Advanced Instructions, Favorite Move, Attacking Areas):
     empty, from other commands.
 
+- **Profile page 2, "Online Divisions"** (live 2026-11-07): `rankmatch_stats` must be a **blob** {division "D8",
+  rating, max_weekly_point, current_weekly_point, match_num, win_num, lose_num, draw_num, contWin_num,
+  contWinMax_num, goal, lostGoal}. An inline map faults inside the parser (the probe's crash guard caught it).
+  - Shown: Division badge, Rating, Matchday Class (from `matchday_rating_rank`; default "Expert"), Matches,
+    W/D/L, Win Rate (computed), Consecutive Wins/Most Consecutive Wins, Avg Goals Scored/Conceded (goal /
+    matches).
+  - "Teams Chosen in Last 5 Matches" comes from `rankmatch_teamLog`, not sent yet.
+- `matchday_stats_single` blob {entry_count, group_win_count, pickup_count, best_rank, win_count, draw_count,
+  lose_count} is read the same way (parsebench). Its page was not opened.
+
 ### Match Block List: CMD_GET_MATCHREJECTLIST / CMD_SET_MATCHREJECTPID — pesblock.py (2026-11-07)
 - Online Settings → Match Block List opens Online/UserList/UserList ("User List") from GET_MATCHREJECTLIST
   {pid} → `reject_list` [blob{pid, pname}] + `reject_list_num` (live: the stored entry showed by name).

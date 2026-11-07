@@ -522,3 +522,16 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
   the games was ignored. Running `xdotool keyup Right Up Left Down a s d w` fixed it; autoplay now releases its keys
   on exit. Autoplay also never took the kick-off in today's Quick Match (both copies stayed at the kick-off
   position until the idle end); not looked into yet.
+- **First complete unattended match** (Quick Match, two copies, no input, `pesflow noafk` on both):
+  - Timeline: kick-off 19:58:38 → BREAK1 20:03:39 → a 60 s half-time menu that continued by itself → 2ND
+    20:05:30 → END 20:10:30, so about 13 minutes in all.
+  - After END:
+    - the recording closed with the game's own end item (196 chunks, 816 KB);
+    - the full-time screens counted down by themselves;
+    - SEND_GAME_RESULT arrived from both (NOERR/END, and DISCONN_P2P/END from the second leaver), with team ids;
+    - the match was saved as a normal finish, and both players got a completed match on their courtesy record.
+  - The replay of this full match played with name tags (watched for about 2 minutes). Its end was not
+    watched, because `probesession restart` relaunches every game copy.
+  - Autoplay's key presses do not count as activity: with them the match was still called off after 39 s.
+- **The idle trigger:** 0x14213cfe0 sets the flag, reports VIXT2253 and ends the match (match.md). `pesflow noafk`
+  makes it return at once, in test copies only.
