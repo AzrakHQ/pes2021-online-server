@@ -602,3 +602,11 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
     sends its id line (install id, `coop1`, `math1`) only on connections to port 10000, so the server logged "mod
     without the co-op fix" and each restart made new install-id accounts. Fixed: `ADVERTISE_GATE_PORT=10000`
     (netshim maps 10000 to the test port).
+  - **The same co-op match played to full time** (unattended, copy 1 attacking with tools/attack.py): a goal
+    (ADD_SCORE AWAY from both games, 2 ms apart), END 01:17:27, replay closed by the end item (209 chunks).
+    Nobody pressed a key on the post-match screens; 3 min later one game sent SEND_ABNORMALEND DISCONN_P2P
+    (GNCX_0003_0x20000000). Then SEND_STATS_DATA and SEND_GAME_RESULT from both (0-1, gameend_reason
+    "NotImplement", the server sends no verdict in co-op), LEAVE_ROOM, **GET_COOP_LEVEL_RESULT {pid, match_id}**
+    (bare NOERR) and GET_COOP_PROFILE; both copies on Online/CoopMatch/CoopMenuPersonalResult. The first time
+    a co-op match was seen ending. Whether the link drop also happens when the players move on promptly is not
+    checked.
