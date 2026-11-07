@@ -216,3 +216,32 @@ def record(svc, room):
                 db.execute("UPDATE pes_matchday SET points=points+?, matches=matches+1 WHERE pid=? AND compe_id=?",
                            (POINTS[res], me, COMPE_ID))
                 log.info("MATCHDAY %s: %s (+%d)", me, res, POINTS[res])
+
+
+@cmd("CMD_GET_MATCHDAY_RANKING")
+def get_matchday_ranking(svc, sess, req):
+    """Side Ranking: the players of the requester's side, by Matchday points (then fewer matches). Each entry is a
+    blob {pname: blob{pid, pname: blob{name, ...}}, entry_name, team_id, rank, matchday_point, recode_date}
+    (layout checked on the game's parser, 2026-11-07)."""
+    pid = pesmatch._pid(sess)
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        me = db.execute("SELECT grp FROM pes_matchday WHERE pid=? AND compe_id=?", (pid, COMPE_ID)).fetchone()
+        rows = db.execute("SELECT m.pid, m.team_id, m.points, m.matches, p.name FROM pes_matchday m JOIN pes_players p "
+                          "ON p.pid=m.pid WHERE m.compe_id=? AND m.grp=? ORDER BY m.points DESC, m.matches ASC, m.pid",
+                          (COMPE_ID, me[0] if me else ""), ).fetchall()
+    try:
+        start, n = max(0, int(req.get("start_index") or 0)), max(1, min(100, int(req.get("view_num") or 100)))
+    except (TypeError, ValueError):
+        start, n = 0, 100
+    now = int(time.time())
+    lst = []
+    for rank, (p, team, pts, _m, name) in enumerate(rows, 1):
+        if rank <= start or len(lst) >= n:
+            continue
+        pname = _pack({"name": name or "", "xuid_one": "", "is_deleted": "NO",
+                       "psn_user_id": _pack({"account_id": p, "online_id": "", "is_valid_cache": "YES"})})
+        lst.append(_pack({"pname": _pack({"pid": p, "pname": pname}), "entry_name": "", "team_id": int(team or 0),
+                          "rank": rank, "matchday_point": int(pts or 0), "recode_date": now}))
+    return {"result": NOERR, "rank_list": lst, "list_num": len(lst), "list_max": len(rows), "update_date": now}

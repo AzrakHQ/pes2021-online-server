@@ -44,3 +44,19 @@ def test_points_screen_breakdown_in_tenths(svc):
     from types import SimpleNamespace
     r = pescmds._dispatch(svc, SimpleNamespace(pes_pid=1), "CMD_GET_MATCHDAY_ACHIEVEMENT_REWARD", {"pid": 1})
     assert r["squad_rating"] == 10 and r["gameplay_quality"] == r["add_matchday_point"] * 10
+
+
+def test_side_ranking(svc):
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        for pid, name in ((1, "Ann"), (2, "Bob"), (3, "Cid")):
+            db.execute("INSERT OR REPLACE INTO pes_players (pid, username, name, created) VALUES (?,?,?,0)", (pid, f"u{pid}", name))
+        pesmatchday._setup(db)
+        for pid, grp, team, pts in ((1, "MATCHDAY_GROUP_A", 101, 4), (2, "MATCHDAY_GROUP_B", 100, 9), (3, "MATCHDAY_GROUP_A", 108, 7)):
+            db.execute("INSERT INTO pes_matchday (pid, compe_id, grp, team_id, points, matches) VALUES (?,?,?,?,?,1)",
+                       (pid, pesmatchday.COMPE_ID, grp, team, pts))
+    r = pescmds.dispatch(svc, Sess(1), "CMD_GET_MATCHDAY_RANKING", {"pid": 1, "compe_id": 1, "start_index": 0, "view_num": 100})
+    ents = [unb(e) for e in r["rank_list"]]
+    assert [unb(e["pname"])["pid"] for e in ents] == [3, 1]                   # my side only, by points
+    assert [e["rank"] for e in ents] == [1, 2] and ents[0]["matchday_point"] == 7 and ents[0]["team_id"] == 108
+    assert unb(unb(ents[1]["pname"])["pname"])["name"] == "Ann"
