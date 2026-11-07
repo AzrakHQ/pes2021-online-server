@@ -72,6 +72,11 @@ Tags in the reports: **[static]** read in code at the cited address, **[log]** s
   logs in; `down` restores the release DLL and cleans up. Runs from a checkout inside the game folder.
 - `scenario.py FILE.json [VARIANT…]` — scripted live tests: reply variants × navigation steps, crash detection,
   report with dialogs, server-log problems and in-game traffic (`logs/scenarios/`). Example: `scenarios/`.
+- `quickmatch.py [quick|divisions]` — both copies of a probe session from the main menu to kick-off (team select,
+  pairing, the quality dialog, Kick Off). With `pesflow.py PORT noafk` on both (test copies only: no idle end), the
+  match runs to full time by itself in about 13 minutes.
+- `pesflow.py PORT bindpad` — the player gets a controller, as a real title-screen press gives (`title` does it).
+  Without it the game takes menu keys but ignores them in matches.
 - `parsebench.py PORT CMD SRC [SRC2]` — runs the game's own reply parser on our bytes (e.g. `last`, our last
   reply) inside the running game and shows the parsed header, or the fields that differ between two bodies;
   `--set`/`--del` edit the body first. Crashes inside the parser are caught by the probe. Uses `result_table.json`
