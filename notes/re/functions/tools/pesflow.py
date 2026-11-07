@@ -26,7 +26,7 @@ def screen(p):
 TASKS = 0x1437f89d8         # task root: first child at +0x40, next at +0x48 (circular), name std::string at +8
 TOPMENU_VT = 0x14266ddd8    # vtable of menu::TopModeSelect
 TOPMENU_DECIDE = 0x140ab03f0
-TOP_ITEMS = {"quick": 0x11, "divisions": 0x12, "coop": 0x13, "lobby": 0x14, "teamplay": 0x15, "matchday": 0x16,
+TOP_ITEMS = {"info": 0x19, "settings": 0x21, "quick": 0x11, "divisions": 0x12, "coop": 0x13, "lobby": 0x14, "teamplay": 0x15, "matchday": 0x16,
              "tournament": 0x17, "exhibition": 1}
 
 
@@ -66,6 +66,8 @@ def top_menu_go(p, item):
     if menu is None:
         raise RuntimeError(f"no top menu (screen is {screen(p)})")
     iid = TOP_ITEMS.get(item, item)
+    if isinstance(iid, str):
+        iid = int(iid, 0)                  # a number from the command line ("0x21", "33")
     level = p.u32(f"@{menu + 0x98:x}")
     p.write(f"@{menu + 0x9c + 4 * level:x}", struct.pack("<I", iid))
     return p.gcall(TOPMENU_DECIDE, menu)
@@ -215,7 +217,7 @@ if __name__ == "__main__":
         print(title_press(p) or "not on the title screen")
     elif cmd == "ok":                       # pesflow.py PORT ok [BUTTON]
         print(dialog_ok(p, button=int(sys.argv[3]) if len(sys.argv) > 3 else None) or "no dialog")
-    elif cmd == "go":                       # pesflow.py PORT go lobby|divisions|matchday|quick|coop|...
+    elif cmd == "go":                       # pesflow.py PORT go lobby|divisions|matchday|quick|coop|info|settings|ID
         print(top_menu_go(p, sys.argv[3]))
     elif cmd == "wait":                     # pesflow.py PORT wait <screen substring> [timeout]
         print(wait_screen(p, sys.argv[3], int(sys.argv[4]) if len(sys.argv) > 4 else 60))

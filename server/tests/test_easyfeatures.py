@@ -209,5 +209,24 @@ def test_every_feature_module_is_loaded_by_the_service():
     import re, pathlib
     src = pathlib.Path(__file__).resolve().parents[1].joinpath("pesserver", "service.py").read_text()
     line = next(l for l in src.splitlines() if "register their handlers" in l)
-    for mod in ("pesrooms", "pescoop", "pesdivisions", "pesmatchday", "pesmanner", "pesavatar", "announce"):
+    for mod in ("pesrooms", "pescoop", "pesdivisions", "pesmatchday", "pesmanner", "pesavatar", "pesprofile",
+                "announce"):
         assert re.search(rf"\b{mod}\b", line), mod
+
+
+def test_profile_round_trip(svc):
+    from pesserver import pesprofile  # noqa: F401
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
+    a, b = Sess(1), Sess(2)
+    a.pes_username = "u1"
+    # as the game sends it (live): one nested blob; the gate hands nested maps over as surrogate-escaped text
+    blob = msgpack.packb({"date": 0, "favorite_team": "Arsenal", "favorite_player": "Saka", "intro": "Hello",
+                          "is_enable_myPES": "NO"}, use_bin_type=True).decode("utf-8", "surrogateescape")
+    assert pescmds.dispatch(svc, a, "CMD_SET_PLAYERPROFILE", {"profile": blob}) == {"result": "NOERR"}
+    who = msgpack.packb({"pid": 1, "pname": msgpack.packb({"name": ""})}).decode("utf-8", "surrogateescape")
+    r = pescmds.dispatch(svc, b, "CMD_GET_PLAYERINFO", {"pid": 2, "user_id": who})        # Bob looks at Ann
+    assert (r["favoriteTeam"], r["favoritePlayer"], r["intro"]) == ("Arsenal", "Saka", "Hello")
+    assert unb(r["pname"])["name"] == "Ann" and r["pid"] == 1
+    assert pescmds.validate("CMD_GET_PLAYERINFO", r)
+    r = pescmds.dispatch(svc, b, "CMD_GET_PLAYERINFO", {"pid": 2})                          # own, no profile yet
+    assert r["favoriteTeam"] == "" and unb(r["pname"])["name"] == "Bob"

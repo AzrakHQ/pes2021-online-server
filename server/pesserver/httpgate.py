@@ -567,8 +567,9 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         pesmanner.forget(service, pid)
         pescoop.forget(service, pid)
         adminextra.forget(service, pid)
-        from . import pesavatar
+        from . import pesavatar, pesprofile
         pesavatar.forget(service, pid)
+        pesprofile.forget(service, pid)
         sess = service.online.get(pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)
