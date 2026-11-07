@@ -268,6 +268,9 @@ def _next_pair(svc):
         for j in range(i + 1, len(q)):
             if _matching_type(q[i][1]) != _matching_type(q[j][1]):
                 continue                                  # Quick Match vs Online Divisions: different queues
+            from . import pesblock
+            if pesblock.blocked(svc, q[i][0], q[j][0]):
+                continue                                  # one of them put the other on the Match Block List
             if _compatible(q[i][1], q[j][1]):
                 return i, j
             _note_mismatch(svc, q[i][0], q[j][0], q[i][1], q[j][1])

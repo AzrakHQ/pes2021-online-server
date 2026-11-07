@@ -210,7 +210,7 @@ def test_every_feature_module_is_loaded_by_the_service():
     src = pathlib.Path(__file__).resolve().parents[1].joinpath("pesserver", "service.py").read_text()
     line = next(l for l in src.splitlines() if "register their handlers" in l)
     for mod in ("pesrooms", "pescoop", "pesdivisions", "pesmatchday", "pesmanner", "pesavatar", "pesprofile",
-                "announce"):
+                "pesblock", "announce"):
         assert re.search(rf"\b{mod}\b", line), mod
 
 
@@ -230,3 +230,24 @@ def test_profile_round_trip(svc):
     assert pescmds.validate("CMD_GET_PLAYERINFO", r)
     r = pescmds.dispatch(svc, b, "CMD_GET_PLAYERINFO", {"pid": 2})                          # own, no profile yet
     assert r["favoriteTeam"] == "" and unb(r["pname"])["name"] == "Bob"
+
+
+def test_match_block_list_keeps_players_apart(svc):
+    import asyncio
+    from pesserver import pesblock
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob"); _user(svc, 3, "Cid")
+    a, b, c = Sess(1), Sess(2), Sess(3)
+    assert pescmds.dispatch(svc, a, "CMD_SET_MATCHREJECTPID", {"pid": 1, "reject_pid": 2, "is_reject": "YES"}) == {"result": "NOERR"}
+    r = pescmds.dispatch(svc, a, "CMD_GET_MATCHREJECTLIST", {"pid": 1})
+    assert r["reject_list_num"] == 1 and unb(unb(r["reject_list"][0])["pname"])["name"] == "Bob"
+    assert pesblock.blocked(svc, 2, 1)
+
+    async def go():
+        st = pesmatch._state(svc)
+        st["queue"] = [(1, a), (2, b)]
+        assert pesmatch._next_pair(svc) is None           # Ann blocked Bob: no pair either way
+        st["queue"].append((3, c))
+        assert pesmatch._next_pair(svc) == (0, 2)         # Ann meets Cid instead
+    asyncio.run(go())
+    pescmds.dispatch(svc, a, "CMD_SET_MATCHREJECTPID", {"pid": 1, "reject_pid": 2, "is_reject": "NO"})
+    assert not pesblock.blocked(svc, 1, 2)
