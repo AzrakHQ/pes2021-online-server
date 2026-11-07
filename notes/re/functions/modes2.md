@@ -170,6 +170,14 @@ rating-screen groups {13,19,28,29}, 0x141379262) → ProcWarningManner → ProcC
   ProcDivisionPointPre → Online/DivMatch/MenuMain, where the season chart shows match 1: 1 point, "D",
   "0 - 0" and the opponent team's crest.
 
+- **Team select (OnlineSeasonTeamSelect, live 2026-11-07):**
+  - "Frequently Selected Teams" lists GET_OFTEN_USED_TEAM_LIST `used_team_id_list` (a plain int list) with
+    crests. The server fills it from the player's own Divisions teams (SET_GAMETEAM).
+  - The "Season Points 0" next to each team (and on the selected team) comes from another field, not found yet.
+- **Word filter, live:** a profile comment with a word from blocked_words.txt → CHECK_STRING → ERR_NGWORD →
+  "Includes unusable letters or phrases." The game checks favourite team, favourite player and comment when
+  leaving Edit Profile.
+
 ### A4. Minimal implementation spec (one season that never ends by date, 10 divisions)
 The client has no season calendar. The "season" is just `other_match_num` counting down [static]. So:
 - **Divisions:** use "D10" (lowest) … "D1" (top). Send GET_SERVER_ENV `max_division:"D10"` so the menus stop at 10
