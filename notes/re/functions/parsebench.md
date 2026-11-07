@@ -74,6 +74,18 @@ Consequences for the server:
   - the date block at this+0x290 going to zero.
   That is exactly the "compe_id 0 / Group Match Stage has ended" bug found by playing, now visible in seconds.
 
+### Finding a reply's layout in one run [live 2026-11-07]
+- **Several placements at once:** put the same fields in every candidate place in one body, with different values
+  per place (for example 101.. at the top level, 201.. in a top-level blob, 301.. inside `user_info`). The value
+  that lands in the parsed object names the place the parser reads.
+  - GET_COOP_PROFILE answered this in one run: `coop_profile_data` is a top-level blob beside `user_info`.
+  - Two u32 fields often share one 8-byte word (coop_level and coop_level_point at this+0x188). Search both
+    halves.
+- **Lists are not inside the object.** A LIST field leaves a count and a pointer in the object. The entries live in
+  a separate heap block, so read them before the dtor frees them.
+  - GET_COOP_REJECT_LIST: count at this+0xb8, entries at [this+0xc0], 0xb0 bytes each (pid at +0, name std::string
+    at +8).
+
 ## 3. Every message, inside the game [live]
 
 - `trace 1403d3aa0 ncl 100000 1:128` sees every message body as plain msgpack (the first 128 bytes). Keep the hits

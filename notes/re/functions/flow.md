@@ -214,6 +214,15 @@ thread that runs your gcalls.
   ```
   (gcall translates the function address, so give it as a VA.)
 - Generic fallback for any dialog: `gcall 140e42e60 <DLG> 0 0` then `gcall 140e47b20 <DLG>`. [inferred]
+- **Two message windows block like dialogs but are not menusystem::Dialog** [live 2026-11-07]. Both close with
+  the same A handler (vtable +0x188), and `pesflow ok` handles them (`pesflow.POPUPS`):
+  - `onlinelogin::MenuUrgentAnnouncement` (A = 0x140fee430): the box before Quick Match
+    (CMD_GET_URGENT_ANNOUNCEMENT).
+  - `onlinelogin::MenuInformationNoticeTask` (A = 0x140fe8d30): the Information pop-up of a news or private-list
+    item.
+  - Their text is not at +0x268.
+- **Back = Escape** on the keyboard, once no window is open [live]. While a message window is open, Escape and
+  BackSpace do nothing.
 - Live test: trigger the manner-warning or any server-error dialog, read sstr(DLG+0x268), gcall slot 49. Pass if
   the parent continues (the next command shows in the server log) and +0x2ba becomes 1.
 
