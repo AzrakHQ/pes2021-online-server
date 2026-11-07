@@ -18,8 +18,12 @@ from .pescmds import NOERR, cmd, _db
 log = logging.getLogger("pesserver.results")
 HISTORY = 30
 ANALYZE_KEEP = 10
-CATEGORY = {"Quick Match": "OC_QUICK", "Online Divisions": "OC_RANK", "Matchday": "MATCHDAY",
-            "Friendly Match Lobby": "OC_FREE", "Online Co-op": "ONLINE_COOP"}
+# match_category: an exact name from the game's 25-name enum (0x1437f2310); unknown names count as RANK_MATCH.
+# The list can only label Online Divisions, Competition, eFootball League, Matchday or myClub, so Quick Match,
+# lobby and co-op matches use names with no label (static 0x140be28dd, live 2026-11-07). The name also picks
+# the profile page that opens from the entry (ONLINE_COOP: the co-op page).
+CATEGORY = {"Quick Match": "PESLEAGUE_LOBBY", "Online Divisions": "RANK_MATCH", "Matchday": "MATCHDAY",
+            "Friendly Match Lobby": "PESLEAGUE_LOBBY", "Online Co-op": "ONLINE_COOP"}
 
 
 def _pack(o):
@@ -58,8 +62,8 @@ def history(svc, pid, kind="ALL"):
                 if "voided" in cols:
                     q += " AND voided=0"
                 for r in db.execute(q + " ORDER BY id DESC LIMIT ?", (pid, pid, HISTORY)):
-                    cat = CATEGORY.get(r[9] or "Quick Match", "OC_QUICK")
-                    if kind == "RANK" and cat != "OC_RANK":
+                    cat = CATEGORY.get(r[9] or "Quick Match", "PESLEAGUE_LOBBY")
+                    if kind == "RANK" and cat != "RANK_MATCH":
                         continue
                     out.append(_entry(*r[:9], cat))
     return out

@@ -306,7 +306,8 @@ def test_match_history_and_analysis(svc):
     r = pescmds.dispatch(svc, a, "CMD_GET_GAMERESULTS", {"pid": 1, "game_res_type": "ALL"})
     assert r["rlist_num"] == 2
     e = unb(r["rlist"][1])
-    assert e["team"] == [101, 108] and e["match_category"] == "OC_RANK"
+    assert e["team"] == [101, 108] and e["match_category"] == "RANK_MATCH"
+    assert unb(r["rlist"][0])["match_category"] == "PESLEAGUE_LOBBY"                    # Quick Match: no label
     assert [unb(unb(p)["pname"])["name"] for p in e["player"]] == ["Ann", "Bob"]
     assert pescmds.dispatch(svc, a, "CMD_GET_GAMERESULTS", {"pid": 1, "game_res_type": "RANK"})["rlist_num"] == 1
     assert pescmds.dispatch(svc, a, "CMD_GET_SERVER_ENV", {})["matchrejectpid_max"] > 0

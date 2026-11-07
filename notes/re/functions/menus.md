@@ -386,10 +386,17 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
 - The reply `rlist` [blob{date, ex_type, pk_flag, no_match, player [blob{pid, pname, side, is_com, cpu_level,
   is_follow, is_guest}], team [home id, away id], score [blob{score_1st, …} × 2], match_category,
   gameend_reason}] + `rlist_num` fills it. It shows date/time, names, score, Win/Draw/Lose and team crests.
-- The header label comes from `match_category`: "MATCHDAY" → Matchday; "ONLINE_COOP" and "PESLEAGUE_LOBBY" →
-  no label. OC_QUICK, OC_RANK, OC_FREE, FREE, MULTI, OC_RANKING, PES_LEAGUE, RANK, QUICK_MATCH, OC_MULTI,
-  ONLINE_VSCOM_COOP, MYCLUB_FREE and MYCLUB_RANK all → "Online Divisions" (a fallback?). The table is still to
-  be read.
+- The header label comes from `match_category`, an exact name of the 25-name enum 0x1437f2310 [static
+  0x141058a30; label switch 0x140be28dd]. Unknown names count as 0 = RANK_MATCH:
+  - "Online Divisions": RANK_MATCH (and anything unknown);
+  - "Competition": COMPE_MATCH; "eFootball League": PESLEAGUE_MATCH;
+  - "Matchday": MATCHDAY / MATCHDAY_COOP;
+  - "myClub": the MYCLUB_* names except the co-op/lobby ones;
+  - no label: the co-op and lobby names (PESLEAGUE_COOP_MATCH, ONLINE_COOP, PESLEAGUE_LOBBY, …).
+  - Live: MATCHDAY → Matchday, ONLINE_COOP / PESLEAGUE_LOBBY → blank, the OC_* names → Online Divisions.
+  - No name gives "Quick Match" or "Friendly Match", so the server sends PESLEAGUE_LOBBY (blank) for those.
+  - The name also picks the profile page that opens; it never hides Participating Users or Add to Match Block
+    List.
 - "RANK" (Divisions → Past Game Results) gets the Online Divisions matches only.
 
 ### CMD_SEND_MATCH_ANALYZE / CMD_GET_MATCH_ANALYZE — Play Analysis (pesresults.py) [static, agent 2026-11-07]
