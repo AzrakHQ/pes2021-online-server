@@ -55,6 +55,15 @@ or ranking command is ever sent [log].
 
 ## Post-match reports (client → server)
 
+### Matches left early (server rule, 2026-11-07, pesmatch.forfeit + pesmanner)
+- The games show no rating screen after an abnormal end: a verdict with any gameend_reason other than
+  NORMAL_END/INJURY shows OLXH186. So the outcome lives only on the server.
+- Once the reports are in (15 s after the first early exit), a single player who left early loses: own
+  GIVEUP / EXIT / NO_OPERATION, or a dropped connection while the match ran. The other wins 3-0, or with the
+  real score if already ahead.
+- It counts for the rating (Elo), Online Divisions (history and points, so the next GET_DIVISION_INFO shows it)
+  and Matchday. Both idle, or a connection problem between the two → nobody wins. Verified live (livetests.md).
+
 ### CMD_SEND_GAME_RESULT: the client's own end-of-match report (one per client)
 - Transport: gate, svrtype MENU. Packer 0x141c638c0; Option vtable 0x142af45c8.
 - When: OnlineMatchEnd state 8 (0x14137e6d2) after SEND_STATS_DATA; then LEAVE_ROOM. Also sent on aborts

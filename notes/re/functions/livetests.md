@@ -548,3 +548,15 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
   `CMD_WATCH_COOP_VSCOM_OPPONENT {result, owner_pid, my_team: blob{base_team_id}, com_team: blob{side, base_team_id,
   com_level, pid: 4294967295}}` (pid as unsigned 0xFFFFFFFF; the game then builds the CPU team itself). It needs 2
   humans in one group, which the current one-peer co-op can't connect.
+- **Real input in a match:** with the controller bound, autoplay's keys count as play. No idle end happened, and
+  a full match with real play ran 28 minutes (kick-off 21:29 → END 21:57), 0-0. The recording was 457 chunks.
+  Random key presses never scored, so goals through the server are still unseen.
+- **Forfeit, live** (pesmatch.forfeit): in an Online Divisions match, copy 2's game was closed 60 s after kick-off.
+  - 15 s after its connection dropped the server logged: "DIVISION 1: WIN 3-0 vs 2 (+3)", "DIVISION 2: LOSE",
+    ratings 1000→1016 / 1000→984.
+  - Copy 1 saw a "connection" dialog (DialogProceed), then the Divisions main menu with match 2 as "W 3 - 0"
+    and 4 points.
+  - The rule: the one player who left early (own GIVEUP / EXIT / NO_OPERATION report, or a dropped connection
+    while the match ran) loses. The other wins 3-0, or with the real score if already ahead. Both idle → no winner.
+- quickmatch.py: on the Divisions main menu, "To Next Match" needs a moment after the season dialog; the script
+  retries.

@@ -51,9 +51,13 @@ def main():
     for inst in (1, 2):
         p = Probe(ps.port(inst))
         try:
-            if pf.screen(p) != "TopMenu/TopMenuNew":
-                sys.exit(f"copy {inst} is not on the main menu ({pf.screen(p)})")
-            pf.top_menu_go(p, mode)
+            here = pf.screen(p) or ""
+            if mode in ENTRY_SCREEN and ENTRY_SCREEN[mode] in here:
+                pass                               # already in the mode's menu
+            elif here != "TopMenu/TopMenuNew":
+                sys.exit(f"copy {inst} is not on the main menu ({here})")
+            else:
+                pf.top_menu_go(p, mode)
         finally:
             p.close()
         if mode in ENTRY_SCREEN:
@@ -64,8 +68,14 @@ def main():
                 pf.dialog_ok(p)            # the season dialog ("Division 10 / This is the first of 10 games ...")
             finally:
                 p.close()
-            time.sleep(2)
-            key(inst, "Return")
+            for _ in range(4):                 # "To Next Match": retry while the menu is still animating in
+                time.sleep(3)
+                key(inst, "Return")
+                try:
+                    wait(inst, TEAM_SCREEN[mode], 12)
+                    break
+                except TimeoutError:
+                    pass
         print(f"copy {inst}:", wait(inst, TEAM_SCREEN[mode], 90), flush=True)
         time.sleep(3)
         for _ in range(3):
