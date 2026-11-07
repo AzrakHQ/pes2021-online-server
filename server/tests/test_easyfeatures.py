@@ -210,7 +210,7 @@ def test_every_feature_module_is_loaded_by_the_service():
     src = pathlib.Path(__file__).resolve().parents[1].joinpath("pesserver", "service.py").read_text()
     line = next(l for l in src.splitlines() if "register their handlers" in l)
     for mod in ("pesrooms", "pescoop", "pesdivisions", "pesmatchday", "pesmanner", "pesavatar", "pesprofile",
-                "pesblock", "pesreplay", "pesresults", "announce"):
+                "pesblock", "pesreplay", "pesresults", "pesranking", "announce"):
         assert re.search(rf"\b{mod}\b", line), mod
 
 
@@ -335,3 +335,28 @@ def test_profile_disconnections_label(svc):
         pesmanner._add(svc, 1, True, "GIVEUP")
     r = pescmds.dispatch(svc, Sess(2), "CMD_GET_PLAYERINFO", {"user_id": msgpack.packb({"pid": 1})})
     assert unb(r["manner"]) == {"manner": "B", "disconnect_rate": "SEMI_HIGH_RATE"}
+
+
+def test_rankings(svc):
+    from pesserver import pesranking  # noqa: F401
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob"); _user(svc, 3, "Cid")
+    db = svc.accounts.db
+    with svc.accounts.lock, db:
+        db.execute("UPDATE pes_players SET rating=? WHERE pid=?", (1100, 2))
+    events._st(svc)
+    with svc.accounts.lock, db:
+        for hs, as_ in ((2, 0), (1, 1), (0, 3)):
+            db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name,"
+                       " home_score, away_score, reason) VALUES (1, 0, 1, 1, 2, 'Ann', 'Bob', ?, ?, '')", (hs, as_))
+    r = pescmds.dispatch(svc, None, "CMD_GET_RANKING", {"urltype": "RANK", "start_index": "0", "view_num": "100",
+                                                        "sort": "RATING", "order": "ASC"})
+    assert r["total_rank_num"] == 3
+    top = r["rank_list"][0]
+    assert top["rank"] == 1 and top["user"]["pname"]["name"] == "Bob" and top["point"] == 1100
+    ann = next(e for e in r["rank_list"] if e["user"]["pid"] == 1)["user"]["match_record"]
+    assert (ann["win_count"], ann["draw_count"], ann["lose_count"]) == (1, 1, 1)
+    w = pescmds.dispatch(svc, None, "CMD_GET_RANKING", {"sort": "WIN_NUM"})["rank_list"]
+    assert [e["point"] for e in w][:2] == [1, 1]
+    assert pescmds.dispatch(svc, None, "CMD_GET_RANKING", {"sort": "WIN_RATE"})["total_rank_num"] == 0   # < 10 matches
+    b = pescmds.dispatch(svc, None, "CMD_GET_RANKING_BYID", {"pid": "3", "sort": "RATING", "view_num": "100"})
+    assert any(e["user"]["pid"] == 3 for e in b["rank_list"])
