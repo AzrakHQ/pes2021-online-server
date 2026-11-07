@@ -362,6 +362,14 @@ from key order. The nested maps are gate **blobs**.
   - The breakdown comes from GET_MATCHDAY_ACHIEVEMENT_REWARD `gameplay_quality` and `squad_rating`, whole numbers
     in **tenths** (live: 1 → "0.1", "× 0.1"; 2.5 is stored as 2). The server sends points × 10 and 10 (× 1.0).
 
+- **Side Ranking (live 2026-11-07):** main menu → Side Ranking (Online/MyClub/Matchday/Ranking/MenuMatchdayRanking)
+  sends `CMD_GET_MATCHDAY_RANKING {pid, compe_id, start_index, view_num 100}`.
+  - Reply: `rank_list` [blob{**pname: blob{pid, pname: blob{name, …}}**, entry_name, team_id, rank,
+    matchday_point, recode_date}], list_num, list_max, update_date. The nesting was checked on the parser.
+  - Shown: rank, user name, team crest and name, Event Points, "Last Updated".
+  - The main menu's "Your Stats → Side Ranking" reads `group_match_info.matchday_rank` ("Rank: 1"; 0 shows "-").
+- Points add up per match across the event (live: 1 → 2 after the second draw).
+
 ## Server changes, in order
 1. `pesmatch`: queue by `matching_type` (and compe_id for MATCHDAY). Keep the room's mode.
 2. Divisions: GET_DIVISION_INFO (blob layout A4), GET_OFTEN_USED_TEAM_LIST, FINISH_SEASON, `max_division:"D10"`.
