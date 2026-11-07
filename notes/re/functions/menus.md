@@ -412,9 +412,19 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
 ### CMD_SEND_MATCH_ANALYZE / CMD_GET_MATCH_ANALYZE — Play Analysis (pesresults.py) [static, agent 2026-11-07]
 - SEND {pid, analyze_data_type ONLINE_DIVISIONS|MYCLUB_DIVISIONS, analyze_data: {46 ints + game_res STR +
   intercept_area [9 ints]}} is sent after Online Divisions (gamemode 24) and myClub matches; Quick Match sends none.
-- GET {pid, target_pid, analyze_data_type} → `analyze_data_size` + `analyze_data_list` [inline maps, the same 46
-  keys]. The game uses the last 10 and does the aggregation itself, so the server stores the uploads and returns
-  them. Not run live yet (needs a finished Divisions match).
+- GET {pid, target_pid, analyze_data_type} → `analyze_data_size` + `analyze_data_list` [the same 46 keys]. The game
+  uses the last 10 and does the aggregation itself, so the server stores the uploads and returns them.
+- **Live 2026-11-07 (full Online Divisions match, two copies):**
+  - Both games sent SEND_MATCH_ANALYZE {analyze_data_type ONLINE_DIVISIONS, analyze_data: 46 keys} just before
+    CHANGE_GAMEPHASE END. Values seen: game_res "DRAW", posession 7136 / 2863, pass_count 1,
+    intercept_area 9 numbers.
+  - **The list entries must be blobs.** Inline maps (the static guess) crashed the game the moment the Play
+    Coverage page opened. On parsebench the same reply faulted in the parser, while a list of blobs parsed
+    (count 1). Fixed in the release the same day.
+  - With blobs: User Information → "Play Coverage - Online Divisions" (Online/UserList/MenuDivisionsAnalyze)
+    shows "Offense Breakdown" for both players side by side: Off. Awareness (Counter Attack / Possession Game,
+    Short / Long Pass), Frequently used Advanced Instruction, Favorite Move, Attacking Areas %. Pages 1/3.
+  - The game also asks GET_MATCH_ANALYZE {target_pid = the opponent} while setting up a Divisions match.
 
 ### CMD_SET_LANGUAGE
 - Transport: gate ACCOUNT, `lang` ("US"). Both success and error handlers (slots 9 and 10) just "proceed",

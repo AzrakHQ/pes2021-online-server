@@ -157,6 +157,19 @@ rating-screen groups {13,19,28,29}, 0x141379262) → ProcWarningManner → ProcC
     games this season. / You will need to obtain at least 0 Season Points to stay in the division. / Get 12 or
     more Season Points to earn a promotion."
 
+### A3b. A full Online Divisions match, live 2026-11-07 (two copies, unattended, `pesflow noafk`)
+- **Entry:** `pesflow go divisions` → Online/DivMatch/MenuMain (after the season dialog) → A "To Next Match" →
+  the same Quick screens (QuickTeamSelect, QuickMatchSettings with Rating / Network Connection Restrictions / Pass
+  Support Level / Guest User, Go to Matchmaking) → START_MATCHING `OC_RANK` → paired in the Divisions queue.
+- **At END:**
+  - SEND_MATCH_ANALYZE from both;
+  - the server recorded the result ("DIVISION 1: DRAW 0-0 vs 2 (+1)") and pushed WATCH_GAMEADDPOINT to both;
+  - SEND_GAME_RESULT carried `gameend_reason "NORMAL_END"` (Quick Match sends "NotImplement").
+- **After the match screens:** Online/Match/MenuRating, "Changes in rating": both players with avatars,
+  "1000 > 1000 ( - )" for a draw; footer A Next, X User List, Y Add to Match Block List. Then
+  ProcDivisionPointPre → Online/DivMatch/MenuMain, where the season chart shows match 1: 1 point, "D",
+  "0 - 0" and the opponent team's crest.
+
 ### A4. Minimal implementation spec (one season that never ends by date, 10 divisions)
 The client has no season calendar. The "season" is just `other_match_num` counting down [static]. So:
 - **Divisions:** use "D10" (lowest) … "D1" (top). Send GET_SERVER_ENV `max_division:"D10"` so the menus stop at 10
