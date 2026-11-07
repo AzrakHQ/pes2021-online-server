@@ -120,3 +120,53 @@ def get_ranking_byid(svc, sess, req):
     page = rows[start:start + min(n, 100)]
     return {"result": NOERR, "date": int(time.time()), "total_rank_num": len(rows),
             "rank_list": [_entry(svc, *x) for x in page]}
+
+
+# ---- Online Divisions ranking (Online Divisions -> Ranking; HTTP DIVISION_RANK / DIVISION_RANK_BYID) -------------
+def division_table(svc, division):
+    """Players of one division ("D1".."D10"), ranked by this season's points, then wins."""
+    try:
+        div = int(str(division).upper().lstrip("D"))
+    except ValueError:
+        return []
+    db = _db(svc)
+    rows = []
+    try:
+        with svc.accounts.lock, db:
+            players = db.execute("SELECT d.pid, d.season, p.name, p.rating FROM pes_division d JOIN pes_players p "
+                                 "ON p.pid=d.pid WHERE d.division=?", (div,)).fetchall()
+            for pid, season, name, rating in players:
+                res = [r[0] for r in db.execute("SELECT result FROM pes_division_match WHERE pid=? AND season=? "
+                                                "ORDER BY t", (pid, season))]
+                pts = sum(db.execute("SELECT COALESCE(SUM(points), 0) FROM pes_division_match WHERE pid=? AND "
+                                     "season=?", (pid, season)).fetchone())
+                best = run = 0
+                for r in res:
+                    run = run + 1 if r == "WIN" else 0
+                    best = max(best, run)
+                rows.append({"pid": pid, "name": name or f"Player {pid}", "rating": int(rating or 1000),
+                             "w": res.count("WIN"), "d": res.count("DRAW"), "l": res.count("LOSE"), "best": best,
+                             "points": pts})
+    except Exception:  # noqa: BLE001 - nobody has played Online Divisions yet
+        return []
+    rows.sort(key=lambda r: (-r["points"], -r["w"], r["pid"]))
+    return [(i + 1, r["points"], r) for i, r in enumerate(rows)]
+
+
+@cmd("CMD_GET_DIVISION_RANKING")
+def get_division_ranking(svc, sess, req):
+    rows = division_table(svc, req.get("division") or "D10")
+    start, n = _int(req.get("start_index"), 0), _int(req.get("view_num"), 100) or 100
+    return {"result": NOERR, "date": int(time.time()), "total_rank_num": len(rows),
+            "rank_list": [_entry(svc, *x) for x in rows[start:start + min(n, 100)]]}
+
+
+@cmd("CMD_GET_DIVISION_RANKING_BYID")
+def get_division_ranking_byid(svc, sess, req):
+    rows = division_table(svc, req.get("division") or "D10")
+    pid = _int(req.get("pid"), 0) or getattr(sess, "pes_pid", None)
+    at = next((i for i, (_, _, r) in enumerate(rows) if r["pid"] == pid), 0)
+    n = _int(req.get("view_num"), 100) or 100
+    start = max(0, at - n // 2)
+    return {"result": NOERR, "date": int(time.time()), "total_rank_num": len(rows),
+            "rank_list": [_entry(svc, *x) for x in rows[start:start + min(n, 100)]]}

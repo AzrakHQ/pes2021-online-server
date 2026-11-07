@@ -386,6 +386,8 @@ def default_response(msgid):
 SCHEMA_FIXES = {
     "CMD_GET_RANKING": {"rank_list": "LIST"},          # inline maps over HTTP; the list showed live 2026-11-07
     "CMD_GET_RANKING_BYID": {"rank_list": "LIST"},
+    "CMD_GET_DIVISION_RANKING": {"rank_list": "LIST"},
+    "CMD_GET_DIVISION_RANKING_BYID": {"rank_list": "LIST"},
 }
 
 

@@ -362,3 +362,24 @@ def test_rankings(svc):
     assert pescmds.dispatch(svc, None, "CMD_GET_RANKING", {"sort": "WIN_RATE"})["total_rank_num"] == 0   # < 10 matches
     b = pescmds.dispatch(svc, None, "CMD_GET_RANKING_BYID", {"pid": "3", "sort": "RATING", "view_num": "100"})
     assert any(e["user"]["pid"] == 3 for e in b["rank_list"])
+
+
+def test_division_ranking(svc):
+    import asyncio
+    from pesserver import pesdivisions, pesranking  # noqa: F401
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
+    a, b = Sess(1), Sess(2)
+    for pid, s_ in ((1, a), (2, b)):
+        s_.pes_username = f"u{pid}"
+        svc.online[pid] = s_
+
+    async def go():
+        for n in range(3):
+            pesmatch._verdict(svc, n + 1, {"owner": 1, "members": [1, 2], "t": n, "mode": "OC_RANK",
+                                           "match_id": f"m{n}", "goals": {(100, "HOME")}, "phase": {1: "END", 2: "END"}})
+    asyncio.run(go())
+    r = pescmds.dispatch(svc, None, "CMD_GET_DIVISION_RANKING", {"division": "D10", "start_index": "0", "view_num": "100"})
+    assert r["total_rank_num"] == 2 and r["rank_list"][0]["user"]["pid"] == 1 and r["rank_list"][0]["point"] == 9
+    assert r["rank_list"][0]["user"]["match_record"]["win_count"] == 3
+    assert pescmds.dispatch(svc, None, "CMD_GET_DIVISION_RANKING", {"division": "D1"})["total_rank_num"] == 0
+    assert pescmds.validate("CMD_GET_DIVISION_RANKING", r)
