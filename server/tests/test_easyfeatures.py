@@ -210,7 +210,7 @@ def test_every_feature_module_is_loaded_by_the_service():
     src = pathlib.Path(__file__).resolve().parents[1].joinpath("pesserver", "service.py").read_text()
     line = next(l for l in src.splitlines() if "register their handlers" in l)
     for mod in ("pesrooms", "pescoop", "pesdivisions", "pesmatchday", "pesmanner", "pesavatar", "pesprofile",
-                "pesblock", "pesreplay", "pesresults", "pesranking", "announce"):
+                "pesblock", "pesreplay", "pesresults", "pesranking", "peswords", "announce"):
         assert re.search(rf"\b{mod}\b", line), mod
 
 
@@ -383,3 +383,18 @@ def test_division_ranking(svc):
     assert r["rank_list"][0]["user"]["match_record"]["win_count"] == 3
     assert pescmds.dispatch(svc, None, "CMD_GET_DIVISION_RANKING", {"division": "D1"})["total_rank_num"] == 0
     assert pescmds.validate("CMD_GET_DIVISION_RANKING", r)
+
+
+def test_word_filter(svc, tmp_path):
+    from pesserver import peswords  # noqa: F401
+    a = Sess(1); a.pes_username = "u1"
+    _user(svc, 1, "")
+    assert pescmds.dispatch(svc, a, "CMD_CHECK_STRING", {"str": "anything"}) == {"result": "NOERR"}   # no file
+    (tmp_path / "blocked_words.txt").write_text("# host's list\nbadword\nvery rude phrase\nhell\n")
+    assert pescmds.dispatch(svc, a, "CMD_CHECK_STRING", {"str": "Room of BadWord"})["result"] == "ERR_NGWORD"
+    assert pescmds.dispatch(svc, a, "CMD_CHECK_STRING", {"str": "b.a.d.w.o.r.d"})["result"] == "ERR_NGWORD"
+    assert pescmds.dispatch(svc, a, "CMD_CHECK_STRING", {"str": "a VERY  rude phrase"})["result"] == "ERR_NGWORD"
+    assert pescmds.dispatch(svc, a, "CMD_CHECK_STRING", {"str": "Arsenal FC"})["result"] == "NOERR"
+    assert pescmds.dispatch(svc, a, "CMD_CHECK_STRING", {"str": "hello there"})["result"] == "NOERR"   # whole words
+    assert pescmds.dispatch(svc, a, "CMD_CREATE_PLAYER", {"name": "BadWord"})["result"] == "ERR_NGWORDINPNAME"
+    assert pescmds.dispatch(svc, a, "CMD_CREATE_PLAYER", {"name": "Ann"})["result"] == "NOERR"

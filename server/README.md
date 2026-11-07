@@ -60,6 +60,13 @@ Environment variables:
 | `pesserver/pesmatchday.py` | Matchday: one standing event (group stage only), Home/Away sides, the player's squad stored and returned, points per player and side |
 | `pesserver/pesdivisions.py` | Online Divisions: D10 (bottom) to D1, ten-match seasons the game counts down, win 3 / draw 1 / loss 0, promotion and relegation on FINISH_SEASON; OC_RANK players get their own matchmaking queue |
 | `pesserver/pesrooms.py` | Friendly Match Lobby: block, room list, create/join, player list, ready (ENTRY_GAME), owner start, back to the room after a match. Rules (never push a RELOAD list, etc.): `notes/re/functions/rooms.md` |
+| `pesserver/pesreplay.py` | match replays: every online match is recorded (the games upload it) into `<data>/replays/`, newest 20 kept; watched from Online Tournament → Match Replays → Match List, served at `/r/<match_id>/<N>.enc`. `REPLAYS=0` turns it off |
+| `pesserver/pesmanner.py` | courtesy rating from early exits over the last 10 matches; the game's own warning dialogs |
+| `pesserver/pesprofile.py`, `pesavatar.py` | player profiles (favourite team/player, comment, courtesy rating, Online Divisions and Matchday records) and avatars |
+| `pesserver/pesresults.py`, `pesranking.py` | match history (Last 20 results), Play Analysis uploads, rankings (overall and per division) |
+| `pesserver/pesblock.py` | Match Block List: blocked pairs are never matched |
+| `pesserver/peswords.py` | the host's word filter: whole words or phrases in `<data>/blocked_words.txt` (one a line) are refused in player names, room names and profile texts |
+| `pesserver/announce.py` | news, messages to one player (their Information list), restart warning, lobby welcome notes |
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |
 | `pesserver/liveupdate.py`, `cpkread.py` | the host's Live Update: the newest CPK in `<data>/liveupdate/` is offered to every game (CMD_GET_DLC_FILELIST) and served at `/liveupdate/<name>`; build one with `notes/re/functions/tools/mklivedata.py` |
@@ -79,7 +86,8 @@ Environment variables:
 
 Unhandled commands are logged as `UNHANDLED CMD_…` and answered with a bare `{result: NOERR}`, so
 the client keeps its own defaults. Implementing a new command means adding an
-`@cmd("CMD_…")` handler in `pescmds.py` or `pesmatch.py`. The full protocol write-up is
+`@cmd("CMD_…")` handler in `pescmds.py` or one of the feature modules (and importing the module in
+`service.py`; a test checks that). The full protocol write-up is
 [`docs/protocol.html`](../docs/protocol.html).
 
-Tests: `python3 -m pytest` (in `server/`).
+Tests: `python3 -m pytest` (in `server/`; run all of them, as the release build does).

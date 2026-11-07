@@ -243,6 +243,10 @@ def create_player(svc, sess, req):
     name = str(req.get("name", "")).strip()
     if not u or not name:
         return {"result": "ERR_INVALIDARG"}
+    from . import peswords
+    if peswords.blocked(svc, name):
+        log.info("CREATE_PLAYER refused name %r (blocked word)", name)
+        return {"result": "ERR_NGWORDINPNAME"}           # "Includes unusable letters or phrases."
     db = _db(svc)
     with svc.accounts.lock, db:
         db.execute("UPDATE pes_players SET name=? WHERE username=?", (name, u))
