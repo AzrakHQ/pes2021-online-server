@@ -162,6 +162,11 @@ def observe(svc, sess, msgid, req):
             lv["saved"] = True
             reason = str(req.get("abnormalend_reason", "NOERR"))
             left_pid, lx = _leaver(svc, lv["home"], lv["away"]) if reason != "NOERR" else (None, None)
+            if left_pid is not None:
+                _st(svc).get("leavers", {}).pop(left_pid, None)       # used once: never for a later match
+            marked = lv.get("manner_marked") or set()
+            if len(marked) == 1:                                      # pesmanner knows who left early
+                left_pid = next(iter(marked))
             db = svc.accounts.db
             with svc.accounts.lock, db:
                 db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name,"
