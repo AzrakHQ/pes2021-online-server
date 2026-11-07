@@ -341,6 +341,26 @@ from key order. The nested maps are gate **blobs**.
 4. Two copies: Match → expect **`START_MATCHING {matching_type:"MATCHDAY"}`** from both, then "opponent found". Stop.
 
 ---------------------------------------------------------------------------------------------------
+### C5. A full Matchday match, live 2026-11-07 (two copies, unattended)
+- **Entry, per copy:** `pesflow go matchday` → (Live Update dialog) → MatchdayCompeList → Return → "Enter this
+  Competition. Proceed?" → `ok 1` (Yes) → MatchdayGroupSelect ("Choose the Side…" dialog → OK) → Home/Away
+  cards ("This Side includes top players such as L. MESSI…" / "…C. RONALDO…") → Return (Right first for Away).
+- **Team:** MatchdayCompeTeamSelect: a team dialog → OK, then league → team (Return each), Return opens the
+  confirm dialog, Right, Return (Yes; as separate presses).
+- **Then:**
+  - JOIN_MATCHDAY, GET_ONLINE_AD_FILE, GET_MATCHDAY_SP_GAMEPLAN, GET_MATCHDAY_INFO, GET_MATCHDAY_MAINMENU_INFO
+    → Online/MyClub/Matchday/MainMenu/MenuMainMatchday: "Friends Matchday", Home 0 – Away 0 bar, Your Stats
+    (Event Points, Result Reward Progress, Side Ranking, Representative condition), "Group Match Stage ends in
+    29d23h".
+  - "Start Match" → START_MATCHING `MATCHDAY` → paired across sides (A Arsenal vs B Manchester United) → the
+    Quick match screens → kick-off.
+- **At END:**
+  - "MATCHDAY 1: DRAW (+1)", "MATCHDAY 2: DRAW (+1)", and the verdict to both;
+  - screens: MatchResult → MenuRating → **MatchdayPointResultOnline** "Match Rewards: 1 Points" (Breakdown:
+    Gameplay Review 0.0, Squad Rating ×0.0) → MenuMainMatchday with the side bars Home 1 / Away 1 and Event
+    Points 1.
+  - The breakdown values come from a reply field not filled yet.
+
 ## Server changes, in order
 1. `pesmatch`: queue by `matching_type` (and compe_id for MATCHDAY). Keep the room's mode.
 2. Divisions: GET_DIVISION_INFO (blob layout A4), GET_OFTEN_USED_TEAM_LIST, FINISH_SEASON, `max_division:"D10"`.
