@@ -398,3 +398,45 @@ def test_word_filter(svc, tmp_path):
     assert pescmds.dispatch(svc, a, "CMD_CHECK_STRING", {"str": "hello there"})["result"] == "NOERR"   # whole words
     assert pescmds.dispatch(svc, a, "CMD_CREATE_PLAYER", {"name": "BadWord"})["result"] == "ERR_NGWORDINPNAME"
     assert pescmds.dispatch(svc, a, "CMD_CREATE_PLAYER", {"name": "Ann"})["result"] == "NOERR"
+
+
+def _live_match(svc, rid, sa, sb, mode="OC_RANK"):
+    pesmatch._state(svc)["rooms"][rid] = {"owner": sa.pes_pid, "members": [sa.pes_pid, sb.pes_pid], "t": 0,
+                                          "mode": mode, "match_id": f"f{rid}", "goals": set()}
+    for s in (sa, sb):
+        pescmds.dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST", "gtimer": 1})
+    return events._st(svc)["live"][rid]
+
+
+def test_quitter_forfeits(svc):
+    from pesserver import pesdivisions
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
+    a, b = Sess(1), Sess(2)
+    svc.online.update({1: a, 2: b})
+    a.pes_username, b.pes_username = "u1", "u2"
+    lv = _live_match(svc, 5, a, b)
+    pescmds.dispatch(svc, b, "CMD_SEND_ABNORMALEND", {"reason": "GIVEUP"})      # Bob quits
+    pescmds.dispatch(svc, a, "CMD_SEND_ABNORMALEND", {"reason": "DISCONN_P2P"})  # Ann's game sees the link go
+    lv["forfeit_decide"]()
+    db = svc.accounts.db
+    ra, rb = (db.execute("SELECT rating FROM pes_players WHERE pid=?", (p,)).fetchone()[0] for p in (1, 2))
+    assert ra > 1000 > rb
+    ia = unb(unb(pescmds.dispatch(svc, a, "CMD_GET_DIVISION_INFO", {})["division_info"])["match_history_list"][0])
+    ib = unb(unb(pescmds.dispatch(svc, b, "CMD_GET_DIVISION_INFO", {})["division_info"])["match_history_list"][0])
+    assert (ia["win_lose"], ia["division_point"], ia["home_score"], ia["away_score"]) == ("WIN", 3, 3, 0)
+    assert ib["win_lose"] == "LOSE"
+    assert pesmatch.forfeit(svc, 5, 2) is False                                   # once only
+    assert pesmatch._verdict(svc, 5, pesmatch._state(svc)["rooms"][5]) is None    # no rating push later
+
+
+def test_both_idle_no_winner(svc):
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
+    a, b = Sess(1), Sess(2)
+    svc.online.update({1: a, 2: b})
+    lv = _live_match(svc, 6, a, b, mode="OC_QUICK")
+    for s in (a, b):
+        pescmds.dispatch(svc, s, "CMD_SEND_ABNORMALEND", {"reason": "NO_OPERATION"})
+    lv["forfeit_decide"]()
+    assert "forfeit" not in pesmatch._state(svc)["rooms"][6]
+    db = svc.accounts.db
+    assert db.execute("SELECT rating FROM pes_players WHERE pid=1").fetchone()[0] == 1000

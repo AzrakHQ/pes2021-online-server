@@ -514,6 +514,47 @@ def _elo(ra, rb, score):
     return round(ra + ELO_K * (score - 1 / (1 + 10 ** ((rb - ra) / 400))))
 
 
+def forfeit(svc, rid, quitter):
+    """A match after kick-off that one player left early (pesmanner decides who): the quitter loses and the other
+    player wins, 3-0 unless the winner was already ahead. Ratings, Online Divisions and Matchday count it, as if it
+    had been played out. No WATCH_GAMEADDPOINT push: the games have already left the match."""
+    from . import events
+    from .pescmds import _db
+    room = _state(svc)["rooms"].get(rid)
+    if not room or room.get("verdict") is not None or "forfeit" in room or len(room["members"]) != 2 \
+            or quitter not in room["members"]:
+        return False
+    room["forfeit"] = quitter
+    room["verdict"] = None                                # (no push later either)
+    home, away = room["owner"], next(p for p in room["members"] if p != room["owner"])
+    winner = away if quitter == home else home
+    wside = "HOME" if winner == home else "AWAY"
+    goals = room.get("goals", set())
+    score = {s: sum(1 for _, g in goals if g == s) for s in ("HOME", "AWAY")}
+    if score[wside] <= score["AWAY" if wside == "HOME" else "HOME"]:
+        goals = {(-1 - n, wside) for n in range(3)}       # 3-0
+    db = _db(svc)
+    old = {p: (db.execute("SELECT rating, win_streak FROM pes_players WHERE pid=?", (p,)).fetchone()
+               or (ELO_START, 0)) for p in (home, away)}
+    res = {winner: 1, quitter: 0}
+    new = {p: (_elo(old[p][0], old[q][0], res[p]), old[p][1] + 1 if res[p] == 1 else 0)
+           for p, q in ((home, away), (away, home))}
+    with svc.accounts.lock, db:
+        for p, (r, streak) in new.items():
+            db.execute("UPDATE pes_players SET rating=?, win_streak=? WHERE pid=?", (r, streak, p))
+    scored = {**room, "goals": goals}
+    if room.get("mode") == "OC_RANK":
+        from . import pesdivisions
+        pesdivisions.record(svc, scored)
+    elif room.get("mode") == "MATCHDAY":
+        from . import pesmatchday
+        pesmatchday.record(svc, scored)
+    log.info("FORFEIT room %s: pid %s left early, pid %s wins (%s)", rid, quitter, winner,
+             {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
+    events.feed(svc, f"{events.name_of(svc, quitter)} left the match early: {events.name_of(svc, winner)} wins", "result")
+    return True
+
+
 def _verdict(svc, rid, room):
     """The WATCH_GAMEADDPOINT body for a finished match; ratings are updated once per room."""
     if "verdict" in room:

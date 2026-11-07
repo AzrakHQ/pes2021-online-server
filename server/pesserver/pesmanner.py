@@ -82,6 +82,31 @@ def match_end(svc, lv):
             _add(svc, pid, False)
 
 
+DECIDE_AFTER = 15        # s: both games may report an idle end a few ms apart; decide once all reports are in
+
+
+def _schedule(svc, lv):
+    """After the first early exit of a match: in DECIDE_AFTER s, if exactly one player left early, that player
+    forfeits the match (pesmatch.forfeit)."""
+    if lv.get("forfeit_scheduled"):
+        return
+    lv["forfeit_scheduled"] = True
+
+    def decide():
+        marked = _marked(lv)
+        if len(marked) == 1:
+            from . import pesmatch
+            try:
+                pesmatch.forfeit(svc, lv.get("room"), next(iter(marked)))
+            except Exception:  # noqa: BLE001 - must never break the server
+                log.exception("forfeit")
+    import asyncio
+    try:
+        asyncio.get_running_loop().call_later(DECIDE_AFTER, decide)
+    except RuntimeError:            # no loop (unit tests call this directly)
+        lv["forfeit_decide"] = decide
+
+
 def abnormal_end(svc, lv, pid, reason):
     """CMD_SEND_ABNORMALEND from pid's own game while the match was running. Every player whose own game reports a
     self-caused end is marked (live 2026-11-07: with both players idle, both games report NO_OPERATION within a
@@ -92,6 +117,7 @@ def abnormal_end(svc, lv, pid, reason):
     if str(reason).upper() in SELF_REASONS and pid not in _marked(lv):
         _marked(lv).add(pid)
         _add(svc, pid, True, str(reason).upper())
+        _schedule(svc, lv)
 
 
 def dropped(svc, lv, pid):
@@ -101,6 +127,7 @@ def dropped(svc, lv, pid):
     lv["manner_done"] = True
     _marked(lv).add(pid)
     _add(svc, pid, True, "DISCONNECTED")
+    _schedule(svc, lv)
 
 
 def forget(svc, pid):
