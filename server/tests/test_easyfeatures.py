@@ -202,3 +202,12 @@ def test_avatar_round_trip(svc):
 def test_long_fields_are_shortened_in_the_log():
     from pesserver.ncl import _short
     assert _short("x" * 70000) == "<70000 chars>" and _short("short") == "short" and _short(5) == 5
+
+
+def test_every_feature_module_is_loaded_by_the_service():
+    """The service imports the handler modules itself (service.py); a module missing there answers nothing live."""
+    import re, pathlib
+    src = pathlib.Path(__file__).resolve().parents[1].joinpath("pesserver", "service.py").read_text()
+    line = next(l for l in src.splitlines() if "register their handlers" in l)
+    for mod in ("pesrooms", "pescoop", "pesdivisions", "pesmatchday", "pesmanner", "pesavatar", "announce"):
+        assert re.search(rf"\b{mod}\b", line), mod
