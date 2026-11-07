@@ -284,8 +284,8 @@
   .av.on { box-shadow:0 0 0 2px var(--card), 0 0 0 4px var(--accent-fill); }
   @media (max-width: 1100px) { .hide-lg { display:none; } }
   @media (max-width: 900px) { .hide-900 { display:none; } }
-  .pname { all:unset; cursor:pointer; font-weight:600; border-radius:4px; overflow-wrap:anywhere; }
-  .pname:hover { text-decoration:underline; text-underline-offset:3px; color:var(--accent); }
+  .pname { all:unset; cursor:pointer; font-weight:600; border-radius:4px; overflow-wrap:anywhere; text-decoration:underline dotted var(--muted); text-underline-offset:3px; }
+  .pname:hover { text-decoration:underline solid; text-underline-offset:3px; color:var(--accent); }
   .pname:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   td.when .t { color:var(--muted); }
   @media (max-width: 760px) { .hide-md { display:none; } }
@@ -481,6 +481,10 @@
   h3.rooms-h { margin-top:16px; }
   .pill.mode { margin-left:6px; }
   table.divt { width:auto; min-width:min(100%, 620px); }
+  table.divt td.name { white-space:nowrap; }
+  .odot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-right:7px; vertical-align:1px; }
+  .linkrow.wrap code { white-space:normal; overflow-wrap:anywhere; text-overflow:clip; }
+  details.tnotes { margin-top:12px; } details.tnotes .note { margin-top:8px; }
   table.divt th, table.divt td { padding-right:28px; }
   @media (max-width: 560px) { table.divt { min-width:0; } table.divt th, table.divt td { padding-right:8px; } }
   .chips.r-mode { align-items:center; padding-left:10px; border-left:1px solid var(--line); }
@@ -625,7 +629,7 @@
           <span class="grow"></span><span class="count" id="p-count" aria-live="polite"></span>
         </div>
         <div id="plist"><div class="skel"></div><div class="skel short"></div></div>
-        <p class="note" id="p-note"><b>Points per game</b> ranks only friends with 5+ matches, so nobody is behind just for playing less; ties go to goal difference per game. Select a name for their matches, head-to-head record and the Delete option. <span class="hide-lg">Rating is the game's own matchmaking number (it pairs players of similar skill); it doesn't change the table order.</span></p><p class="note">Kick disconnects someone now; they can reconnect and see your reason. There's no ban yet: anyone with the mod file can join.</p><p class="note"><b>Courtesy B or C</b> next to a name is the game's fair-play rating: it drops when someone quits, idles or closes the game during matches (a kick or the other player leaving doesn't count). The game warns them itself; you can clear it in their panel.</p>
+        <details class="keycheck tnotes" id="p-note"><summary>How the table works</summary><p class="note"><b>Points per game</b> ranks only friends with 5+ matches, so nobody is behind just for playing less; ties go to goal difference per game. Select a name for their matches, head-to-head record and the Delete option. <span class="hide-lg">Rating is the game's own matchmaking number (it pairs players of similar skill); it doesn't change the table order.</span></p><p class="note">Kick disconnects someone now; they can reconnect and see your reason. There's no ban yet: anyone with the mod file can join.</p><p class="note"><b>Courtesy B or C</b> next to a name is the game's fair-play rating: it drops when someone quits, idles or closes the game during matches (a kick or the other player leaving doesn't count). The game warns them itself; you can clear it in their panel.</p></details>
       </section>
       <section class="card" id="c-div" aria-labelledby="h-div" hidden><div class="card-h"><h2 id="h-div" tabindex="-1">Online Divisions</h2></div><div id="divs"></div></section>
     </section>
@@ -819,7 +823,7 @@ const FAQ_FAR = "https://mohamedalirashad.github.io/pes2021-private-server/#faq-
 const runCmd = () => platform === "win32" ? RUN_PS : RUN_SH;
 const inMin = s => s < 3600 ? Math.max(1, Math.ceil(s / 60)) + " min" : dur(s);
 const midCut = (t, n) => t.length > n ? t.slice(0, Math.floor(n * .35)) + "…" + t.slice(-Math.floor(n * .6)) : t;
-const copyRow = (t, what, shownText) => `<div class="linkrow"><code title="${esc(t)}">${esc(shownText || t)}</code><button type="button" class="small" data-copytext="${esc(t)}" data-copied="${what} copied">Copy</button></div>`;
+const copyRow = (t, what, shownText, cls) => `<div class="linkrow${cls ? " " + cls : ""}"><code title="${esc(t)}">${esc(shownText || t)}</code><button type="button" class="small" data-copytext="${esc(t)}" data-copied="${what} copied">Copy</button></div>`;
 const isTs = a => /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(a || "") || String(a || "").toLowerCase().startsWith("fd7a:115c:a1e0:");
 const restartHint = () => `start the server again (was its window closed?): <code>${esc(runCmd())}</code>.`;
 const nm = n => esc(n).replace(/(_|\.(?!\d))/g, "$1<wbr>");
@@ -1260,7 +1264,7 @@ function badge(id, v, label) {
 function liveHtml(d, now, compact) {
   const phaseLabel = m => m.phase === "Full time" ? `<span class="pill neutral">Full time</span>`
     : m.kickoff ? `<span class="pill live"><span class="dot"></span>${esc(m.phase)}</span> <span class="muted">&nbsp;kicked off ${ago(m.kickoff, now)}</span>${modeTag(m.mode)}`
-    : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}</span>${modeTag(m.mode)}${now - (m.started || now) > 300 ? `<span class="stuck small">Stuck? ${nm(m.home_name)} and ${nm(m.away_name)} can leave and search again.</span><span class="stuck-acts">${[[m.home, m.home_name], [m.away, m.away_name]].filter(x => x[0] != null).map(([pid, n]) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="lvdm-${pid}${compact ? "c" : ""}">Message ${nm(n)}</button>`).join("")}</span>` : ""}`;
+    : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}</span>${modeTag(m.mode)}${!compact && now - (m.started || now) > 300 ? `<span class="stuck small">Stuck? ${nm(m.home_name)} and ${nm(m.away_name)} can leave and search again.</span><span class="stuck-acts">${[[m.home, m.home_name], [m.away, m.away_name]].filter(x => x[0] != null).map(([pid, n]) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="lvdm-${pid}${compact ? "c" : ""}">Message ${nm(n)}</button>`).join("")}</span>` : ""}`;
   const going = d.live.filter(m => m.phase !== "Full time"), done = d.live.filter(m => m.phase === "Full time");
   const fin = done.length ? `<p class="finished">Just finished: ${done.map(m => `${esc(m.home_name)} ${m.home_score}–${m.away_score} ${esc(m.away_name)}`).join(" · ")}</p>` : "";
   return going.length ? `<ul class="list-plain">` + going.map(m => `
@@ -1349,7 +1353,7 @@ function renderOverview(d, r, pn, playing, ready) {
     const probs = d.problems || [], stuckPids = new Set(probs.flatMap(p => p.pids));
     for (const p of probs) {
       if (p.kind === "data") attn.push(`<li><span>${I.warn} <b>${nmOf(p.pids[0])} and ${nmOf(p.pids[1])} are both searching but can't be paired:</b> their games have different player data (a different patch, Live Update or edited stats). A Live Update from your server gives everyone the same data.</span><a href="#server/h-lu">Live Update ${I.right}</a></li>`);
-      else if (p.kind === "mod") attn.push(`<li><span>${I.warn} <b>${nmOf(p.old)} has an older mod,</b> so ${nmOf(p.old)} and ${nmOf(p.pids.find(x => x !== p.old))} can't be paired. Send ${nmOf(p.old)} the mod again; it replaces the old file.</span><a href="#invite">Send the mod ${I.right}</a></li>`);
+      else if (p.kind === "mod") attn.push(`<li><span>${I.warn} <b>${nmOf(p.old)} has an older mod,</b> so ${nmOf(p.old)} and ${nmOf(p.pids.find(x => x !== p.old))} can't be paired. Send ${nmOf(p.old)} the mod again; it replaces the old file.</span>${dmB(p.old, "amdm")}<a href="#invite">Send the mod ${I.right}</a></li>`);
       else if (p.kind === "coop_mod") attn.push(`<li><span>${I.warn} <b>${nmOf(p.pids[0])} is searching for Online Co-op, but their mod is too old for co-op.</b> Send them the mod again; Quick Match keeps working meanwhile.</span><a href="#invite">Send the mod ${I.right}</a></li>`);
       else if (p.kind === "coop_blocked") attn.push(`<li class="info"><span><b>${nmOf(p.pids[0])} and ${nmOf(p.pids[1])} are both searching for Online Co-op,</b> but one has the other on their co-op block list, so they won't be paired.</span></li>`);
     }
@@ -1358,17 +1362,19 @@ function renderOverview(d, r, pn, playing, ready) {
     for (const o of searchers) (byMode[o.searching_for] = byMode[o.searching_for] || []).push(o);
     const alone = Object.values(byMode).filter(g => g.length === 1 && !stuckPids.has(g[0].pid) && g[0].searching_since && now - g[0].searching_since > 180).map(g => g[0]);
     if (alone.length === 1 && searchers.length === 1)
-      attn.push(`<li><span>${I.warn} <b>${esc(alone[0].name)} has been searching in ${esc(alone[0].searching_for)} alone for ${inMin(now - alone[0].searching_since)}.</b> Nobody else is searching, so no match can start.</span><a href="#messages/msg-title">Message everyone ${I.right}</a></li>`);
+      attn.push(`<li class="info"><span><b>${esc(alone[0].name)} has been searching in ${esc(alone[0].searching_for)} alone for ${inMin(now - alone[0].searching_since)}.</b> Nobody else is searching, so no match can start.</span><a href="#messages/msg-title">Message everyone ${I.right}</a></li>`);
     else if (alone.length === 1) {
       const o = alone[0], others = searchers.filter(x => x !== o), oModes = [...new Set(others.map(x => x.searching_for))];
-      attn.push(`<li><span>${I.warn} <b>${esc(o.name)} is the only friend searching in ${esc(o.searching_for)}</b> (for ${inMin(now - o.searching_since)}). ${andList(others.map(x => esc(x.name)))} ${others.length === 1 ? "is" : "are"} searching in ${andList(oModes.map(esc))}. Matches only start between friends in the same mode.</span>${dmB(o.pid, "mmdm")}</li>`);
+      attn.push(`<li class="info"><span><b>${esc(o.name)} is the only friend searching in ${esc(o.searching_for)}</b> (for ${inMin(now - o.searching_since)}). ${andList(others.map(x => esc(x.name)))} ${others.length === 1 ? "is" : "are"} searching in ${andList(oModes.map(esc))}. Matches only start between friends in the same mode.</span>${dmB(o.pid, "mmdm")}</li>`);
     } else if (alone.length > 1)
-      attn.push(`<li><span>${I.warn} <b>${andList(alone.map(o => `${esc(o.name)} (${esc(o.searching_for)})`))} are searching in different modes,</b> so they aren't paired. Matches only start between friends in the same mode.</span>${alone.length <= 2 ? alone.map(o => dmB(o.pid, "mmdm")).join("") : `<a href="#messages/msg-title">Message everyone ${I.right}</a>`}</li>`);
+      attn.push(`<li class="info"><span><b>${andList(alone.map(o => `${esc(o.name)} (${esc(o.searching_for)})`))} are searching in different modes,</b> so they aren't paired. Matches only start between friends in the same mode.</span>${alone.length <= 2 ? alone.map(o => dmB(o.pid, "mmdm")).join("") : `<a href="#messages/msg-title">Message everyone ${I.right}</a>`}</li>`);
     const oldMods = d.online.filter(o => o.mod === "old" && !stuckPids.has(o.pid));
     if (oldMods.length && d.online.some(o => o.mod && o.mod !== "old"))
       attn.push(`<li><span>${I.warn} <b>${andList(oldMods.map(o => esc(o.name)))} ${oldMods.length === 1 ? "has" : "have"} an older mod</b> and can't be paired with friends on the current one. Send ${oldMods.length === 1 ? "them" : "each of them"} the mod again.</span><a href="#invite">Send the mod ${I.right}</a></li>`);
   }
-  $("attn").hidden = !attn.length; put("attn", attn.join(""));
+  attn.sort((a, b) => a.startsWith('<li class="info"') - b.startsWith('<li class="info"'));      // can't-play problems first
+  $("attn").hidden = !attn.length;
+  put("attn", (ui.attnAll ? attn : attn.slice(0, 3)).join("") + (attn.length > 3 ? `<li class="info more"><button type="button" class="linkbtn" data-attnmore="1" data-key="attnmore" aria-expanded="${!!ui.attnAll}">${ui.attnAll ? "Show fewer" : `Show ${attn.length - 3} more`}</button></li>` : ""));
   $("ov-info").hidden = !info.length || down; put("ov-info", info.join(""));
   text("ov-lead", starting ? "A few steps and your friends are playing." : "What's happening on your server right now.");
 
@@ -1417,7 +1423,7 @@ function renderOverview(d, r, pn, playing, ready) {
   const tdy = (d.stats ? d.stats.history : []).filter(h => dayKey(new Date(h[0] * 1000)) === dayKey(new Date()));
   const lr = d.results[0] && dayKey(new Date(d.results[0].ended * 1000)) === dayKey(new Date()) ? d.results[0] : null;
   put("ov-live", liveHtml(d, now, true) + (tdy.length ? `<p class="note" style="border-top:1px solid var(--line);padding-top:10px;margin-top:12px">Today so far: ${plural(tdy.length, "match", "matches")} · ${plural(tdy.reduce((a, h) => a + h[1], 0), "goal")}${lr ? ` · last: ${esc(lr.home_name)} ${lr.home_score}–${lr.away_score} ${esc(lr.away_name)}, ${esc(ago(lr.ended, now))}` : ""}</p>` : ""));
-  put("ov-online", d.online.length ? `<ul class="list-plain mini">` + d.online.slice(0, 8).map(p => `<li>${avatar({name: p.name, online: true})}<span class="grow">${pname(p.name, p.pid, "ovo-" + p.pid)}<br><span class="small muted">${statusOf(d, p)}${p.searching_since && !opponent(d, p.name) && !pending(d, p.name) ? ` for ${inMin(now - p.searching_since)}` : ""} · online ${dur(now - p.since)}</span></span>` +
+  put("ov-online", d.online.length ? `<ul class="list-plain mini">` + d.online.slice(0, 8).map(p => `<li>${avatar({name: p.name, online: true})}<span class="grow">${pname(p.name, p.pid, "ovo-" + p.pid)}${courtTag(d.players.find(x => x.pid === p.pid) || {})}<br><span class="small muted">${statusOf(d, p)}${p.searching_since && !opponent(d, p.name) && !pending(d, p.name) ? ` for ${inMin(now - p.searching_since)}` : ""} · online ${dur(now - p.since)}</span></span>` +
       `<span class="acts"><button type="button" class="small needs-server" data-dm="${p.pid}" data-key="ovdm-${p.pid}" aria-label="Message ${esc(p.name)}">Message</button><button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="ovkick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></span></li>`).join("") + `</ul>` +
       (d.online.length > 8 ? `<p class="note"><a href="#players">${d.online.length - 8} more online</a></p>` : "")
     : `<p class="empty">Nobody is online right now.</p>`);
@@ -1441,11 +1447,11 @@ function renderDivisions(d) {
   $("c-div").hidden = !dv.length;
   if (!dv.length) return;
   const outlook = x => !x.top && x.points >= x.up ? `<span class="ok">going up</span>` : !x.bottom && x.points + 3 * (x.of - x.played) < x.down ? `<span class="warn">going down</span>`
-    : `<span class="muted">${[!x.top ? `up at ${x.up}` : "", !x.bottom ? `down under ${x.down}` : ""].filter(Boolean).join(", ")}</span>`;
+    : `<span class="muted">${[!x.top ? `goes up at ${x.up} pts` : "", !x.bottom ? `goes down below ${x.down}` : ""].filter(Boolean).join(", ")}</span>`;
   put("divs", `<div class="tablewrap"><table class="divt"><caption class="sr">Online Divisions, top division first</caption><thead><tr><th scope="col">Player</th><th scope="col" class="num">Division</th><th scope="col">This season</th><th scope="col" class="hide-sm">Record</th></tr></thead><tbody>` +
     dv.map(p => { const x = p.division; return `<tr><td class="name"><span class="who">${avatar(p)}${pname(p.name, p.pid, "dv-" + p.pid)}</span></td><td class="num"><b>D${x.div}</b></td>` +
       `<td><b>${x.points}</b> pts · ${x.played} of ${x.of} played<br><span class="small">${outlook(x)}</span></td><td class="hide-sm small muted">${ordinal(x.season)} season · ${x.wins}W ${x.draws}D ${x.losses}L overall</td></tr>`; }).join("") +
-    `</tbody></table></div><p class="note">D10 is where everyone starts and D1 is the top. A season is 10 matches: 3 points a win, 1 a draw. These matches also count in the league table above.</p>`);
+    `</tbody></table></div><p class="note">D10 is where everyone starts and D1 is the top. A season is 10 matches: 3 points a win, 1 a draw. These matches also count in the league table above.${d.players.length > dv.length ? ` ${plural(d.players.length - dv.length, "friend hasn't", "friends haven't")} played Online Divisions yet.` : ""}</p>`);
 }
 function renderPlayers(d) {
   const now = d.now, rk = ranked(d), rankOf = new Map(rk.map((p, i) => [p.pid, i + 1]));
@@ -1475,7 +1481,7 @@ function renderPlayers(d) {
     list.map(p => { const o = onlineBy.get(p.pid);
       return `<tr><td class="num muted">${rankOf.get(p.pid) || "–"}</td>
       <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}${courtTag(p)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · <span class="nw">${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
-      <td class="hide-md st-cell">${o && downSince ? `<span class="muted">Was online at ${hm.format(new Date(lastOkAt))}</span>` : o ? `<span class="pill tag"><span class="dot"></span>online</span> ` + statusOf(d, o) + ``
+      <td class="hide-md st-cell">${o && downSince ? `<span class="muted">Was online at ${hm.format(new Date(lastOkAt))}</span>` : o ? `<span class="odot" aria-hidden="true"></span><span class="sr">Online: </span>` + statusOf(d, o)
           : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
       <td class="num hide-lg">${p.rating ?? "–"}</td><td class="num hide-sm">${p.played}</td><td class="num hide-sm">${p.won}</td><td class="num hide-sm">${p.drawn}</td><td class="num hide-sm">${p.lost}</td>
       <td class="num hide-md">${p.played ? signed(gd(p)) : "–"}</td><td class="num">${ui.rank === "ppg" ? pts(p) : `<b>${pts(p)}</b>`}</td><td class="num hide-sm">${!p.played ? "–" : ui.rank === "ppg" ? `<b>${ppg(p).toFixed(2)}</b>` : ppg(p).toFixed(2)}</td><td class="hide-lg">${formHtml(p.form || [])}</td>
@@ -1522,7 +1528,7 @@ function renderMatchday(d) {
   $("c-md").hidden = !md;
   if (!md) return;
   const [a, b] = md.sides, lead = a.points === b.points ? "The sides are level" : `${esc(a.points > b.points ? a.name : b.name)} leads by ${Math.abs(a.points - b.points)}`;
-  put("md", `<p class="small muted" style="margin:-4px 0 12px">${esc(md.name)}: each friend picks a side and every Matchday match adds points to them and their side (3 a win, 1 a draw). ${lead}.</p>` +
+  put("md", `<p class="small muted" style="margin:-4px 0 12px">${esc(md.name)}: each friend picks a side and every Matchday match adds points to them and their side (3 a win, 1 a draw). ${lead}. It stays open, with no end date. <button type="button" class="linkbtn" data-rmset="Matchday">Show Matchday results</button></p>` +
     `<div class="mstats md2">${md.sides.map(s => `<div><b>${s.points}</b><span>${esc(s.name)} · ${plural(s.players, "player")}</span></div>`).join("")}</div>` +
     `<ol class="list-plain mini" style="margin-top:12px">` + md.entries.slice(0, 8).map((e, i) => `<li><span class="rank">${i + 1}</span><span class="grow">${pname(pidName(d, e.pid), e.pid, "md-" + e.pid)}<br><span class="small muted">${esc(e.side)} · ${plural(e.matches, "match", "matches")}</span></span><span class="r"><b style="color:var(--fg)">${e.points}</b> pts</span></li>`).join("") + `</ol>`);
 }
@@ -1632,7 +1638,7 @@ async function loadPlayer() {
     `<h3>Form <span class="small muted" style="font-weight:400">last ${Math.min(10, ms.length)}, oldest → newest</span></h3>${formHtml(ms.slice(0, 10).map(m => m.res).reverse())}` +
     (rows.length ? `<h3>Head to head</h3><div class="tablewrap"><table><caption class="sr">Head to head</caption><thead><tr><th scope="col">Opponent</th><th scope="col" class="num">P</th><th scope="col" class="num">W</th><th scope="col" class="num">D</th><th scope="col" class="num">L</th><th scope="col" class="num">Goals</th><th scope="col" class="num"><abbr title="Goal difference">GD</abbr></th></tr></thead><tbody>` +
       rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td><td class="num h2h-bal ${x.gf > x.ga ? "up" : x.gf < x.ga ? "down" : ""}">${signed(x.gf - x.ga)}</td></tr>`).join("") + `</tbody></table></div>` : "") +
-    `<h3>Matches</h3>` + (all.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${nm(m.opp)}${modeTag(m.r.mode)}${m.r.voided ? ' <span class="pill neutral tag">not counted</span>' : m.r.reason ? ' <span class="pill neutral tag">ended early</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
+    `<h3>Matches</h3>` + (all.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${nm(m.opp)}${modeTag(m.r.mode || "Quick Match")}${m.r.voided ? ' <span class="pill neutral tag">not counted</span>' : m.r.reason ? ' <span class="pill neutral tag">ended early</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (all.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${all.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
     (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true, pid) : "");
   $("sh-f").innerHTML = `<button type="button" class="primary needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="danger needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
@@ -1656,7 +1662,7 @@ function modesHtml(p, now) {
   if (md) rows.push(["Matchday", `${esc(md.side)} · ${plural(md.points, "point")} from ${plural(md.matches, "match", "matches")}`]);
   if ((p.coop_blocks || []).length) rows.push(["Co-op blocks", `Won't be paired in Online Co-op with ${names(p.coop_blocks)} (their own block list)`]);
   if ((p.coop_blocked_by || []).length) rows.push(["Blocked by", `${names(p.coop_blocked_by)} (in Online Co-op only)`]);
-  if (p.mod) rows.push(["Mod", esc(MODS[p.mod] || p.mod)]);
+  if (p.mod) rows.push(["Mod", esc(MODS[p.mod] || p.mod) + (p.mod !== "current" ? `<span style="display:block;margin-top:6px"><button type="button" class="small" data-goto="#invite">Send the mod</button></span>` : "")]);
   return rows.length ? `<h3>Game modes and fair play</h3><dl class="kv modes">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : "";
 }
 function cachedPlayer(pid) {
@@ -1693,12 +1699,12 @@ function renderServer(d, s) {
     `<div>Signed in here${untilText ? ` until ${esc(untilText)}` : ""}. <button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
   put("cmds", `<dt>Stop</dt><dd>Press <b>Ctrl+C</b> in the server's window, or close the window.</dd>
     <dt>Start or update</dt><dd id="install-cmd">${copyRow(runCmd(), "Start command")}<span class="small muted">${platform === "win32" ? "In PowerShell. " : "In a terminal. "}Always starts the newest version; players, results and friends' mod files keep working.</span></dd>
-    ${dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", midCut(dataDir, innerWidth > 1300 ? 90 : 46))}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : ""}`);
+    ${dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", null, "wrap")}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : ""}`);
 }
 
 function luHtml(lu) {
   if (!lu) return "";
-  const folder = lu.folder ? copyRow(lu.folder, "Folder path", midCut(lu.folder, innerWidth > 1300 ? 90 : 46)) : "";
+  const folder = lu.folder ? copyRow(lu.folder, "Folder path", null, "wrap") : "";
   if (lu.name) return `<div class="ok">${I.ok} Offering <b>${esc(lu.name)}</b> (version ${esc(lu.version)}, ${Math.max(1, Math.round(lu.size / 1048576))} MB)${lu.since ? ` since ${esc(dShort.format(new Date(lu.since * 1000)))}` : ""}</div>` +
     `<div class="small muted">Every friend's game downloads it the next time it goes online, so everyone plays with the same player data. ${lu.sent ? `${plural(lu.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it since the server started."}</div>` +
     `<div class="small">To stop offering it, remove the file from this folder (games keep what they downloaded):</div>${folder}`;
@@ -1954,6 +1960,11 @@ document.addEventListener("click", async e => {
   if (dm) { const pid = dm.dataset.dm; sheetBack = null; closeSheet(); location.hash = "#messages/dm-title"; renderDmTo(last, pid); return; }
   if (e.target.closest("[data-hidepc]")) { try { localStorage.setItem("pes-pc-hint", "off"); } catch (_) {} if (last) render(last); $("t-overview").focus(); return toast("Hidden. The setup stays under Server → PES 2021 on this computer."); }
   if (e.target.closest("[data-sheetretry]")) return loadPlayer();
+  const gt = e.target.closest("[data-goto]");
+  if (gt) { sheetBack = null; closeSheet(); location.hash = gt.dataset.goto; return; }
+  if (e.target.closest("[data-attnmore]")) { ui.attnAll = !ui.attnAll; if (last) render(last); const b = document.querySelector('[data-key="attnmore"]'); if (b) b.focus(); return; }
+  const rms = e.target.closest("[data-rmset]");
+  if (rms) { ui.rm = rms.dataset.rmset; ui.rr = "all"; ui.re = false; ui.rq = ""; $("r-q").value = ""; ui.rN = 25; loadResults(true); location.hash = "#matches/h-results"; return; }
   const pl = e.target.closest("[data-player]");
   if (pl) return openPlayer(+pl.dataset.player, pl);
   if (e.target.closest("[data-sheetall]")) { sheetAll = true; return loadPlayer(); }
