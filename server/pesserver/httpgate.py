@@ -587,13 +587,17 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         pesavatar.forget(service, pid)
         pesprofile.forget(service, pid)
         pesblock.forget(service, pid)
-        from . import pesdivisions, pesmatchday
+        from . import pesdivisions, pesmatchday, pestourney
         pesdivisions.forget(service, pid)
         pesmatchday.forget(service, pid)
+        pestourney.forget(service, pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)
         events.feed(service, f"{name} was deleted by the admin", "warn")
         return "200 OK", b'{"ok":true}', "application/json"
+    if route.startswith("/admin/api/tourneys"):
+        from . import pestourney                    # Online Tournament competitions (list, save, end, delete)
+        return pestourney.admin_api(service, route, method, body)
     return "404 Not Found", b'{"error":"unknown"}', "application/json"
 
 

@@ -74,7 +74,12 @@ def get_gameresults(svc, sess, req):
     pid = getattr(sess, "pes_pid", None)
     if not isinstance(pid, int):
         return {"result": NOERR}
-    rl = history(svc, pid, str(req.get("game_res_type") or "ALL").upper())
+    kind = str(req.get("game_res_type") or "ALL").upper()
+    if kind == "PESLEAGUE":                  # Online Tournament -> Current Match Results {pesleague_compe_id}
+        from . import pestourney
+        rl = pestourney.results(svc, pid, req.get("pesleague_compe_id"))
+    else:
+        rl = history(svc, pid, kind)
     return {"result": NOERR, "rlist": rl, "rlist_num": len(rl)}
 
 

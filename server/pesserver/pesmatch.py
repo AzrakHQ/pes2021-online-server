@@ -234,6 +234,13 @@ def _matching_type(sess):
     return str((getattr(sess, "pes_match_req", None) or {}).get("matching_type") or "OC_QUICK")
 
 
+def _queue_key(sess):
+    """Players are paired only within one queue: the matching type, and for Online Tournament also the competition
+    (START_MATCHING has no compe_id; pestourney keeps the one the player opened)."""
+    t = _matching_type(sess)
+    return (t, getattr(sess, "pes_compe", None)) if t == "PES_LEAGUE" else (t, None)
+
+
 def _compatible(sa, sb):
     da, db = _game_data(sa), _game_data(sb)
     return (da is None or db is None or da == db) and _same_math(sa) == _same_math(sb)
@@ -268,7 +275,7 @@ def _next_pair(svc):
     q = _state(svc)["queue"]
     for i in range(len(q)):
         for j in range(i + 1, len(q)):
-            if _matching_type(q[i][1]) != _matching_type(q[j][1]):
+            if _queue_key(q[i][1]) != _queue_key(q[j][1]):
                 continue                                  # Quick Match vs Online Divisions: different queues
             from . import pesblock
             if pesblock.blocked(svc, q[i][0], q[j][0]):
@@ -287,7 +294,8 @@ def _try_pair(svc):
         st["queue"] = [x for k, x in enumerate(st["queue"]) if k not in (i, j)]
         _forget_mismatch(st, a, b)
         room = st["next_room"]; st["next_room"] += 1
-        st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time(), "mode": _matching_type(sa)}
+        st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time(), "mode": _matching_type(sa),
+                            "compe": _queue_key(sa)[1]}
         log.info("MATCH FOUND room %d: owner %s vs %s", room, a, b)
         for pid in (a, b):
             viewer = sa if pid == a else sb
@@ -573,6 +581,9 @@ def forfeit(svc, rid, quitter):
     elif room.get("mode") == "MATCHDAY":
         from . import pesmatchday
         pesmatchday.record(svc, scored)
+    elif room.get("mode") == "PES_LEAGUE":
+        from . import pestourney
+        pestourney.record(svc, scored)
     hs = sum(1 for _, g in goals if g == "HOME")
     as_ = sum(1 for _, g in goals if g == "AWAY")
     room["forfeit_score"] = (hs, as_)
@@ -612,14 +623,20 @@ def _verdict(svc, rid, room):
     with svc.accounts.lock, db:
         for p, (r, streak) in new.items():
             db.execute("UPDATE pes_players SET rating=?, win_streak=? WHERE pid=?", (r, streak, p))
+    shown = {p: (old[p][0], new[p][0]) for p in (home, away)}
+    if room.get("mode") == "PES_LEAGUE":
+        # Online Tournament: the game's "Changes in rating" screen shows the competition points (its rankings
+        # call them Rating); the Elo rating above still moves as in any match.
+        from . import pestourney
+        shown.update(pestourney.record(svc, room))
     players = []
     for p in (home, away):
         info = _player(svc, _username(svc, p)) or {"name": f"Player{p}"}
         pname = msgpack.packb({"name": info["name"] or "", "xuid_one": "", "is_deleted": "NO",
                                "psn_user_id": msgpack.packb({"account_id": 0, "online_id": "", "is_valid_cache": "NO"})},
                               use_bin_type=True)
-        players.append({"pid": p, "pes_pname": pname, "rating_type": "RANKMATCH", "rating": new[p][0],
-                        "oldrating": old[p][0], "rating_boost_type": "NONE", "rating_boost_rate": 0,
+        players.append({"pid": p, "pes_pname": pname, "rating_type": "RANKMATCH", "rating": shown[p][1],
+                        "oldrating": shown[p][0], "rating_boost_type": "NONE", "rating_boost_rate": 0,
                         "rating_compe": 0, "side": side[p], "contWin_num": new[p][1],
                         "skill_rank": "SKILL_RANK_NONE", "is_rankup_skill_rank": "NO", "is_first_skillrank": "NO"})
     winner = "WINNER_HOME" if result[home] == 1 else "WINNER_AWAY" if result[away] == 1 else "WINNER_NONE"
@@ -631,6 +648,9 @@ def _verdict(svc, rid, room):
     elif room.get("mode") == "MATCHDAY":
         from . import pesmatchday
         pesmatchday.record(svc, room)
+    elif room.get("mode") == "PES_LEAGUE":
+        from . import pestourney
+        pestourney.record(svc, room)
     log.info("VERDICT room %s %d-%d: %s", rid, score["HOME"], score["AWAY"],
              {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
     events.feed(svc, "Ratings: " + ", ".join(f"{events.name_of(svc, p)} {old[p][0]} → {new[p][0]}" for p in (home, away)),
