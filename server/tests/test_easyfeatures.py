@@ -139,3 +139,14 @@ def test_message_stays_in_the_players_information_list(svc):
     assert pescmds.dispatch(svc, a, "CMD_GET_PRIVATEINFOTITLELIST", {"pid": 1})["annnounce_info_list_num"] == announce.INBOX_MAX
     announce.forget(svc, 1)
     assert pescmds.dispatch(svc, a, "CMD_GET_PRIVATEINFOTITLELIST", {"pid": 1}) == {"result": "NOERR"}
+
+
+def test_lobby_welcome_once_per_player(svc):
+    a, b = Sess(1), Sess(2)
+    r = pescmds.dispatch(svc, a, "CMD_GET_LOBBYINFO", {"lobby_id": 1})
+    assert r["has_info"] == "YES" and r["title"] and r["sentence_info"]
+    assert pescmds.validate("CMD_GET_LOBBYINFO", r)
+    assert pescmds.dispatch(svc, a, "CMD_GET_LOBBYINFO", {"lobby_id": 1})["has_info"] == "NO"
+    assert pescmds.dispatch(svc, b, "CMD_GET_LOBBYINFO", {"lobby_id": 1})["has_info"] == "YES"
+    announce.forget(svc, 1)                      # a deleted player's number starts clean
+    assert pescmds.dispatch(svc, a, "CMD_GET_LOBBYINFO", {"lobby_id": 1})["has_info"] == "YES"

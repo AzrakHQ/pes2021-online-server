@@ -1,0 +1,642 @@
+{
+ "name": "divisions-season-end",
+ "inst": 1,
+ "variants": [
+  {
+   "name": "relegated-post-D10",
+   "patch": {
+    "patch": {
+     "CMD_GET_DIVISION_INFO": [
+      {
+       "when": {
+        "is_season_end": "NO"
+       },
+       "times": 2,
+       "set": {
+        "division_info.division": "D9",
+        "division_info.promotion_point": 15,
+        "division_info.doublerank_promotion_point": 24,
+        "division_info.demotion_point": 7,
+        "division_info.other_match_num": 0,
+        "division_info.match_history_list": {
+         "__blobs__": [
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          }
+         ]
+        }
+       }
+      },
+      {
+       "when": {
+        "is_season_end": "YES"
+       },
+       "times": 1,
+       "set": {
+        "division_info.division": "D10",
+        "division_info.promotion_point": 12,
+        "division_info.doublerank_promotion_point": 21,
+        "division_info.demotion_point": 0,
+        "division_info.other_match_num": 10,
+        "division_info.match_history_list": {
+         "__blobs__": []
+        }
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "promoted-post-D8",
+   "patch": {
+    "patch": {
+     "CMD_GET_DIVISION_INFO": [
+      {
+       "when": {
+        "is_season_end": "NO"
+       },
+       "times": 2,
+       "set": {
+        "division_info.division": "D10",
+        "division_info.promotion_point": 12,
+        "division_info.doublerank_promotion_point": 21,
+        "division_info.demotion_point": 0,
+        "division_info.other_match_num": 0,
+        "division_info.match_history_list": {
+         "__blobs__": [
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          }
+         ]
+        }
+       }
+      },
+      {
+       "when": {
+        "is_season_end": "YES"
+       },
+       "times": 1,
+       "set": {
+        "division_info.division": "D8",
+        "division_info.promotion_point": 15,
+        "division_info.doublerank_promotion_point": 24,
+        "division_info.demotion_point": 7,
+        "division_info.other_match_num": 10,
+        "division_info.match_history_list": {
+         "__blobs__": []
+        }
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "few-points-post-D9",
+   "patch": {
+    "patch": {
+     "CMD_GET_DIVISION_INFO": [
+      {
+       "when": {
+        "is_season_end": "NO"
+       },
+       "times": 2,
+       "set": {
+        "division_info.division": "D10",
+        "division_info.promotion_point": 12,
+        "division_info.doublerank_promotion_point": 21,
+        "division_info.demotion_point": 0,
+        "division_info.other_match_num": 0,
+        "division_info.match_history_list": {
+         "__blobs__": [
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 1,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "DRAW",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 0,
+           "enemy_team_id": 101,
+           "home_score": 0,
+           "away_score": 1,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "LOSE",
+           "enemy_cpu_level": ""
+          }
+         ]
+        }
+       }
+      },
+      {
+       "when": {
+        "is_season_end": "YES"
+       },
+       "times": 1,
+       "set": {
+        "division_info.division": "D9",
+        "division_info.promotion_point": 15,
+        "division_info.doublerank_promotion_point": 24,
+        "division_info.demotion_point": 7,
+        "division_info.other_match_num": 10,
+        "division_info.match_history_list": {
+         "__blobs__": []
+        }
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "many-points-post-D10",
+   "patch": {
+    "patch": {
+     "CMD_GET_DIVISION_INFO": [
+      {
+       "when": {
+        "is_season_end": "NO"
+       },
+       "times": 2,
+       "set": {
+        "division_info.division": "D10",
+        "division_info.promotion_point": 12,
+        "division_info.doublerank_promotion_point": 21,
+        "division_info.demotion_point": 0,
+        "division_info.other_match_num": 0,
+        "division_info.match_history_list": {
+         "__blobs__": [
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          },
+          {
+           "division_point": 3,
+           "enemy_team_id": 101,
+           "home_score": 1,
+           "away_score": 0,
+           "enemy_side": "AWAY",
+           "enemy_name": "Test",
+           "is_finished_match": "YES",
+           "win_lose": "WIN",
+           "enemy_cpu_level": ""
+          }
+         ]
+        }
+       }
+      },
+      {
+       "when": {
+        "is_season_end": "YES"
+       },
+       "times": 1,
+       "set": {
+        "division_info.division": "D10",
+        "division_info.promotion_point": 12,
+        "division_info.doublerank_promotion_point": 21,
+        "division_info.demotion_point": 0,
+        "division_info.other_match_num": 10,
+        "division_info.match_history_list": {
+         "__blobs__": []
+        }
+       }
+      }
+     ]
+    }
+   }
+  }
+ ],
+ "steps": [
+  {
+   "home": true
+  },
+  {
+   "go": "divisions"
+  },
+  {
+   "reply": "CMD_GET_DIVISION_INFO",
+   "ok": true,
+   "timeout": 60
+  },
+  {
+   "watch": 70,
+   "press": "Return",
+   "idle": 8,
+   "until": "MenuMain"
+  },
+  {
+   "shot": "end"
+  },
+  {
+   "reply": "CMD_FINISH_SEASON",
+   "since": "variant",
+   "timeout": 1,
+   "optional": true
+  }
+ ]
+}

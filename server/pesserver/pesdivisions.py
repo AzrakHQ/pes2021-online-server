@@ -70,8 +70,14 @@ def division_info(svc, pid):
                    "is_finished_match": "YES", "win_lose": res, "enemy_cpu_level": ""})
             for pts, res, name, team, side, hs, as_ in st["history"][:SEASON]]
     p = _player(svc, pesmatch._username(svc, pid)) or {"rating": 0}
-    rec = {"win_count": st["wins"], "draw_count": st["draws"], "lose_count": st["losses"], "win_s_max": st["best"],
-           "rating": float(p.get("rating") or 0)}
+    # This season's record: the Season Results screen shows it as W/D/L under "Matches 10" (live 2026-11-07).
+    season = [h[1] for h in st["history"][:SEASON]]
+    best = run = 0
+    for r in season:
+        run = run + 1 if r == "WIN" else 0
+        best = max(best, run)
+    rec = {"win_count": season.count("WIN"), "draw_count": season.count("DRAW"), "lose_count": season.count("LOSE"),
+           "win_s_max": best, "rating": float(p.get("rating") or 0)}
     return {"division": f"D{st['division']}", "demotion_point": down, "promotion_point": up,
             "doublerank_promotion_point": up2, "other_match_num": max(0, SEASON - len(st["history"])),
             "match_record": _pack(rec), "match_history_list": hist}

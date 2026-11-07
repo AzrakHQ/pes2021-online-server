@@ -3,7 +3,12 @@
 Loaded by run_server.py when PATCH_CTL is set (scenario.py and probesession.py set it). The file is read again
 whenever it changes. Format (every key optional):
 
-  {"patch": {"CMD_X": {"set": {"a.b.c": VALUE}, "del": ["a.b"]}},   edit fields of the handler's reply; a path
+  {"patch": {"CMD_X": {"set": {"a.b.c": VALUE}, "del": ["a.b"], "times": N}},   edit fields of the handler's
+                                                                     reply (only the first N replies after the
+                                                                     file changed, if "times" is given); a list
+                                                                     of such entries is allowed, each with
+                                                                     "when": {request field: value}; the first
+                                                                     entry that matches is used; a path
                                                                      goes through nested blobs (bytes are
                                                                      unpacked, edited, packed again) and list
                                                                      indexes ("list.0.field")
@@ -24,6 +29,7 @@ log = logging.getLogger("pesserver.replypatch")
 CTL = os.environ["PATCH_CTL"]
 TXLOG = os.environ.get("PATCH_TXLOG") or os.path.join(os.path.dirname(os.path.abspath(CTL)), "replies.jsonl")
 _cache = {"mtime": None, "data": {}}
+_used = {}                         # msgid -> patched replies since the control file last changed
 _sent = set()
 _lock = threading.Lock()
 
@@ -37,6 +43,7 @@ def ctl():
         try:
             _cache["data"] = json.load(open(CTL))
             _cache["mtime"] = m
+            _used.clear()
             log.info("PATCH ctl reloaded: %s", sorted(_cache["data"]))
         except ValueError as e:          # half-written file: keep the last good one
             log.warning("PATCH ctl unreadable (%s)", e)
@@ -106,12 +113,22 @@ def dispatch(svc, sess, msgid, req):
         resp, patched = {"result": err}, ["err"]
     else:
         resp, patched = _dispatch(svc, sess, msgid, req), []
-        p = c.get("patch", {}).get(msgid)
-        if p and isinstance(resp, dict) and not resp.get("_defer"):
+        plist = c.get("patch", {}).get(msgid) or []
+        plist = [plist] if isinstance(plist, dict) else plist
+        for i, p in enumerate(plist):
+            key = (msgid, i)
+            if "times" in p and _used.get(key, 0) >= int(p["times"]):
+                continue
+            if any(str(req.get(k)) != str(v) for k, v in (p.get("when") or {}).items()):
+                continue
+            if not isinstance(resp, dict) or resp.get("_defer"):
+                break
+            _used[key] = _used.get(key, 0) + 1
             for path, v in p.get("set", {}).items():
                 resp = edit(resp, path, "set", value(v)); patched.append("set " + path)
             for path in p.get("del", []):
                 resp = edit(resp, path, "del"); patched.append("del " + path)
+            break                                   # the first matching entry only
     if patched:
         log.info("PATCH %s %s", msgid, patched)
     try:

@@ -9,6 +9,9 @@
   for the list at login and on entering an online mode, pops up each new item once (popup_type ONCE; it remembers
   closed items across restarts) and keeps it in the list. Seen live 2026-11-07. (Until then these messages went
   through the box before Quick Match; with both, the player got the same text twice in a row.)
+- Lobby welcome (CMD_GET_LOBBYINFO {lobby_id}): has_info YES opens a notice window (title, then sentence_info and
+  sentence_intro as two paragraphs, OK to close) when a player enters the Friendly Match Lobby (live 2026-11-07).
+  Each player sees the short how-it-works note once.
 - Planned restart (CMD_GET_MAINTENANCE_INFO): asked on "Go to Matchmaking"; maintenance_warn "YES" with a
   unix time makes the game's own "maintenance starting at HH:MM today... start a match now?" Yes/No dialog.
 
@@ -46,6 +49,7 @@ def _load(svc):
         st.setdefault("seen", [])            # pids that got the news box before Quick Match
         st.setdefault("restart", None)       # unix time
         st.setdefault("personal", {})        # str(pid) -> {id, title, body}
+        st.setdefault("lobby_seen", [])      # pids that got the Friendly Match Lobby welcome
         st.setdefault("inbox", {})           # str(pid) -> [{id, title, body, date, kind, seen}], newest last
         st.setdefault("seen_notes", [])      # messages players have opened, newest first (the admin page lists them)
         st.setdefault("history", [])         # earlier messages to everyone, newest first
@@ -193,6 +197,7 @@ def forget(svc, pid):
         st = _load(svc)
         st["personal"].pop(str(pid), None)
         st["inbox"].pop(str(pid), None)
+        st["lobby_seen"] = [p for p in st["lobby_seen"] if p != pid]
         st["seen"] = [p for p in st["seen"] if p != pid]
         st["seen_notes"] = [n for n in st["seen_notes"] if n.get("pid") != pid]
         _save(svc)
@@ -297,6 +302,28 @@ def urgent(svc, sess, req):
             "announcement_type": req.get("announcement_type", "PRE_MAIN"), "read_check": "NO",
             "title": msg["title"], "body": msg["body"]}
     return {"result": NOERR, "is_announcement": "YES", "announcement_data": msgpack.packb(data)}
+
+
+LOBBY_TITLE = "Friendly Match Lobby"
+LOBBY_INFO = ("Make a match room, or pick a friend's room from the list (a room can have a password).\n"
+              "When both players are in the room, both press Start Match.")
+LOBBY_INTRO = "After the match you are back in the room for a rematch. Room chat works too."
+
+
+@cmd("CMD_GET_LOBBYINFO")
+def lobby_info(svc, sess, req):
+    """The lobby's notice window, once per player (a first-visit how-it-works note)."""
+    pid = req.get("pid") or getattr(sess, "pes_pid", None)
+    if not isinstance(pid, int):
+        return {"result": NOERR, "has_info": "NO"}
+    with _lock:
+        st = _load(svc)
+        if pid in st["lobby_seen"]:
+            return {"result": NOERR, "has_info": "NO"}
+        st["lobby_seen"].append(pid)
+        _save(svc)
+    return {"result": NOERR, "has_info": "YES", "title": LOBBY_TITLE, "sentence_info": LOBBY_INFO,
+            "sentence_intro": LOBBY_INTRO}
 
 
 @cmd("CMD_GET_MAINTENANCE_INFO")

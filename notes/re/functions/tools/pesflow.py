@@ -94,7 +94,8 @@ def input_windows(p, wait=1.5):
 
 # Windows that block like a dialog and close with the same A handler (vtable +0x188), seen live 2026-11-07:
 # the one-time message box (CMD_GET_URGENT_ANNOUNCEMENT) and the Information pop-up (news / private list).
-POPUPS = ("Dialog", "MenuUrgentAnnouncement", "MenuInformationNoticeTask")
+# the lobby notice (CMD_GET_LOBBYINFO has_info YES) is a menuutility::OnlineInformationNotice, closed the same way.
+POPUPS = ("Dialog", "MenuUrgentAnnouncement", "InformationNotice")
 
 
 def is_popup(klass):

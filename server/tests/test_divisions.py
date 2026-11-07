@@ -36,6 +36,9 @@ def test_season_of_ten_then_promotion(svc):
         ia = unb(pescmds._dispatch(svc, a, "CMD_GET_DIVISION_INFO", {})["division_info"])
         ib = unb(pescmds._dispatch(svc, b, "CMD_GET_DIVISION_INFO", {})["division_info"])
         assert ia["other_match_num"] == 0 and sum(unb(h)["division_point"] for h in ia["match_history_list"]) == 30
+        rec = unb(ia["match_record"])
+        assert (rec["win_count"], rec["lose_count"], rec["win_s_max"]) == (10, 0, 10)
+        assert unb(ib["match_record"])["lose_count"] == 10
         assert sum(unb(h)["division_point"] for h in ib["match_history_list"]) == 0
         assert unb(ia["match_history_list"][0])["win_lose"] == "WIN" and unb(ib["match_history_list"][0])["win_lose"] == "LOSE"
         # the same match reported twice counts once
@@ -47,7 +50,7 @@ def test_season_of_ten_then_promotion(svc):
         ia = unb(pescmds._dispatch(svc, a, "CMD_GET_DIVISION_INFO", {})["division_info"])
         ib = unb(pescmds._dispatch(svc, b, "CMD_GET_DIVISION_INFO", {})["division_info"])
         assert (ia["division"], ia["other_match_num"]) == ("D8", 10) and ib["division"] == "D10"
-        assert unb(ia["match_record"])["win_count"] == 10
+        assert unb(ia["match_record"])["win_count"] == 0           # the record is this season's (a new one)
         # asking twice doesn't move anyone again
         pescmds._dispatch(svc, a, "CMD_FINISH_SEASON", {})
         assert unb(pescmds._dispatch(svc, a, "CMD_GET_DIVISION_INFO", {})["division_info"])["division"] == "D8"

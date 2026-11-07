@@ -24,6 +24,8 @@ Steps (each may have "timeout", and "optional": true so a miss does not fail the
   go ITEM         main-menu item (pesflow TOP_ITEMS)
   wait SCREEN     until the screen name contains SCREEN; "ok": true|false confirms dialogs on the way (default true)
   screen          record the current screen name
+  watch N         record every screen change for N seconds ("ok": confirm dialogs, default true; "press": KEY
+                  when nothing changed for "idle" seconds; "until": SCREEN stops early)
   not_screen S    fail if the screen name contains S now
   reply CMD       our server answered CMD since the step started (from logs/replies.jsonl); "ok": true
                   confirms dialogs on the way, until the reply is seen
@@ -191,6 +193,27 @@ class Runner:
                 return pf.wait_screen(p, st["wait"], to, st.get("ok", True))
             except TimeoutError as e:
                 raise StepFail(str(e))
+        if "watch" in st:
+            # log every screen change for N seconds; "ok": true confirms dialogs, "press": K presses K when the
+            # screen has not changed for "idle" seconds (menus that wait for a button)
+            seen, last, still = [], None, time.time()
+            while time.time() < t0 + float(st["watch"]):
+                s_ = pf.screen(p) or ""
+                if s_ != last:
+                    seen.append(f"{time.time() - t0:.0f}s {s_}")
+                    last, still = s_, time.time()
+                if st.get("ok", True) and pf.dialog_ok(p):
+                    seen.append(f"{time.time() - t0:.0f}s (dialog ok)")
+                    still = time.time()
+                elif st.get("press") and time.time() - still > float(st.get("idle", 6)):
+                    ps_key(self.inst, st["press"])
+                    seen.append(f"{time.time() - t0:.0f}s (pressed {st['press']})")
+                    still = time.time()
+                if st.get("until") and st["until"] in s_:
+                    break
+                self.check_alive()
+                time.sleep(0.7)
+            return " | ".join(seen)
         if "screen" in st:
             return pf.screen(p)
         if "not_screen" in st:
@@ -294,7 +317,7 @@ class Runner:
                 r = self.step(st, log)
                 self.drain_traces()
                 self.check_alive()
-                log.append(f"- ok   `{label}` → {str(r)[:600 if 'dialog' in st else 160]} ({time.time() - self.t_step0:.1f}s)")
+                log.append(f"- ok   `{label}` → {str(r)[:1500 if ('dialog' in st or 'watch' in st) else 160]} ({time.time() - self.t_step0:.1f}s)")
             except StepFail as e:
                 log.append(f"- {'skip' if st.get('optional') else 'FAIL'} `{label}` → {e}")
                 if not st.get("optional"):

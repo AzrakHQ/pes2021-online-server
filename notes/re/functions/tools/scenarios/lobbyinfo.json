@@ -1,0 +1,6 @@
+{"name": "lobby-info", "inst": 1,
+ "variants": [{"name": "notice", "patch": {"patch": {"CMD_GET_LOBBYINFO": {"set": {"has_info": "YES", "title": "TITLE-T",
+     "sentence_info": "INFO-I line one\nline two", "sentence_intro": "INTRO-N text"}}}}}],
+ "steps": [{"home": true}, {"go": "lobby"}, {"reply": "CMD_GET_LOBBYINFO", "ok": true, "timeout": 60},
+           {"sleep": 3}, {"screen": true}, {"dialog": true, "optional": true}, {"shot": "1"},
+           {"watch": 20, "until": "LobbyRoomList"}, {"sleep": 2}, {"shot": "2"}, {"key": "Escape"}, {"sleep": 3}, {"screen": true}, {"shot": "3"}]}

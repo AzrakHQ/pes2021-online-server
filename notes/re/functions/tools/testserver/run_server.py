@@ -1,6 +1,7 @@
 """Run the repo server in host mode with test add-ons from this folder. Test-only; the repo code is not changed.
 Usage, from pes2021-private-server/server:
   UPNP=0 PES_CONSOLE=0 PYTHONUNBUFFERED=1 PYTHONPATH=$PWD python3 <this file> > <log> 2>&1
+TEST_DATA=<dir> uses that data folder instead of the host's (own players, identity, admin password).
 Add-ons (env):
   PATCH_CTL=<file.json>  replypatch.py: edit/err any real reply from a control file, log every reply (scenario.py)
   LOBBYTEST=1            lobbytest.py: the old test Friendly Match Lobby handlers instead of the server's pesrooms
@@ -10,7 +11,7 @@ Add-ons (env):
   COOP=1                 cooptest.py: Online Co-op 1 vs 1 test handlers
   LIVEDATA=1             livedata.py: test Live Update from www/, switched by ctl.json"""
 import os, sys
-sys.argv = ["pesserver", "host"]
+sys.argv = ["pesserver", "host"] + (["--data", os.environ["TEST_DATA"]] if os.environ.get("TEST_DATA") else [])
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 if os.environ.get("LOBBYTEST") == "1":
     import lobbytest  # noqa: F401,E402  (installs the handlers)

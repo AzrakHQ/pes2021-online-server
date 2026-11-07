@@ -6,6 +6,7 @@
                                                 wait for the probe port, log in (keys, for now)
   probesession.py down                          close the games, stop the test server, restore the release
                                                 DLL and logs/server.log, delete test Live Update saves
+  probesession.py restart                       restart the test server (new code) and log the games in again
   probesession.py status                        what is running / installed
 
 Runs from a repo checkout inside the game folder (<game folder>/pes2021-private-server or a wt-* worktree): the
@@ -35,6 +36,19 @@ STAMPED = os.path.join(TOOLS, "dinput8-probe-stamped.dll")
 WINESERVER = os.path.expanduser("~/.steam/steam/steamapps/common/Proton 10.0/files/bin/wineserver")
 SAVE_REL = "drive_c/ProgramData/KONAMI/eFootball PES 2021 SEASON UPDATE/save/LIVE00000000"
 ENV = {**os.environ, "DISPLAY": ":0"}
+
+# Side by side with the host's own server (always on unless PROBE_ALT=0): the test server gets its own ports
+# and its own data folder (logs/../testdata: its own players, identity and admin password), and netshim (the dev
+# launcher's preload) moves the game's fixed ports there. Only UDP sendto() is not moved: the game's STUN probe
+# still reaches port 3478 (whoever answers it only tells the game its own address).
+ALT = os.environ.get("PROBE_ALT", "1") != "0"
+# (18080/18090 are used by the admin-page work's own test servers)
+GATE, HTTP = (30000, 28080) if ALT else (10000, 8080)
+ALT_PORTS = {"PES_GATE_PORT": 30000, "PES_HTTP_PORT": 28080, "PES_HTTPS_PORT": 28443, "PES_JOIN_PORT": 28081,
+             "PES_STUN_PORT": 23478, "TURN_TLS_PORT": 25349, "TURN_PORT": 23479, "TURN_DTLS_PORT": 25350,
+             "TURN_MIN_PORT": 59160, "TURN_MAX_PORT": 59179, "PESSERVER_RELAY_PORT": 27600}
+PORTMAP = "80:28080,443:28443,8080:28080,8443:28443,10000:30000,5349:25349,3479:23479,7600:27600"
+TESTDATA = os.path.join(ROOT, "testdata")
 
 
 def game(inst):
@@ -90,13 +104,16 @@ def build(rp):
 
 
 def start_server(rp, st):
-    if listening(10000):
+    if listening(GATE):
         if st.get("server_pid"):
             return
-        sys.exit("something already listens on :10000 (the user's own server?) — stop it first, or ask the user")
+        sys.exit(f"something already listens on :{GATE} — stop it first, or ask the user")
     env = {**ENV, "UPNP": "0", "PES_CONSOLE": "0", "PYTHONUNBUFFERED": "1", "TURN": "1",
            "PYTHONPATH": os.path.join(rp, "server"), "PESSERVER_MOD_DLL": PROBE_DLL,
            "PATCH_CTL": PATCH, "PATCH_TXLOG": REPLIES}
+    if ALT:
+        os.makedirs(TESTDATA, exist_ok=True)
+        env.update({k: str(v) for k, v in ALT_PORTS.items()}, TEST_DATA=TESTDATA)
     for kv in os.environ.get("SERVER_ENV", "").split():
         k, _, v = kv.partition("="); env[k] = v
     out = open(SERVER_OUT, "a")
@@ -113,7 +130,7 @@ def start_server(rp, st):
         os.symlink(SERVER_OUT, SERVER_LOG)
     save(st)
     for _ in range(60):
-        if listening(10000) and listening(8080):
+        if listening(GATE) and listening(HTTP):
             print(f"test server up (pid {p.pid}) -> {SERVER_OUT}"); return
         if p.poll() is not None:
             sys.exit(f"test server exited; see {SERVER_OUT}")
@@ -122,7 +139,7 @@ def start_server(rp, st):
 
 
 def stamp():
-    with urllib.request.urlopen("http://127.0.0.1:8080/mod/dinput8.dll?from=admin", timeout=10) as r:
+    with urllib.request.urlopen(f"http://127.0.0.1:{HTTP}/mod/dinput8.dll?from=admin", timeout=10) as r:
         data = r.read()
     if len(data) < 100000 or data[:2] != b"MZ":
         sys.exit("stamped DLL download looks wrong")
@@ -152,6 +169,8 @@ def install(inst, st):
 
 def launch(inst):
     env = {**ENV, "PES_INSTANCE": str(inst), "PES2021ONLINE_PROBE": str(port(inst))}
+    if ALT:
+        env["NETSHIM_PORTMAP"] = PORTMAP
     subprocess.run(["python3", os.path.join(TOOLS, "pes.py"), "relaunch"], env=env)
     for _ in range(120):
         if listening(port(inst)):
@@ -238,10 +257,32 @@ def down(_args):
     print("down. (Tell the user to restart their own server if they use one.)")
 
 
+def restart(_args):
+    """Restart the test server (new code) and the session's games, back to the main menu."""
+    st = load()
+    pid = st.pop("server_pid", None)
+    if pid:
+        try:
+            os.killpg(pid, 15)
+        except ProcessLookupError:
+            pass
+        for _ in range(40):
+            if not listening(GATE):
+                break
+            time.sleep(0.25)
+    save(st)
+    start_server(repo(), st)
+    stamp()
+    for i in st.get("games", []):
+        install(i, st)
+        if launch(i):
+            login(i)
+
+
 def status(_args):
     st = load()
     print("state:", json.dumps(st) if st else "(no session)")
-    print("server :10000", "up" if listening(10000) else "down")
+    print(f"test server :{GATE}", "up" if listening(GATE) else "down", "(side by side)" if ALT else "")
     for i in (1, 2):
         dll = sha(os.path.join(game(i), "files", "dinput8.dll"))
         kind = "release" if dll == sha(BACKUP) else "probe" if dll == sha(STAMPED) else "other"
@@ -250,4 +291,4 @@ def status(_args):
 
 if __name__ == "__main__":
     a = sys.argv[1:] or ["status"]
-    {"up": up, "down": down, "status": status}[a[0]](a[1:])
+    {"up": up, "down": down, "status": status, "restart": restart}[a[0]](a[1:])
