@@ -104,7 +104,9 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 ctype = "application/octet-stream"   # raw msgpack map (CmdAuthSteamResult parse 0x141e49160)
                 out = msgpack.packb(resp, use_bin_type=True, unicode_errors="surrogateescape")
                 record("tx", msgid, resp)
-                log.info("HTTP API %s -> %s", msgid, resp)
+                from .ncl import _short
+                log.info("HTTP API %s -> %s", msgid, {k: _short(v) for k, v in resp.items()}
+                         if isinstance(resp, dict) else resp)
             elif path.lower().lstrip("/").startswith(("eula", "u")):
                 out = (b"<html><body><h3>Local PES 2021 server</h3><p>This is a private, local "
                        b"preservation server for PES 2021 online play.</p></body></html>")
@@ -565,6 +567,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         pesmanner.forget(service, pid)
         pescoop.forget(service, pid)
         adminextra.forget(service, pid)
+        from . import pesavatar
+        pesavatar.forget(service, pid)
         sess = service.online.get(pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)

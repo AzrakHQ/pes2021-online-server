@@ -176,3 +176,29 @@ def test_opponent_link_lost_then_drop_is_not_blamed(svc):
         events.disconnected(svc, b)
     _match(svc, 1, 1, 2, a, b, link_lost)
     assert pesmanner.rating(svc, 1)["quits"] == 0 and pesmanner.rating(svc, 2)["quits"] == 0
+
+
+def test_avatar_round_trip(svc):
+    import base64, hashlib
+    from pesserver import pesavatar  # noqa: F401
+    raw = bytes(range(256)) * (0xC000 // 256)
+    data, md5 = base64.b64encode(raw).decode(), hashlib.md5(raw).hexdigest()
+    a, b = Sess(1), Sess(2)
+    # nobody has one yet: bare reply (the game shows its silhouette)
+    assert pescmds.dispatch(svc, None, "CMD_GET_AVATAR_HTTP", {"pid": "1", "urltype": "AVATAR"}) == {"result": "NOERR"}
+    assert pescmds.dispatch(svc, a, "CMD_SET_AVATAR", {"pid": 2, "avatar_data_size": len(raw), "avatar_data": data,
+                                                       "avatar_md5": md5}) == {"result": "NOERR"}
+    r = pescmds.dispatch(svc, None, "CMD_GET_AVATAR_HTTP", {"pid": "1", "urltype": "AVATAR"})   # own pid, not "pid 2"
+    assert r["avatar_data"] == data and r["avatar_data_size"] == 0xC000 and r["avatar_md5"] == md5
+    assert pescmds.validate("CMD_GET_AVATAR_HTTP", r)
+    assert pescmds.dispatch(svc, None, "CMD_GET_AVATAR_HTTP", {"pid": "2"}) == {"result": "NOERR"}
+    # garbage and clearing
+    pescmds.dispatch(svc, a, "CMD_SET_AVATAR", {"avatar_data": "!!not base64", "avatar_data_size": 9})
+    assert pescmds.dispatch(svc, None, "CMD_GET_AVATAR_HTTP", {"pid": "1"})["avatar_md5"] == md5
+    pescmds.dispatch(svc, a, "CMD_SET_AVATAR", {"avatar_data": "", "avatar_data_size": 0})
+    assert pescmds.dispatch(svc, None, "CMD_GET_AVATAR_HTTP", {"pid": "1"}) == {"result": "NOERR"}
+
+
+def test_long_fields_are_shortened_in_the_log():
+    from pesserver.ncl import _short
+    assert _short("x" * 70000) == "<70000 chars>" and _short("short") == "short" and _short(5) == 5
