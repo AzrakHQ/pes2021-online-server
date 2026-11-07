@@ -198,6 +198,7 @@ def forget(svc, pid):
         st["personal"].pop(str(pid), None)
         st["inbox"].pop(str(pid), None)
         st["lobby_seen"] = [p for p in st["lobby_seen"] if p != pid]
+        st["replay_seen"] = [p for p in st.get("replay_seen", []) if p != pid]
         st["seen"] = [p for p in st["seen"] if p != pid]
         st["seen_notes"] = [n for n in st["seen_notes"] if n.get("pid") != pid]
         _save(svc)
@@ -310,18 +311,29 @@ LOBBY_INFO = ("Make a match room, or pick a friend's room from the list (a room 
 LOBBY_INTRO = "After the match you are back in the room for a rematch. Room chat works too."
 
 
+REPLAY_TITLE = "Match Replays"
+REPLAY_INFO = "Recent online matches on this server can be watched here.\nOpen the Match List, pick a match, then Spectate Match."
+REPLAY_INTRO = "Every online match is recorded; the newest 20 are kept."
+
+
 @cmd("CMD_GET_LOBBYINFO")
 def lobby_info(svc, sess, req):
-    """The lobby's notice window, once per player (a first-visit how-it-works note)."""
+    """The lobby's notice window, once per player and lobby (a first-visit how-it-works note)."""
     pid = req.get("pid") or getattr(sess, "pes_pid", None)
     if not isinstance(pid, int):
         return {"result": NOERR, "has_info": "NO"}
+    replays = getattr(sess, "pes_lobby_type", "FREE") == "PESLEAGUE"      # the Match Replays lobby (pesreplay)
+    key = "replay_seen" if replays else "lobby_seen"
     with _lock:
         st = _load(svc)
-        if pid in st["lobby_seen"]:
+        seen = st.setdefault(key, [])
+        if pid in seen:
             return {"result": NOERR, "has_info": "NO"}
-        st["lobby_seen"].append(pid)
+        seen.append(pid)
         _save(svc)
+    if replays:
+        return {"result": NOERR, "has_info": "YES", "title": REPLAY_TITLE, "sentence_info": REPLAY_INFO,
+                "sentence_intro": REPLAY_INTRO}
     return {"result": NOERR, "has_info": "YES", "title": LOBBY_TITLE, "sentence_info": LOBBY_INFO,
             "sentence_intro": LOBBY_INTRO}
 

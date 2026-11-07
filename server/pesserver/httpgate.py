@@ -577,7 +577,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         pesmanner.forget(service, pid)
         pescoop.forget(service, pid)
         adminextra.forget(service, pid)
-        from . import pesavatar, pesblock, pesprofile
+        from . import pesavatar, pesblock, pesprofile, pesresults
+        pesresults.forget(service, pid)
         pesavatar.forget(service, pid)
         pesprofile.forget(service, pid)
         pesblock.forget(service, pid)

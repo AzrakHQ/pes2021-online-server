@@ -83,10 +83,13 @@ def get_playerinfo(svc, sess, req):
         return {"result": NOERR}
     pr = profile(svc, who)
     from . import pesmanner
-    # "Courtesy Rating" on the profile: manner is a blob{manner, disconnect_rate}; a plain string here crashes the
-    # game when the profile opens (live). Without it every player shows "C". disconnect_rate ("Number of
-    # Disconnections") is left out: Low is what it shows then, and the values that change it are not known yet.
-    manner = msgpack.packb({"manner": pesmanner.rating(svc, who)["grade"]}, use_bin_type=True)
+    # "Courtesy Rating" / "Number of Disconnections" on the profile: manner is a blob{manner, disconnect_rate}; a
+    # plain string here crashes the game when the profile opens (live). Without it every player shows "C".
+    rt = pesmanner.rating(svc, who)
+    # disconnect_rate names (table 0x1437f33f0): LOW_RATE = Low, SEMI_HIGH_RATE = Moderately High, HIGH_RATE = High;
+    # anything else shows Low. Same early-exit counts as the courtesy grade.
+    rate = "LOW_RATE" if rt["quits"] <= 1 else "SEMI_HIGH_RATE" if rt["quits"] <= 3 else "HIGH_RATE"
+    manner = msgpack.packb({"manner": rt["grade"], "disconnect_rate": rate}, use_bin_type=True)
     return {"result": NOERR, "pid": who, "pname": _pname(p), "favoriteTeam": pr.get("team") or "",
             "favoritePlayer": pr.get("player") or "", "intro": pr.get("intro") or "", "manner": manner}
 

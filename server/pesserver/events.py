@@ -31,6 +31,9 @@ def _st(svc):
                 db.execute("ALTER TABLE pes_matches ADD COLUMN left_at REAL")
             if "mode" not in cols:                 # Quick Match, Online Divisions, Matchday, a lobby room, co-op
                 db.execute("ALTER TABLE pes_matches ADD COLUMN mode TEXT")
+            if "home_team" not in cols:            # team ids, for the players' own match history (pesresults.py)
+                db.execute("ALTER TABLE pes_matches ADD COLUMN home_team INTEGER")
+                db.execute("ALTER TABLE pes_matches ADD COLUMN away_team INTEGER")
             rows = db.execute("SELECT t, kind, text FROM pes_feed ORDER BY id DESC LIMIT 200").fetchall()
         svc.pes_events["feed"].extend({"t": t, "kind": k, "text": x} for t, k, x in rows)
     return svc.pes_events
@@ -166,6 +169,9 @@ def observe(svc, sess, msgid, req):
                            (rid, lv["kickoff"] or (lx and lx["kickoff"]) or lv["started"], time.time(), lv["home"], lv["away"],
                             lv["home_name"], lv["away_name"], lv["home_score"], lv["away_score"],
                             "" if reason == "NOERR" else reason, left_pid, lx and lx["t"], _mode(room)))
+                ht, at = req.get("home_team_id"), req.get("away_team_id")
+                if isinstance(ht, int) and isinstance(at, int):
+                    db.execute("UPDATE pes_matches SET home_team=?, away_team=? WHERE id=last_insert_rowid()", (ht, at))
             feed(svc, f"Full time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "result")
     elif msgid == "CMD_LEAVE_ROOM":
         lv.setdefault("left", set()).add(pid)

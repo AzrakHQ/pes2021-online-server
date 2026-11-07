@@ -293,7 +293,9 @@ def get_server_env(svc, sess, req):
             "match_client_timeout_init_not_end": 240, "match_client_timeout_cmd_lack": 180,
             "trigger_keep_alive": 1, "quality_check_wait_sec": 3600,
             "teamlobby_game_rating_border_normal": 600, "teamlobby_game_rating_border_hard": 700,
-            "matchrejectpid_max": 0, "is_revision_check": "YES",
+            # matchrejectpid_max: size of the Match Block List; 0 makes "Add to Match Block List" always say the
+            # list is full (static 0x140bdcd75); the game's own default is 400
+            "matchrejectpid_max": 400, "is_revision_check": "YES",
             "max_division": "D10"}           # Online Divisions: D10 (bottom) .. D1 (pesdivisions.py)
 
 

@@ -110,6 +110,8 @@ def get_ipandport(svc, sess, req):
 
 @cmd("CMD_GET_LOBBYLIST")
 def get_lobbylist(svc, sess, req):
+    if sess is not None:
+        sess.pes_lobby_type = str(req.get("lobby_type") or "FREE")     # FREE (Friendly Match Lobby), PESLEAGUE, ...
     n = len(svc.online)
     lst = [msgpack.packb({**lb, "player_num": n}, use_bin_type=True, unicode_errors="surrogateescape") for lb in LOBBIES]
     return {"result": NOERR, "lobby_list_num": len(lst), "lobby_list": lst}

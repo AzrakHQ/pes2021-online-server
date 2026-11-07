@@ -210,7 +210,7 @@ def test_every_feature_module_is_loaded_by_the_service():
     src = pathlib.Path(__file__).resolve().parents[1].joinpath("pesserver", "service.py").read_text()
     line = next(l for l in src.splitlines() if "register their handlers" in l)
     for mod in ("pesrooms", "pescoop", "pesdivisions", "pesmatchday", "pesmanner", "pesavatar", "pesprofile",
-                "pesblock", "pesreplay", "announce"):
+                "pesblock", "pesreplay", "pesresults", "announce"):
         assert re.search(rf"\b{mod}\b", line), mod
 
 
@@ -227,7 +227,7 @@ def test_profile_round_trip(svc):
     r = pescmds.dispatch(svc, b, "CMD_GET_PLAYERINFO", {"pid": 2, "user_id": who})        # Bob looks at Ann
     assert (r["favoriteTeam"], r["favoritePlayer"], r["intro"]) == ("Arsenal", "Saka", "Hello")
     assert unb(r["pname"])["name"] == "Ann" and r["pid"] == 1
-    assert unb(r["manner"]) == {"manner": "A"}                                             # a blob, never a string
+    assert unb(r["manner"]) == {"manner": "A", "disconnect_rate": "LOW_RATE"}               # a blob, never a string
     assert pescmds.validate("CMD_GET_PLAYERINFO", r)
     r = pescmds.dispatch(svc, b, "CMD_GET_PLAYERINFO", {"pid": 2})                          # own, no profile yet
     assert r["favoriteTeam"] == "" and unb(r["pname"])["name"] == "Bob"
@@ -289,3 +289,49 @@ def test_replay_recorded_and_listed(svc):
     assert unb(info["compe_data"])["match_type"] == "PES_LEAGUE_MATCH_1VS1_LOBBY"
     urls = {unb(u)["type"]: unb(u)["url"] for u in pescmds.dispatch(svc, b, "CMD_GET_URLLIST", {})["ulist"]}
     assert urls["WATCHING_GAME"].endswith("/r")
+
+
+def test_match_history_and_analysis(svc):
+    from pesserver import pesresults  # noqa: F401
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
+    a, b = Sess(1), Sess(2)
+    events._st(svc)                                       # creates pes_matches (+ the team columns)
+    db = svc.accounts.db
+    with svc.accounts.lock, db:
+        db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name, home_score,"
+                   " away_score, reason, mode, home_team, away_team) VALUES (1, 0, 1793900000, 1, 2, 'Ann', 'Bob', 2, 1,"
+                   " '', 'Online Divisions', 101, 108)")
+        db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name, home_score,"
+                   " away_score, reason, mode) VALUES (2, 0, 1793900100, 2, 1, 'Bob', 'Ann', 0, 0, '', 'Quick Match')")
+    r = pescmds.dispatch(svc, a, "CMD_GET_GAMERESULTS", {"pid": 1, "game_res_type": "ALL"})
+    assert r["rlist_num"] == 2
+    e = unb(r["rlist"][1])
+    assert e["team"] == [101, 108] and e["match_category"] == "OC_RANK"
+    assert [unb(unb(p)["pname"])["name"] for p in e["player"]] == ["Ann", "Bob"]
+    assert pescmds.dispatch(svc, a, "CMD_GET_GAMERESULTS", {"pid": 1, "game_res_type": "RANK"})["rlist_num"] == 1
+    assert pescmds.dispatch(svc, a, "CMD_GET_SERVER_ENV", {})["matchrejectpid_max"] > 0
+    # analysis: what the game uploads comes back as inline maps, newest 10
+    for n in range(12):
+        pescmds.dispatch(svc, a, "CMD_SEND_MATCH_ANALYZE", {"pid": 1, "analyze_data_type": "ONLINE_DIVISIONS",
+                         "analyze_data": {"game_res": "WIN", "posession": 50 + n, "intercept_area": list(range(9))}})
+    r = pescmds.dispatch(svc, b, "CMD_GET_MATCH_ANALYZE", {"pid": 2, "target_pid": 1, "analyze_data_type": "ONLINE_DIVISIONS"})
+    assert r["analyze_data_size"] == 10 and r["analyze_data_list"][-1]["posession"] == 61
+    assert r["analyze_data_list"][0]["intercept_area"] == list(range(9))
+    assert pescmds.dispatch(svc, b, "CMD_GET_MATCH_ANALYZE", {"target_pid": 1, "analyze_data_type": "MYCLUB_DIVISIONS"})["analyze_data_size"] == 0
+
+
+def test_replay_lobby_gets_its_own_welcome(svc):
+    a = Sess(1)
+    pescmds.dispatch(svc, a, "CMD_GET_LOBBYLIST", {"lobby_type": "PESLEAGUE"})
+    assert pescmds.dispatch(svc, a, "CMD_GET_LOBBYINFO", {"lobby_id": 1})["title"] == "Match Replays"
+    pescmds.dispatch(svc, a, "CMD_GET_LOBBYLIST", {"lobby_type": "FREE"})
+    assert pescmds.dispatch(svc, a, "CMD_GET_LOBBYINFO", {"lobby_id": 1})["title"] == "Friendly Match Lobby"
+
+
+def test_profile_disconnections_label(svc):
+    from pesserver import pesprofile  # noqa: F401
+    _user(svc, 1, "Ann")
+    for _ in range(2):
+        pesmanner._add(svc, 1, True, "GIVEUP")
+    r = pescmds.dispatch(svc, Sess(2), "CMD_GET_PLAYERINFO", {"user_id": msgpack.packb({"pid": 1})})
+    assert unb(r["manner"]) == {"manner": "B", "disconnect_rate": "SEMI_HIGH_RATE"}
