@@ -1,0 +1,73 @@
+{
+ "name": "ranking-manner",
+ "inst": 1,
+ "variants": [
+  {
+   "name": "map",
+   "patch": {
+    "patch": {
+     "CMD_GET_RANKING": {
+      "set": {
+       "rank_list.0.user.manner": {
+        "manner": "AA",
+        "disconnect_rate": "HIGH_RATE"
+       },
+       "rank_list.0.user.division": "D7"
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "str",
+   "patch": {
+    "patch": {
+     "CMD_GET_RANKING": {
+      "set": {
+       "rank_list.0.user.manner": "B",
+       "rank_list.0.user.division": "D7"
+      }
+     }
+    }
+   }
+  }
+ ],
+ "steps": [
+  {
+   "home": true
+  },
+  {
+   "go": "0x1a"
+  },
+  {
+   "wait": "InformationSubMenu",
+   "timeout": 50
+  },
+  {
+   "sleep": 3
+  },
+  {
+   "key": [
+    "Down"
+   ]
+  },
+  {
+   "sleep": 1.5
+  },
+  {
+   "key": [
+    "Return"
+   ]
+  },
+  {
+   "wait": "InformationRanking",
+   "timeout": 20
+  },
+  {
+   "sleep": 4
+  },
+  {
+   "shot": "panel"
+  }
+ ]
+}

@@ -353,6 +353,7 @@ def test_rankings(svc):
     assert r["total_rank_num"] == 3
     top = r["rank_list"][0]
     assert top["rank"] == 1 and top["user"]["pname"]["name"] == "Bob" and top["point"] == 1100
+    assert top["user"]["manner"] == "A" and top["user"]["division"] == ""
     ann = next(e for e in r["rank_list"] if e["user"]["pid"] == 1)["user"]["match_record"]
     assert (ann["win_count"], ann["draw_count"], ann["lose_count"]) == (1, 1, 1)
     w = pescmds.dispatch(svc, None, "CMD_GET_RANKING", {"sort": "WIN_NUM"})["rank_list"]

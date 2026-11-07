@@ -4,8 +4,10 @@ The game (notes/re/functions/results.md "CMD_GET_RANKING", live request 2026-11-
 {urltype RANK, start_index, view_num 100, sort RATING|WIN_NUM|MATCH_NUM|WIN_STRAIGHT|WIN_RATE, order ASC};
 _BYID adds pid and asks for the window around that player. The reply uses inline maps (HTTP), not blobs:
   {result, date, total_rank_num, rank_list: [{user: {pid, pname: {name, xuid_one, psn_user_id: {...}, is_deleted},
-   division, favoriteTeam, favoritePlayer, intro, match_record: {win_count, draw_count, lose_count, win_s_max,
-   rating}}, rank, point}]}
+   division "D1".."D10", manner "C".."AAA" (a plain string here), favoriteTeam, favoritePlayer, intro,
+   match_record: {win_count, draw_count, lose_count, win_s_max, rating}}, rank, point}]}
+Shown live (2026-11-07): the list (rank, name, the sort's value) and a User Information panel (avatar, name,
+division badge, courtesy rating, matches, W/D/L, win rate, favourite team and player, comment).
 A bare reply shows "Unable to find any ranked users". Win Rate leaves out players with fewer than 10 matches,
 as the game's own note says.
 """
@@ -66,13 +68,26 @@ def ranked(svc, sort):
     return [(i + 1, key(r), r) for i, r in enumerate(rows)]
 
 
+def _division(svc, pid):
+    """"D1".."D10" for players who have played Online Divisions, else "" (the game shows "?")."""
+    db = _db(svc)
+    try:
+        with svc.accounts.lock, db:
+            r = db.execute("SELECT division FROM pes_division WHERE pid=?", (pid,)).fetchone()
+    except Exception:  # noqa: BLE001 - no Divisions table yet
+        r = None
+    return f"D{r[0]}" if r else ""
+
+
 def _entry(svc, rank, point, r):
-    from . import pesprofile
-    pr = pesprofile.profile(svc, r["pid"]) if hasattr(pesprofile, "profile") else {}
+    from . import pesmanner, pesprofile
+    pr = pesprofile.profile(svc, r["pid"])
     user = {"pid": r["pid"],
             "pname": {"name": r["name"], "xuid_one": "", "is_deleted": "NO",
                       "psn_user_id": {"account_id": r["pid"], "online_id": "", "is_valid_cache": "YES"}},
-            "division": "", "favoriteTeam": pr.get("team") or "", "favoritePlayer": pr.get("player") or "",
+            # (here manner is a plain string, unlike GET_PLAYERINFO's blob: live 2026-11-07)
+            "division": _division(svc, r["pid"]), "manner": pesmanner.rating(svc, r["pid"])["grade"],
+            "favoriteTeam": pr.get("team") or "", "favoritePlayer": pr.get("player") or "",
             "intro": pr.get("intro") or "",
             "match_record": {"win_count": r["w"], "draw_count": r["d"], "lose_count": r["l"], "win_s_max": r["best"],
                              "rating": float(r["rating"])}}
