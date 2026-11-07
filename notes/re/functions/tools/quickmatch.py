@@ -16,8 +16,9 @@ import probesession as ps          # noqa: E402
 import pesflow as pf               # noqa: E402
 from probe import Probe            # noqa: E402
 
-TEAM_SCREEN = {"quick": "QuickTeamSelect", "divisions": "TeamSelect"}
-MENU_SCREEN = {"quick": "QuickMatchMenu", "divisions": "MatchMenu"}
+TEAM_SCREEN = {"quick": "QuickTeamSelect", "divisions": "QuickTeamSelect"}     # Divisions reuses the Quick screens
+MENU_SCREEN = {"quick": "QuickMatchMenu", "divisions": "QuickMatchMenu"}
+ENTRY_SCREEN = {"divisions": "Online/DivMatch/MenuMain"}                       # then A "To Next Match"
 
 
 def key(inst, *ks):
@@ -55,6 +56,16 @@ def main():
             pf.top_menu_go(p, mode)
         finally:
             p.close()
+        if mode in ENTRY_SCREEN:
+            print(f"copy {inst}:", wait(inst, ENTRY_SCREEN[mode], 90), flush=True)
+            time.sleep(4)
+            p = Probe(ps.port(inst))
+            try:
+                pf.dialog_ok(p)            # the season dialog ("Division 10 / This is the first of 10 games ...")
+            finally:
+                p.close()
+            time.sleep(2)
+            key(inst, "Return")
         print(f"copy {inst}:", wait(inst, TEAM_SCREEN[mode], 90), flush=True)
         time.sleep(3)
         for _ in range(3):

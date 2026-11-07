@@ -129,8 +129,9 @@ def get_match_analyze(svc, sess, req):
         rows = db.execute("SELECT data FROM pes_match_analyze WHERE pid=? AND kind=? ORDER BY id DESC LIMIT ?",
                           (who, kind, ANALYZE_KEEP)).fetchall()
     lst = [json.loads(r[0]) for r in reversed(rows)]          # oldest first; the game keeps the last 10
-    # inline maps, not blobs (parser 0x141c9f290)
-    return {"result": NOERR, "analyze_data_size": len(lst), "analyze_data_list": lst}
+    # a list of blobs: inline maps crashed the game when the Play Coverage page opened (live 2026-11-07;
+    # parsebench: blobs parse, inline maps fault in the parser)
+    return {"result": NOERR, "analyze_data_size": len(lst), "analyze_data_list": [_pack(x) for x in lst]}
 
 
 def forget(svc, pid):

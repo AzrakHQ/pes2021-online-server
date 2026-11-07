@@ -316,8 +316,8 @@ def test_match_history_and_analysis(svc):
         pescmds.dispatch(svc, a, "CMD_SEND_MATCH_ANALYZE", {"pid": 1, "analyze_data_type": "ONLINE_DIVISIONS",
                          "analyze_data": {"game_res": "WIN", "posession": 50 + n, "intercept_area": list(range(9))}})
     r = pescmds.dispatch(svc, b, "CMD_GET_MATCH_ANALYZE", {"pid": 2, "target_pid": 1, "analyze_data_type": "ONLINE_DIVISIONS"})
-    assert r["analyze_data_size"] == 10 and r["analyze_data_list"][-1]["posession"] == 61
-    assert r["analyze_data_list"][0]["intercept_area"] == list(range(9))
+    assert r["analyze_data_size"] == 10 and unb(r["analyze_data_list"][-1])["posession"] == 61
+    assert unb(r["analyze_data_list"][0])["intercept_area"] == list(range(9))          # blobs, never inline maps
     assert pescmds.dispatch(svc, b, "CMD_GET_MATCH_ANALYZE", {"target_pid": 1, "analyze_data_type": "MYCLUB_DIVISIONS"})["analyze_data_size"] == 0
 
 

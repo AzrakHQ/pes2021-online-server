@@ -41,6 +41,8 @@ def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_division_match (pid INTEGER, season INTEGER, match_id TEXT,
                   points INTEGER, result TEXT, enemy_name TEXT, enemy_team_id INTEGER, my_side TEXT,
                   home_score INTEGER, away_score INTEGER, t REAL, UNIQUE (pid, match_id))""")
+    if "my_team_id" not in {r[1] for r in db.execute("PRAGMA table_info(pes_division_match)")}:
+        db.execute("ALTER TABLE pes_division_match ADD COLUMN my_team_id INTEGER")   # the profile's team log
 
 
 def _state(svc, pid):
@@ -135,10 +137,13 @@ def record(svc, room):
             st = {"season": seasons[me]}
             mine, theirs = (score["HOME"], score["AWAY"]) if side == "HOME" else (score["AWAY"], score["HOME"])
             res = "WIN" if mine > theirs else "LOSE" if mine < theirs else "DRAW"
-            cur = db.execute("INSERT OR IGNORE INTO pes_division_match VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            cur = db.execute("INSERT OR IGNORE INTO pes_division_match (pid, season, match_id, points, result, "
+                             "enemy_name, enemy_team_id, my_side, home_score, away_score, t) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                              (me, st["season"], mid, POINTS[res], res, names[other], int(teams.get(other) or 0),
                               side, score["HOME"], score["AWAY"], time.time()))
             if cur.rowcount:
+                db.execute("UPDATE pes_division_match SET my_team_id=? WHERE pid=? AND match_id=?",
+                           (int(teams.get(me) or 0), me, mid))
                 col = {"WIN": "wins", "DRAW": "draws", "LOSE": "losses"}[res]
                 db.execute(f"UPDATE pes_division SET {col}={col}+1, streak=CASE WHEN ?='WIN' THEN streak+1 ELSE 0 END, "
                            "best_streak=MAX(best_streak, CASE WHEN ?='WIN' THEN streak+1 ELSE 0 END) WHERE pid=?",

@@ -95,10 +95,25 @@ def get_playerinfo(svc, sess, req):
     rs = _rankmatch_stats(svc, who, p)
     if rs:
         out["rankmatch_stats"] = msgpack.packb(rs, use_bin_type=True)
+        log5 = _team_log(svc, who)
+        if log5:
+            out["rankmatch_teamLog"] = log5
     md = _matchday_stats(svc, who)
     if md:
         out["matchday_stats_single"] = msgpack.packb(md, use_bin_type=True)
     return out
+
+
+def _team_log(svc, pid):
+    """"Teams Chosen in Last 5 Matches": the player's own team ids in their last 5 Online Divisions matches."""
+    db = _db(svc)
+    try:
+        with svc.accounts.lock, db:
+            rows = db.execute("SELECT my_team_id FROM pes_division_match WHERE pid=? AND my_team_id > 0 "
+                              "ORDER BY t DESC LIMIT 5", (pid,)).fetchall()
+    except Exception:  # noqa: BLE001 - older table without the column
+        return []
+    return [int(r[0]) for r in rows]
 
 
 def _matchday_stats(svc, pid):
