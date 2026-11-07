@@ -382,9 +382,16 @@ def default_response(msgid):
     return out
 
 
+# Where the extracted schema is wrong, checked against the running game (notes/re/functions/results.md).
+SCHEMA_FIXES = {
+    "CMD_GET_RANKING": {"rank_list": "LIST"},          # inline maps over HTTP; the list showed live 2026-11-07
+    "CMD_GET_RANKING_BYID": {"rank_list": "LIST"},
+}
+
+
 def validate(msgid, resp):
     """Warn about values whose msgpack type disagrees with how the client parser reads them."""
-    fields = schemas().get(msgid, {}).get("fields", {})
+    fields = {**schemas().get(msgid, {}).get("fields", {}), **SCHEMA_FIXES.get(msgid, {})}
     bad = []
     for k, v in resp.items():
         t = fields.get(k)
