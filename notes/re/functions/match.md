@@ -197,6 +197,16 @@ Watchdog arms: OUTPLAY_LONG(long_outofplay), LOAD_TIMEOUT(init_not_end), CMD_LAC
 300 s or 30 s), NOTRUN (60/90 s), SYNC_FAILED (180 s), BUFFER_OVER, NO_OPERATION ((setting+30)×2 s or
 (setting+60)×1 s — the AFK rule) [static 0x14213db52..0x14213dd45].
 
+- **How NO_OPERATION is chosen** [static 0x14213dc9d, read 2026-11-07]:
+  - The watchdog function 0x14213dab0 picks one reason by priority. It arms NO_OPERATION (esi = 5) only when
+    byte `[rbx+0x11]` is set; `je 0x14213de50` at **0x14213dca1** skips it otherwise.
+  - The idle time itself (39 s live) is measured elsewhere, by whatever sets that flag.
+  - The `(setting+30)×2 s` / `(setting+60)×1 s` timer above belongs to the reasons 17–20 path (OUTPLAY_LONG,
+    CMD_LACK, …); reason 5 takes the zero-timer branch.
+- **Test switch (probe build only, in memory):** `pesflow.py PORT noafk` rewrites `0f 84` → `90 e9` at 0x14213dca1
+  (je → nop + jmp, same target), so a match with nobody at the controls is never called off. It is used for
+  full-match tests (full time, replays, Divisions records), never in released code.
+
 ## CMD_SEND_ABNORMALEND — tell server a match ended abnormally
 - Transport gate MENU, via game queue `gamequeue::AbnormalEnd` (queue entry: +0x10 reason idx, +0x18 hex code,
   +0x1c 2). Request `{reason STR (enum above, from obj+0x130), error_code STR}`; error_code =

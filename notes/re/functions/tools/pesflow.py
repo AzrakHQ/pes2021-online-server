@@ -184,6 +184,23 @@ def traffic(p, seconds=60, show=print):
         p.untrace(NCL_ASSIGN)
 
 
+NOAFK_VA = 0x14213dca1     # in the match watchdog 0x14213dab0: `je` that skips NO_OPERATION when [rbx+0x11] == 0
+NOAFK_OLD, NOAFK_NEW = bytes.fromhex("0f84a9010000"), bytes.fromhex("90e9a9010000")   # je rel32 -> nop; jmp rel32
+
+
+def noafk(p, on=True):
+    """TEST COPIES ONLY (probe build, in memory): matches are never called off for "no operation", so a match
+    with nobody at the controls runs to full time. Returns the state."""
+    cur = p.read(NOAFK_VA, 6)
+    want, other = (NOAFK_NEW, NOAFK_OLD) if on else (NOAFK_OLD, NOAFK_NEW)
+    if cur == want:
+        return "already " + ("on" if on else "off")
+    if cur != other:
+        raise RuntimeError(f"unexpected bytes {cur.hex()} at {NOAFK_VA:#x}")
+    p.write(NOAFK_VA, want)
+    return "on" if on else "off"
+
+
 def wait_screen(p, want, timeout=60, ok_dialogs=True):
     """Wait until the screen name contains `want`, confirming dialogs on the way."""
     import time
@@ -213,6 +230,8 @@ if __name__ == "__main__":
             print(hex(a), k)
     elif cmd == "traffic":                  # pesflow.py PORT traffic [SECONDS]  (-> sent, <- received)
         traffic(p, int(sys.argv[3]) if len(sys.argv) > 3 else 60)
+    elif cmd == "noafk":                    # pesflow.py PORT noafk [off]  (test copies: no idle end in matches)
+        print(noafk(p, not (len(sys.argv) > 3 and sys.argv[3] == "off")))
     elif cmd == "title":                    # pesflow.py PORT title   (title screen -> login, no keys)
         print(title_press(p) or "not on the title screen")
     elif cmd == "ok":                       # pesflow.py PORT ok [BUTTON]
