@@ -370,6 +370,12 @@ from key order. The nested maps are gate **blobs**.
   - The main menu's "Your Stats → Side Ranking" reads `group_match_info.matchday_rank` ("Rank: 1"; 0 shows "-").
 - Points add up per match across the event (live: 1 → 2 after the second draw).
 
+- **Divisions → Information (Y = `w` key) → Ranking** (live 2026-11-08): "Overall Rankings" (HTTP CMD_GET_RANKING)
+  and "Season Points Rankings" → a list of **Division 1–12** (always 12, even with `max_division "D10"`) → one
+  division → HTTP `CMD_GET_DIVISION_RANKING {start_index, view_num 100, division "D10"}`.
+  - Shown: rank, user, Season Points (`point`) and a User Information panel (avatar, division badge, courtesy
+    rating, matches, W/D/L, win rate, favourites, comment). Divisions 11–12 just show an empty list.
+
 ## Server changes, in order
 1. `pesmatch`: queue by `matching_type` (and compe_id for MATCHDAY). Keep the room's mode.
 2. Divisions: GET_DIVISION_INFO (blob layout A4), GET_OFTEN_USED_TEAM_LIST, FINISH_SEASON, `max_division:"D10"`.
