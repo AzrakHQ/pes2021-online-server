@@ -90,8 +90,52 @@ def get_playerinfo(svc, sess, req):
     # anything else shows Low. Same early-exit counts as the courtesy grade.
     rate = "LOW_RATE" if rt["quits"] <= 1 else "SEMI_HIGH_RATE" if rt["quits"] <= 3 else "HIGH_RATE"
     manner = msgpack.packb({"manner": rt["grade"], "disconnect_rate": rate}, use_bin_type=True)
-    return {"result": NOERR, "pid": who, "pname": _pname(p), "favoriteTeam": pr.get("team") or "",
-            "favoritePlayer": pr.get("player") or "", "intro": pr.get("intro") or "", "manner": manner}
+    out = {"result": NOERR, "pid": who, "pname": _pname(p), "favoriteTeam": pr.get("team") or "",
+           "favoritePlayer": pr.get("player") or "", "intro": pr.get("intro") or "", "manner": manner}
+    rs = _rankmatch_stats(svc, who, p)
+    if rs:
+        out["rankmatch_stats"] = msgpack.packb(rs, use_bin_type=True)
+    md = _matchday_stats(svc, who)
+    if md:
+        out["matchday_stats_single"] = msgpack.packb(md, use_bin_type=True)
+    return out
+
+
+def _matchday_stats(svc, pid):
+    """The profile's Matchday page: events entered and the record of their matches (pesmatchday tables)."""
+    db = _db(svc)
+    try:
+        with svc.accounts.lock, db:
+            n = db.execute("SELECT COUNT(*) FROM pes_matchday WHERE pid=?", (pid,)).fetchone()[0]
+            pts = [r[0] for r in db.execute("SELECT points FROM pes_matchday_match WHERE pid=?", (pid,))]
+    except Exception:  # noqa: BLE001 - no Matchday yet
+        return None
+    if not n:
+        return None
+    return {"entry_count": n, "group_win_count": 0, "pickup_count": 0, "best_rank": 0,
+            "win_count": sum(1 for x in pts if x >= 3), "draw_count": sum(1 for x in pts if 0 < x < 3),
+            "lose_count": sum(1 for x in pts if x <= 0)}
+
+
+def _rankmatch_stats(svc, pid, p):
+    """The profile's Online Divisions page: career record in Online Divisions (pesdivisions tables)."""
+    db = _db(svc)
+    try:
+        with svc.accounts.lock, db:
+            d = db.execute("SELECT division, wins, draws, losses, best_streak, streak FROM pes_division WHERE pid=?",
+                           (pid,)).fetchone()
+            if not d:
+                return None
+            rt = db.execute("SELECT rating FROM pes_players WHERE pid=?", (pid,)).fetchone()
+            g = db.execute("SELECT COALESCE(SUM(CASE WHEN my_side='HOME' THEN home_score ELSE away_score END), 0),"
+                           " COALESCE(SUM(CASE WHEN my_side='HOME' THEN away_score ELSE home_score END), 0)"
+                           " FROM pes_division_match WHERE pid=?", (pid,)).fetchone()
+    except Exception:  # noqa: BLE001 - nobody has played Online Divisions yet
+        return None
+    div, w, dr, l, best, cur = d
+    return {"division": f"D{div}", "rating": int((rt or [1000])[0] or 1000), "max_weekly_point": 0,
+            "current_weekly_point": 0, "match_num": w + dr + l, "win_num": w, "lose_num": l, "draw_num": dr,
+            "contWin_num": cur, "contWinMax_num": best, "goal": g[0], "lostGoal": g[1]}
 
 
 def forget(svc, pid):

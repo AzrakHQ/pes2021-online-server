@@ -184,14 +184,15 @@ def traffic(p, seconds=60, show=print):
         p.untrace(NCL_ASSIGN)
 
 
-NOAFK_VA = 0x14213dca1     # in the match watchdog 0x14213dab0: `je` that skips NO_OPERATION when [rbx+0x11] == 0
-NOAFK_OLD, NOAFK_NEW = bytes.fromhex("0f84a9010000"), bytes.fromhex("90e9a9010000")   # je rel32 -> nop; jmp rel32
+NOAFK_VA = 0x14213cfe0     # MatchOnline "no operation" trigger: sets [this+0x11], reports VIXT2253 (line 2253),
+#                            then ends the match with reason 5; the caller measures the idle time
+NOAFK_OLD, NOAFK_NEW = bytes.fromhex("4053"), bytes.fromhex("c390")   # push rbx -> ret; nop
 
 
 def noafk(p, on=True):
     """TEST COPIES ONLY (probe build, in memory): matches are never called off for "no operation", so a match
     with nobody at the controls runs to full time. Returns the state."""
-    cur = p.read(NOAFK_VA, 6)
+    cur = p.read(NOAFK_VA, 2)
     want, other = (NOAFK_NEW, NOAFK_OLD) if on else (NOAFK_OLD, NOAFK_NEW)
     if cur == want:
         return "already " + ("on" if on else "off")
