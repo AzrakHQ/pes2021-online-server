@@ -116,8 +116,23 @@ def finish_season(svc, sess, req):
 
 @cmd("CMD_GET_OFTEN_USED_TEAM_LIST")
 def get_often_used_team_list(svc, sess, req):
-    # Shown as "Frequently Selected Teams". We don't learn which team a player picked, so the list is empty.
-    return {"result": NOERR, "used_team_id_list_num": 0, "last_used_team_id": 0}    # (list left out: none to show)
+    """"Frequently Selected Teams" on the Divisions team select: the teams this player used most in Online
+    Divisions (SET_GAMETEAM, kept per match), up to 6, plus the last one. An int list (parsebench 2026-11-07)."""
+    pid = pesmatch._pid(sess)
+    db = _db(svc)
+    try:
+        with svc.accounts.lock, db:
+            _setup(db)
+            top = [r[0] for r in db.execute("SELECT my_team_id FROM pes_division_match WHERE pid=? AND my_team_id > 0 "
+                                            "GROUP BY my_team_id ORDER BY COUNT(*) DESC, MAX(t) DESC LIMIT 6", (pid,))]
+            last = db.execute("SELECT my_team_id FROM pes_division_match WHERE pid=? AND my_team_id > 0 "
+                              "ORDER BY t DESC LIMIT 1", (pid,)).fetchone()
+    except Exception:  # noqa: BLE001
+        top, last = [], None
+    if not top:
+        return {"result": NOERR, "used_team_id_list_num": 0, "last_used_team_id": 0}    # (list left out: none)
+    return {"result": NOERR, "used_team_id_list": top, "used_team_id_list_num": len(top),
+            "last_used_team_id": int(last[0]) if last else 0}
 
 
 def record(svc, room):

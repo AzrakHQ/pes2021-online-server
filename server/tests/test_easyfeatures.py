@@ -440,3 +440,23 @@ def test_both_idle_no_winner(svc):
     assert "forfeit" not in pesmatch._state(svc)["rooms"][6]
     db = svc.accounts.db
     assert db.execute("SELECT rating FROM pes_players WHERE pid=1").fetchone()[0] == 1000
+
+
+def test_often_used_teams(svc):
+    import asyncio
+    from pesserver import pesdivisions  # noqa: F401
+    _user(svc, 1, "Ann"); _user(svc, 2, "Bob")
+    a, b = Sess(1), Sess(2)
+    for pid, s_ in ((1, a), (2, b)):
+        s_.pes_username = f"u{pid}"
+        svc.online[pid] = s_
+    assert pescmds.dispatch(svc, a, "CMD_GET_OFTEN_USED_TEAM_LIST", {"pid": 1})["used_team_id_list_num"] == 0
+
+    async def go():
+        for n, team in enumerate((101, 45, 101)):
+            pesmatch._verdict(svc, n + 1, {"owner": 1, "members": [1, 2], "t": n, "mode": "OC_RANK", "match_id": f"o{n}",
+                                           "goals": set(), "phase": {1: "END", 2: "END"}, "teams": {1: team, 2: 8}})
+    asyncio.run(go())
+    r = pescmds.dispatch(svc, a, "CMD_GET_OFTEN_USED_TEAM_LIST", {"pid": 1})
+    assert r["used_team_id_list"] == [101, 45] and r["last_used_team_id"] == 101
+    assert pescmds.validate("CMD_GET_OFTEN_USED_TEAM_LIST", r)
