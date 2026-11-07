@@ -2,8 +2,12 @@
 
 How the game uses it (notes/re/functions/menus.md, messages.md, match.md):
 - CMD_GET_MANNER_WARN is asked at the online login and when entering an online mode. Its reply's `warn_kind` opens one
-  of four built-in dialogs: DOWN_B (leaving matches early is increasing), A_TO_B (the rating fell to "B"), DOWN_C
-  (it fell to "C"), STILL_C (it is still "C"). Anything else, or no `warn_kind`, shows nothing.
+  of four built-in dialogs. The names don't say what the texts say (all four seen live, 2026-11-07):
+    DOWN_B   "The number of times you have failed to properly complete matches is increasing. ..."
+    A_TO_B   "Your courtesy rating has fallen to "B". ..."
+    DOWN_C   "The number of times you have failed to properly complete matches remains high. ..."
+    STILL_C  "Your courtesy rating has fallen to "C". ..."
+  Anything else, or no `warn_kind`, shows nothing; the game then carries on into the mode.
 - The game reports a self-caused early end itself, with CMD_SEND_ABNORMALEND {reason}: GIVEUP / EXIT (quit from the
   pause menu) or NO_OPERATION (no input for about a minute). The other player's game then reports a connection
   problem (DISCONN_P2P / DISCONN_SC), which is not that player's fault.
@@ -15,8 +19,9 @@ Our rule (the game leaves it to the server): over each player's last RECENT matc
   server dropped while the match was running (game closed);
   rating A with at most 1 such match, B with 2-3, C with 4 or more.
 A connection problem between the two players, or the other player leaving, never counts against anyone.
-Each warning is shown once: DOWN_B after each new early exit while still A, A_TO_B / DOWN_C when the rating
-falls, STILL_C at most once a day while it stays C. The rating is also the co-op "courtesy rating" (pescoop).
+Each warning is shown once, after the early exit that caused it: still A -> DOWN_B; falls to B -> A_TO_B;
+at B -> DOWN_C; falls to C, or another early exit at C -> STILL_C. A better rating shows nothing.
+The rating is also the co-op "courtesy rating" (pescoop).
 """
 import logging, time
 
@@ -26,7 +31,6 @@ log = logging.getLogger("pesserver.manner")
 
 RECENT = 10                       # matches looked at
 SELF_REASONS = {"GIVEUP", "EXIT", "NO_OPERATION"}
-STILL_C_EVERY = 24 * 3600
 
 
 def grade_for(quits):
@@ -99,32 +103,24 @@ def forget(svc, pid):
 
 
 # ---- the warning ------------------------------------------------------------------------------------
-def warning(svc, pid, now=None):
+ORDER = "ABC"
+
+
+def warning(svc, pid):
     """The warn_kind to show now (or None), and remember that it was shown."""
-    now = now or time.time()
     r = rating(svc, pid)
     g, q = r["grade"], r["quits"]
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
-        st = db.execute("SELECT grade, warned_quits, still_c_t FROM pes_manner_state WHERE pid=?", (pid,)).fetchone()
-        old, warned, still_t = st if st else ("A", 0, 0)
+        st = db.execute("SELECT grade, warned_quits FROM pes_manner_state WHERE pid=?", (pid,)).fetchone()
+        old, warned = st if st else ("A", 0)
         kind = None
-        if g != old:
-            if g == "C":
-                kind = "DOWN_C"
-            elif g == "B" and old == "A":
-                kind = "A_TO_B"
-            # a better rating: no dialog
-        elif g == "C":
-            if now - still_t >= STILL_C_EVERY:
-                kind = "STILL_C"
-        elif q > warned:
-            kind = "DOWN_B"
-        if kind in ("DOWN_C", "STILL_C"):
-            still_t = now
-        db.execute("INSERT OR REPLACE INTO pes_manner_state (pid, grade, warned_quits, still_c_t) VALUES (?,?,?,?)",
-                   (pid, g, q, still_t))
+        if ORDER.index(g) > ORDER.index(old):
+            kind = "A_TO_B" if g == "B" else "STILL_C"
+        elif g == old and q > warned:
+            kind = {"A": "DOWN_B", "B": "DOWN_C", "C": "STILL_C"}[g]
+        db.execute("INSERT OR REPLACE INTO pes_manner_state (pid, grade, warned_quits) VALUES (?,?,?)", (pid, g, q))
     return kind
 
 

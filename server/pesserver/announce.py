@@ -4,8 +4,11 @@
   screen at sign-in, and title + body open as a pop-up when the player reaches the main menu.
 - Box before Quick Match (CMD_GET_URGENT_ANNOUNCEMENT): asked each time a player enters an online mode;
   the reply's title and body open as a dialog with OK. We serve each message once per player.
-- Messages to one player (CMD_GET_PRIVATEINFOTITLELIST + CMD_GET_INFOBODY is_private): the host's message also
-  stays in that player's own "Online Information" list (last INBOX_MAX, for INBOX_DAYS), same layout as the news.
+- Messages to one player (CMD_GET_PRIVATEINFOTITLELIST + CMD_GET_INFOBODY is_private): the message goes into that
+  player's own "Online Information" list (last INBOX_MAX, for INBOX_DAYS), same layout as the news. The game asks
+  for the list at login and on entering an online mode, pops up each new item once (popup_type ONCE; it remembers
+  closed items across restarts) and keeps it in the list. Seen live 2026-11-07. (Until then these messages went
+  through the box before Quick Match; with both, the player got the same text twice in a row.)
 - Planned restart (CMD_GET_MAINTENANCE_INFO): asked on "Go to Matchmaking"; maintenance_warn "YES" with a
   unix time makes the game's own "maintenance starting at HH:MM today... start a match now?" Yes/No dialog.
 
@@ -123,14 +126,15 @@ def set_restart(svc, minutes):
 
 
 def tell(svc, pid, title, body):
-    """A one-time message for one player, shown the next time they enter an online mode."""
+    """A message for one player: pops up once at their next login or online-mode entry, then stays in their
+    Information list."""
     with _lock:
         st = _load(svc)
-        msg = {"id": int(time.time()) % 2_000_000_000, "title": clean(title, TITLE_MAX, False),
-               "body": clean(body, BODY_MAX)}
-        st["personal"][str(pid)] = msg
-        box = [m for m in st["inbox"].get(str(pid), []) if m["id"] != msg["id"]]
-        st["inbox"][str(pid)] = (box + [{**msg, "date": int(time.time())}])[-INBOX_MAX:]
+        box = st["inbox"].get(str(pid), [])
+        msg = {"id": max([int(time.time()) % 2_000_000_000] + [m["id"] + 1 for m in box]),
+               "title": clean(title, TITLE_MAX, False), "body": clean(body, BODY_MAX), "date": int(time.time())}
+        _check_size(_body_reply(msg))
+        st["inbox"][str(pid)] = (box + [msg])[-INBOX_MAX:]
         _save(svc)
 
 

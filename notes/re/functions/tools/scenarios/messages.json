@@ -1,0 +1,22 @@
+{"name": "player-messages", "inst": 1,
+ "variants": [{"name": "fresh"}, {"name": "after-restart"}],
+ "steps": [
+  {"home": true},
+  {"go": "lobby"},
+  {"reply": "CMD_GET_URGENT_ANNOUNCEMENT", "ok": true, "timeout": 60},
+  {"sleep": 3},
+  {"dialog": true, "optional": true},
+  {"ok": true, "optional": true},
+  {"wait": "Online/Lobby/LobbyRoomList", "timeout": 60},
+  {"key": "Escape"},
+  {"wait": "TopMenu/", "timeout": 30, "ok": false},
+  {"reply": "CMD_GET_PRIVATEINFOTITLELIST", "timeout": 20, "since": "variant"},
+  {"sleep": 4},
+  {"no_reply": "CMD_GET_INFOBODY", "timeout": 1, "since": "variant", "optional": true},
+  {"dialog": true, "optional": true},
+  {"shot": "menu"},
+  {"ok": true, "optional": true},
+  {"relaunch": true},
+  {"sleep": 6},
+  {"no_reply": "CMD_GET_INFOBODY", "timeout": 1, "optional": true}
+ ]}

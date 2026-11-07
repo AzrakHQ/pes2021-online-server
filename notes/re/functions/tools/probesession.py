@@ -175,15 +175,18 @@ def login(inst):
     print(f"copy {inst}: title {'reached' if r.returncode == 0 else 'NOT reached: ' + r.stderr.strip()[-200:]}")
     time.sleep(1)
     fl("title")                                       # no key press (pesflow title_press)
-    r = fl("wait", "TopMenu/", "90")
-    if r.returncode == 0:
-        print(f"copy {inst}: main menu (no keys)"); return
-    # first start of a copy: region/terms and the player name still need keys
-    out = pes("flow", "login")
-    print("\n".join(l for l in out.splitlines() if l.startswith(("OK", "--"))))
-    if "no player yet" in out:
-        pes("flow", "create", f"Probe{inst}")
-        print(f"copy {inst}: created test player Probe{inst}")
+    end = time.time() + 120
+    while time.time() < end:
+        r = fl("wait", "TopMenu/", "15")
+        if r.returncode == 0:
+            print(f"copy {inst}: main menu (no keys)"); return
+        w = fl("windows").stdout
+        if "MenuCreatingUserData" in w:               # the account has no player: the name needs keys
+            pes("key", "Return", "sleep:2", f"type:Probe{inst}", "sleep:1", "Return", "sleep:1.5", "Down", "Return")
+            print(f"copy {inst}: created test player Probe{inst} (delete it after the session)")
+        elif "Intro/MenuTitle" in fl("screen").stdout:  # first start of a copy: region/terms still need keys
+            out = pes("flow", "login")
+            print("\n".join(l for l in out.splitlines() if l.startswith(("OK", "--"))))
     r = fl("wait", "TopMenu/", "90")
     print(f"copy {inst}: {'main menu' if r.returncode == 0 else 'main menu NOT reached: ' + r.stderr.strip()[-200:]}")
 

@@ -78,6 +78,14 @@ def blocked(svc, a, b):
     return b in rejects(svc, a) or a in rejects(svc, b)
 
 
+def forget(svc, pid):
+    """A deleted player: drop their block list and their place on other players' lists."""
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        db.execute("DELETE FROM pes_coop_reject WHERE pid=? OR target=?", (pid, pid))
+
+
 def _reject_reply(svc, pid):
     lst = [msgpack.packb({"pid": t, "pname": _pname_of(svc, t)}, use_bin_type=True)
            for t in rejects(svc, pid)]
@@ -116,9 +124,10 @@ def get_coop_profile(svc, sess, req):
     grade = pesmanner.rating(svc, pid)["grade"] if isinstance(pid, int) else "A"
     data = {"is_follow": "NO", "coop_level": 1, "coop_level_point": 0, "follower": 0, "coop_manner": grade,
             "online_match": 0, "vscom_match": 0, "match_data_size": 0, "match_data": ""}
-    info = {"pid": pid, "pname": _pname_of(svc, pid),
+    # two top-level blobs, side by side (checked on the game's own parser with tools/parsebench.py)
+    info = {"pid": pid, "pname": _pname_of(svc, pid)}
+    return {"result": NOERR, "user_info": msgpack.packb(info, use_bin_type=True),
             "coop_profile_data": msgpack.packb(data, use_bin_type=True)}
-    return {"result": NOERR, "user_info": msgpack.packb(info, use_bin_type=True)}
 
 
 def _manner(svc, pid):

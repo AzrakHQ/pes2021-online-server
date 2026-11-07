@@ -1,0 +1,91 @@
+{
+ "name": "private-popup",
+ "inst": 1,
+ "variants": [
+  {
+   "name": "as-is-ONCE"
+  },
+  {
+   "name": "popup-EVERYTIME",
+   "patch": {
+    "patch": {
+     "CMD_GET_PRIVATEINFOTITLELIST": {
+      "set": {
+       "announce_info_list.0.popup_type": "EVERYTIME"
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "popup-empty",
+   "patch": {
+    "patch": {
+     "CMD_GET_PRIVATEINFOTITLELIST": {
+      "set": {
+       "announce_info_list.0.popup_type": ""
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "popup-NONE",
+   "patch": {
+    "patch": {
+     "CMD_GET_PRIVATEINFOTITLELIST": {
+      "set": {
+       "announce_info_list.0.popup_type": "NONE"
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "popup-DAILY",
+   "patch": {
+    "patch": {
+     "CMD_GET_PRIVATEINFOTITLELIST": {
+      "set": {
+       "announce_info_list.0.popup_type": "DAILY"
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "popup-removed",
+   "patch": {
+    "patch": {
+     "CMD_GET_PRIVATEINFOTITLELIST": {
+      "del": [
+       "announce_info_list.0.popup_type"
+      ]
+     }
+    }
+   }
+  }
+ ],
+ "steps": [
+  {
+   "relaunch": true
+  },
+  {
+   "reply": "CMD_GET_PRIVATEINFOTITLELIST",
+   "timeout": 30,
+   "since": "variant"
+  },
+  {
+   "sleep": 6
+  },
+  {
+   "no_reply": "CMD_GET_INFOBODY",
+   "timeout": 1,
+   "since": "variant",
+   "optional": true
+  },
+  {
+   "shot": "menu"
+  }
+ ]
+}

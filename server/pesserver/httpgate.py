@@ -471,6 +471,18 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         sess.kicked = True              # not an early exit for the courtesy rating
         sess.close()
         return "200 OK", b'{"ok":true}', "application/json"
+    if route == "/admin/api/players/message" and method == "POST":
+        # {pid, title, body}: shown once when the player next enters an online mode, and kept in their own
+        # Information list (announce.py)
+        from . import announce
+        try:
+            req = json.loads(body or b"{}")
+            pid = int(req.get("pid"))
+            announce.tell(service, pid, req.get("title"), req.get("body"))
+        except (ValueError, TypeError, AttributeError):
+            return "400 Bad Request", b'{"error":"Write a title and a message."}', "application/json"
+        events.feed(service, f"A message was sent to {events.name_of(service, pid)}", "info")
+        return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/players/delete" and method == "POST":
         try:
             pid = int(json.loads(body or b"{}").get("pid"))
@@ -481,8 +493,9 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         if name is None:
             return "404 Not Found", b'{"error":"That player is already gone."}', "application/json"
         announce.forget(service, pid)
-        from . import pesmanner
+        from . import pescoop, pesmanner
         pesmanner.forget(service, pid)
+        pescoop.forget(service, pid)
         sess = service.online.get(pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)

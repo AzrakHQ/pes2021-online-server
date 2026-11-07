@@ -138,8 +138,9 @@ String tables came from dt80_100E_x64.cpk (`use/string/all.str`, `common/string/
 - Courtesy rating (GET_MANNER_WARN warn_kind):
   - DOWN_B → 0x20100c0 "The number of times you have failed to properly complete matches is increasing…".
   - A_TO_B → 0x20100c1 "Your courtesy rating has fallen to \"B\"…".
-  - DOWN_C → 0x20100c2.
-  - STILL_C → 0x20100c3. Full texts: resolve the id with the string tables (see above).
+  - DOWN_C → 0x20100c2 "The number of times you have failed to properly complete matches remains high…".
+  - STILL_C → 0x20100c3 "Your courtesy rating has fallen to \"C\"…". (Live 2026-11-07; the names don't match
+    the texts, see menus.md.)
 - Live update (LiveDataSetFlow):
   - 0xf90042 "Live Update in progress."
   - 0xf90043 "Unable to implement Live Update Data."

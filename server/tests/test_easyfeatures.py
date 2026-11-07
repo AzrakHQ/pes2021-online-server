@@ -61,13 +61,15 @@ def test_leaving_early_warns_once_per_step(svc):
     def closes_game():                 # pid 1's connection drops mid-match
         events.disconnected(svc, a)
     _match(svc, 3, 1, 2, a, b, closes_game)
+    assert pesmanner.rating(svc, 1)["grade"] == "B"
+    assert _warn(svc, a) == "DOWN_C" and _warn(svc, a) is None          # "remains high"
     _match(svc, 4, 1, 2, a, b, give_up)
     assert pesmanner.rating(svc, 1) == {"grade": "C", "quits": 4, "matches": 4}
-    assert _warn(svc, a) == "DOWN_C" and _warn(svc, a) is None
-    # still C a day later
-    assert pesmanner.warning(svc, 1, now=__import__("time").time() + 2 * 86400) == "STILL_C"
+    assert _warn(svc, a) == "STILL_C" and _warn(svc, a) is None         # "has fallen to C"
+    _match(svc, 5, 1, 2, a, b, give_up)
+    assert _warn(svc, a) == "STILL_C"                                   # another one at C
     assert pescmds.dispatch(svc, b, "CMD_GET_COOP_PROFILE", {"pid": 1})["user_info"]
-    prof = unb(unb(pescmds.dispatch(svc, b, "CMD_GET_COOP_PROFILE", {"pid": 1})["user_info"])["coop_profile_data"])
+    prof = unb(pescmds.dispatch(svc, b, "CMD_GET_COOP_PROFILE", {"pid": 1})["coop_profile_data"])
     assert prof["coop_manner"] == "C"
 
 
@@ -96,6 +98,9 @@ def test_coop_block_list(svc):
     assert pescoop.blocked(svc, 2, 1) and pescoop.blocked(svc, 1, 2)
     r = pescmds.dispatch(svc, a, "CMD_SET_COOP_REJECT", {"unset_reject_pid_list": [2]})
     assert r["reject_list_num"] == 0 and not pescoop.blocked(svc, 1, 2)
+    pescmds.dispatch(svc, a, "CMD_SET_COOP_REJECT", {"set_reject_pid_list": [2]})
+    pescoop.forget(svc, 2)                       # pid 2 deleted on the admin page
+    assert not pescoop.blocked(svc, 1, 2)
 
 
 def test_blocked_players_are_not_paired_in_coop(svc):
@@ -125,11 +130,12 @@ def test_message_stays_in_the_players_information_list(svc):
     assert pescmds.dispatch(svc, b, "CMD_GET_PRIVATEINFOTITLELIST", {"pid": 2}) == {"result": "NOERR"}
     assert pescmds.dispatch(svc, b, "CMD_GET_INFOBODY", {"pid": 2, "announce_id": item["announce_id"],
                                                          "is_private": "YES"}) == {"result": "NOERR"}
-    # the one-time dialog still comes once, and the list keeps at most INBOX_MAX
-    assert pescmds.dispatch(svc, a, "CMD_GET_URGENT_ANNOUNCEMENT", {"pid": 1})["is_announcement"] == "YES"
+    # no second copy in the box before Quick Match; the list keeps at most INBOX_MAX, each with its own id
+    assert pescmds.dispatch(svc, a, "CMD_GET_URGENT_ANNOUNCEMENT", {"pid": 1}) == {"result": "NOERR"}
     for n in range(announce.INBOX_MAX + 2):
         announce.tell(svc, 1, f"T{n}", "x")
-        announce._load(svc)["inbox"]["1"][-1]["id"] += n      # distinct ids within one second
+    ids = [m["id"] for m in announce._load(svc)["inbox"]["1"]]
+    assert len(set(ids)) == len(ids)
     assert pescmds.dispatch(svc, a, "CMD_GET_PRIVATEINFOTITLELIST", {"pid": 1})["annnounce_info_list_num"] == announce.INBOX_MAX
     announce.forget(svc, 1)
     assert pescmds.dispatch(svc, a, "CMD_GET_PRIVATEINFOTITLELIST", {"pid": 1}) == {"result": "NOERR"}

@@ -92,12 +92,21 @@ def input_windows(p, wait=1.5):
     return [(a, rtti(p, a)) for a in seen]
 
 
+# Windows that block like a dialog and close with the same A handler (vtable +0x188), seen live 2026-11-07:
+# the one-time message box (CMD_GET_URGENT_ANNOUNCEMENT) and the Information pop-up (news / private list).
+POPUPS = ("Dialog", "MenuUrgentAnnouncement", "MenuInformationNoticeTask")
+
+
+def is_popup(klass):
+    return any(x in (klass or "") for x in POPUPS)
+
+
 def dialog_ok(p, cancel=False, button=None):
     """Confirm (or cancel) the open dialog, if any; returns its class name or None.
     button=i first moves the cursor to button i (Yes/No dialogs: the buttons left to right, from 0)."""
     for a, k in input_windows(p):
-        if "Dialog" in k:
-            if button is not None:
+        if is_popup(k):
+            if button is not None and "Dialog" in k:
                 cur = p.u64(f"@{a + 0x88:x}") + 0xd8
                 p.write(f"@{cur:x}", struct.pack("<I", button))
             vt = p.u64(f"@{a:x}")

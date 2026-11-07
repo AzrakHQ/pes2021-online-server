@@ -17,13 +17,16 @@ testserver/replypatch.py, so each variant only says how our replies differ. A sc
              {"wait": "Matchday", "timeout": 60, "ok": false},
              {"shot": "matchday"}]}
 
-Steps (each may have "timeout", and "optional": true so a miss does not fail the variant):
+Steps (each may have "timeout", and "optional": true so a miss does not fail the variant; reply / no_reply take
+"since": "variant" to count requests from the start of the variant instead of the step):
   home            back to the main menu (probe dialogs + Escape keys; relaunch + login if that fails)
+  relaunch        restart the game and log in again (a fresh game session)
   go ITEM         main-menu item (pesflow TOP_ITEMS)
   wait SCREEN     until the screen name contains SCREEN; "ok": true|false confirms dialogs on the way (default true)
   screen          record the current screen name
   not_screen S    fail if the screen name contains S now
-  reply CMD       our server answered CMD since the step started (from logs/replies.jsonl)
+  reply CMD       our server answered CMD since the step started (from logs/replies.jsonl); "ok": true
+                  confirms dialogs on the way, until the reply is seen
   no_reply CMD    the game did not ask for CMD during "timeout" seconds
   ok              confirm the open dialog (fails if there is none); "ok": N picks button N first (0 = left)
   key [K...]      key presses (tools/pkey.sh tokens) — last resort
@@ -178,6 +181,9 @@ class Runner:
         p = self.probe()
         if "home" in st:
             return self.home(st.get("timeout", 120))
+        if "relaunch" in st:
+            self.relaunch()
+            return pf.screen(self.probe())
         if "go" in st:
             return pf.top_menu_go(p, st["go"])
         if "wait" in st:
@@ -192,17 +198,20 @@ class Runner:
             if st["not_screen"] in s:
                 raise StepFail(f"screen is {s!r}")
             return s
+        since = self.t_variant if st.get("since") == "variant" else t0
         if "reply" in st:
             while time.time() < t0 + to:
-                hit = replies_since(self.t_step0, st["reply"])
+                hit = replies_since(since, st["reply"])
                 if hit:
                     return f"{st['reply']} rqid={hit[-1]['rqid']} patched={hit[-1]['patched']}"
                 self.check_alive()
+                if st.get("ok") and not replies_since(since, st["reply"]):
+                    pf.dialog_ok(p)          # e.g. "No new Live Update" on the way into a mode
                 time.sleep(0.5)
             raise StepFail(f"no {st['reply']} in {to}s")
         if "no_reply" in st:
             while time.time() < t0 + to:
-                if replies_since(t0, st["no_reply"]):
+                if replies_since(since, st["no_reply"]):
                     raise StepFail(f"game asked for {st['no_reply']}")
                 self.check_alive()
                 time.sleep(0.5)
@@ -273,7 +282,7 @@ class Runner:
         write_patch(self.cur_patch)
         log = [f"## {self.vname}", "", "```json", json.dumps(self.cur_patch), "```", ""]
         spos = os.path.getsize(ps.SERVER_OUT) if os.path.exists(ps.SERVER_OUT) else 0
-        t_v = time.time()
+        t_v = self.t_variant = time.time()
         result = "PASS"
         if not game_running(self.inst):
             log.append("- game not running: relaunch + login")
@@ -285,7 +294,7 @@ class Runner:
                 r = self.step(st, log)
                 self.drain_traces()
                 self.check_alive()
-                log.append(f"- ok   `{label}` → {str(r)[:160]} ({time.time() - self.t_step0:.1f}s)")
+                log.append(f"- ok   `{label}` → {str(r)[:600 if 'dialog' in st else 160]} ({time.time() - self.t_step0:.1f}s)")
             except StepFail as e:
                 log.append(f"- {'skip' if st.get('optional') else 'FAIL'} `{label}` → {e}")
                 if not st.get("optional"):
@@ -327,6 +336,8 @@ def dialog_info(p):
     """Class and message text of the open dialog (std::string at dlg+0x268, see flow.md)."""
     import re
     for addr, klass in pf.input_windows(p):
+        if "Dialog" not in (klass or "") and pf.is_popup(klass):
+            return klass                       # message windows keep their text elsewhere
         if "Dialog" in (klass or ""):
             try:
                 txt = re.sub(r"\x11..", "", pf.msvc_string(p, addr + 0x268) or "")

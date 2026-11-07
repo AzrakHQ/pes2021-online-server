@@ -1,0 +1,6 @@
+{"name": "courtesy-real", "inst": 1,
+ "variants": [{"name": "one-early-exit"}],
+ "steps": [{"home": true}, {"go": "lobby"}, {"reply": "CMD_GET_MANNER_WARN", "ok": true, "timeout": 60, "since": "variant"},
+           {"sleep": 3}, {"dialog": true}, {"ok": true}, {"wait": "Online/Lobby/LobbyRoomList", "timeout": 60},
+           {"key": "Escape"}, {"wait": "TopMenu/", "timeout": 30}, {"go": "lobby"},
+           {"reply": "CMD_GET_MANNER_WARN", "ok": true, "timeout": 60}, {"sleep": 3}, {"dialog": true, "optional": true}]}

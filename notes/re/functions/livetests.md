@@ -451,3 +451,23 @@ Both copies ran mod 0.4.0 with install ids, so they were new accounts (pid 3 "te
   GET_MATCHDAY_ACHIEVEMENT_REWARD → "Match Rewards: 1 Points" → the menu shows Home 1 – Away 1, Event Points 1.
 - Also new: SET_GAMETEAM (both team ids, sent at the match menu) is stored, so the Online Divisions history shows
   the opponent's team.
+
+## 2026-11-07: courtesy warnings, co-op profile layout, player messages (probe tools, one copy)
+
+Run with `tools/probesession.py up 1`, `tools/scenario.py` (scenarios/courtesy.json, courtesy_real.json,
+messages.json, private_popup.json) and `tools/parsebench.py`. No key presses except the player name.
+- **Courtesy warnings:** all four `warn_kind` dialogs shown and read (menus.md table). DOWN_C is "…remains
+  high", STILL_C is "…has fallen to C". OK continues into the Friendly Match Lobby. With the server's own
+  rule (pesmanner.py): one early exit gave DOWN_B at the online login, and a second one gave A_TO_B on the next
+  lobby entry, shown once each.
+- **GET_COOP_PROFILE layout** (parsebench, four candidate placements in one reply): only a **top-level**
+  `coop_profile_data` blob is read, beside `user_info{pid, pname}`. The KB table had it inside user_info.
+  GET_COOP_REJECT_LIST: `reject_list` blobs {pid, pname} are read (2 entries, 0xb0 bytes each).
+- **Player messages:**
+  - A PERSONAL_INFO item in GET_PRIVATEINFOTITLELIST pops up once (MenuInformationNoticeTask) at login or on
+    entering an online mode, right after the box before Quick Match (MenuUrgentAnnouncement).
+  - Once closed, it never popped up again, even after a game restart.
+  - Server change: player messages and the kick note go through the private list only (the box gave a
+    duplicate).
+- **Tools:** pesflow now closes both message windows like dialogs (vtable +0x188). Escape is the game's back
+  key once no window is open. `scenario.py` got `relaunch`, `"since": "variant"` and `reply … "ok": true`.
