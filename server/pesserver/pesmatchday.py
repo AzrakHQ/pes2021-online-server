@@ -168,7 +168,11 @@ def get_matchday_achievement_reward(svc, sess, req):
         r = db.execute("SELECT COALESCE(SUM(points), 0) FROM pes_matchday_match WHERE pid=? AND compe_id=? AND fetched=0",
                        (pid, COMPE_ID)).fetchone()
         db.execute("UPDATE pes_matchday_match SET fetched=1 WHERE pid=? AND compe_id=?", (pid, COMPE_ID))
-    return {"result": NOERR, "add_matchday_point": int(r[0]), "achievement_reward_list": []}
+    # The points screen shows "Breakdown: Gameplay Review <gameplay_quality>, Squad Rating x<squad_rating>". Our
+    # points are win 3 / draw 1 / loss 0, so: the review is the points and the squad factor 1.
+    pts = int(r[0])
+    return {"result": NOERR, "add_matchday_point": pts, "gameplay_quality": pts, "squad_rating": 1,
+            "achievement_reward_list": []}
 
 
 @cmd("CMD_GET_MATCHDAY_SP_GAMEPLAN")
