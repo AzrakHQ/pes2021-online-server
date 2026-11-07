@@ -152,6 +152,8 @@ def _queue(svc):
 def start_coop_matching(svc, sess, req):
     pid = _pid(sess)
     q = _queue(svc)
+    if pid not in {x[0] for x in q}:
+        _state(svc).setdefault("qsince", {})[pid] = time.time()        # the admin page's "searching for N min"
     q[:] = [x for x in q if x[0] != pid] + [(pid, sess, int(req.get("use_team_id") or NO_TEAM))]
     log.info("COOP queue += pid %s%s (queue=%s)", pid, "" if _fixed(sess) else " (mod without the co-op fix)",
              [x[0] for x in q])

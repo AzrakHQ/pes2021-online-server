@@ -29,6 +29,8 @@ def _st(svc):
             if "left_pid" not in cols:
                 db.execute("ALTER TABLE pes_matches ADD COLUMN left_pid INTEGER")
                 db.execute("ALTER TABLE pes_matches ADD COLUMN left_at REAL")
+            if "mode" not in cols:                 # Quick Match, Online Divisions, Matchday, a lobby room, co-op
+                db.execute("ALTER TABLE pes_matches ADD COLUMN mode TEXT")
             rows = db.execute("SELECT t, kind, text FROM pes_feed ORDER BY id DESC LIMIT 200").fetchall()
         svc.pes_events["feed"].extend({"t": t, "kind": k, "text": x} for t, k, x in rows)
     return svc.pes_events
@@ -76,6 +78,11 @@ def _live(svc, rid, room):
                    "away_name": name_of(svc, away) if away else "", "phase": "Pre-match", "raw_phase": "",
                    "home_score": 0, "away_score": 0, "started": time.time(), "kickoff": None, "saved": False}
     return lv[rid]
+
+
+def _mode(room):
+    from .adminextra import mode_of_room
+    return mode_of_room(room)
 
 
 def _note_left(svc, lv, pid):
@@ -153,10 +160,10 @@ def observe(svc, sess, msgid, req):
             db = svc.accounts.db
             with svc.accounts.lock, db:
                 db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name,"
-                           " home_score, away_score, reason, left_pid, left_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                           " home_score, away_score, reason, left_pid, left_at, mode) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
                            (rid, lv["kickoff"] or (lx and lx["kickoff"]) or lv["started"], time.time(), lv["home"], lv["away"],
                             lv["home_name"], lv["away_name"], lv["home_score"], lv["away_score"],
-                            "" if reason == "NOERR" else reason, left_pid, lx and lx["t"]))
+                            "" if reason == "NOERR" else reason, left_pid, lx and lx["t"], _mode(room)))
             feed(svc, f"Full time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "result")
     elif msgid == "CMD_LEAVE_ROOM":
         lv.setdefault("left", set()).add(pid)
@@ -235,9 +242,9 @@ def snapshot(svc):
               for pid, s in sorted(svc.online.items()) if isinstance(pid, int)]
     db = svc.accounts.db
     results = [dict(zip(("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason",
-                         "home_pid", "away_pid", "voided", "left_pid", "left_at"), r))
+                         "home_pid", "away_pid", "voided", "left_pid", "left_at", "mode"), r))
                for r in db.execute("SELECT id, started, ended, home_name, away_name, home_score, away_score, reason,"
-                                   " home_pid, away_pid, voided, left_pid, left_at"
+                                   " home_pid, away_pid, voided, left_pid, left_at, mode"
                                    " FROM pes_matches ORDER BY id DESC LIMIT 100")]
     played_total, goals_total, abandoned = db.execute(
         "SELECT COUNT(*), COALESCE(SUM(home_score + away_score), 0), COALESCE(SUM(COALESCE(reason, '') != ''), 0)"
@@ -294,7 +301,7 @@ def player_detail(svc, pid):
     if r is None:
         return None
     _st(svc)
-    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason", "voided", "left_pid", "left_at")
+    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason", "voided", "left_pid", "left_at", "mode")
     matches = [dict(zip(keys, m)) for m in db.execute(
         "SELECT " + ", ".join(keys) + " FROM pes_matches WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid))]
     name = r[1] or f"Player {pid}"
@@ -320,7 +327,7 @@ def set_counted(svc, mid, counted):
     return {"home_name": r[0], "away_name": r[1], "home_score": r[2], "away_score": r[3]}
 
 
-def results_page(svc, q="", since=0, limit=25, until=None, early=False):
+def results_page(svc, q="", since=0, limit=25, until=None, early=False, mode=None):
     """Finished matches for the admin page's Results list: newest first, optionally only one player's
     (name contains q) or only since a time. Returns (rows, how many match in all)."""
     q = str(q or "").strip().lower()
@@ -329,6 +336,8 @@ def results_page(svc, q="", since=0, limit=25, until=None, early=False):
         where.append("COALESCE(reason, '') != ''")
     if until:
         where.append("ended < ?"); args.append(float(until))
+    if mode:
+        where.append("COALESCE(mode, 'Quick Match') = ?"); args.append(str(mode))
     if q:
         like = "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
         where.append("(LOWER(home_name) LIKE ? ESCAPE '\\' OR LOWER(away_name) LIKE ? ESCAPE '\\')")
@@ -336,7 +345,7 @@ def results_page(svc, q="", since=0, limit=25, until=None, early=False):
     w = " WHERE " + " AND ".join(where)
     db = svc.accounts.db
     _st(svc)
-    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid", "voided", "left_pid", "left_at")
+    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid", "voided", "left_pid", "left_at", "mode")
     rows = [dict(zip(keys, r)) for r in db.execute("SELECT " + ", ".join(keys) + " FROM pes_matches" + w +
                                                    " ORDER BY id DESC LIMIT ?", (*args, max(1, min(int(limit), 1000))))]
     return rows, db.execute("SELECT COUNT(*) FROM pes_matches" + w, args).fetchone()[0]

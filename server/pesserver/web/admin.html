@@ -475,6 +475,14 @@
   .mstats b { display:block; font-size:20px; font-variant-numeric:tabular-nums; }
   .mstats span { font-size:12px; color:var(--muted); }
   @media (max-width: 420px) { .mstats { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  .mstats.md2 { grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .kv.modes { grid-template-columns:8.5em minmax(0,1fr); margin-bottom:4px; }
+  @media (max-width: 420px) { .kv.modes { grid-template-columns:minmax(0,1fr); gap:2px; } .kv.modes dt { margin-top:8px; font-size:13px; } }
+  h3.rooms-h { margin-top:16px; }
+  .pill.mode { margin-left:6px; }
+  .chips.r-mode { align-items:center; padding-left:10px; border-left:1px solid var(--line); }
+  .chips.r-mode .lbl { margin-right:2px; }
+  @media (max-width: 700px) { .chips.r-mode { padding-left:0; border-left:0; } }
   .meter.empty { display:none; }
   .meter { height:6px; border-radius:99px; background:var(--code); overflow:hidden; margin-top:6px; }
   .meter i { display:block; height:100%; background:var(--accent-fill); border-radius:99px; }
@@ -614,8 +622,9 @@
           <span class="grow"></span><span class="count" id="p-count" aria-live="polite"></span>
         </div>
         <div id="plist"><div class="skel"></div><div class="skel short"></div></div>
-        <p class="note" id="p-note"><b>Points per game</b> ranks only friends with 5+ matches, so nobody is behind just for playing less; ties go to goal difference per game. Select a name for their matches, head-to-head record and the Delete option. <span class="hide-lg">Rating is the game's own matchmaking number (it pairs players of similar skill); it doesn't change the table order.</span></p><p class="note">Kick disconnects someone now; they can reconnect and see your reason. There's no ban yet: anyone with the mod file can join.</p>
+        <p class="note" id="p-note"><b>Points per game</b> ranks only friends with 5+ matches, so nobody is behind just for playing less; ties go to goal difference per game. Select a name for their matches, head-to-head record and the Delete option. <span class="hide-lg">Rating is the game's own matchmaking number (it pairs players of similar skill); it doesn't change the table order.</span></p><p class="note">Kick disconnects someone now; they can reconnect and see your reason. There's no ban yet: anyone with the mod file can join.</p><p class="note"><b>Courtesy B or C</b> next to a name is the game's fair-play rating: it drops when someone quits, idles or closes the game during matches (a kick or the other player leaving doesn't count). The game warns them itself; you can clear it in their panel.</p>
       </section>
+      <section class="card" id="c-div" aria-labelledby="h-div" hidden><div class="card-h"><h2 id="h-div" tabindex="-1">Online Divisions</h2></div><div id="divs"></div></section>
     </section>
 
     <!-- MATCHES -->
@@ -626,9 +635,10 @@
       <section class="card" aria-labelledby="h-live"><h2 id="h-live" tabindex="-1">Live and starting</h2><div id="live"><div class="skel"></div></div></section>
       <section class="card" aria-labelledby="h-results">
         <div class="card-h"><h2 id="h-results" tabindex="-1">Results</h2><span class="grow"></span></div>
-        <div class="toolbar" id="r-tools"><input type="search" id="r-q" placeholder="Filter by player" aria-label="Filter results by player" autocomplete="off"><div class="chips" role="group" aria-label="Period" id="r-range"></div><div class="chips" role="group" aria-label="Show only" id="r-kind"></div><span class="grow"></span><span class="count" id="r-count" aria-live="polite"></span></div>
+        <div class="toolbar" id="r-tools"><input type="search" id="r-q" placeholder="Filter by player" aria-label="Filter results by player" autocomplete="off"><div class="chips" role="group" aria-label="Period" id="r-range"></div><div class="chips" role="group" aria-label="Show only" id="r-kind"></div><div class="chips r-mode" role="group" aria-label="Game mode" id="r-mode"></div><span class="grow"></span><span class="count" id="r-count" aria-live="polite"></span></div>
         <div id="results"><div class="skel"></div><div class="skel short"></div></div>
       </section>
+      <section class="card" id="c-md" aria-labelledby="h-md" hidden><div class="card-h"><h2 id="h-md" tabindex="-1">Matchday</h2></div><div id="md"></div></section>
     </section>
 
     <!-- ACTIVITY -->
@@ -675,7 +685,7 @@
         </div>
         <div class="stack">
         <section class="card msgf" aria-labelledby="h-dm"><h2 id="h-dm" tabindex="-1">To one player</h2>
-          <p class="small muted" style="margin:-6px 0 4px">They see it in a box the next time they open an online mode, such as Quick Match. The game can't show it sooner. A newer message replaces one they haven't seen. This card shows when they've seen it.</p>
+          <p class="small muted" style="margin:-6px 0 4px">It pops up the next time they sign in or open an online mode, then stays in their Online Information list (their last 5 messages). The game can't show it sooner. This card shows when they've opened it.</p>
           <p class="empty" id="dm-none" hidden>Nobody has joined yet, so there's no one to message. <a href="#invite">Invite friends</a></p>
           <form id="dmform">
             <label for="dm-to">Player</label><select id="dm-to" class="needs-server"></select>
@@ -717,7 +727,8 @@
           <ol>
             <li>In Steam, right-click <b>PES 2021</b> → Manage → <b>Browse local files</b>, and put the file next to <code>PES2021.exe</code>.
               <div class="small muted" style="margin-top:6px"><b>Steam Deck / Linux:</b> also set PES 2021 → Properties → Launch options to:<span class="linkrow"><code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code><button type="button" class="small" data-copytext="WINEDLLOVERRIDES=&quot;dinput8=n,b&quot; %command%" data-copied="Launch option copied">Copy</button></span></div></li>
-            <li>Start the game → <b>eFootball → Quick Match → Go to Matchmaking</b>. The first time, they pick a region and a player name.</li>
+            <li>Start the game → <b>eFootball → Quick Match → Go to Matchmaking</b>. The first time, they pick a region and a player name.
+              <div class="small muted" style="margin-top:6px">Online Divisions, Matchday, the Friendly Match Lobby (rooms where friends pick who they play) and Online Co-op work too. Two friends are paired when they search in the same mode.</div></li>
           </ol>
           <p class="small muted" style="margin:8px 0 0">To stop playing on your server, they just delete the file.</p>
         </section>
@@ -727,7 +738,7 @@
     <!-- SERVER -->
     <section class="view" id="v-server" aria-labelledby="t-server" hidden>
       <h1 id="t-server" tabindex="-1">Server</h1>
-      <p class="lead">Network, admin access, this computer's game and the start command.</p>
+      <p class="lead">Network, the match relay, the Live Update, admin access, this computer's game and the start command.</p>
       <div class="grid2 eq row-gap">
         <section class="card" aria-labelledby="h-status"><h2 id="h-status" tabindex="-1">Status</h2><dl class="kv" id="srv-status"></dl></section>
         <section class="card" aria-labelledby="h-net"><h2 id="h-net" tabindex="-1">Network</h2><div class="net" id="net"><div class="skel"></div></div></section>
@@ -736,6 +747,7 @@
         <section class="card" aria-labelledby="h-access"><h2 id="h-access" tabindex="-1">Admin access</h2><div class="net" id="access"></div></section>
         <section class="card" aria-labelledby="h-cmd"><h2 id="h-cmd" tabindex="-1">Start, stop and update</h2><dl class="kv" id="cmds"></dl></section>
       </div>
+      <section class="card" aria-labelledby="h-lu"><h2 id="h-lu" tabindex="-1">Live Update</h2><div class="net" id="lu"></div></section>
       <section class="card" id="thispc" aria-labelledby="pc-h">
         <h2 id="pc-h" tabindex="-1">PES 2021 on this computer</h2>
         <p class="small muted" style="margin:-6px 0 8px">Want to play on the server computer too? Set up its copy of PES 2021 here.</p>
@@ -791,7 +803,7 @@ const store = {
 };
 let token = store.get(), timer = null, gamesTimer = null, failures = 0, inflight = false, downSince = 0, lastOkAt = 0;
 let last = null, lastGames = [], platform = "", dataDir = "", backUntil = 0, gamesRetry = false, untilText = "";
-const ui = {view: "overview", range: 14, pq: "", pf: "all", sort: "rank", dir: 1, rq: "", rr: "all", rN: 25, ff: "all", fq: "", fN: 50, re: false,
+const ui = {view: "overview", range: 14, pq: "", pf: "all", sort: "rank", dir: 1, rq: "", rr: "all", rN: 25, ff: "all", fq: "", fN: 50, re: false, rm: "",
             rank: (() => { try { return localStorage.getItem("pes-admin-rank") === "ppg" ? "ppg" : "pts"; } catch (e) { return "pts"; } })()};
 let lastAnnounce = null;
 try { const r = +localStorage.getItem("pes-admin-range"); if ([7, 14, 30].includes(r)) ui.range = r; } catch (e) {}
@@ -1148,7 +1160,7 @@ function renderDmTo(d, pick) {
   $("dm-none").hidden = d.players.length > 0; $("dmform").hidden = !d.players.length;
   const sel = $("dm-to"), keep = pick != null ? String(pick) : sel.value;
   const ps = [...d.players].sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
-  const html = `<option value="">Choose a player…</option>` + ps.map(p => `<option value="${p.pid}" data-name="${esc(p.name)}">${esc(p.name)}${p.online ? " (online now)" : ""}${waitingFor(p.pid) ? " · message waiting" : ""}</option>`).join("");
+  const html = `<option value="">Choose a player…</option>` + ps.map(p => `<option value="${p.pid}" data-name="${esc(p.name)}">${esc(p.name)}${p.online ? " (online now)" : ""}${waitingFor(p.pid) ? " · message not opened yet" : ""}</option>`).join("");
   if (shown["dm-to"] !== html) { shown["dm-to"] = html; sel.innerHTML = html; }
   if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
 }
@@ -1157,11 +1169,11 @@ function renderMsg(a) {
   lastAnnounce = a;
   const names = new Map((last ? last.players : []).map(p => [p.pid, p.name])), pend = a.personal || [];
   const seen = a.seen_notes || [];
-  put("dm-seen", seen.length ? `<h3 class="day" style="margin-top:16px">Seen</h3>` + seen.slice(0, 5).map(m => `<div class="dmrow"><span class="ok" aria-hidden="true">${I.ok}</span><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”<br><span class="small muted">seen ${esc(ago(m.seen, Date.now() / 1000))}</span></span></div>`).join("") : "");
+  put("dm-seen", seen.length ? `<h3 class="day" style="margin-top:16px">Opened</h3>` + seen.slice(0, 5).map(m => `<div class="dmrow"><span class="ok" aria-hidden="true">${I.ok}</span><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”<br><span class="small muted">opened ${esc(ago(m.seen, Date.now() / 1000))}</span></span></div>`).join("") : "");
   const hist = a.history || [];
   put("tpl-hist", hist.length ? `<span class="small muted" id="hist-l">Sent before:</span><div class="chips" role="group" aria-labelledby="hist-l">` + hist.slice(0, 4).map((h, i) => `<button type="button" data-reuse="${i}" title="${esc(h.title)} (${esc(dShort.format(new Date(h.date * 1000)))})">${esc(h.title.length > 24 ? h.title.slice(0, 23) + "…" : h.title)}</button>`).join("") + `</div>` : "");
   put("msg-hist", hist.length ? `<details class="keycheck" data-key="hist" style="margin-top:16px"><summary>Earlier messages (${hist.length})</summary>` + hist.map((h, i) => `<div class="dmrow"><span class="grow"><b>${esc(h.title)}</b><br><span class="small muted">${esc(dShort.format(new Date(h.date * 1000)))} – ${esc(dShort.format(new Date(h.until * 1000)))}${h.seen ? ` · seen before Quick Match by ${plural(h.seen, "player")}` : ""}</span></span><button type="button" class="small" data-reuse="${i}">Use again</button></div>`).join("") + `</details>` : "");
-  put("dm-list", pend.length ? `<h3 class="day" style="margin-top:16px">Waiting to be seen</h3>` + pend.map(m => `<div class="dmrow"><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”${m.kind === "kick" ? ' <span class="pill neutral tag">kick note</span>' : ""}<br><span class="small muted">sent ${esc(m.sent ? ago(m.sent, Date.now() / 1000) : "earlier")}</span></span><button type="button" class="small danger needs-server" data-untell="${m.pid}" data-name="${esc(names.get(m.pid) || "this player")}" data-key="untell-${m.pid}">Take back</button></div>`).join("") : "");
+  put("dm-list", pend.length ? `<h3 class="day" style="margin-top:16px">Not opened yet</h3>` + pend.map(m => `<div class="dmrow"><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”${m.kind === "kick" ? ' <span class="pill neutral tag">kick note</span>' : ""}<br><span class="small muted">sent ${esc(m.sent ? ago(m.sent, Date.now() / 1000) : "earlier")}</span></span><button type="button" class="small danger needs-server" data-untell="${m.pid}" data-mid="${m.id}" data-title="${esc(m.title)}" data-name="${esc(names.get(m.pid) || "this player")}" data-key="untell-${m.pid}-${m.id}">Take back</button></div>`).join("") : "");
   put("msgnow", a.news ? `<div class="preview"><div class="ph"><span class="pill tag"><span class="dot"></span>Showing now</span><span>since ${esc(fmt.format(new Date(a.news.date * 1000)))}${a.news.seen ? ` · seen before Quick Match by ${plural(a.news.seen, "player")}` : ""}</span></div><div class="pb"><b>${esc(a.news.title)}</b>${esc(a.news.body)}</div></div>`
     : `<p class="empty" style="margin-bottom:4px">No message is showing in the game right now.</p>`);
   $("msg-clear").hidden = !a.news; $("msg-edit").hidden = !a.news; text("msg-send", a.news ? "Replace message" : "Show in the game");
@@ -1253,9 +1265,9 @@ function liveHtml(d, now, compact) {
       <div class="side-n" title="${esc(m.home_name)}">${pname(m.home_name, m.home, `lv-${m.home}${compact ? "c" : ""}`)}</div>
       <div class="score${m.kickoff ? "" : " vs"}">${m.kickoff ? `<span aria-hidden="true">${m.home_score} – ${m.away_score}</span><span class="sr"> ${m.home_score} to ${m.away_score} </span>` : `<span aria-hidden="true">vs</span><span class="sr"> versus </span>`}</div>
       <div class="side-n away" title="${esc(m.away_name)}">${pname(m.away_name, m.away, `lv-${m.away}${compact ? "c" : ""}`)}</div>
-      <div class="phase">${phaseLabel(m)}</div>
-    </li>`).join("") + `</ul>` + fin : fin ? fin : d.searching === 1 ? `<p class="empty">One friend is looking for a match. Another friend needs to choose Quick Match too.</p>`
-    : `<p class="empty">No one is playing${compact ? "" : " right now"}. A match starts when two friends choose Quick Match at the same time.</p>`;
+      <div class="phase">${phaseLabel(m)}${modeTag(m.mode)}</div>
+    </li>`).join("") + `</ul>` + fin + roomsHtml(d, compact) : (fin ? fin : (d.rooms || []).length ? "" : d.searching === 1 ? `<p class="empty">One friend is looking for a match. Another friend needs to search in the same mode too.</p>`
+    : `<p class="empty">No one is playing${compact ? "" : " right now"}. A match starts when two friends search in the same mode at the same time, or from a Friendly Match Lobby room.</p>`) + roomsHtml(d, compact);
 }
 
 const svg = p => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -1330,9 +1342,27 @@ function renderOverview(d, r, pn, playing, ready) {
     for (const m of d.live) if (!m.kickoff && m.phase !== "Full time" && m.started && now - m.started > 300)
       attn.push(`<li><span>${I.warn} <b>${esc(m.home_name)} and ${esc(m.away_name)} have been getting ready for ${inMin(now - m.started)}.</b> One of them may be stuck on a loading screen: leaving and searching again usually fixes it.</span>` +
         [[m.home, m.home_name], [m.away, m.away_name]].filter(x => x[0] != null).map(([pid, n]) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="atdm-${pid}">Message ${nm(n)}</button>`).join("") + `</li>`);
-    const lone = d.searching === 1 ? d.online.find(p => p.searching_since) : null;
-    if (lone && now - lone.searching_since > 180)
-      attn.push(`<li><span>${I.warn} <b>${esc(lone.name)} has been looking for a match alone for ${inMin(now - lone.searching_since)}.</b> Nobody else is searching, so no match can start.</span><a href="#messages/msg-title">Message everyone ${I.right}</a></li>`);
+    const lone = d.searching === 1 ? d.online.find(p => p.searching_for) : null;
+    if (lone && lone.searching_since && now - lone.searching_since > 180)
+      attn.push(`<li><span>${I.warn} <b>${esc(lone.name)} has been looking for ${lone.searching_for && lone.searching_for !== "Quick Match" ? `an ${esc(lone.searching_for)} match` : "a match"} alone for ${inMin(now - lone.searching_since)}.</b> Nobody else is searching, so no match can start.</span><a href="#messages/msg-title">Message everyone ${I.right}</a></li>`);
+    const nmOf = pid => esc(pidName(d, pid)), dmB = (pid, k) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="${k}-${pid}">Message ${nm(pidName(d, pid))}</button>`;
+    const probs = d.problems || [], stuckPids = new Set(probs.flatMap(p => p.pids));
+    for (const p of probs) {
+      if (p.kind === "data") attn.push(`<li><span>${I.warn} <b>${nmOf(p.pids[0])} and ${nmOf(p.pids[1])} are both searching but can't be paired:</b> their games have different player data (a different patch, Live Update or edited stats). A Live Update from your server gives everyone the same data.</span><a href="#server/h-lu">Live Update ${I.right}</a></li>`);
+      else if (p.kind === "mod") attn.push(`<li><span>${I.warn} <b>${nmOf(p.old)} has an older mod,</b> so ${nmOf(p.old)} and ${nmOf(p.pids.find(x => x !== p.old))} can't be paired. Send ${nmOf(p.old)} the mod again; it replaces the old file.</span><a href="#invite">Send the mod ${I.right}</a></li>`);
+      else if (p.kind === "coop_mod") attn.push(`<li><span>${I.warn} <b>${nmOf(p.pids[0])} is searching for Online Co-op, but their mod is too old for co-op.</b> Send them the mod again; Quick Match keeps working meanwhile.</span><a href="#invite">Send the mod ${I.right}</a></li>`);
+      else if (p.kind === "coop_blocked") attn.push(`<li class="info"><span><b>${nmOf(p.pids[0])} and ${nmOf(p.pids[1])} are both searching for Online Co-op,</b> but one has the other on their co-op block list, so they won't be paired.</span></li>`);
+    }
+    const sByMode = {};
+    for (const o of d.online) if (o.searching_for && !stuckPids.has(o.pid)) (sByMode[o.searching_for] = sByMode[o.searching_for] || []).push(o);
+    const modesS = Object.keys(sByMode);
+    if (modesS.length > 1 && modesS.every(k => sByMode[k].length === 1) && modesS.every(k => now - (sByMode[k][0].searching_since || now) > 60)) {
+      const ws = modesS.map(k => sByMode[k][0]);
+      attn.push(`<li><span>${I.warn} <b>${andList(ws.map(o => `${esc(o.name)} (${esc(o.searching_for)})`))} are searching in different modes,</b> so they aren't paired. Matches only start between friends in the same mode.</span>${ws.length <= 2 ? ws.map(o => dmB(o.pid, "mmdm")).join("") : `<a href="#messages/msg-title">Message everyone ${I.right}</a>`}</li>`);
+    }
+    const oldMods = d.online.filter(o => o.mod === "old" && !stuckPids.has(o.pid));
+    if (oldMods.length && d.online.some(o => o.mod && o.mod !== "old"))
+      attn.push(`<li><span>${I.warn} <b>${andList(oldMods.map(o => esc(o.name)))} ${oldMods.length === 1 ? "has" : "have"} an older mod</b> and can't be paired with friends on the current one. Send ${oldMods.length === 1 ? "them" : "each of them"} the mod again.</span><a href="#invite">Send the mod ${I.right}</a></li>`);
   }
   $("attn").hidden = !attn.length; put("attn", attn.join(""));
   $("ov-info").hidden = !info.length || down; put("ov-info", info.join(""));
@@ -1396,14 +1426,27 @@ function renderOverview(d, r, pn, playing, ready) {
   put("ov-msg", `<div class="ovmsg">` +
     `<div class="row${a.news ? " on" : ""}">${ICON.msg.replace("<svg ", '<svg class="i" ')}<span>${a.news ? `<b>“${esc(a.news.title)}”</b> is showing to everyone<br><span class="small muted">since ${esc(when(a.news.date, now))}${a.news.seen ? ` · seen by ${plural(a.news.seen, "player")}` : " · nobody has seen it yet"}</span>` : `<span class="muted">No message is showing to everyone.</span>`}</span></div>` +
     (a.restart ? `<div class="row warn">${I.warn}<span>${rsLeft > 0 ? `Restart warning for <b>${hm.format(new Date(a.restart * 1000))}</b>, in ${inMin(rsLeft)}` : `The restart time (${hm.format(new Date(a.restart * 1000))}) has passed`}</span></div>` : "") +
-    (pend ? `<div class="row">${ICON.msg.replace("<svg ", '<svg class="i" ')}<span>${plural(pend, "message")} to one player waiting to be seen</span></div>` : "") + `</div>`);
+    (pend ? `<div class="row">${ICON.msg.replace("<svg ", '<svg class="i" ')}<span>${plural(pend, "message")} to one player not opened yet</span></div>` : "") + `</div>`);
   put("ov-feed", d.feed.length ? feedHtml(d.feed.slice(0, 7), false) : `<p class="empty">Sign-ins, goals and results will appear here.</p>`);
 }
 
+const courtTag = p => p.courtesy && p.courtesy.grade !== "A" ? ` <span class="pill ${p.courtesy.grade === "C" ? "warn" : "neutral"} tag" title="Courtesy rating ${p.courtesy.grade}: left ${p.courtesy.quits} of their last ${p.courtesy.matches} matches early">Courtesy ${p.courtesy.grade}</span>` : "";
+function renderDivisions(d) {
+  const dv = d.players.filter(p => p.division).sort((a, b) => a.division.div - b.division.div || b.division.points - a.division.points || a.name.localeCompare(b.name));
+  $("c-div").hidden = !dv.length;
+  if (!dv.length) return;
+  const outlook = x => !x.top && x.points >= x.up ? `<span class="ok">going up</span>` : !x.bottom && x.points + 3 * (x.of - x.played) < x.down ? `<span class="warn">going down</span>`
+    : `<span class="muted">${[!x.top ? `up at ${x.up}` : "", !x.bottom ? `down under ${x.down}` : ""].filter(Boolean).join(", ")}</span>`;
+  put("divs", `<div class="tablewrap"><table><caption class="sr">Online Divisions, top division first</caption><thead><tr><th scope="col">Player</th><th scope="col" class="num">Division</th><th scope="col">This season</th><th scope="col" class="hide-sm">All seasons</th></tr></thead><tbody>` +
+    dv.map(p => { const x = p.division; return `<tr><td class="name"><span class="who">${avatar(p)}${pname(p.name, p.pid, "dv-" + p.pid)}</span></td><td class="num"><b>D${x.div}</b></td>` +
+      `<td><b>${x.points}</b> pts · ${x.played} of ${x.of} played<br><span class="small">${outlook(x)}</span></td><td class="hide-sm small muted">season ${x.season} · ${x.wins}W ${x.draws}D ${x.losses}L</td></tr>`; }).join("") +
+    `</tbody></table></div><p class="note">D10 is where everyone starts and D1 is the top. A season is 10 matches: 3 points a win, 1 a draw. These matches also count in the league table above.</p>`);
+}
 function renderPlayers(d) {
   const now = d.now, rk = ranked(d), rankOf = new Map(rk.map((p, i) => [p.pid, i + 1]));
   const onlineBy = new Map(d.online.map(p => [p.pid, p]));
   const none = !d.players.length;
+  renderDivisions(d);
   $("p-filter").closest(".toolbar").hidden = none; $("p-note").hidden = none;
   if (none) return put("plist", `<p class="empty">Nobody has joined yet. <a href="#invite">Invite friends</a>: they appear here within seconds of signing in.</p>`);
   const counts = {all: d.players.length, online: d.players.filter(p => p.online).length, idle: d.players.filter(p => !p.played).length};
@@ -1426,7 +1469,7 @@ function renderPlayers(d) {
     `<th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
     list.map(p => { const o = onlineBy.get(p.pid);
       return `<tr><td class="num muted">${rankOf.get(p.pid) || "–"}</td>
-      <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · <span class="nw">${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
+      <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}${courtTag(p)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · <span class="nw">${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
       <td class="hide-md st-cell">${o && downSince ? `<span class="muted">Was online at ${hm.format(new Date(lastOkAt))}</span>` : o ? `<span class="pill tag"><span class="dot"></span>online</span> ` + statusOf(d, o) + ``
           : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
       <td class="num hide-lg">${p.rating ?? "–"}</td><td class="num hide-sm">${p.played}</td><td class="num hide-sm">${p.won}</td><td class="num hide-sm">${p.drawn}</td><td class="num hide-sm">${p.lost}</td>
@@ -1448,7 +1491,7 @@ function sinceOf(k) {
   return start.getTime() / 1000;
 }
 async function loadResults(force) {
-  const body = {q: ui.rq, since: sinceOf(ui.rr), until: untilOf(ui.rr), limit: ui.rN, early: ui.re}, key = JSON.stringify(body);
+  const body = {q: ui.rq, since: sinceOf(ui.rr), until: untilOf(ui.rr), limit: ui.rN, early: ui.re, mode: ui.rm || null}, key = JSON.stringify(body);
   if (res.busy && !force) return;
   res.busy = true; res.want = key;
   try { const j = await api("/admin/api/results", {method: "POST", body: key}); if (res.want !== key) return; res.data = j; res.key = key; }   // a newer filter won
@@ -1469,6 +1512,16 @@ function whenCell(t, now) {
   if (ui.rr[0] === "d") return hm.format(dt);
   return now - t < 86400 ? esc(ago(t, now)) : `<span class="d">${dShort.format(dt)}</span> <span class="t">${hm.format(dt)}</span>`;
 }
+const MODE_SHORT = {"Online Divisions": "Divisions", "Friendly Match Lobby": "Rooms", "Online Co-op": "Co-op"};
+function renderMatchday(d) {
+  const md = d.matchday;
+  $("c-md").hidden = !md;
+  if (!md) return;
+  const [a, b] = md.sides, lead = a.points === b.points ? "The sides are level" : `${esc(a.points > b.points ? a.name : b.name)} leads by ${Math.abs(a.points - b.points)}`;
+  put("md", `<p class="small muted" style="margin:-4px 0 12px">${esc(md.name)}: each friend picks a side and every Matchday match adds points to them and their side (3 a win, 1 a draw). ${lead}.</p>` +
+    `<div class="mstats md2">${md.sides.map(s => `<div><b>${s.points}</b><span>${esc(s.name)} · ${plural(s.players, "player")}</span></div>`).join("")}</div>` +
+    `<ol class="list-plain mini" style="margin-top:12px">` + md.entries.slice(0, 8).map((e, i) => `<li><span class="rank">${i + 1}</span><span class="grow">${pname(pidName(d, e.pid), e.pid, "md-" + e.pid)}<br><span class="small muted">${esc(e.side)} · ${plural(e.matches, "match", "matches")}</span></span><span class="r"><b style="color:var(--fg)">${e.points}</b> pts</span></li>`).join("") + `</ol>`);
+}
 function renderMatches(d, playing, ready, fromLoad) {
   const now = d.now, st = d.stats || {goals: 0, abandoned: 0}, big = st.biggest, none = !d.results.length;
   $("m-tiles").hidden = !d.played_total && !playing; $("r-tools").hidden = none;
@@ -1480,7 +1533,11 @@ function renderMatches(d, playing, ready, fromLoad) {
   if (!fromLoad) loadResults();
   put("r-range", RRANGE.map(([k, l]) => `<button type="button" data-rr="${k}" data-key="rr-${k}" aria-pressed="${ui.rr === k}">${l}</button>`).join("") +
     (ui.rr[0] === "d" ? `<button type="button" data-rr="all" data-key="rr-day" aria-pressed="true" aria-label="${esc(dLong.format(new Date(+ui.rr.slice(1) * 1000)))}: remove this filter">${esc(dLong.format(new Date(+ui.rr.slice(1) * 1000)))} ✕</button>` : ""));
+  const modes = d.modes || [];
   put("r-kind", st.abandoned || ui.re ? `<button type="button" data-re="1" data-key="re" aria-pressed="${ui.re}">Ended early <span class="n">${st.abandoned}</span></button>` : "");
+  $("r-mode").hidden = !(modes.length > 1 || ui.rm);
+  put("r-mode", (modes.length > 1 || ui.rm ? `<span class="small muted lbl">Mode</span>` + modes.map(m => `<button type="button" data-rm="${esc(m)}" data-key="rm-${esc(m)}" aria-pressed="${ui.rm === m}">${esc(MODE_SHORT[m] || m)}</button>`).join("") : ""));
+  renderMatchday(d);
   if (!res.data) return;
   const q = ui.rq, shownRs = res.data.rows, total = res.data.total;
   const onDay = ui.rr[0] === "d" ? " on " + dLong.format(new Date(+ui.rr.slice(1) * 1000)) : "";
@@ -1494,11 +1551,11 @@ function renderMatches(d, playing, ready, fromLoad) {
     }
     return /disconnect|network|comm/i.test(r.reason || "") ? "A connection dropped" : "It ended early";
   };
-  put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results${ui.re ? " that ended early" : ""}${q ? ` with "${esc(ui.rq)}"` : ""}${ui.rr !== "all" ? " in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
+  put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results${ui.re ? " that ended early" : ""}${ui.rm ? " in " + esc(ui.rm) : ""}${q ? ` with "${esc(ui.rq)}"` : ""}${ui.rr !== "all" ? " in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
     `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col class="hm"><col class="s"><col class="aw"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th></tr></thead><tbody>` +
     shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
       const early = r.reason || r.voided, score = `${r.home_name} ${r.home_score ?? "?"}–${r.away_score ?? "?"} ${r.away_name}`;
-      return `<tr${early ? ' class="has-note"' : ""}><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}</td>
+      return `<tr${early ? ' class="has-note"' : ""}><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}${r.mode && r.mode !== "Quick Match" && !ui.rm ? `<span class="len-m mode-m"> · ${esc(MODE_SHORT[r.mode] || r.mode)}</span>` : ""}</td>
         <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.voided ? `<span class="pill neutral tag">not counted</span>` : r.reason ? `<span class="pill warn tag">ended early</span>` : ""}</td>
         <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}</td></tr>` +
         (early ? `<tr class="note-r"><td class="pad"></td><td colspan="3"><span class="small ${r.voided ? "muted" : ""}">${r.reason ? why(r) + ". " : ""}${r.voided ? "Not in the table." : "Counts as it stood."}</span> <button type="button" class="small needs-server" data-count="${r.id}" data-counted="${r.voided ? 1 : 0}" data-score="${esc(score)}" data-key="cnt-${r.id}">${r.voided ? "Count it again" : "Don't count it"}</button></td></tr>` : ""); }).join("") +
@@ -1567,15 +1624,33 @@ async function loadPlayer() {
     `<p class="small muted" style="margin:0 0 12px">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span> ${(o => o ? statusOf(last, o) + " · " : "")(last && last.online.find(x => x.pid === pid))}for ${dur(now - p.since)} · <span title="Address ${esc(p.ip)}">${where(p.ip)}</span>` : p.last_login ? "Last seen " + esc(ago(p.last_login, now)) : "Never signed in"}` +
       ` · joined ${esc(dShort.format(new Date(p.created * 1000)))} · rating ${esc(p.rating ?? "–")}${rank ? ` · #${rank} in the table` : ""}${p.streak > 1 ? ` · ${p.streak} wins in a row` : ""}</p>` +
     `<div class="mstats"><div><b>${ms.length}</b><span>played</span></div><div><b>${w}–${dr}–${l}</b><span>won–drawn–lost</span></div><div><b>${gf}:${ga}</b><span>goals for:against</span></div><div><b>${ms.length ? Math.round(100 * w / ms.length) + "%" : "–"}</b><span>win rate</span></div></div>` +
+    modesHtml(p, now) +
     `<h3>Form <span class="small muted" style="font-weight:400">last ${Math.min(10, ms.length)}, oldest → newest</span></h3>${formHtml(ms.slice(0, 10).map(m => m.res).reverse())}` +
     (rows.length ? `<h3>Head to head</h3><div class="tablewrap"><table><caption class="sr">Head to head</caption><thead><tr><th scope="col">Opponent</th><th scope="col" class="num">P</th><th scope="col" class="num">W</th><th scope="col" class="num">D</th><th scope="col" class="num">L</th><th scope="col" class="num">Goals</th><th scope="col" class="num"><abbr title="Goal difference">GD</abbr></th></tr></thead><tbody>` +
       rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td><td class="num h2h-bal ${x.gf > x.ga ? "up" : x.gf < x.ga ? "down" : ""}">${signed(x.gf - x.ga)}</td></tr>`).join("") + `</tbody></table></div>` : "") +
-    `<h3>Matches</h3>` + (all.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${nm(m.opp)}${m.r.voided ? ' <span class="pill neutral tag">not counted</span>' : m.r.reason ? ' <span class="pill neutral tag">ended early</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
+    `<h3>Matches</h3>` + (all.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${nm(m.opp)}${modeTag(m.r.mode)}${m.r.voided ? ' <span class="pill neutral tag">not counted</span>' : m.r.reason ? ' <span class="pill neutral tag">ended early</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (all.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${all.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
     (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true, pid) : "");
   $("sh-f").innerHTML = `<button type="button" class="primary needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="danger needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
-      `<span class="small muted" style="flex:1;min-width:10em">${p.online ? "Kick disconnects them now; they can come back." : "The message waits until they next open an online mode."}</span>`;
+      `<span class="small muted" style="flex:1;min-width:10em">${p.online ? "Kick disconnects them now; they can come back." : "The message pops up when they next sign in or open an online mode."}</span>`;
   $("sh-b").insertAdjacentHTML("beforeend", `<h3>Remove this player</h3><div class="dmrow"><span class="grow small muted">Deletes their name, rating and table row; past results stay. If they play again, the game asks them for a name like on their first visit.</span><button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button></div>`);
+}
+const MODS = {current: "Up to date", "no-coop": "Older (0.4): Quick Match works, but Online Co-op won't connect. Send them the mod again.",
+  old: "Old: they can't be paired with friends on the current mod. Send them the mod again."};
+function modesHtml(p, now) {
+  const rows = [], names = pids => andList(pids.map(x => pname(pidName(last || {}, x), x, "cb-" + x)));
+  const c = p.courtesy;
+  if (c) rows.push(["Courtesy", `<b>${c.grade}</b> · ${c.quits ? `left ${c.quits} of their last ${plural(c.matches, "match", "matches")} early` : `no early exits in their last ${plural(c.matches, "match", "matches")}`}` +
+    (c.early.length ? `<span class="small muted" style="display:block">${c.early.slice(0, 3).map(x => `${esc(x.why)}, ${esc(when(x.t, now))}`).join(" · ")}</span>` : "") +
+    (c.quits ? `<button type="button" class="small needs-server" style="margin-top:6px" data-courtesy="${p.pid}" data-name="${esc(p.name)}">Clear record</button>` : "")]);
+  const dv = p.division;
+  if (dv) rows.push(["Online Divisions", `<b>D${dv.div}</b> · season ${dv.season}: ${plural(dv.points, "point")} from ${dv.played} of ${dv.of} matches<span class="small muted" style="display:block">${dv.wins}W ${dv.draws}D ${dv.losses}L in all seasons</span>`]);
+  const md = p.matchday;
+  if (md) rows.push(["Matchday", `${esc(md.side)} · ${plural(md.points, "point")} from ${plural(md.matches, "match", "matches")}`]);
+  if ((p.coop_blocks || []).length) rows.push(["Co-op blocks", `Won't be paired in Online Co-op with ${names(p.coop_blocks)} (their own block list)`]);
+  if ((p.coop_blocked_by || []).length) rows.push(["Blocked by", `${names(p.coop_blocked_by)} (in Online Co-op only)`]);
+  if (p.mod) rows.push(["Mod", esc(MODS[p.mod] || p.mod)]);
+  return rows.length ? `<h3>Game modes</h3><dl class="kv modes">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : "";
 }
 function cachedPlayer(pid) {
   const c = last && last.players.find(x => x.pid === pid);
@@ -1602,8 +1677,11 @@ function renderServer(d, s) {
   const kv = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
   put("srv-status", kv("Version", esc(s.version || "?") + (s.update ? ` <span class="pill warn tag">${esc(s.update)} is out</span>` : "")) +
     kv("Running for", dur(d.uptime)) + kv("Players", `${d.players.length} registered, ${d.online.length} online`) +
-    kv("Address for friends", `<code class="url">${esc(s.main)}</code>`) + kv("Server key", `<code>${esc(s.key || "?")}</code><span class="small muted" style="display:block">Only for troubleshooting: when a friend can't connect, their mod's log shows this key if it reached this server.</span>`));
+    kv("Address for friends", `<code class="url">${esc(s.main)}</code>`) +
+    kv("Match relay", !s.relay ? "–" : s.relay.on ? `On${s.relay.in_use ? ` · ${plural(s.relay.in_use, "game")} using it now` : ""}<span class="small muted" style="display:block">Carries a match through this server when two friends' games can't connect directly.</span>`
+      : s.relay.enabled ? `<span class="warn">Didn't start</span><span class="small muted" style="display:block">Matches between friends whose games can't connect directly may fail. The reason is in server.log.</span>` : "Off") + kv("Server key", `<code>${esc(s.key || "?")}</code><span class="small muted" style="display:block">Only for troubleshooting: when a friend can't connect, their mod's log shows this key if it reached this server.</span>`));
   put("net", netHtml(s));
+  put("lu", luHtml(s.liveupdate));
   put("access", remoteHtml(s) + `<div style="margin-top:6px">${location.protocol === "https:" ? "Opened over the internet, encrypted." : s.same_pc ? "Opened on the server's computer." : "On your home network the admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale."}</div>` +
     `<div>Signed in here${untilText ? ` until ${esc(untilText)}` : ""}. <button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
   put("cmds", `<dt>Stop</dt><dd>Press <b>Ctrl+C</b> in the server's window, or close the window.</dd>
@@ -1611,6 +1689,14 @@ function renderServer(d, s) {
     ${dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", midCut(dataDir, innerWidth > 1300 ? 90 : 46))}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : ""}`);
 }
 
+function luHtml(lu) {
+  if (!lu) return "";
+  const folder = lu.folder ? copyRow(lu.folder, "Folder path", midCut(lu.folder, innerWidth > 1300 ? 90 : 46)) : "";
+  if (lu.name) return `<div class="ok">${I.ok} Offering <b>${esc(lu.name)}</b> (version ${esc(lu.version)}, ${Math.max(1, Math.round(lu.size / 1048576))} MB)${lu.since ? ` since ${esc(dShort.format(new Date(lu.since * 1000)))}` : ""}</div>` +
+    `<div class="small muted">Every friend's game downloads it the next time it goes online, so everyone plays with the same player data. ${lu.sent ? `${plural(lu.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it since the server started."}</div>` +
+    `<div class="small">To stop offering it, remove the file from this folder (games keep what they downloaded):</div>${folder}`;
+  return `<div>Not offering one.</div><div class="small muted">Two friends can only play each other when their games have the same player data. If some use a different roster or patch, put one roster update (a <code>.cpk</code> file) in this folder and every game downloads it when it goes online. The newest file wins.</div>${folder}`;
+}
 function remoteHtml(s) {
   const fp = (s.admin_fp || "").split(":").slice(0, 8).join(":");
   const sw = on => `<div class="switch"><span class="lbl" id="ra-l">Admin page from the internet</span><span class="small ${on ? "ok" : "muted"}">${on ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${on}" aria-labelledby="ra-l" class="needs-server" data-remote="${on ? 0 : 1}"></button></div>`;
@@ -1842,7 +1928,7 @@ document.addEventListener("click", async e => {
   const pfs = e.target.closest("[data-pfset]");
   if (pfs) { ui.pf = pfs.dataset.pfset; ui.pq = ""; $("p-q").value = ""; }
   const rrs = e.target.closest("[data-rrset]");
-  if (rrs) { ui.rr = rrs.dataset.rrset; ui.re = false; ui.rq = ""; $("r-q").value = ""; ui.rN = 25; loadResults(true); }
+  if (rrs) { ui.rr = rrs.dataset.rrset; ui.re = false; ui.rm = ""; ui.rq = ""; $("r-q").value = ""; ui.rN = 25; loadResults(true); }
   if (e.target.closest("[data-showearly]")) { ui.re = true; ui.rr = "all"; ui.rN = 25; loadResults(true); }
   const df = e.target.closest("[data-dayfilter]");
   if (df) { e.preventDefault(); return dayFilter(+df.dataset.dayfilter); }
@@ -1855,8 +1941,8 @@ document.addEventListener("click", async e => {
   const tp = e.target.closest("[data-tpl]");
   if (tp) return useTemplate(tp.dataset.tpl);
   const un = e.target.closest("[data-untell]");
-  if (un) { if (await ask({title: `Take back the message to ${un.dataset.name}?`, body: "They won't see it.", ok: "Take it back", danger: true}) === null) return;
-    return msgCall("/admin/api/message/player", {pid: +un.dataset.untell, cancel: true}, "Message taken back."); }
+  if (un) { if (await ask({title: `Take back “${un.dataset.title}”?`, body: `${un.dataset.name} hasn't opened it yet. It leaves their Online Information list, so they won't see it.`, ok: "Take it back", danger: true}) === null) return;
+    return msgCall("/admin/api/message/player", {pid: +un.dataset.untell, id: +un.dataset.mid, cancel: true}, "Message taken back."); }
   const dm = e.target.closest("[data-dm]");
   if (dm) { const pid = dm.dataset.dm; sheetBack = null; closeSheet(); location.hash = "#messages/dm-title"; renderDmTo(last, pid); return; }
   if (e.target.closest("[data-hidepc]")) { try { localStorage.setItem("pes-pc-hint", "off"); } catch (_) {} if (last) render(last); $("t-overview").focus(); return toast("Hidden. The setup stays under Server → PES 2021 on this computer."); }
@@ -1865,6 +1951,13 @@ document.addEventListener("click", async e => {
   if (pl) return openPlayer(+pl.dataset.player, pl);
   if (e.target.closest("[data-sheetall]")) { sheetAll = true; return loadPlayer(); }
   if (e.target.closest("[data-re]")) { ui.re = !ui.re; ui.rN = 25; if (last) render(last); loadResults(true); return; }
+  const rmb = e.target.closest("[data-rm]");
+  if (rmb) { ui.rm = ui.rm === rmb.dataset.rm ? "" : rmb.dataset.rm; ui.rN = 25; if (last) render(last); loadResults(true); return; }
+  const cy = e.target.closest("[data-courtesy]");
+  if (cy) { if (await ask({title: `Clear ${cy.dataset.name}'s courtesy record?`, body: "Their courtesy rating goes back to A and their early exits are forgotten. Do this when those exits weren't their fault, such as a game crash or a power cut.", ok: "Clear record"}) === null) return;
+    try { await api("/admin/api/player/courtesy", {method: "POST", body: JSON.stringify({pid: +cy.dataset.courtesy})}); toast(`${cy.dataset.name}'s courtesy record was cleared.`); }
+    catch (err) { if (err.status === 401) return signedOut(); toast("Couldn't clear it. Try again.", true); }
+    await refreshNow(); if ($("sheet").open) { await loadPlayer(); $("sh-x").focus(); } return; }
   const cnt = e.target.closest("[data-count]");
   if (cnt) { const on = cnt.dataset.counted === "1", row = res.data && res.data.rows.find(x => x.id === +cnt.dataset.count), eff = row && last ? tableEffect(last, row, on) : "";
     if (!on && await ask({title: `Leave ${cnt.dataset.score} out of the table?`, body: (eff ? "In the table:\n" + eff + "\n\n" : "") + "It stays in Results, marked “not counted”, and form and highlights leave it out too. The game's own matchmaking rating doesn't change. You can count it again at any time.", ok: "Don't count it"}) === null) return;
@@ -1876,7 +1969,7 @@ document.addEventListener("click", async e => {
   if (rr) { ui.rr = rr.dataset.rr; ui.rN = 25; if (last) render(last); loadResults(true); return; }
   const cl = e.target.closest("[data-clear]");
   if (cl) { const w = cl.dataset.clear;
-    if (w === "players") { ui.pq = ""; ui.pf = "all"; $("p-q").value = ""; } else if (w === "results") { ui.rq = ""; ui.rr = "all"; ui.re = false; $("r-q").value = ""; loadResults(true); } else { ui.fq = ""; ui.ff = "all"; $("f-q").value = ""; }
+    if (w === "players") { ui.pq = ""; ui.pf = "all"; $("p-q").value = ""; } else if (w === "results") { ui.rq = ""; ui.rr = "all"; ui.re = false; ui.rm = ""; $("r-q").value = ""; loadResults(true); } else { ui.fq = ""; ui.ff = "all"; $("f-q").value = ""; }
     if (last) render(last); ($(w === "players" ? "p-q" : w === "results" ? "r-q" : "f-q")).focus(); return; }
   const rg = e.target.closest("[data-range]");
   if (rg) { ui.range = +rg.dataset.range; try { localStorage.setItem("pes-admin-range", ui.range); } catch (_) {} if (last) render(last); return; }
@@ -1954,7 +2047,7 @@ document.addEventListener("click", async e => {
     if (document.body.classList.contains("stale")) return toast("The server isn't answering, so nobody can be kicked right now.", true);
     if (k.getAttribute("aria-disabled") === "true") return;
     const name = k.dataset.name, pid = k.dataset.kick;
-    const reason = await ask({title: `Kick ${name}?`, body: (k.dataset.vs ? `Their match against ${k.dataset.vs} ends now. If the game reports a result, it's listed as ended early, and you can choose not to count it in Matches. ` : "Their game disconnects from the server now. ") + "They can reconnect: there's no ban yet.\n\nThe game only says \"Connection to server lost\". When they come back, they see a note from you.",
+    const reason = await ask({title: `Kick ${name}?`, body: (k.dataset.vs ? `Their match against ${k.dataset.vs} ends now. If the game reports a result, it's listed as ended early, and you can choose not to count it in Matches. ` : "Their game disconnects from the server now. ") + "They can reconnect: there's no ban yet. A kick doesn't count against their courtesy rating.\n\nThe game only says \"Connection to server lost\". When they come back, a note from you pops up.",
       label: "Reason (optional)", ok: "Kick", danger: true});
     if (reason === null) return;
     k.setAttribute("aria-disabled", "true");
@@ -2043,16 +2136,14 @@ function fieldError(prefix, hasTitle) {
 ["msg-title", "msg-body", "dm-title", "dm-body", "dm-to"].forEach(id => $(id).addEventListener("input", () => $(id).removeAttribute("aria-invalid")));
 $("dm-to").addEventListener("change", () => { $("dm-to").removeAttribute("aria-invalid"); dmCount();
   const w = waitingFor(+$("dm-to").value);
-  if (w) { text("dm-fit", `${$("dm-to").selectedOptions[0].dataset.name} hasn't seen “${w.title}” yet. Sending replaces it.`); $("dm-fit").className = "small warn"; } });
+  if (w) { text("dm-fit", `${$("dm-to").selectedOptions[0].dataset.name} hasn't opened “${w.title}” yet. A new message goes in their list next to it.`); $("dm-fit").className = "small muted"; } });
 $("dmform").onsubmit = async e => {
   e.preventDefault();
   const pid = +$("dm-to").value, title = $("dm-title").value.trim(), body = $("dm-body").value.trim();
   const who = $("dm-to").selectedOptions[0] ? $("dm-to").selectedOptions[0].dataset.name : "";
   if (!pid) { $("dm-to").setAttribute("aria-invalid", "true"); text("dm-fit", "Choose who gets the message."); $("dm-fit").className = "small err"; return $("dm-to").focus(); }
   if (!title || !body) return fieldError("dm", title);
-  const waiting = lastAnnounce && (lastAnnounce.personal || []).find(m => m.pid === pid);
-  if (waiting && await ask({title: `Replace the message ${who} hasn't seen yet?`, body: `“${waiting.title}” is still waiting. They only get one at a time.`, ok: "Replace it"}) === null) return;
-  if (await msgCall("/admin/api/message/player", {pid, title, body}, `Sent. ${who} sees it the next time they open an online mode; this page shows when they have.`)) { $("dm-title").value = ""; $("dm-body").value = ""; $("dm-to").value = ""; dmCount(); }
+  if (await msgCall("/admin/api/message/player", {pid, title, body}, `Sent. ${who} sees it the next time they sign in or open an online mode; this page shows when they've opened it.`)) { $("dm-title").value = ""; $("dm-body").value = ""; $("dm-to").value = ""; dmCount(); }
 };
 $("msg-clear").onclick = async () => { if (await ask({title: "Remove the message?", body: "Players stop seeing it in the game.", ok: "Remove", danger: true}) !== null) msgCall("/admin/api/message", {clear: true}, "Message removed."); };
 $("rs-min").addEventListener("change", () => { $("rs-min").dataset.touched = "1"; });
@@ -2122,7 +2213,18 @@ $("logout").onclick = logout; $("logout-m").onclick = logout;
 
 function statusOf(d, p) {
   const vs = opponent(d, p.name) || pending(d, p.name);
-  return `<span class="nw">${pending(d, p.name) ? "Getting ready" : esc(p.status)}</span>${vs ? ` vs <span class="nw">${esc(vs)}</span>` : ""}`;
+  const st = pending(d, p.name) ? "Getting ready"
+    : p.status === "Searching" && p.searching_for && p.searching_for !== "Quick Match" ? `Searching in ${p.searching_for}`
+    : p.status === "In a match room" && p.room ? `In room “${p.room.length > 22 ? p.room.slice(0, 21) + "…" : p.room}”` : p.status;
+  return `<span class="nw">${esc(st)}</span>${vs ? ` vs <span class="nw">${esc(vs)}</span>` : ""}`;
+}
+const modeTag = m => m && m !== "Quick Match" ? ` <span class="pill neutral tag mode">${esc(m)}</span>` : "";
+const pidName = (d, pid) => ((d.players || []).find(p => p.pid === pid) || {}).name || "Player " + pid;
+function roomsHtml(d, compact) {
+  const rs = (d.rooms || []).filter(r => r.state !== "Playing");
+  if (!rs.length) return "";
+  return `<h3 class="day rooms-h">Match rooms <span class="small muted" style="font-weight:400;text-transform:none;letter-spacing:0">Friendly Match Lobby</span></h3><ul class="list-plain mini rooms">` + rs.map(r =>
+    `<li><span class="grow"><b>${esc(r.name)}</b>${r.password ? ` <span class="small muted" title="Needs a password">(password)</span>` : ""}<br><span class="small muted">${r.members.map(pid => pname(pidName(d, pid), pid, `rm-${r.id}-${pid}${compact ? "c" : ""}`)).join(", ")} · ${esc(r.state)}</span></span><span class="r small muted">${r.members.length} of 2</span></li>`).join("") + `</ul>`;
 }
 function pending(d, name) {
   const m = d.live.find(m => !m.kickoff && m.phase !== "Full time" && (m.home_name === name || m.away_name === name));

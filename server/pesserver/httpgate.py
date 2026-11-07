@@ -50,6 +50,12 @@ def make_handler(service, stun_host, stun_port, gate_port):
                         out = fh.read()
                     ctype = "application/octet-stream"
                     log.info("Live Update %s sent to %s", os.path.basename(f), (writer.get_extra_info("peername") or ("",))[0])
+                    if method == "GET":
+                        from . import adminextra
+                        try:
+                            adminextra.note_liveupdate(service, (writer.get_extra_info("peername") or ("",))[0], os.path.basename(f))
+                        except Exception:  # noqa: BLE001
+                            log.exception("noting a Live Update download")
             elif path.startswith("/status"):
                 from . import pesmatch
                 from . import identity
@@ -397,8 +403,12 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
                           "sessions": len([1 for v in _sessions(service).s.values() if v > now]),
                           "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex()),
                           "mod_sha256": mod_sha256(mod_url(service, headers, None)), "has_mod": os.path.isfile(MOD_DLL)}
-        from . import announce
+        from . import announce, adminextra
         snap["announce"] = announce.snapshot(service)
+        adminextra.augment(service, snap)
+        snap["server"].update(adminextra.server(service))
+        snap["modes"] = [r[0] for r in service.accounts.db.execute(
+            "SELECT DISTINCT COALESCE(mode, 'Quick Match') FROM pes_matches")]
         return "200 OK", json.dumps(snap).encode(), "application/json"
     if route in ("/admin/api/message", "/admin/api/restart") and method == "POST":
         from . import announce
@@ -504,7 +514,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         try:
             req = json.loads(body or b"{}")
             rows, total = events.results_page(service, req.get("q", ""), req.get("since") or 0, req.get("limit") or 25,
-                                               req.get("until") or None, bool(req.get("early")))
+                                               req.get("until") or None, bool(req.get("early")), req.get("mode") or None)
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"bad request"}', "application/json"
         return "200 OK", json.dumps({"rows": rows, "total": total}).encode(), "application/json"
@@ -526,7 +536,21 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         p = events.player_detail(service, pid)
         if p is None:
             return "404 Not Found", b'{"error":"That player is gone."}', "application/json"
+        from . import adminextra
+        p.update(adminextra.player(service, pid))
         return "200 OK", json.dumps(p).encode(), "application/json"
+    if route == "/admin/api/player/courtesy" and method == "POST":
+        # {pid}: clear the courtesy record (early exits the host knows weren't the player's fault)
+        try:
+            pid = int(json.loads(body or b"{}").get("pid"))
+        except (ValueError, TypeError, AttributeError):
+            return "400 Bad Request", b'{"error":"pid"}', "application/json"
+        if not service.accounts.db.execute("SELECT 1 FROM pes_players WHERE pid=?", (pid,)).fetchone():
+            return "404 Not Found", b'{"error":"That player is gone."}', "application/json"
+        from . import adminextra
+        adminextra.clear_courtesy(service, pid)
+        events.feed(service, f"The admin cleared {events.name_of(service, pid)}'s courtesy record", "info")
+        return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/players/delete" and method == "POST":
         try:
             pid = int(json.loads(body or b"{}").get("pid"))
@@ -537,9 +561,10 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         if name is None:
             return "404 Not Found", b'{"error":"That player is already gone."}', "application/json"
         announce.forget(service, pid)
-        from . import pescoop, pesmanner
+        from . import pescoop, pesmanner, adminextra
         pesmanner.forget(service, pid)
         pescoop.forget(service, pid)
+        adminextra.forget(service, pid)
         sess = service.online.get(pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)
