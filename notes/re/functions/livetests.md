@@ -571,3 +571,18 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
   - Quick Match has no rating screen, so the push is never visible; it only ends the games' wait for it.
 - **A goal has reached the server before** (server-prev2.log, 2026-11-04): ADD_SCORE {goal_side AWAY,
   goal_player_pid 2, goal_gameplayer_id_info…} from both games, 6 ms apart. That log ends before the match did.
+
+## 2026-11-08: review fixes checked live
+- Code review of the 2026-11-07 server work (8 findings) fixed in one commit. Live, in a Quick Match with copy 2's
+  game closed 60 s after kick-off:
+  - the replay recording closed at the disconnect ("closed (disconnect): 29 chunks"; before, it stayed open);
+  - FORFEIT 15 s later (ratings 1012→1027 / 988→973);
+  - the saved result (pes_matches) was fixed up to 3-0 FORFEIT, with left_pid = the leaver, after the games' own
+    SEND_GAME_RESULT (0-0, DISCONN_P2P) arrived.
+- Also fixed (unit-tested):
+  - no normal verdict while a forfeit is pending;
+  - deleting a player clears their Divisions/Matchday rows and the "left early" marks, and the forced
+    disconnect is not counted as leaving;
+  - handlers use the session's pid before a pid in the request (private messages, courtesy warnings);
+  - block lists only take real players, at most 400;
+  - a replay chunk pruned mid-download is a 404.
