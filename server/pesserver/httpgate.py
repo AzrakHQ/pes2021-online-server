@@ -36,7 +36,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 if ctype.startswith("text/html"):       # the friends' page shares an origin with the admin page
                     extra = (b"Content-Security-Policy: " + page_csp(out.decode()).encode() + b"\r\n"
                              b"X-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
-            elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
+            elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll", "/mod/invite"):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
                 if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
                     note_download(service, (writer.get_extra_info("peername") or ("",))[0], _invite_of(service, path))
@@ -75,7 +75,8 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 out = json.dumps({"id": server_id(), "key": k[:8] + " " + k[8:16],
                                   "mod_sha256": mod_sha256(mod_url(service, headers, writer)), "online": len(service.online),
                                   "queued": len(pesmatch._state(service)["queue"]),
-                                  "rooms": len(service.mm.rooms)}).encode(); ctype = "application/json"
+                                  "rooms": len(service.mm.rooms),
+                                  "invites_only": _invites_only(service)}).encode(); ctype = "application/json"
             elif path.rstrip("/") == "/ca.crt":
                 # The private CA players must trust (NTL GateInfo.php runs over HTTPS with OS validation).
                 ca = os.path.join(os.environ.get("PESSERVER_CERTS", "/data/certs"), "ca.crt")
@@ -599,8 +600,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         return "200 OK", b'{"ok":true}', "application/json"
     if route.startswith("/admin/api/invites"):
         from . import pesinvite                     # invites: one mod per friend, with a handle (pesinvite.py)
-        status, res = pesinvite.admin_api(service, route, method, body, mod_url(service, headers, writer))
-        if method == "POST" and status.startswith("200") and route != "/admin/api/invites/settings":
+        status, res = pesinvite.admin_api(service, route, method, body, mod_url(service, headers, None))
+        if method == "POST" and status.startswith("200") and route not in ("/admin/api/invites/settings", "/admin/api/invites/suggest"):
             what = {"/admin/api/invites/new": "made an invite for", "/admin/api/invites/rename": "renamed an invite to",
                     "/admin/api/invites/revoke": "revoked the invite of", "/admin/api/invites/delete": "deleted an invite"}
             verb = what.get(route, "changed an invite")
@@ -712,6 +713,13 @@ def _mod(service, route, headers, writer, path=""):
             return "200 OK", identity.hello(nonce, int(v) if v.isdigit() else 1).encode(), "text/plain; charset=utf-8", b""
         except ValueError:
             return "400 Bad Request", b"bad nonce", "text/plain", b""
+    if route == "/mod/invite":                  # the friends' page with ?invite=<code>: whose link this is
+        inv = _invite_of(service, path)            # /mod/invite?invite=<code>
+        if inv is None or inv["revoked"] is not None:
+            return "404 Not Found", b'{"error":"gone"}', "application/json", b""
+        return "200 OK", json.dumps({"handle": inv["handle"], "joined": inv["pid"] is not None,
+                                     "mod_sha256": mod_sha256(mod_url(service, headers, writer), inv["code"])}).encode(), \
+            "application/json", b""
     if not os.path.isfile(MOD_DLL):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
     code = parse_qs(urlsplit(path).query).get("invite", [""])[0]
@@ -806,16 +814,25 @@ def mod_url(service, headers, writer):
 _SHA = {}
 
 
-def mod_sha256(url=""):
-    """SHA-256 of the exact file /mod/dinput8.dll hands out (same server, same addresses), or None."""
+def _invites_only(service):
+    from . import pesinvite
+    try:
+        return pesinvite.invites_only(service)
+    except Exception:  # noqa: BLE001  (status must answer even if the database is busy)
+        return False
+
+
+def mod_sha256(url="", invite=None):
+    """SHA-256 of the exact file /mod/dinput8.dll hands out (same server, same addresses, same invite), or None."""
     import hashlib
     from . import netsetup
     if not os.path.isfile(MOD_DLL):
         return None
-    k = (url, tuple(netsetup.game_addrs()), os.path.getmtime(MOD_DLL))
+    k = (url, tuple(netsetup.game_addrs()), os.path.getmtime(MOD_DLL), invite)
     if k not in _SHA:
-        _SHA.clear()
-        _SHA[k] = hashlib.sha256(mod_bytes(url)).hexdigest()
+        if len(_SHA) > 64 or not any(x[:3] == k[:3] for x in _SHA):
+            _SHA.clear()
+        _SHA[k] = hashlib.sha256(mod_bytes(url, invite)).hexdigest()
     return _SHA[k]
 
 

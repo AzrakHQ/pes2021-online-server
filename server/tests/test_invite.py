@@ -149,3 +149,18 @@ def test_deleting_a_player_keeps_their_invite(svc):
     s2 = _sess(invite=inv["code"])
     assert _login(svc, s2) == {"result": "NOERR"}
     assert pescmds._dispatch(svc, s2, "CMD_GET_PLAYER_DATA", {})["has_data"] == "NO"           # asked for a name again
+
+
+def test_admin_routes_through_the_web_handler(svc):
+    svc.admin_password = "pw"
+    tok = httpgate._sessions(svc).new(True)
+    hdr = {"host": "127.0.0.1:8080", "authorization": "Bearer " + tok}
+    call = lambda m, r, b=b"": asyncio.run(httpgate._admin(svc, m, r, hdr, b, "127.0.0.1"))
+    st, out, _ = call("POST", "/admin/api/invites/new", b'{"handle": "Golden Goblin"}')
+    assert st.startswith("200") and json.loads(out)["handle"] == "Golden Goblin"
+    st, out, _ = call("GET", "/admin/api/invites")
+    snap = json.loads(out)
+    assert st.startswith("200") and snap["invites"][0]["code"] and snap["suggest"]
+    st, out, _ = call("POST", "/admin/api/invites/suggest", b"{}")
+    assert st.startswith("200") and json.loads(out)["handle"]
+    assert any("made an invite for Golden Goblin" in f["text"] for f in events._st(svc)["feed"])

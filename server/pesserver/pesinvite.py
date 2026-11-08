@@ -230,7 +230,8 @@ def _public(svc, inv, base=""):
     if inv["pid"] is not None:
         r = _pdb(svc).execute("SELECT name FROM pes_players WHERE pid=?", (inv["pid"],)).fetchone()
         name = r[0] if r else None
-    return {"id": inv["id"], "handle": inv["handle"], "pid": inv["pid"], "name": name, "created": inv["created"],
+    return {"id": inv["id"], "code": inv["code"], "handle": inv["handle"], "pid": inv["pid"], "name": name,
+            "created": inv["created"],
             "last_seen": inv["last_seen"], "revoked": inv["revoked"],
             "online": inv["pid"] is not None and inv["pid"] in svc.online,
             "link": f"{base}/mod/dinput8.dll?invite={inv['code']}"}
@@ -243,11 +244,11 @@ def snapshot(svc, base=""):
         uninvited = [{"pid": p, "name": n} for p, n in db.execute(
             "SELECT pid, name FROM pes_players WHERE username NOT LIKE 'i:%' ORDER BY pid")]
     return {"invites_only": invites_only(svc), "invites": [_public(svc, r, base) for r in rows],
-            "players_without_invite": uninvited}
+            "players_without_invite": uninvited, "suggest": funny_handle(svc)}
 
 
 def admin_api(svc, route, method, body, base=""):
-    """GET /admin/api/invites; POST /admin/api/invites/new {handle?, pid?}, /rename {id, handle},
+    """GET /admin/api/invites; POST /admin/api/invites/new {handle?, pid?}, /suggest, /rename {id, handle},
     /revoke {id, back?}, /delete {id}, /settings {invites_only}. Returns (status, json-able body)."""
     import json
     if route == "/admin/api/invites" and method == "GET":
@@ -265,6 +266,8 @@ def admin_api(svc, route, method, body, base=""):
             pid = req.get("pid")
             inv = create(svc, req.get("handle") or None, int(pid) if pid not in (None, "") else None)
             return "200 OK", _public(svc, inv, base)
+        if route == "/admin/api/invites/suggest":
+            return "200 OK", {"handle": funny_handle(svc)}
         if route == "/admin/api/invites/settings":
             set_invites_only(svc, bool(req.get("invites_only")))
             return "200 OK", snapshot(svc, base)

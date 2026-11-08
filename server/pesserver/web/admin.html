@@ -401,7 +401,15 @@
   .linkrow { display:flex; gap:8px; align-items:stretch; margin-top:6px; max-width:640px; }
   .linkrow code { flex:1; min-width:0; padding:9px 12px; user-select:all; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; overflow-wrap:normal; display:block; }
   @media (max-width: 520px) { .linkrow { flex-direction:column; } .linkrow button { align-self:flex-start; } .linkrow code { white-space:normal; overflow-wrap:anywhere; } }
-  #jp.waiting { font-family:inherit; background:none; color:var(--muted); padding-left:0; }
+  .inv-hrow input { flex:1; min-width:0; }
+  .inv-hrow { margin-top:0; }
+  .inv-sent .row { display:flex; flex-wrap:wrap; gap:8px; }
+  .inv-sent { margin-top:16px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
+  .inv-msg { margin:0 0 10px; padding:10px 12px; border-radius:8px; background:var(--code); white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px; }
+  .invlist li { display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px 0; border-top:1px solid var(--line); }
+  .invlist li:first-child { border-top:0; }
+  .invlist .acts { display:flex; gap:6px; flex-wrap:wrap; }
+  .invlist li.gone b { text-decoration:line-through; opacity:.7; }
   details.keycheck { font-size:13px; color:var(--muted); margin-top:14px; } details.keycheck summary { cursor:pointer; }
   .friend ol { margin:0; padding-left:20px; font-size:14px; }
   .friend li { margin-bottom:9px; }
@@ -772,34 +780,34 @@
     <!-- INVITE -->
     <section class="view" id="v-invite" aria-labelledby="t-invite" hidden>
       <h1 id="t-invite" tabindex="-1">Invite friends</h1>
-      <p class="lead">Send each friend one file, once. It already knows your server and keeps working after restarts.</p>
+      <p class="lead">Each friend gets their own link. It opens a page with their personal mod and the steps, so you never send files yourself, and the server knows them on any PC.</p>
       <div class="grid2">
         <div class="stack">
-        <section class="card" aria-labelledby="h-send"><h2 id="h-send" tabindex="-1">Send the mod</h2>
+        <section class="card" aria-labelledby="h-send"><h2 id="h-send" tabindex="-1">Invite a friend</h2>
           <div class="small" id="inv-reach" style="margin:0 0 10px"></div>
-          <a class="dl needs-server" id="dl" href="/mod/dinput8.dll?from=admin" download="dinput8.dll"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"/></svg> Download the mod for friends</a>
-          <p class="small" id="dl-done" aria-live="polite" style="margin:8px 0 0"></p>
-          <div id="inv-send">
-          <p class="small muted" style="margin:8px 0 0">One file, <code>dinput8.dll</code>. Send it on Discord, WhatsApp or Telegram; email usually blocks this kind of file.</p>
-          <div class="small" style="margin-top:16px"><b>Or send this link.</b> It opens a page with the download and the same steps<span id="jp-note"></span>:</div>
-          <div class="linkrow"><code id="jp">Loading…</code><button type="button" id="copy" disabled>Copy link</button></div>
-          <details class="keycheck"><summary>Check a friend got your exact file</summary>
-            Ask your friend to run <code>Get-FileHash .\dinput8.dll</code> in the game folder (Linux: <code>sha256sum dinput8.dll</code>). The result should be:
-            <span class="linkrow"><code id="ssha" style="letter-spacing:.04em;white-space:normal;overflow-wrap:anywhere;text-overflow:clip">…</code><button type="button" class="small" id="copy-sha" data-copied="Hash copied">Copy</button></span>
-            Capital or small letters and spaces don't matter. That proves the file is exactly the one your server hands out. In the mod's log file (<code>pes2021-online.log</code>), the line <code id="skey">key …</code> shows which server it connects to.</details>
-          </div>
+          <form id="inv-form" class="msgf" autocomplete="off">
+            <label for="inv-handle" style="margin-top:0">Their handle</label>
+            <div class="linkrow inv-hrow"><input id="inv-handle" maxlength="24" spellcheck="false" aria-describedby="inv-hhelp" placeholder="Picking a funny name…"><button type="button" class="small needs-server" id="inv-roll" title="Suggest another funny name">Another name</button></div>
+            <p class="small muted" id="inv-hhelp" style="margin:6px 0 0">How you'll know them here (keep the funny one or type their real name). In the game they choose their own name.</p>
+            <div class="row"><button class="primary needs-server" type="submit" id="inv-make">Make their invite</button></div>
+          </form>
+          <div id="inv-new" aria-live="polite"></div>
         </section>
-        <section class="card" aria-labelledby="h-joins"><h2 id="h-joins">Who has joined</h2><div id="joins"></div></section>
+        <section class="card" aria-labelledby="h-invs"><h2 id="h-invs">Your invites</h2><div id="invs"><div class="skel"></div></div></section>
         </div>
+        <div class="stack">
         <section class="card friend" aria-labelledby="h-friend"><h2 id="h-friend">What your friend does</h2>
           <ol>
-            <li>In Steam, right-click <b>PES 2021</b> → Manage → <b>Browse local files</b>, and put the file next to <code>PES2021.exe</code>.
+            <li>Opens their link on the PC they play on and presses <b>Download your mod</b>.</li>
+            <li>In Steam, right-click <b>PES 2021</b> → Manage → <b>Browse local files</b>, and puts the file next to <code>PES2021.exe</code>.
               <div class="small muted" style="margin-top:6px"><b>Steam Deck / Linux:</b> also set PES 2021 → Properties → Launch options to:<span class="linkrow"><code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code><button type="button" class="small" data-copytext="WINEDLLOVERRIDES=&quot;dinput8=n,b&quot; %command%" data-copied="Launch option copied">Copy</button></span></div></li>
-            <li>Start the game → <b>eFootball → Quick Match → Go to Matchmaking</b>. The first time, they pick a region and a player name.
+            <li>Starts the game → <b>eFootball → Quick Match → Go to Matchmaking</b>. The first time, they pick a region and a player name.
               <div class="small muted" style="margin-top:6px">Online Divisions, Matchday, Online Tournament (your server's own competitions), the Friendly Match Lobby (rooms where friends pick who they play) and Online Co-op work too. Two friends are paired when they search in the same mode. Recent matches can be watched again under Online Tournament → Match Replays.</div></li>
           </ol>
-          <p class="small muted" style="margin:8px 0 0">To stop playing on your server, they just delete the file.</p>
+          <p class="small muted" style="margin:8px 0 0">The page shows them the same steps. To stop playing on your server, they just delete the file.</p>
         </section>
+        <section class="card" aria-labelledby="h-gate"><h2 id="h-gate">Who can join</h2><div id="inv-gate"></div></section>
+        </div>
       </div>
     </section>
 
@@ -898,7 +906,6 @@ const nm = n => esc(n).replace(/(_|\.(?!\d))/g, "$1<wbr>");
 const plural = (n, one, many) => `${n} ${n === 1 ? one : (many || one + "s")}`;
 const andList = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
 const shown = {}, rowMsg = {};
-const dlHTML = $("dl").innerHTML;
 
 // Replace a region's HTML only when it changed; keep keyboard focus on the same control,
 // or on the card's heading if that control is gone.
@@ -1045,8 +1052,6 @@ function setDown(on) {
     failures = 0; lastOkAt = Date.now();
     if (downSince) { backUntil = Date.now() + 4000; $("status-live").textContent = "The server is answering again."; if ($("sheet").open && sheetPid != null) setTimeout(loadPlayer, 0); }
     if (downSince || pill.className !== "pill") { downSince = 0; pill.className = "pill"; $("down").hidden = true; $("stalenote").hidden = true; document.body.classList.remove("stale");
-      $("dl").removeAttribute("aria-disabled"); $("dl").removeAttribute("tabindex");
-      if ($("dl").dataset.label) { $("dl").innerHTML = dlHTML; delete $("dl").dataset.label; }
       document.querySelectorAll("[data-kick], [data-del], #thispc button").forEach(b => b.removeAttribute("aria-disabled")); }
     text("status-t", Date.now() < backUntil ? "Back online" : "Server online");
     return;
@@ -1055,12 +1060,10 @@ function setDown(on) {
   ++failures;
   if (downSince || (failures < 2 && !(lastOkAt && Date.now() - lastOkAt > 8000))) return;
   downSince = lastOkAt || Date.now();
-  if (!last) { text("jp", "Appears when the server answers"); $("jp").classList.add("waiting"); }
   pill.className = "pill bad"; text("status-t", "Not answering");
   $("stalenote").hidden = !lastOkAt; text("stalenote", lastOkAt ? "Showing what the server last reported at " + hm.format(new Date(lastOkAt)) + "." : "");
   document.body.classList.add("stale");
   document.querySelectorAll("[data-kick], [data-del], #thispc button").forEach(b => b.setAttribute("aria-disabled", "true"));
-  $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").textContent; $("dl").textContent = "Waiting for the server…";
   const downHtml = (lastOkAt ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? If it is, start the server again (was its window closed?)`
     : `<b>The server isn't answering yet.</b> If this lasts, start the server again (was its window closed?)`) +
     (matchMedia("(max-width: 760px)").matches ? `. <details><summary>Show the start command</summary>${copyRow(runCmd(), "Start command")}</details>`
@@ -1267,7 +1270,6 @@ function render(d) {
   const now = d.now, s = d.server, down = !!downSince;
   platform = s.platform || ""; dataDir = s.data_dir || "";
   renderMsg(d.announce);
-  text("jp", s.main); $("jp").title = s.main; $("jp").classList.remove("waiting"); $("copy").disabled = false;
   const upd = $("update"), updKey = s.update || "";
   if (upd.dataset.k !== updKey) {
     upd.dataset.k = updKey; upd.hidden = !s.update;
@@ -1275,15 +1277,10 @@ function render(d) {
       "Close the server's window, then start it again with:" + copyRow(runCmd(), "Start command") +
       `<span class="small">Players, results and friends' mod files keep working.</span>`;
   }
-  if (s.key) text("skey", "key " + s.key.replace(" ", ""));
-  if (s.mod_sha256) { $("copy-sha").dataset.copytext = s.mod_sha256; text("ssha", s.mod_sha256.toUpperCase().match(/.{1,8}/g).join(" ")); }
-  text("jp-note", s.link_home_only ? " (works on your Wi-Fi only)" : "");
   if (s.has_mod === false && !pcError) { pcError = "This server was built without the mod."; if (ui.view === "server") loadGames(true); }
-  if (s.has_mod === false && !downSince) {
-    $("dl").setAttribute("aria-disabled", "true"); $("dl").tabIndex = -1; $("dl").dataset.label = $("dl").dataset.label || "x";
-    if ($("dl").textContent !== "No mod in this server build") $("dl").textContent = "No mod in this server build";
-    $("inv-send").hidden = true;
-    text("dl-done", "This copy of the server was built without the mod, so there's nothing to send yet. Start the official server (Server → Start or update) and the download appears here.");
+  if (s.has_mod === false && !downSince && !$("inv-form").hidden) {
+    $("inv-form").hidden = true;
+    put("inv-new", `<p class="note">This copy of the server was built without the mod, so there's nothing to send yet. Start the official server (Server → Start or update) and invites appear here.</p>`);
   }
   $("remote-pill").hidden = !s.remote_admin;
   const r = reachInfo(s);
@@ -1919,13 +1916,90 @@ $("wform").onsubmit = async e => {
   finally { $("w-save").disabled = false; }
 };
 
-function renderInvite(d) {
-  const now = d.now, dls = d.feed.filter(f => f.kind === "web").length, ps = [...d.players].sort((a, b) => (b.created || 0) - (a.created || 0));
-  put("joins", (ps.length ? `<ul class="list-plain mini">` + ps.slice(0, 6).map(p => `<li>${avatar(p)}<span class="grow">${pname(p.name, p.pid, "jn-" + p.pid)}</span><span class="r">joined ${esc(ago(p.created, now))}</span></li>`).join("") + `</ul>` +
-      (ps.length > 6 ? `<p class="note"><a href="#players">All ${ps.length} players</a></p>` : "")
-    : `<p class="empty">Nobody yet. Friends appear here within seconds of opening Quick Match with the mod.</p>`) +
-    (dls ? `<p class="note">The mod was downloaded ${plural(dls, "time")} in the activity log's history (from this page or the link).</p>` : ""));
+// ---- invites: one link per friend (pesinvite.py) ------------------------------------------------------
+let inv = null, invAt = 0, invBusy = false, invJust = null;
+const invLink = code => { try { const u = new URL(last.server.main); u.search = "invite=" + code; return u.href; } catch (e) { return ""; } };
+const invMsg = (handle, link) => `You're invited to my PES 2021 server! Open this link on the PC you play on, download your mod and follow the steps: ${link}`;
+async function loadInvites(force) {
+  if (invBusy || (!force && Date.now() - invAt < 8000)) return;
+  invBusy = true;
+  try { inv = await api("/admin/api/invites"); invAt = Date.now();
+    if (!$("inv-handle").value && document.activeElement !== $("inv-handle")) $("inv-handle").value = inv.suggest || "";
+    if (last) renderInvite(last); }
+  catch (err) { if (err.status === 401) return signedOut(); }
+  finally { invBusy = false; }
 }
+function invSent(i) {
+  const link = invLink(i.code);
+  return `<div class="inv-sent"><p style="margin:0 0 6px"><b>Send this to ${esc(i.handle)}</b> on WhatsApp, Discord or Telegram:</p>` +
+    `<p class="inv-msg">${esc(invMsg(i.handle, link))}</p>` +
+    `<div class="row"><button type="button" class="primary" data-copytext="${esc(invMsg(i.handle, link))}" data-copied="Invite message copied">Copy message</button>` +
+    `<button type="button" data-copytext="${esc(link)}" data-copied="Link copied">Copy link only</button></div>` +
+    `<p class="small muted" style="margin:8px 0 0">The link is theirs alone: whoever has it plays as ${esc(i.handle)}. If it ends up with someone else, revoke it below and make a new one.</p></div>`;
+}
+function renderInvite(d) {
+  loadInvites(false);
+  const now = d.now;
+  if (!inv) return;
+  const online = new Set(d.players.filter(p => p.online).map(p => p.pid));
+  if (invJust) { const j = inv.invites.find(x => x.id === invJust); put("inv-new", j ? invSent(j) : ""); }
+  const rows = [...inv.invites].sort((a, b) => (a.revoked ? 1 : 0) - (b.revoked ? 1 : 0) || b.created - a.created);
+  const status = i => i.revoked ? `<span class="pill tag warn">revoked</span>`
+    : i.pid == null ? `<span class="muted">not used yet · made ${esc(ago(i.created, now))}</span>`
+    : `${online.has(i.pid) ? `<span class="pill tag"><span class="dot"></span>online</span> ` : ""}<span class="muted">plays as</span> ${pname(i.name || "(no name yet)", i.pid, "iv-" + i.id)}${i.last_seen && !online.has(i.pid) ? ` <span class="muted">· seen ${esc(ago(i.last_seen, now))}</span>` : ""}`;
+  put("invs", (rows.length ? `<ul class="list-plain invlist">` + rows.map(i => `<li class="${i.revoked ? "gone" : ""}">` +
+      `<div class="grow"><b>${esc(i.handle)}</b><br><span class="small">${status(i)}</span></div>` +
+      `<div class="acts">` + (i.revoked
+        ? `<button type="button" class="small needs-server" data-ivback="${i.id}" data-key="ivb-${i.id}">Let back in</button><button type="button" class="small danger needs-server" data-ivdel="${i.id}" data-name="${esc(i.handle)}" data-key="ivd-${i.id}">Delete</button>`
+        : `<button type="button" class="small" data-copytext="${esc(invMsg(i.handle, invLink(i.code)))}" data-copied="Invite message copied" data-key="ivc-${i.id}">Copy invite</button>` +
+          `<button type="button" class="small needs-server" data-ivren="${i.id}" data-name="${esc(i.handle)}" data-key="ivr-${i.id}">Rename</button>` +
+          `<button type="button" class="small danger needs-server" data-ivrev="${i.id}" data-name="${esc(i.handle)}" data-online="${online.has(i.pid) ? 1 : ""}" data-key="ivx-${i.id}">Revoke</button>`) +
+      `</div></li>`).join("") + `</ul>`
+    : `<p class="empty">No invites yet. Make the first one above: it takes one click.</p>`));
+  const old = inv.players_without_invite;
+  const on = inv.invites_only;
+  put("inv-gate", `<div class="switch"><span class="lbl" id="io-l">Only invited friends can join</span><span class="small ${on ? "ok" : "muted"}">${on ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${on}" aria-labelledby="io-l" class="needs-server" data-invonly="${on ? 0 : 1}" data-key="invonly"></button></div>` +
+    `<p class="small muted" style="margin:6px 0 0">${inv.invites_only
+      ? "Someone without an invite gets “Unable to login”, and you see it in Activity. Revoking an invite locks that person out."
+      : "Off: anyone with your server's mod can join. Turn it on once your friends have their invites."}</p>` +
+    (old.length ? `<h3>Joined before invites</h3><p class="small muted" style="margin:0 0 8px">They still play with the old shared mod. Give them an invite so they keep their name, rating and results on any PC, even with “only invited friends” on.</p>` +
+      `<ul class="list-plain mini">` + old.map(p => `<li>${avatar({name: p.name || "?", online: online.has(p.pid)})}<span class="grow">${pname(p.name || "Player " + p.pid, p.pid, "ivo-" + p.pid)}</span>` +
+        `<button type="button" class="small needs-server" data-ivfor="${p.pid}" data-name="${esc(p.name || "Player " + p.pid)}" data-key="ivf-${p.pid}">Make their invite</button></li>`).join("") + `</ul>` : ""));
+}
+async function invCall(path, body, done) {
+  try { const res = await api(path, {method: "POST", body: JSON.stringify(body)}); if (done) toast(done); await loadInvites(true); return res; }
+  catch (err) { if (err.status === 401) { signedOut(); return null; } toast(err.message && err.message !== "failed" ? err.message : "Couldn't save. Try again.", true); return null; }
+}
+$("inv-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const b = $("inv-make"); b.disabled = true;
+  try { const i = await invCall("/admin/api/invites/new", {handle: $("inv-handle").value.trim()});
+    if (i) { invJust = i.id; $("inv-handle").value = ""; await loadInvites(true); $("inv-new").querySelector("button")?.focus(); } }
+  finally { b.disabled = false; }
+});
+$("inv-roll").addEventListener("click", async () => {
+  try { const r = await api("/admin/api/invites/suggest", {method: "POST", body: "{}"}); $("inv-handle").value = r.handle; $("inv-handle").focus(); }
+  catch (err) { if (err.status === 401) signedOut(); }
+});
+document.addEventListener("click", async e => {
+  const io = e.target.closest("[data-invonly]");
+  if (io) { const on = io.dataset.invonly === "1";
+    if (on && inv && inv.players_without_invite.length && await ask({title: "Only invited friends?", body: `${andList(inv.players_without_invite.map(p => p.name || "Player " + p.pid))} joined before invites. They can still play, but anyone new needs an invite.`, ok: "Turn it on"}) === null) return;
+    return invCall("/admin/api/invites/settings", {invites_only: on}, on ? "Only invited friends can join now." : "Anyone with your server's mod can join again."); }
+  const ren = e.target.closest("[data-ivren]");
+  if (ren) { const h = await ask({title: `Rename ${ren.dataset.name}`, label: "New handle", ok: "Rename"}); if (!h) return;
+    return invCall("/admin/api/invites/rename", {id: +ren.dataset.ivren, handle: h}, "Renamed."); }
+  const rev = e.target.closest("[data-ivrev]");
+  if (rev) { if (await ask({title: `Revoke ${rev.dataset.name}'s invite?`, body: (rev.dataset.online ? "They're online now and get disconnected.\n\n" : "") + "Their copy of the mod stops working on this server (the game says their account is suspended). Their name and results stay. You can let them back in later.", ok: "Revoke", danger: true}) === null) return;
+    return invCall("/admin/api/invites/revoke", {id: +rev.dataset.ivrev}, `${rev.dataset.name} can't sign in any more.`); }
+  const bk = e.target.closest("[data-ivback]");
+  if (bk) return invCall("/admin/api/invites/revoke", {id: +bk.dataset.ivback, back: true}, "They can sign in again.");
+  const del = e.target.closest("[data-ivdel]");
+  if (del) { if (await ask({title: `Delete ${del.dataset.name}'s invite?`, body: "The invite and its link are gone for good. Their name and results stay on the Players page.", ok: "Delete", danger: true}) === null) return;
+    return invCall("/admin/api/invites/delete", {id: +del.dataset.ivdel}, "Invite deleted."); }
+  const fr = e.target.closest("[data-ivfor]");
+  if (fr) { const i = await invCall("/admin/api/invites/new", {pid: +fr.dataset.ivfor}); if (i) { invJust = i.id; await loadInvites(true); $("h-send").focus(); } }
+});
 function renderServer(d, s) {
   const kv = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
   put("srv-status", kv("Version", esc(s.version || "?") + (s.update ? ` <span class="pill warn tag">${esc(s.update)} is out</span>` : "")) +
@@ -2176,7 +2250,6 @@ async function copyText(value, btn, codeEl, okLabel, done) {
 }
 
 document.addEventListener("click", async e => {
-  if (e.target.closest("#copy")) return copyText($("jp").textContent, $("copy"), $("jp"), "Copy link", "Link copied");
   const ct = e.target.closest("[data-copytext]");
   if (ct) return copyText(ct.dataset.copytext, ct, ct.parentElement && ct.parentElement.querySelector("code"), "Copy", ct.dataset.copied || "Copied");
   const pfs = e.target.closest("[data-pfset]");
@@ -2464,7 +2537,6 @@ $("lf").onsubmit = async e => {
     else { $("pw").removeAttribute("aria-invalid"); $("signin").focus(); }
   }
 };
-$("dl").addEventListener("click", () => { $("dl-done").textContent = "Your download should start. Then attach dinput8.dll to a Discord, WhatsApp or Telegram message."; });
 $("showpw").onclick = () => { const on = $("pw").type === "password"; $("pw").type = on ? "text" : "password";
   $("showpw").innerHTML = (on ? "Hide" : "Show") + '<span class="sr"> password</span>'; };
 $("pw").addEventListener("input", () => { $("pw").removeAttribute("aria-invalid"); $("pw").removeAttribute("aria-describedby"); if (!$("err").dataset.keep) $("err").textContent = ""; });
