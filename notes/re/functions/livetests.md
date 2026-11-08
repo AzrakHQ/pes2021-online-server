@@ -637,3 +637,6 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
 - Match length in Online Tournament checked by the clock: match_time 7 → a 7-minute match, 10 → 10 minutes.
 - Co-op match data stored and returned: CO-OP Profile → Playing Styles "Stretch Passer" after three co-op
   matches; the next match started with GET_COOP_MATCH_DATA returning 480 bytes (no problem).
+- Co-op after-match "Changes in rating" (clan style, CoopMenuClanRatingChange) now shows the co-op points: 70 > 90
+  (+20) and 90 > 110 (+20). The 90 → 110 player reached Lv.2: GET_COOP_LEVEL_RESULT with status "LEVEL_UP" went
+  through the level screen to the main menu without trouble (the screen itself was not captured).
