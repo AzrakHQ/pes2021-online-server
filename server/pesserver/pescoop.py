@@ -28,8 +28,8 @@ def _teams():
     """Two different real teams for HOME and AWAY. Co-op has no team-select screen: each side plays the
     team in its group's use_team_id, and with "no team" (262143) on both sides the match load crashes both
     games (null team, seen live). Players who did bring a team keep it."""
-    ids = [t for t, _ in pescmds.TEAM_LIST]
-    return random.sample(ids, 2)
+    ids = [t for t, c in pescmds.TEAM_LIST if c == "TEAM_A"] or [t for t, _ in pescmds.TEAM_LIST]
+    return random.sample(ids, 2)                  # two strong teams (class A), so neither side is a weak one
 
 
 def _fixed(sess):

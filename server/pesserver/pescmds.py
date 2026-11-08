@@ -4,7 +4,7 @@ Field names come from the client's own request/response parsers (strings cluster
 .rdata, e.g. CMD_GET_SVRLIST parser 0x141d48430). Unknown commands get a generic NOERR so the client
 keeps going while we log what it asks for — that log drives which handler to write next.
 """
-import logging, os, sqlite3, time
+import json, logging, os, sqlite3, time
 
 import msgpack
 
@@ -289,8 +289,22 @@ def get_dlc_filelist(svc, sess, req):
 
 
 # Real team ids from Team.bin (internal DB ids). team_class drives class-based matching only.
-TEAM_LIST = [(108, "TEAM_A"), (120, "TEAM_A"), (100, "TEAM_A"), (127, "TEAM_A"), (114, "TEAM_A"),
-             (101, "TEAM_B"), (116, "TEAM_B"), (131, "TEAM_C")]
+def _team_list():
+    """Every PES 2021 team with a squad, with a strength class TEAM_A .. TEAM_E (team_list.json, made from the
+    game's Team.bin by notes/re/functions/tools/mkteamlist.py). The game offers only these in online modes."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "team_list.json")
+    try:
+        with open(path) as f:
+            rows = [(int(t), str(c)) for t, c in json.load(f)["teams"]]
+        if rows:
+            return rows
+    except (OSError, ValueError, KeyError, TypeError):
+        log.warning("team_list.json missing or broken: only a few teams are offered online")
+    return [(108, "TEAM_A"), (120, "TEAM_A"), (100, "TEAM_A"), (127, "TEAM_A"), (114, "TEAM_A"),
+            (101, "TEAM_B"), (116, "TEAM_B"), (131, "TEAM_C")]
+
+
+TEAM_LIST = _team_list()
 
 
 @cmd("CMD_GET_GAME_TEAM_LIST")

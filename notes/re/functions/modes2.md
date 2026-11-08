@@ -89,6 +89,13 @@ Flow [data DivMatch/*.json, Quick/*.json] with the process code [static]:
    (0x140c50380 compares +0xf0 with 0x18; Quick Match skips it, which matches our logs) [static]. Reply
    `{used_team_id_list_num NUM, used_team_id_list [NUM], last_used_team_id NUM}`. Status ≠ 1 → "return".
 6. QuickTeamSelect (menu; team list = GET_GAME_TEAM_LIST from login) → QuickProcessGetOption
+   - **The online team list is the server's** (2026-11-08): GET_GAME_TEAM_LIST `team_list` [blob{team_id, team_class,
+     division_point}] (parser 0x141ca6c00, a growable vector of 0x30-byte entries, no fixed cap seen) is all the
+     teams the online team selects offer. Ours sent 8 placeholder teams, so Quick Match showed only those. Now
+     `server/pesserver/team_list.json`: 663 teams with a squad from Team.bin (tools/mkteamlist.py). `team_class`
+     enum [static 0x140218f00]: TEAM_NONE, TEAM_SAME, TEAM_E, TEAM_D, TEAM_C, TEAM_B, TEAM_A; Konami's classes are
+     unknown, ours rank teams by their best 11 players (15/20/30/20/15 %). The team select with 663 teams is not
+     seen live yet.
    (0x1413716b0: **GET_QUICKMATCHOPTION**) → QuickMatchSettings → QuickProcessProceedOptionCheck (0x141373610:
    SET_QUICKMATCHOPTION) → QuickProcessMaintenanceInfo (**GET_MAINTENANCE_INFO**) → QuickProcessStartSearching →
    QuickSearching [data]. This is the same as Quick Match [log].
