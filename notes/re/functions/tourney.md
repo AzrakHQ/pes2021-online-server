@@ -87,6 +87,17 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
 
 ## Not built / open
 
+- **Random Selection competitions** [static, 2026-11-08]: `match_type "PES_LEAGUE_MATCH_1VS1_RANDOM"` (enum 1) takes
+  PesLgProcCompeJoin's `join_1vs1_random` branch. On joining, the game asks CMD_GET_RANDOMSELECTION_LOTTERY_LIST
+  {pid, compe_id} (0x1413712da, when the process flag +0xc9 is 1) → `gameplayer_list` [NUM player ids] (parser
+  0x141d7c740; read into a vector at result+0xb8), gameplayer_list_num, trade_num. After the opponent search,
+  QuickProcessEndSearching `1_proceed_randomselection` → Online/RandomSelection/OnRsProcLottery → lots screens
+  (OnRsMenuLotsPre / LotsPost, a "G4" variant) → OnRsProcTradeInit → OnRsMenuTrade → OnRsProcTradeResult →
+  OnRsProcPreMatch → QuickProcessTeamDataSync. RESULT_RANDOMSELECTION_LOTTERY, RESULT_RANDOMSELECTION_TRADE and
+  SYNC_RANDOMSELECTION_TRADE have no reply parser: they are peer-to-peer match messages like TEAM_DATA_SYNC, not
+  server commands. Open: whether gameplayer_list is the pool the draw picks from or the drawn squad, its size,
+  and what trade_num counts. A player-list menu (0x140c72660) also reads the lottery result.
+
 - Rewards (REWARD_INFO/REWARD_LIST/present box), participation rights (PARTICIPATION_RIGHT), the member list,
   clan and 3-vs-3 (co-op) competitions, the "best N consecutive matches" ranking rule (regulation_match_num),
   rank_type values, the effects of condition / extra_time.
