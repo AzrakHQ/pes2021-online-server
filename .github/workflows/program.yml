@@ -110,8 +110,10 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           cd out && ls -l
+          sha256sum pes2021-server-* > SHA256SUMS        # the server's own updater checks downloads against it
+          cat SHA256SUMS
           v="$(cat version.txt)"
           gh release delete program -R "$REPO" --yes --cleanup-tag 2>/dev/null || true
           gh release create program -R "$REPO" --target "$GITHUB_SHA" --latest --title "PES 2021 server $v" \
             --notes "The server as one program. Start it with the line on the website (it always downloads this newest version), or download the file for your computer and run it. Windows: pes2021-server-windows-x64.exe." \
-            pes2021-server-* version.txt
+            pes2021-server-* version.txt SHA256SUMS

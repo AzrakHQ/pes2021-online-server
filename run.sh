@@ -1,11 +1,14 @@
 #!/bin/sh
-# PES 2021 server on your own computer (Linux, Steam Deck, Mac): no sudo, nothing to install.
+# PES 2021 server on your own Linux computer (or Steam Deck): no sudo.
 #
 #   curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh
 #
-# Downloads the newest version of the server program (only when there is a new one), then runs it in this
-# window. Ctrl+C stops it. Next time, run the same line: you always get the newest version.
-# Options go after "sh -s --", e.g. ... | sh -s -- --data ~/pes-server-data
+# Run it once. It downloads the newest server program, sets it up to run in the background (a systemd user
+# service that starts when you log in), adds "PES 2021 Server" to your apps menu and opens the admin page.
+# From then on you update, restart and stop the server on the admin page (Server). Running the line again
+# repairs the setup and updates the program; players, results and friends' mods are kept.
+# Options go after "sh -s --":  --here (run in this window instead, Ctrl+C stops it),
+#   --no-autostart (don't start when you log in), --data DIR (where players and results are kept).
 set -eu
 REL="https://github.com/MohamedAliRashad/pes2021-private-server/releases/latest/download"
 
@@ -42,4 +45,6 @@ elif [ -z "$latest" ]; then
   [ -x "$BIN" ] || { echo "Can't reach GitHub to download the server. Check the internet connection and run the line again."; exit 1; }
   echo "Couldn't check for a newer version (offline?); starting the version you have ($have)."
 fi
+if [ "${1:-}" = "--here" ]; then shift; exec "$BIN" "$@"; fi
+if [ "$(uname -s)" = Linux ]; then exec "$BIN" install "$@"; fi
 exec "$BIN" "$@"

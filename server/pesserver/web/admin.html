@@ -406,6 +406,9 @@
   .msgf .inv-at input { border:0; background:transparent; padding-left:2px; width:100%; }
   .inv-at:focus-within { outline:2px solid var(--accent); outline-offset:1px; }
   .inv-hrow { margin-top:0; }
+  .plog { max-height:260px; overflow:auto; font-size:12px; white-space:pre-wrap; overflow-wrap:anywhere; background:var(--code); padding:8px 10px; border-radius:8px; }
+  #cmds .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  #update .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
   .inv-sent .row { display:flex; flex-wrap:wrap; gap:8px; }
   .inv-sent { margin-top:16px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
   .inv-msg { margin:0 0 10px; padding:10px 12px; border-radius:8px; background:var(--code); white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px; }
@@ -824,7 +827,7 @@
       </div>
       <div class="grid2 eq row-gap">
         <section class="card" aria-labelledby="h-access"><h2 id="h-access" tabindex="-1">Admin access</h2><div class="net" id="access"></div></section>
-        <section class="card" aria-labelledby="h-cmd"><h2 id="h-cmd" tabindex="-1">Start, stop and update</h2><dl class="kv" id="cmds"></dl></section>
+        <section class="card" aria-labelledby="h-cmd"><h2 id="h-cmd" tabindex="-1">The server program</h2><div id="cmds"><div class="skel"></div></div></section>
       </div>
       <section class="card" aria-labelledby="h-lu"><h2 id="h-lu" tabindex="-1">Live Update</h2><div class="net" id="lu"></div></section>
       <section class="card msgf" aria-labelledby="h-words"><h2 id="h-words" tabindex="-1">Word filter</h2>
@@ -1053,7 +1056,7 @@ function setDown(on) {
   const pill = $("status");
   if (!on) {
     failures = 0; lastOkAt = Date.now();
-    if (downSince) { backUntil = Date.now() + 4000; $("status-live").textContent = "The server is answering again."; if ($("sheet").open && sheetPid != null) setTimeout(loadPlayer, 0); }
+    if (downSince) { backUntil = Date.now() + 4000; $("status-live").textContent = "The server is answering again."; if ($("sheet").open && sheetPid != null) setTimeout(loadPlayer, 0); progAt = 0; }
     if (downSince || pill.className !== "pill") { downSince = 0; pill.className = "pill"; $("down").hidden = true; $("stalenote").hidden = true; document.body.classList.remove("stale");
       document.querySelectorAll("[data-kick], [data-del], #thispc button").forEach(b => b.removeAttribute("aria-disabled")); }
     text("status-t", Date.now() < backUntil ? "Back online" : "Server online");
@@ -1276,10 +1279,9 @@ function render(d) {
   const upd = $("update"), updKey = s.update || "";
   if (upd.dataset.k !== updKey) {
     upd.dataset.k = updKey; upd.hidden = !s.update;
-    if (s.update) upd.innerHTML = `<b>A newer server version is out</b> (${esc(s.update)}; this one is ${esc(s.version)}). ` +
-      "Close the server's window, then start it again with:" + copyRow(runCmd(), "Start command") +
-      `<span class="small">Players, results and friends' mod files keep working.</span>`;
+    if (s.update) paintUpdateBanner();
   }
+  loadProgram(false);
   if (s.has_mod === false && !pcError) { pcError = "This server was built without the mod."; if (ui.view === "server") loadGames(true); }
   if (s.has_mod === false && !downSince && !$("inv-form").hidden) {
     $("inv-form").hidden = true;
@@ -1919,6 +1921,72 @@ $("wform").onsubmit = async e => {
   finally { $("w-save").disabled = false; }
 };
 
+// ---- the server program: update, restart, stop, start when I log in (hostctl.py) ---------------------------
+let prog = null, progAt = 0, progBusy = false;
+const progActive = () => prog && ["downloading", "waiting", "restarting"].includes(prog.update.update);
+async function loadProgram(force) {
+  if (progBusy || (!force && Date.now() - progAt < (progActive() ? 2000 : 30000))) return;
+  progBusy = true;
+  try { prog = await api("/admin/api/program"); progAt = Date.now(); renderProgram(); if (last && last.server.update) paintUpdateBanner(); }
+  catch (err) { if (err.status === 401) return signedOut(); }
+  finally { progBusy = false; }
+}
+function updateButtons(compact) {
+  const u = prog.update, st = u.update;
+  if (st === "downloading") return `<div class="small"><b>Downloading the new version…</b> ${u.progress ? u.progress + "%" : ""}</div><div class="meter" aria-hidden="true"><i style="width:${u.progress || 2}%"></i></div>` +
+    `<div class="row"><button type="button" class="small needs-server" data-pupd="cancel">Cancel</button></div>`;
+  if (st === "waiting") return `<div class="small"><b>The update is ready</b>${u.target ? ` (${esc(u.target)})` : ""}. It's installed as soon as nobody is playing.</div>` +
+    `<div class="row"><button type="button" class="small needs-server" data-pupd="now">Update now anyway</button><button type="button" class="small needs-server" data-pupd="cancel">Cancel</button></div>`;
+  if (st === "restarting") return `<div class="small"><b>Restarting with the new version…</b> This page reconnects by itself.</div>`;
+  const err = st === "error" ? `<div class="small warn">${I.warn} The update didn't work: ${esc(u.error)}</div>` : "";
+  return err + `<div class="row"><button type="button" class="primary needs-server" data-pupd="now">${st === "error" ? "Try again" : "Update now"}</button>` +
+    `<button type="button" class="needs-server" data-pupd="idle">Update when nobody's playing</button></div>` +
+    (compact ? "" : `<p class="small muted" style="margin:6px 0 0">${prog.busy ? "A match is being played right now: “Update now” would cut it off. " : ""}The server restarts in a few seconds; friends in the menus reconnect, and players, results and friends' mods are kept.</p>`);
+}
+function paintUpdateBanner() {
+  const s = last.server, upd = $("update");
+  const head = `<b>A newer server version is out</b> (${esc(s.update)}; this one is ${esc(s.version)}). `;
+  if (prog && prog.can_update) put("update", head + updateButtons(true), true);
+  else upd.innerHTML = head + "Close the server's window, then start it again with:" + copyRow(runCmd(), "Start command") +
+    `<span class="small">Players, results and friends' mod files keep working.</span>`;
+}
+function renderProgram() {
+  if (!prog) return;
+  const p = prog, s = last ? last.server : {}, auto = p.autostart;
+  const ver = `<dl class="kv"><dt>Version</dt><dd>${esc(p.version)}${p.update_available ? ` · <b>${esc(p.latest)}</b> is out` : p.can_update && p.checked ? ` <span class="small muted">· the newest (checked ${esc(ago(p.checked, Date.now() / 1000))})</span>` : ""}</dd>` +
+    (dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", null, "wrap")}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : "") + `</dl>`;
+  const upd = !p.can_update ? `<p class="small muted">${esc(p.why_not)}</p>`
+    : p.update_available || p.update.update !== "idle" ? updateButtons(false)
+    : `<div class="row"><button type="button" class="small needs-server" data-pupd="now">Check for a new version and update</button></div>`;
+  const where = p.in_service ? `<p class="small muted" style="margin:14px 0 0">Runs in the background (no window).</p>`
+    : p.systemd && p.program ? `<p class="small" style="margin:14px 0 0"><b>It runs in a terminal window</b>, so closing that window stops it.</p><div class="row"><button type="button" class="small needs-server" data-pbg="1">Move to the background</button></div>`
+    : "";
+  const sw = auto == null ? "" : `<div class="switch" style="margin-top:12px"><span class="lbl" id="pa-l">Start when I log in</span><span class="small ${auto ? "ok" : "muted"}">${auto ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${auto}" aria-labelledby="pa-l" class="needs-server" data-pauto="${auto ? 0 : 1}" data-key="pauto"></button></div>`;
+  const ctl = `<div class="row" style="margin-top:12px">${p.program ? `<button type="button" class="small needs-server" data-prestart="1">Restart</button>` : ""}<button type="button" class="small danger needs-server" data-pstop="1">Stop the server</button></div>` +
+    `<p class="small muted" style="margin:6px 0 0">To start it again later: <b>PES 2021 Server</b> in your apps menu, or <code>pes2021-server open</code>.</p>`;
+  const logs = p.log.length ? `<details class="keycheck" data-key="plog"><summary>Recent log</summary><pre class="plog">${esc(p.log.join("\n"))}</pre></details>` : "";
+  const repair = `<details class="keycheck" id="install-cmd" data-key="pinst"><summary>Install or repair from a terminal</summary>${copyRow(runCmd(), "Install command")}<span class="small muted">Downloads the newest version, sets the server up to run in the background and opens this page. Players, results and friends' mods are kept.</span></details>`;
+  put("cmds", ver + upd + where + sw + ctl + logs + repair);
+}
+async function progCall(path, body, done) {
+  try { prog = await api(path, {method: "POST", body: JSON.stringify(body || {}), timeout: 10000}); renderProgram(); if (last && last.server.update) paintUpdateBanner(); if (done) toast(done); return true; }
+  catch (err) { if (err.status === 401) { signedOut(); return false; } toast(err.message && err.message !== "failed" ? err.message : "That didn't work. Try again.", true); return false; }
+}
+document.addEventListener("click", async e => {
+  const pu = e.target.closest("[data-pupd]");
+  if (pu) { const w = pu.dataset.pupd;
+    if (w === "now" && prog && prog.busy && await ask({title: "Update now?", body: "A match is being played right now. The server restarts in a few seconds and that match is cut off.", ok: "Update now", danger: true}) === null) return;
+    return progCall("/admin/api/program/update", {when: w}, w === "cancel" ? "Update cancelled." : w === "idle" ? "The server updates as soon as nobody is playing." : "Updating: the server restarts in a moment."); }
+  if (e.target.closest("[data-prestart]")) { if (await ask({title: "Restart the server?", body: "It's back in a few seconds. Friends in a match are cut off; friends in the menus reconnect.", ok: "Restart"}) === null) return;
+    return progCall("/admin/api/program/restart", {}, "Restarting…"); }
+  if (e.target.closest("[data-pstop]")) { if (await ask({title: "Stop the server?", body: "Friends can't play until you start it again (PES 2021 Server in your apps menu). This page stops working too.", ok: "Stop it", danger: true}) === null) return;
+    return progCall("/admin/api/program/stop", {}, "The server is stopping."); }
+  if (e.target.closest("[data-pbg]")) { if (await ask({title: "Move to the background?", body: "The server restarts as a background service (a few seconds), then you can close its terminal window.", ok: "Move it"}) === null) return;
+    return progCall("/admin/api/program/background", {}, "Moving to the background…"); }
+  const pa = e.target.closest("[data-pauto]");
+  if (pa) return progCall("/admin/api/program/autostart", {on: pa.dataset.pauto === "1"}, pa.dataset.pauto === "1" ? "The server starts when you log in." : "The server no longer starts by itself.");
+});
+
 // ---- invites: one link per friend (pesinvite.py) ------------------------------------------------------
 let inv = null, invAt = 0, invBusy = false, invJust = null;
 const atH = h => "@" + h;
@@ -2016,9 +2084,8 @@ function renderServer(d, s) {
   renderWords(s);
   put("access", remoteHtml(s) + `<div style="margin-top:6px">${location.protocol === "https:" ? "Opened over the internet, encrypted." : s.same_pc ? "Opened on the server's computer." : "On your home network the admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale."}</div>` +
     `<div>Signed in here${untilText ? ` until ${esc(untilText)}` : ""}. <button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
-  put("cmds", `<dt>Stop</dt><dd>Press <b>Ctrl+C</b> in the server's window, or close the window.</dd>
-    <dt>Start or update</dt><dd id="install-cmd">${copyRow(runCmd(), "Start command")}<span class="small muted">${platform === "win32" ? "In PowerShell. " : "In a terminal. "}Always starts the newest version; players, results and friends' mod files keep working.</span></dd>
-    ${dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", null, "wrap")}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : ""}`);
+  loadProgram(false);
+  renderProgram();
 }
 
 function luHtml(lu) {

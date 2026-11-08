@@ -2,6 +2,10 @@
 
   pesserver host              the downloadable program (also what it does with no arguments): runs in this
                               window, data in the user's folder, finds PES 2021 on this computer
+  pesserver install           Linux: run it in the background (systemd user service), add "PES 2021 Server"
+                              to the apps menu, open the admin page (run.sh does this; hostctl.py)
+  pesserver open              start it if it isn't running and open the admin page (the apps-menu entry)
+  pesserver selfcheck         prints "pes2021-server ok <version>" (the updater test-runs new downloads)
   pesserver serve ...         development (tools/pes.py restart)
   pesserver adduser NAME PW   add an account by hand
 """
@@ -98,13 +102,16 @@ async def run(a):
     show_banner()
     identity.start_publisher()
     from . import events, updates
-    updates.start(lambda v: events.feed(svc, f"A newer server version is out ({v}): "
-                                             "close this window and start the server again to update", "warn"))
-    if os.environ.get("PES_CONSOLE") == "1":
+    from . import hostctl
+    how = "update it on the admin page (Server)" if hostctl.manageable()[0] else \
+        "close this window and start the server again to update"
+    updates.start(lambda v: events.feed(svc, f"A newer server version is out ({v}): {how}", "warn"))
+    if os.environ.get("PES_CONSOLE") == "1" and not hostctl.in_service():
         print("   Keep this window open while you play. Press Ctrl+C to stop the server.\n", flush=True)
     stop = asyncio.Event()
     import signal
     loop = asyncio.get_running_loop()
+    hostctl.attach(loop, stop)              # the admin page can restart, update or stop the server
     for name in ("SIGTERM", "SIGINT", "SIGHUP", "SIGBREAK"):   # SIGHUP: window closed; SIGBREAK: Windows Ctrl+Break
         sig = getattr(signal, name, None)
         if sig is None:
@@ -117,7 +124,7 @@ async def run(a):
         await stop.wait()
     finally:
         logging.info("shutting down")
-        if os.environ.get("PES_CONSOLE") == "1":
+        if os.environ.get("PES_CONSOLE") == "1" and not hostctl.in_service():
             print("\n   Stopping the server...", flush=True)
         turn.stop()
         if a.auto_net:
@@ -178,12 +185,20 @@ def main():
                        ("--stun-port", 3478)):
         h.add_argument(flag, type=int, default=int(os.environ.get("PES_" + flag[2:].upper().replace("-", "_"), port)))
     u = sub.add_parser("adduser"); u.add_argument("name"); u.add_argument("password"); u.add_argument("--steam-id")
+    i = sub.add_parser("install", help="Linux: run the server in the background, add it to the apps menu")
+    i.add_argument("--data", default=default_data_dir()); i.add_argument("--no-autostart", action="store_true")
+    o = sub.add_parser("open", help="start the server if needed and open its admin page")
+    o.add_argument("--data", default=default_data_dir())
+    sub.add_parser("selfcheck")
     argv = sys.argv[1:]
     if not argv or (argv[0].startswith("-") and argv[0] not in ("-h", "--help", "--db")):
         argv = ["host"] + argv                # the program's own options, e.g. --data DIR
     a = p.parse_args(argv)
     if a.cmd is None:
         p.error("choose a command: host, serve or adduser")
+    from . import hostctl
+    if a.cmd in ("install", "open", "selfcheck"):
+        return {"install": hostctl.cmd_install, "open": hostctl.cmd_open}.get(a.cmd, lambda _: hostctl.cmd_selfcheck())(a)
     if a.cmd == "host":
         _host_setup(a)
     fmt = "%(asctime)s %(name)s %(message)s"
@@ -210,6 +225,7 @@ def main():
             asyncio.run(run(a))
         except KeyboardInterrupt:
             pass
+        hostctl.after_shutdown()            # restart into a new version, or hand over to the background service
 
 
 if __name__ == "__main__":

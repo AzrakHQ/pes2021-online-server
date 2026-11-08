@@ -598,6 +598,18 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             sess.close()                # their next login registers them again (name prompt)
         events.feed(service, f"{name} was deleted by the admin", "warn")
         return "200 OK", b'{"ok":true}', "application/json"
+    if route == "/admin/api/program" or route.startswith("/admin/api/program/"):
+        from . import hostctl                       # update, restart, stop, start when I log in (hostctl.py)
+        status, res = hostctl.admin_api(service, route, method, body)
+        if method == "POST" and status.startswith("200"):
+            what = {"/admin/api/program/update": "asked for a server update", "/admin/api/program/restart": "restarted the server",
+                    "/admin/api/program/stop": "stopped the server", "/admin/api/program/background": "moved the server to the background"}
+            if route in what and not (route.endswith("/update") and b"cancel" in (body or b"")):
+                events.feed(service, "The admin " + what[route], "info")
+            elif route == "/admin/api/program/autostart":
+                events.feed(service, "The server now starts when you log in" if res.get("autostart") else
+                            "The server no longer starts by itself", "info")
+        return status, json.dumps(res).encode(), "application/json"
     if route.startswith("/admin/api/invites"):
         from . import pesinvite                     # invites: one mod per friend, with a handle (pesinvite.py)
         status, res = pesinvite.admin_api(service, route, method, body, mod_url(service, headers, None))
