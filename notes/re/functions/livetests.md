@@ -626,3 +626,12 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
   User Numbers 2, Final Position 1ST) → A → the list with only Match Replays (no second cup that month).
 - Competition Outline: the host's text, then the generated one, line breaks included.
 - Layouts and the full path: tourney.md.
+
+## 2026-11-08: co-op level and the co-op full-time push (two copies)
+- Co-op Casual Match, idle to full time (0-0). Without a full-time push: DISCONN_P2P from one game 36 s after
+  END, gameend_reason "NotImplement" from both. With WATCH_GAMEADDPOINT at END (no rating change): no abnormal
+  end, NORMAL_END from both, screens MatchResult → CoopMenuClanRatingChange → CoopMenuLevelChange →
+  CoopMenuPersonalResult → main menu.
+- "Changes in CO-OP Level": Points earned 20, To level-up 60, Rating +20, Lv.1 with the bar at 40 % for both
+  (pescoop: draw 20 points, a level every 100). CO-OP Profile: CO-OP Match 1.
+- Match length in Online Tournament checked by the clock: match_time 7 → a 7-minute match, 10 → 10 minutes.

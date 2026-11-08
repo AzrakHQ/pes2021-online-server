@@ -260,7 +260,13 @@ Our 1v1 handlers already relay pid lists and gate the relay check on "all room m
   SE_RESULT_LEVELUP / SE_RESULT_LEVELDOWN but no status strings near them.
 - **Server (pescoop.py, 2026-11-08):** co-op level points at the final whistle (win 30, draw 20, loss 10; a level
   every 100 points), both members' before/after values in this reply, the level in GET_COOP_PROFILE and in the
-  WATCH_COOP_MATCHING member entries. `status` "LEVEL_UP" / "NONE" is a guess.
+  WATCH_COOP_MATCHING member entries. `status` "LEVEL_UP" / "NONE" is a guess (a level-up was not seen yet).
+- **Live 2026-11-08, "Changes in CO-OP Level" (Online/CoopMatch/CoopMenuLevelChange):** one card per member with
+  "Points earned" = `evalution`, "To level-up" = `reference`, "Rating +N" = `point`, the level and a bar
+  (after_point within the level). The CO-OP Profile then showed "CO-OP Match 1".
+- **Co-op also needs the full-time push WATCH_GAMEADDPOINT [live]:** without it both games reported
+  SEND_ABNORMALEND DISCONN_P2P ~36 s after END and gameend_reason "NotImplement"; with it (ratings unchanged)
+  no abnormal end, both NORMAL_END, and an extra screen CoopMenuClanRatingChange before the level screen.
 - It arrives after LEAVE_ROOM (live 2026-11-08), so the server keeps the values per player, not per room.
 
 ### CMD_GET_GAMERESULTS_COOP — co-op match history (menu)
