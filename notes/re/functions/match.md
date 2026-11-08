@@ -334,6 +334,10 @@ The client carries a table of (command, server error code, message id) at 0x1428
    disconnects.
 
 ## Still unknown
+> **Status 2026-11-08:** items 1–3 and the gtimer unit were settled in sweep.md (the DATAPACK compare is in
+> gncx_labels.md; gtimer against the match clock in tourney.md). Reconnect, live: after a 7 s server outage both
+> games sent CMD_RECONNECT, got a key and played on; after 15 s they show APLR_0002 (livetests.md). The
+> on-screen code formatter is still not located.
 - Exact meaning of `[0x140ff0a20()+0x58]` values (1 = normal online, 3 = no match id/direct) and of task+0xa8 types
   (0/1/3) — would need a debugger or the QuickMatching init path; affects only retries and ping check.
 - Who sets multiplay+0x5c4 = 3 ("Revision error") and what strings the DATAPACK check compares (P2P payload) —

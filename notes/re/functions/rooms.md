@@ -372,6 +372,10 @@ shared TaskConnectMatchSession/TaskMatchSession. So `_member`'s address/pname co
 notice relay, game relay, relay-check and match-id handlers are reusable as-is; only the room/list layer is new.
 
 ## 4. Still unknown (needs a live test, two clients)
+> **Status 2026-11-08:** 5. answered live: after a match each game sends LEAVE_GAME (not LEAVE_ROOM); the
+> `WATCH_ROOMSTATE {StateChanged, WAITING}` push brings both back to the room (livetests.md). 6. partly settled in
+> sweep.md. 7. lobby2.md: the client never prints its own line, so the echo is required; not tried live.
+> 8. still open.
 > **Answered live (2026-11-05/06, livetests.md):** 1. yes, REQWATCHL_ROOMLIST and REQWATCHL_ROOMPLAYERLIST_NTL are real requests; 2. CREATEJOIN_ROOM first, then SET_GAMEENV with the 9 settings inside a `game_env` blob; 3. `online_mode` "FREE", `lobby_type` "FREE"; 4. after SETENV: GET_MATCHID, SEND_SYNC_NOTICE, GET_SERVER_ENV, P2P START/END, DATASYNC, SET_GAMEMEMBERENV, TEAMSELECT (no GET_GAMERELAY / SEND_MATCHING_RESULT seen). Kept below as written.
 
 1. Whether `REQWATCHL_*` requests actually appear on the wire (strong inference: yes). The spec covers both

@@ -157,6 +157,8 @@ group's own pid. Leave the addresses in; they cost nothing.
   - (b) **"SC" plus a game relay** speaking Konami's CsClient protocol (not reverse-engineered). Much bigger.
 
 ## Still open
+> **Status 2026-11-08:** the first point is answered: with mod 0.5.0 copying the members' addresses, co-op links
+> up and plays to full time (livetests.md). The WithTurn vector is still open.
 - Whether the P2P/TURN layer connects with a 0.0.0.0 reflexive hint (live test §6).
 - What the WithTurn "exactly one element" vector is (it matters only for 2v2 / 3v3).
 

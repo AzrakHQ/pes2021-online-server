@@ -271,6 +271,8 @@ changes. It is as in lobby.md §5:
 - **Signal:** copy 3's `1.enc` GET is answered within 30 s, and N keeps growing about every 5 s while the match runs.
 
 ## Still unknown (settled by the steps above)
+> **Status 2026-11-08:** the live run answered the path, the strings, the buttons (X = Match List) and the team
+> select (livetests.md, and the note at the top). Whether `game_phase` filters the list was not tested.
 
 - The step from `[[mgr]+0xa8]+0x30` to the URL id: step 2, signal 3.
 - The `online_mode`, `compe_mode` and `lobby_type` strings for PES League: step 2, signal 1.

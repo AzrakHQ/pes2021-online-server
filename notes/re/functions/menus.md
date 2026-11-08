@@ -487,6 +487,13 @@ turns a reply-parser dump into key→Result-offset, `enumtab.py` resolves enum-n
   START_STEAM_STORE reply an error (no orderid), because we cannot run a Steam microtransaction.
 
 ## Still unknown (and what would settle it)
+> **Status 2026-11-08 (livetests.md):** 1. answered: a sum mismatch gives GNCX_0006 (the multiplay sum compare,
+> gncx_labels.md), and `is_revision_check "NO"` lets both copies through; a match with different stats did not
+> desync. 2. partly: ERR_PARAMCHECK_FAILED shows "Invalid player data found." then CCWR_0014, and all four
+> courtesy dialogs were read; CCWR450 / CCWR211 not seen. 3. partly: private-list messages show in Online
+> Information with their date; NO_BANNER_INFO and `priority` untested. 4. avatars answered: base64 of a 128×128
+> picture, 3 bytes a pixel (49152 bytes), shown live; banner and ad formats still open. 5. settled in sweep.md.
+> 6. still open.
 1. **Exact P2P fields compared** (revision + param vs param + entry) and whether `[mp+0x5c0]` is
    `is_revision_check`. Test: one client with a single edited player stat → expect MXNV533 "DATAPACK error";
    then repeat with `is_revision_check:"NO"`.
