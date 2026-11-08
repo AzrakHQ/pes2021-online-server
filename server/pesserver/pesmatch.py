@@ -630,7 +630,12 @@ def _verdict(svc, rid, room):
             for p, (r, streak) in new.items():
                 db.execute("UPDATE pes_players SET rating=?, win_streak=? WHERE pid=?", (r, streak, p))
     shown = {p: (old[p][0], new[p][0]) for p in (home, away)}
-    if room.get("mode") == "PES_LEAGUE":
+    if room.get("coop"):
+        # co-op: the "Changes in rating" screen (clan style) shows the co-op points (pescoop awards them just before)
+        last = _state(svc).get("coop_last", {})
+        shown.update({p: (last[p]["rows"][p]["before_point"], last[p]["rows"][p]["after_point"])
+                      for p in (home, away) if p in last and p in last[p]["rows"]})
+    elif room.get("mode") == "PES_LEAGUE":
         # Online Tournament: the game's "Changes in rating" screen shows the competition points (its rankings
         # call them Rating); the Elo rating above still moves as in any match.
         from . import pestourney

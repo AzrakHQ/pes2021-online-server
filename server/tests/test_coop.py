@@ -144,7 +144,7 @@ def test_coop_gets_the_full_time_push_without_a_rating_change(svc, pushes):
     sent = [(p, m) for p, m, _ in pushes]
     assert sorted(sent) == [(1, "CMD_WATCH_GAMEADDPOINT"), (2, "CMD_WATCH_GAMEADDPOINT")]
     players = [_unpack(x) for x in pushes[0][2]["player_list"]]
-    assert all(x["rating"] == x["oldrating"] for x in players)
+    assert {x["pid"]: (x["oldrating"], x["rating"]) for x in players} == {1: (0, 30), 2: (0, 10)}   # co-op points
     assert svc.accounts.db.execute("SELECT rating FROM pes_players WHERE pid=1").fetchone()[0] in (None, 1000)
 
 
