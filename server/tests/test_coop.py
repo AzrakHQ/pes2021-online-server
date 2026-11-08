@@ -158,3 +158,26 @@ def test_coop_match_data_is_kept_and_returned(svc):
     assert prof["match_data_size"] == 480 and prof["match_data"] == "QUJD" * 160
     pescmds._dispatch(svc, a, "CMD_SET_COOP_MATCH_DATA", {"match_data_size": 99999, "match_data": "x"})   # ignored
     assert pescoop.match_data(svc, 1)[0] == 480
+
+
+def test_follow_list_round_trip(svc):
+    a, b, c = _player(svc, 1), _player(svc, 2), _player(svc, 3)
+    uid = lambda p: msgpack.packb({"pid": p, "pname": msgpack.packb({"name": f"P{p}"})})
+    assert pescmds._dispatch(svc, a, "CMD_FOLLOW_USER", {"follow_user_id_list": [uid(2), uid(3), uid(1), uid(99)],
+                                                         "unfollow_user_id_list": []}) == {"result": "NOERR"}
+    r = pescmds._dispatch(svc, a, "CMD_GET_FOLLOW_LIST", {})
+    rows = [_unpack(x) for x in r["follow_list"]]
+    assert r["follow_list_num"] == 2 and [_unpack(x["user_id"])["pid"] for x in rows] == [2, 3]   # not self, not unknown
+    assert rows[0]["is_locked"] == "NO" and _unpack(_unpack(rows[0]["user_id"])["pname"])["name"] == "P2"
+    pescmds._dispatch(svc, a, "CMD_LOCK_FOLLOW_USER", {"target_pid": 3, "is_lock": "YES"})
+    rows = [_unpack(x) for x in pescmds._dispatch(svc, a, "CMD_GET_FOLLOW_LIST", {})["follow_list"]]
+    assert [x["is_locked"] for x in rows] == ["NO", "YES"]
+    # the co-op card: is_follow from the viewer's list, follower = how many follow that player
+    prof = _unpack(pescmds._dispatch(svc, a, "CMD_GET_COOP_PROFILE", {"pid": 2})["coop_profile_data"])
+    assert prof["is_follow"] == "YES" and prof["follower"] == 1
+    prof = _unpack(pescmds._dispatch(svc, b, "CMD_GET_COOP_PROFILE", {"pid": 1})["coop_profile_data"])
+    assert prof["is_follow"] == "NO" and prof["follower"] == 0
+    pescmds._dispatch(svc, a, "CMD_FOLLOW_USER", {"follow_user_id_list": [], "unfollow_user_id_list": [uid(2)]})
+    assert pescmds._dispatch(svc, a, "CMD_GET_FOLLOW_LIST", {})["follow_list_num"] == 1
+    pescoop.forget(svc, 3)
+    assert pescmds._dispatch(svc, a, "CMD_GET_FOLLOW_LIST", {})["follow_list_num"] == 0
