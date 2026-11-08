@@ -8,7 +8,7 @@ the server it was made for (mod 0.6.0, /mod/hello version 4).
 - Invite only (a host setting, off by default): a newcomer without an invite gets "Unable to login" and the
   host sees a line in the activity feed. Players the server already knew keep playing as before.
 - Revoking an invite is the ban: that copy of the mod can't sign in any more ("account suspended").
-- The handle identifies the player for the host; in the game players still choose their own name
+- The handle (@nutmeg_ninja: lowercase letters, digits and _, stored without the @) identifies the player for the host; in the game players still choose their own name
   (CREATE_PLAYER), and two players can't take the same one.
 - An invite can be made for a player the server already has: their first sign-in with it moves their
   account (name, rating, results) onto the invite.
@@ -20,15 +20,20 @@ from . import pescmds
 log = logging.getLogger("pesserver.invite")
 
 KEY_PREFIX = "i:"                 # pes_players.username of an invited player: "i:<invite id>"
-HANDLE_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9 _.'-]{1,22}[A-Za-z0-9.']")
+HANDLE_RE = re.compile(r"[a-z0-9](?:[a-z0-9_]{1,22})[a-z0-9]")   # stored without the "@": nutmeg_ninja
 
-_FIRST = ["Nutmeg", "Panenka", "Rabona", "Offside", "Volley", "Bicycle", "Header", "Tiki-Taka", "Sweeper",
-          "Libero", "Trivela", "Elastico", "Scorpion", "Chip", "Toe-Poke", "Back-Heel", "Stoppage", "Golden",
-          "Hat-Trick", "Corner", "Sliding", "Dummy", "Rainbow", "Long-Ball", "Park-the-Bus", "Gegen", "Wonder",
-          "Screamer", "Top-Bin", "Own-Goal"]
-_SECOND = ["Ninja", "Panda", "Wizard", "Owl", "Llama", "Pirate", "Badger", "Falcon", "Goblin", "Penguin",
-           "Viking", "Walrus", "Yeti", "Dragon", "Hedgehog", "Moose", "Otter", "Gecko", "Raccoon", "Koala",
-           "Camel", "Lobster", "Pigeon", "Wombat", "Ferret", "Narwhal", "Hamster", "Toucan", "Bison", "Sloth"]
+_FIRST = ["nutmeg", "panenka", "rabona", "offside", "volley", "bicycle", "header", "tiki_taka", "sweeper",
+          "libero", "trivela", "elastico", "scorpion", "chip", "toe_poke", "back_heel", "stoppage", "golden",
+          "hat_trick", "corner", "sliding", "dummy", "rainbow", "long_ball", "parked_bus", "gegen", "wonder",
+          "screamer", "top_bin", "own_goal"]
+_SECOND = ["ninja", "panda", "wizard", "owl", "llama", "pirate", "badger", "falcon", "goblin", "penguin",
+           "viking", "walrus", "yeti", "dragon", "hedgehog", "moose", "otter", "gecko", "raccoon", "koala",
+           "camel", "lobster", "pigeon", "wombat", "ferret", "narwhal", "hamster", "toucan", "bison", "sloth"]
+
+
+def at(handle):
+    """How a handle is shown: @nutmeg_ninja."""
+    return "@" + handle if handle else ""
 
 
 def _setup(db):
@@ -36,6 +41,20 @@ def _setup(db):
                   handle TEXT UNIQUE NOT NULL COLLATE NOCASE, pid INTEGER, created REAL NOT NULL,
                   revoked REAL, last_seen REAL)""")
     db.execute("CREATE TABLE IF NOT EXISTS pes_invite_cfg (k TEXT PRIMARY KEY, v TEXT)")
+    # handles made before @handles ("Nutmeg Ninja") become nutmeg_ninja
+    for iid, h in db.execute("SELECT id, handle FROM pes_invites").fetchall():
+        if not HANDLE_RE.fullmatch(h):
+            new = normalize(h) or f"friend_{iid}"
+            if db.execute("SELECT 1 FROM pes_invites WHERE handle=? AND id<>?", (new, iid)).fetchone():
+                new = f"{new[:20]}_{iid}"
+            db.execute("UPDATE pes_invites SET handle=? WHERE id=?", (new, iid))
+
+
+def normalize(h):
+    """What the host typed ("@Nice Cat", "nice-cat") as a handle: lowercase letters, digits and _."""
+    h = re.sub(r"[\s.'-]+", "_", str(h or "").strip().lstrip("@").lower())
+    h = re.sub(r"[^a-z0-9_]", "", h)
+    return re.sub(r"_+", "_", h).strip("_")[:24]
 
 
 def _db(svc):
@@ -91,17 +110,17 @@ def funny_handle(svc, rng=random):
     db = _db(svc)
     with svc.accounts.lock:
         for _ in range(200):
-            h = f"{rng.choice(_FIRST)} {rng.choice(_SECOND)}"
+            h = f"{rng.choice(_FIRST)}_{rng.choice(_SECOND)}"
             if not _taken(db, h):
                 return h
         n = db.execute("SELECT COUNT(*) FROM pes_invites").fetchone()[0]
-    return f"{rng.choice(_FIRST)} {rng.choice(_SECOND)} {n + 1}"
+    return f"{rng.choice(_FIRST)}_{rng.choice(_SECOND)}_{n + 1}"
 
 
 def _clean_handle(h):
-    h = re.sub(r"\s+", " ", str(h or "")).strip()
+    h = normalize(h)
     if not HANDLE_RE.fullmatch(h):
-        raise ValueError("A handle is 3–24 letters, digits, spaces or _ . ' -")
+        raise ValueError("A handle is 3 to 24 letters, digits or _, like @nice_cat")
     return h
 
 
@@ -111,7 +130,7 @@ def create(svc, handle=None, pid=None):
     db = _db(svc)
     with svc.accounts.lock, db:
         if _taken(db, handle):
-            raise ValueError(f"“{handle}” is already someone's handle")
+            raise ValueError(f"{at(handle)} is already someone's handle")
         if pid is not None:
             if not db.execute("SELECT 1 FROM pes_players WHERE pid=?", (pid,)).fetchone():
                 raise LookupError("That player is gone.")
@@ -129,7 +148,7 @@ def rename(svc, iid, handle):
     db = _db(svc)
     with svc.accounts.lock, db:
         if _taken(db, handle, but=iid):
-            raise ValueError(f"“{handle}” is already someone's handle")
+            raise ValueError(f"{at(handle)} is already someone's handle")
         if db.execute("UPDATE pes_invites SET handle=? WHERE id=?", (handle, iid)).rowcount == 0:
             raise LookupError("That invite is gone.")
     return _one(svc, "id=?", (iid,))
@@ -193,7 +212,7 @@ def account_for_login(svc, sess, default_key):
             _feed_once(svc, "bad", "A mod with an unknown invite tried to sign in (an invite that was deleted?)")
             return None, "ERR_LOGIN_FAILED"
         if inv["revoked"] is not None:
-            _feed_once(svc, f"rev{inv['id']}", f"{inv['handle']} tried to sign in, but their invite is revoked")
+            _feed_once(svc, f"rev{inv['id']}", f"{at(inv['handle'])} tried to sign in, but their invite is revoked")
             return None, "ERR_INVALID_ACCOUNT"
         key = KEY_PREFIX + str(inv["id"])
         with svc.accounts.lock, db:

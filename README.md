@@ -28,16 +28,15 @@ It downloads the server (one program, 15–30 MB, no admin rights) and prints yo
 (HTTPS: the browser warns once, since the certificate is the server's own). Keep the window open while you play: **Ctrl+C** or closing it stops the server. Paste the same line
 next time: it always starts the newest version.
 
-## 2. Host: send your friends the mod
+## 2. Host: invite your friends
 
-Open the admin page and click **Download the mod for friends**. You get one file, `dinput8.dll`. Send it to each
-friend on Discord, WhatsApp or Telegram (email usually blocks this kind of file).
+Open the admin page → **Invite friends** → **Make their invite**. Each friend gets a handle like `@nutmeg_ninja`
+(keep the funny one or type your own) and a message with their personal link to paste into Discord, WhatsApp or
+Telegram. The link opens a page with their own copy of the mod and the steps; you never send files yourself.
 
-It already knows your server, and keeps working after your server restarts.
-
-**Want each friend to have their own?** Make them an *invite*: a copy of the mod with their own handle written
-in, so the server knows them on any PC and you can lock one person out without touching anyone else. You can
-also let only invited friends in. The admin page doesn't have an invites screen yet; until then see
+Their copy knows your server, keeps working after it restarts, and tells the server who they are on any PC. In
+the game they still choose their own name (no two players can take the same one). **Revoke** locks one person
+out, and **Only invited friends can join** keeps everyone else out. Details and the admin API:
 [Invites](server/README.md#invites-one-mod-per-friend).
 
 **Playing on the same PC?** The installer finds PES 2021 on your computer (Steam libraries and

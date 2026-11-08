@@ -607,7 +607,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             verb = what.get(route, "changed an invite")
             if route == "/admin/api/invites/revoke" and res.get("revoked") is None:
                 verb = "let back in"
-            events.feed(service, f"The admin {verb}" + (f" {res['handle']}" if res.get("handle") else ""), "info")
+            events.feed(service, f"The admin {verb}" + (f" {pesinvite.at(res['handle'])}" if res.get("handle") else ""), "info")
         return status, json.dumps(res).encode(), "application/json"
     if route.startswith("/admin/api/tourneys"):
         from . import pestourney                    # Online Tournament competitions (list, save, end, delete)
@@ -792,7 +792,8 @@ def note_download(service, peer, invite=None):
         where = f" on your home network ({ip})"
     else:
         where = f" from the internet ({ip})"
-    events.feed(service, f"{invite['handle']}'s mod was downloaded{where}" if invite
+    from .pesinvite import at
+    events.feed(service, f"{at(invite['handle'])}'s mod was downloaded{where}" if invite
                 else f"Someone{where} downloaded the mod", "web")
 
 

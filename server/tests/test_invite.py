@@ -56,7 +56,7 @@ def test_an_invited_friend_is_the_same_player_on_any_pc(svc):
     b = _sess(mod_id="f" * 32, invite=inv["code"], ip="203.0.113.9")        # another PC, same mod file
     assert _login(svc, b) == {"result": "NOERR"} and b.pes_pid == pid
     assert pescmds._dispatch(svc, b, "CMD_GET_PLAYER_DATA", {})["has_data"] == "YES"
-    assert pesinvite.by_code(svc, inv["code"])["pid"] == pid and pesinvite.handle_of(svc, pid) == "Nutmeg Ninja"
+    assert pesinvite.by_code(svc, inv["code"])["pid"] == pid and pesinvite.handle_of(svc, pid) == "nutmeg_ninja"
 
 
 def test_revoked_and_unknown_invites_cannot_sign_in(svc):
@@ -101,15 +101,15 @@ def test_two_players_cannot_take_the_same_name(svc):
 
 def test_admin_api(svc):
     st, inv = _api(svc, "/admin/api/invites/new", {})
-    assert st.startswith("200") and " " in inv["handle"] and inv["link"].startswith("http://pes.example.org/mod/dinput8.dll?invite=")
+    assert st.startswith("200") and "_" in inv["handle"] and inv["link"].startswith("http://pes.example.org/mod/dinput8.dll?invite=")
     assert _api(svc, "/admin/api/invites/new", {"handle": inv["handle"].upper()})[0].startswith("400")   # handles are unique
     assert _api(svc, "/admin/api/invites/new", {"handle": "x"})[0].startswith("400")
     st, r = _api(svc, "/admin/api/invites/rename", {"id": inv["id"], "handle": "Panenka Panda"})
-    assert st.startswith("200") and r["handle"] == "Panenka Panda"
+    assert st.startswith("200") and r["handle"] == "panenka_panda"
     assert _api(svc, "/admin/api/invites/revoke", {"id": inv["id"]})[1]["revoked"]
     assert _api(svc, "/admin/api/invites/revoke", {"id": inv["id"], "back": True})[1]["revoked"] is None
     st, snap = _api(svc, "/admin/api/invites", method="GET")
-    assert snap["invites_only"] is False and [i["handle"] for i in snap["invites"]] == ["Panenka Panda"]
+    assert snap["invites_only"] is False and [i["handle"] for i in snap["invites"]] == ["panenka_panda"]
     assert _api(svc, "/admin/api/invites/settings", {"invites_only": True})[1]["invites_only"] is True
     assert _api(svc, "/admin/api/invites/delete", {"id": inv["id"]})[0].startswith("200")
     assert _api(svc, "/admin/api/invites/delete", {"id": inv["id"]})[0].startswith("404")
@@ -157,10 +157,26 @@ def test_admin_routes_through_the_web_handler(svc):
     hdr = {"host": "127.0.0.1:8080", "authorization": "Bearer " + tok}
     call = lambda m, r, b=b"": asyncio.run(httpgate._admin(svc, m, r, hdr, b, "127.0.0.1"))
     st, out, _ = call("POST", "/admin/api/invites/new", b'{"handle": "Golden Goblin"}')
-    assert st.startswith("200") and json.loads(out)["handle"] == "Golden Goblin"
+    assert st.startswith("200") and json.loads(out)["handle"] == "golden_goblin"
     st, out, _ = call("GET", "/admin/api/invites")
     snap = json.loads(out)
     assert st.startswith("200") and snap["invites"][0]["code"] and snap["suggest"]
     st, out, _ = call("POST", "/admin/api/invites/suggest", b"{}")
     assert st.startswith("200") and json.loads(out)["handle"]
-    assert any("made an invite for Golden Goblin" in f["text"] for f in events._st(svc)["feed"])
+    assert any("made an invite for @golden_goblin" in f["text"] for f in events._st(svc)["feed"])
+
+
+def test_handles_are_at_style(svc):
+    assert pesinvite.create(svc, "@Nice Cat")["handle"] == "nice_cat"
+    with pytest.raises(ValueError):
+        pesinvite.create(svc, "nice-cat")                            # the same handle
+    with pytest.raises(ValueError):
+        pesinvite.create(svc, "@@x")                                 # too short
+    assert all(pesinvite.HANDLE_RE.fullmatch(pesinvite.funny_handle(svc)) for _ in range(30))
+    db = pescmds._db(svc)                                            # handles from before @handles
+    with svc.accounts.lock, db:
+        db.execute("INSERT INTO pes_invites (code, handle, created) VALUES (?,?,0)", ("c" * 32, "Panenka Panda"))
+        db.execute("INSERT INTO pes_invites (code, handle, created) VALUES (?,?,0)", ("d" * 32, "Nice Cat!"))
+    assert pesinvite.by_code(svc, "c" * 32)["handle"] == "panenka_panda"
+    assert pesinvite.by_code(svc, "d" * 32)["handle"].startswith("nice_cat_")   # nice_cat was taken
+    assert pesinvite.at("nice_cat") == "@nice_cat"

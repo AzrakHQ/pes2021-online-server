@@ -401,7 +401,10 @@
   .linkrow { display:flex; gap:8px; align-items:stretch; margin-top:6px; max-width:640px; }
   .linkrow code { flex:1; min-width:0; padding:9px 12px; user-select:all; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; overflow-wrap:normal; display:block; }
   @media (max-width: 520px) { .linkrow { flex-direction:column; } .linkrow button { align-self:flex-start; } .linkrow code { white-space:normal; overflow-wrap:anywhere; } }
-  .inv-hrow input { flex:1; min-width:0; }
+  .inv-at { flex:1; min-width:0; display:flex; align-items:center; border:1px solid var(--field); border-radius:8px; background:var(--input); padding-left:10px; }
+  .inv-at > span { color:var(--muted); font-weight:600; }
+  .msgf .inv-at input { border:0; background:transparent; padding-left:2px; width:100%; }
+  .inv-at:focus-within { outline:2px solid var(--accent); outline-offset:1px; }
   .inv-hrow { margin-top:0; }
   .inv-sent .row { display:flex; flex-wrap:wrap; gap:8px; }
   .inv-sent { margin-top:16px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--bg); }
@@ -787,8 +790,8 @@
           <div class="small" id="inv-reach" style="margin:0 0 10px"></div>
           <form id="inv-form" class="msgf" autocomplete="off">
             <label for="inv-handle" style="margin-top:0">Their handle</label>
-            <div class="linkrow inv-hrow"><input id="inv-handle" maxlength="24" spellcheck="false" aria-describedby="inv-hhelp" placeholder="Picking a funny name…"><button type="button" class="small needs-server" id="inv-roll" title="Suggest another funny name">Another name</button></div>
-            <p class="small muted" id="inv-hhelp" style="margin:6px 0 0">How you'll know them here (keep the funny one or type their real name). In the game they choose their own name.</p>
+            <div class="linkrow inv-hrow"><span class="inv-at"><span aria-hidden="true">@</span><input id="inv-handle" maxlength="25" spellcheck="false" autocapitalize="off" aria-describedby="inv-hhelp" placeholder="nice_cat"></span><button type="button" class="small needs-server" id="inv-roll" title="Suggest another funny name">Another name</button></div>
+            <p class="small muted" id="inv-hhelp" style="margin:6px 0 0">How you'll know them here: keep the funny one or type your own, like <b>@nice_cat</b> (letters, digits and _). In the game they choose their own name.</p>
             <div class="row"><button class="primary needs-server" type="submit" id="inv-make">Make their invite</button></div>
           </form>
           <div id="inv-new" aria-live="polite"></div>
@@ -1918,6 +1921,7 @@ $("wform").onsubmit = async e => {
 
 // ---- invites: one link per friend (pesinvite.py) ------------------------------------------------------
 let inv = null, invAt = 0, invBusy = false, invJust = null;
+const atH = h => "@" + h;
 const invLink = code => { try { const u = new URL(last.server.main); u.search = "invite=" + code; return u.href; } catch (e) { return ""; } };
 const invMsg = (handle, link) => `You're invited to my PES 2021 server! Open this link on the PC you play on, download your mod and follow the steps: ${link}`;
 async function loadInvites(force) {
@@ -1931,11 +1935,11 @@ async function loadInvites(force) {
 }
 function invSent(i) {
   const link = invLink(i.code);
-  return `<div class="inv-sent"><p style="margin:0 0 6px"><b>Send this to ${esc(i.handle)}</b> on WhatsApp, Discord or Telegram:</p>` +
+  return `<div class="inv-sent"><p style="margin:0 0 6px"><b>Send this to ${esc(atH(i.handle))}</b> on WhatsApp, Discord or Telegram:</p>` +
     `<p class="inv-msg">${esc(invMsg(i.handle, link))}</p>` +
     `<div class="row"><button type="button" class="primary" data-copytext="${esc(invMsg(i.handle, link))}" data-copied="Invite message copied">Copy message</button>` +
     `<button type="button" data-copytext="${esc(link)}" data-copied="Link copied">Copy link only</button></div>` +
-    `<p class="small muted" style="margin:8px 0 0">The link is theirs alone: whoever has it plays as ${esc(i.handle)}. If it ends up with someone else, revoke it below and make a new one.</p></div>`;
+    `<p class="small muted" style="margin:8px 0 0">The link is theirs alone: whoever has it plays as ${esc(atH(i.handle))}. If it ends up with someone else, revoke it below and make a new one.</p></div>`;
 }
 function renderInvite(d) {
   loadInvites(false);
@@ -1948,12 +1952,12 @@ function renderInvite(d) {
     : i.pid == null ? `<span class="muted">not used yet · made ${esc(ago(i.created, now))}</span>`
     : `${online.has(i.pid) ? `<span class="pill tag"><span class="dot"></span>online</span> ` : ""}<span class="muted">plays as</span> ${pname(i.name || "(no name yet)", i.pid, "iv-" + i.id)}${i.last_seen && !online.has(i.pid) ? ` <span class="muted">· seen ${esc(ago(i.last_seen, now))}</span>` : ""}`;
   put("invs", (rows.length ? `<ul class="list-plain invlist">` + rows.map(i => `<li class="${i.revoked ? "gone" : ""}">` +
-      `<div class="grow"><b>${esc(i.handle)}</b><br><span class="small">${status(i)}</span></div>` +
+      `<div class="grow"><b>${esc(atH(i.handle))}</b><br><span class="small">${status(i)}</span></div>` +
       `<div class="acts">` + (i.revoked
-        ? `<button type="button" class="small needs-server" data-ivback="${i.id}" data-key="ivb-${i.id}">Let back in</button><button type="button" class="small danger needs-server" data-ivdel="${i.id}" data-name="${esc(i.handle)}" data-key="ivd-${i.id}">Delete</button>`
+        ? `<button type="button" class="small needs-server" data-ivback="${i.id}" data-key="ivb-${i.id}">Let back in</button><button type="button" class="small danger needs-server" data-ivdel="${i.id}" data-name="${esc(atH(i.handle))}" data-key="ivd-${i.id}">Delete</button>`
         : `<button type="button" class="small" data-copytext="${esc(invMsg(i.handle, invLink(i.code)))}" data-copied="Invite message copied" data-key="ivc-${i.id}">Copy invite</button>` +
-          `<button type="button" class="small needs-server" data-ivren="${i.id}" data-name="${esc(i.handle)}" data-key="ivr-${i.id}">Rename</button>` +
-          `<button type="button" class="small danger needs-server" data-ivrev="${i.id}" data-name="${esc(i.handle)}" data-online="${online.has(i.pid) ? 1 : ""}" data-key="ivx-${i.id}">Revoke</button>`) +
+          `<button type="button" class="small needs-server" data-ivren="${i.id}" data-name="${esc(atH(i.handle))}" data-key="ivr-${i.id}">Rename</button>` +
+          `<button type="button" class="small danger needs-server" data-ivrev="${i.id}" data-name="${esc(atH(i.handle))}" data-online="${online.has(i.pid) ? 1 : ""}" data-key="ivx-${i.id}">Revoke</button>`) +
       `</div></li>`).join("") + `</ul>`
     : `<p class="empty">No invites yet. Make the first one above: it takes one click.</p>`));
   const old = inv.players_without_invite;
@@ -1987,7 +1991,7 @@ document.addEventListener("click", async e => {
     if (on && inv && inv.players_without_invite.length && await ask({title: "Only invited friends?", body: `${andList(inv.players_without_invite.map(p => p.name || "Player " + p.pid))} joined before invites. They can still play, but anyone new needs an invite.`, ok: "Turn it on"}) === null) return;
     return invCall("/admin/api/invites/settings", {invites_only: on}, on ? "Only invited friends can join now." : "Anyone with your server's mod can join again."); }
   const ren = e.target.closest("[data-ivren]");
-  if (ren) { const h = await ask({title: `Rename ${ren.dataset.name}`, label: "New handle", ok: "Rename"}); if (!h) return;
+  if (ren) { const h = await ask({title: `Rename ${ren.dataset.name}`, label: "New handle (letters, digits and _, like nice_cat)", ok: "Rename"}); if (!h) return;
     return invCall("/admin/api/invites/rename", {id: +ren.dataset.ivren, handle: h}, "Renamed."); }
   const rev = e.target.closest("[data-ivrev]");
   if (rev) { if (await ask({title: `Revoke ${rev.dataset.name}'s invite?`, body: (rev.dataset.online ? "They're online now and get disconnected.\n\n" : "") + "Their copy of the mod stops working on this server (the game says their account is suspended). Their name and results stay. You can let them back in later.", ok: "Revoke", danger: true}) === null) return;

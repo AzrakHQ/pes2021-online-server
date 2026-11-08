@@ -74,8 +74,8 @@ Outline. When a competition ends, each player sees their final position the next
 
 ## Invites: one mod per friend
 
-Each friend can get their own copy of the mod with a handle (a funny football name like "Panenka Panda", or one
-you pick) and a secret code written in. The server then knows them by that code: on any PC, in any game folder,
+Each friend can get their own copy of the mod with a handle like `@panenka_panda` (a funny football one, or one you
+pick: lowercase letters, digits and `_`) and a secret code written in. The server then knows them by that code: on any PC, in any game folder,
 after a reinstall. In the game they still choose their own name, and no two players can take the same one.
 Revoking an invite is a ban: that copy can't sign in any more. Needs mod 0.6.0 (this release).
 
@@ -84,11 +84,11 @@ tells you to make them one. Players the server already knows keep playing. It is
 
 ```bash
 curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{}'                      # a funny handle
-curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{"handle": "Sami"}'      # your own
+curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{"handle": "nice_cat"}'  # your own (@ optional)
 curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{"pid": 3}'              # for a player you already have
 curl -s -H "Authorization: Bearer $T" $A/invites                                         # all invites, with their links
 curl -s -H "Authorization: Bearer $T" -X POST $A/invites/settings -d '{"invites_only": true}'
-curl -s -H "Authorization: Bearer $T" -X POST $A/invites/rename -d '{"id": 1, "handle": "Rabona Raccoon"}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/invites/rename -d '{"id": 1, "handle": "rabona_raccoon"}'
 curl -s -H "Authorization: Bearer $T" -X POST $A/invites/revoke -d '{"id": 1}'           # ban; add "back": true to undo
 curl -s -H "Authorization: Bearer $T" -X POST $A/invites/delete -d '{"id": 1}'
 ```
