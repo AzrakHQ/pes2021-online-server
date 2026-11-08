@@ -255,9 +255,9 @@ def snapshot(svc):
               for pid, s in sorted(svc.online.items()) if isinstance(pid, int)]
     db = svc.accounts.db
     results = [dict(zip(("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason",
-                         "home_pid", "away_pid", "voided", "left_pid", "left_at", "mode"), r))
+                         "home_pid", "away_pid", "voided", "left_pid", "left_at", "mode", "home_team", "away_team"), r))
                for r in db.execute("SELECT id, started, ended, home_name, away_name, home_score, away_score, reason,"
-                                   " home_pid, away_pid, voided, left_pid, left_at, mode"
+                                   " home_pid, away_pid, voided, left_pid, left_at, mode, home_team, away_team"
                                    " FROM pes_matches ORDER BY id DESC LIMIT 100")]
     played_total, goals_total, abandoned = db.execute(
         "SELECT COUNT(*), COALESCE(SUM(home_score + away_score), 0), COALESCE(SUM(COALESCE(reason, '') != ''), 0)"
@@ -314,7 +314,7 @@ def player_detail(svc, pid):
     if r is None:
         return None
     _st(svc)
-    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason", "voided", "left_pid", "left_at", "mode")
+    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason", "voided", "left_pid", "left_at", "mode", "home_team", "away_team")
     matches = [dict(zip(keys, m)) for m in db.execute(
         "SELECT " + ", ".join(keys) + " FROM pes_matches WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid))]
     name = r[1] or f"Player {pid}"
@@ -358,7 +358,7 @@ def results_page(svc, q="", since=0, limit=25, until=None, early=False, mode=Non
     w = " WHERE " + " AND ".join(where)
     db = svc.accounts.db
     _st(svc)
-    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid", "voided", "left_pid", "left_at", "mode")
+    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid", "voided", "left_pid", "left_at", "mode", "home_team", "away_team")
     rows = [dict(zip(keys, r)) for r in db.execute("SELECT " + ", ".join(keys) + " FROM pes_matches" + w +
                                                    " ORDER BY id DESC LIMIT ?", (*args, max(1, min(int(limit), 1000))))]
     return rows, db.execute("SELECT COUNT(*) FROM pes_matches" + w, args).fetchone()[0]

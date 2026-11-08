@@ -53,7 +53,7 @@ Environment variables:
 ## Online Tournament competitions
 
 Each month the server makes a "Friends Cup" (eFootball → Online Tournament) unless another competition
-is running. Hosts can make their own with the admin API (signed in; on the host's own PC no password is needed):
+is running. Hosts can make, change, end and delete competitions on the admin page (Tournaments), or with the admin API (signed in; on the host's own PC no password is needed):
 
 ```bash
 A=http://127.0.0.1:8080/admin/api

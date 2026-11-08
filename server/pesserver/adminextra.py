@@ -5,16 +5,42 @@
 - the mode of each live match and result (Quick Match, Online Divisions, Matchday, a lobby room, Online Co-op);
 - why two friends who are both searching can't be paired (different game data, an older mod, a co-op block);
 - the courtesy rating (pesmanner), Online Divisions (pesdivisions) and Matchday (pesmatchday) per player;
-- the match relay (turn.py) and the host's Live Update (liveupdate.py).
+- the match relay (turn.py) and the host's Live Update (liveupdate.py);
+- Online Tournament competitions (pestourney: list, tables, the host's own competitions), match replays
+  (pesreplay), Match Block Lists (pesblock), co-op levels and profiles (pescoop, pesprofile), the word filter
+  (peswords, <data>/blocked_words.txt) and team names (web/teams.json, from the game's own team list).
 
-Everything here reads; the only writes are the admin's "clear courtesy record" and the cleanup of a deleted player.
+Everything here reads; the only writes are the admin's "clear courtesy record", the word list and the cleanup of a
+deleted player.
 """
-import logging, os, time
+import json, logging, os, time
 
 log = logging.getLogger("pesserver.adminextra")
 
 QUICK, DIVISIONS, MATCHDAY, LOBBY, COOP = "Quick Match", "Online Divisions", "Matchday", "Friendly Match Lobby", "Online Co-op"
-MODES = {"OC_QUICK": QUICK, "OC_RANK": DIVISIONS, "MATCHDAY": MATCHDAY}
+TOURNEY = "Online Tournament"
+MODES = {"OC_QUICK": QUICK, "OC_RANK": DIVISIONS, "MATCHDAY": MATCHDAY, "PES_LEAGUE": TOURNEY}
+
+
+# ---- team names ----------------------------------------------------------------------------------------
+_TEAMS = {}
+
+
+def teams():
+    """{"national": [{region, teams: [ids]}], "names": {"id": name}} from web/teams.json (empty if missing)."""
+    if "t" not in _TEAMS:
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "web", "teams.json"), encoding="utf-8") as f:
+                _TEAMS["t"] = json.load(f)
+        except (OSError, ValueError):
+            _TEAMS["t"] = {"national": [], "names": {}}
+    return _TEAMS["t"]
+
+
+def team_name(tid):
+    if not tid:
+        return None
+    return teams()["names"].get(str(tid)) or f"Team {tid}"
 
 
 def mode_of_room(room):
@@ -72,12 +98,53 @@ def augment(svc, snap):
     snap["problems"] = _safe(lambda: _problems(svc, mm), [])
     _safe(lambda: _player_extras(svc, snap["players"]), None)
     snap["matchday"] = _safe(lambda: _matchday(svc), None)
+    snap["tourneys"] = _safe(lambda: _tourneys(svc), [])
+    from . import pestourney
+    snap["monthly_cup"] = _safe(lambda: pestourney.monthly_cup(svc), True)
+    names = {c["compe_id"]: c["name"] for c in snap["tourneys"]}
+    for lv in snap["live"]:                      # an Online Tournament match: which competition
+        lv["competition"] = names.get((mm["rooms"].get(lv.get("room")) or {}).get("compe"))
+    for o in snap["online"]:
+        if o.get("searching_for") == TOURNEY:
+            o["competition"] = names.get(getattr(svc.online.get(o["pid"]), "pes_compe", None))
+    snap["replays"] = _safe(lambda: _replays(svc), [])
     return snap
+
+
+def _tourneys(svc):
+    """Online Tournament competitions, newest first, with their tables (pestourney.snapshot) and team names."""
+    from . import pestourney, pescmds
+    out = pestourney.snapshot(svc)
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        played = dict(db.execute("SELECT compe_id, COUNT(DISTINCT match_id) FROM pes_tourney_match GROUP BY compe_id"))
+        auto = {cid for cid, a in db.execute("SELECT compe_id, auto FROM pes_tourney") if a}
+    for c in out:
+        c["team_names"] = {str(t): team_name(t) for t in c["teams"]}
+        c["matches"] = played.get(c["compe_id"], 0)
+        c["outline"] = pestourney.outline(c)
+        c["minutes"] = int((c.get("rules") or {}).get("match_minutes") or pestourney.MATCH_MINUTES)
+        c["auto"] = c["compe_id"] in auto              # the monthly Friends Cup the server made itself
+        for r in c["table"]:
+            r["team"] = team_name(r["team_id"])
+    return out
+
+
+def _replays(svc):
+    """Recorded matches (pesreplay), newest first."""
+    from . import pesreplay
+    out = []
+    for mid, m in pesreplay.recordings(svc)[:pesreplay.KEEP]:
+        out.append({"match_id": mid, "home": m.get("home"), "away": m.get("away"), "home_name": m.get("home_name"),
+                    "away_name": m.get("away_name"), "home_score": m.get("home_score"), "away_score": m.get("away_score"),
+                    "t": m.get("t0"), "chunks": m.get("n", 0), "recording": not m.get("closed", True),
+                    "home_team": team_name(m.get("home_team")), "away_team": team_name(m.get("away_team"))})
+    return out
 
 
 def _searching(svc, mm):
     from . import pesmatch, pescoop
-    out = {p: MODES.get(pesmatch._matching_type(s), QUICK) for p, s in mm["queue"]}
+    out = {p: MODES.get(pesmatch._matching_type(s), QUICK) for p, s in mm["queue"] if s is not None}
     out.update({p: COOP for p, _s, _t in pescoop._queue(svc)})
     return out
 
@@ -93,12 +160,16 @@ def _rooms(svc, in_match):
 
 def _problems(svc, mm):
     """Friends who are searching at the same time but can't be paired, and why."""
-    from . import pesmatch, pescoop
+    from . import pesmatch, pescoop, pesblock
     out, q = [], list(mm["queue"])
     for i in range(len(q)):
         for j in range(i + 1, len(q)):
             (a, sa), (b, sb) = q[i], q[j]
-            if sa is None or sb is None or pesmatch._matching_type(sa) != pesmatch._matching_type(sb):
+            if sa is None or sb is None or pesmatch._queue_key(sa) != pesmatch._queue_key(sb):
+                continue                                # different modes (or competitions) never meet
+            if pesblock.blocked(svc, a, b):            # a Match Block List entry: never paired, by choice
+                out.append({"kind": "blocked", "pids": [a, b], "by": [p for p, o in ((a, b), (b, a))
+                                                                      if o in pesblock.rejects(svc, p)]})
                 continue
             if not pesmatch._compatible(sa, sb):
                 if pesmatch._same_math(sa) != pesmatch._same_math(sb):
@@ -193,10 +264,31 @@ def player(svc, pid):
     courtesy = {"grade": pesmanner.grade_for(quits), "quits": quits, "matches": len(rows),
                 "early": [{"t": t, "why": REASONS.get(why, why.lower())} for early, why, t in rows if early]} if rows else None
     sess = svc.online.get(pid)
-    return {"courtesy": courtesy, "division": divs.get(pid),
+    return {**_more(svc, pid), "courtesy": courtesy, "division": divs.get(pid),
             "matchday": {"side": pesmatchday.SIDES.get(md[0], (md[0],))[0], "points": md[1], "matches": md[2]} if md else None,
             "coop_blocks": pescoop.rejects(svc, pid), "coop_blocked_by": blocked_by,
             "mod": mod_of(sess) if sess is not None else None}
+
+
+def _more(svc, pid):
+    """Profile, co-op level, Match Block List and Online Tournament entries of one player."""
+    from . import pesprofile, pescoop, pesblock, pescmds
+    out = {"profile": _safe(lambda: pesprofile.profile(svc, pid), {}) or None}
+    lvl = _safe(lambda: pescoop.level(svc, pid), None)
+    out["coop_level"] = {"level": lvl[0], "points": lvl[1], "matches": lvl[2], "next": pescoop.LEVEL_POINTS - lvl[1] % pescoop.LEVEL_POINTS} \
+        if lvl and lvl[2] else None
+    out["match_blocks"] = _safe(lambda: pesblock.rejects(svc, pid), [])
+
+    def by():
+        db = pescmds._db(svc)
+        with svc.accounts.lock, db:
+            pesblock._setup(db)
+            return [r[0] for r in db.execute("SELECT pid FROM pes_match_reject WHERE target=?", (pid,))]
+    out["match_blocked_by"] = _safe(by, [])
+    out["tourneys"] = [{"compe_id": c["compe_id"], "name": c["name"], "state": c["state"], "rank": r["rank"], "of": len(c["table"]),
+                        "points": r["points"], "win": r["win"], "draw": r["draw"], "lose": r["lose"], "team": r["team"]}
+                       for c in _safe(lambda: _tourneys(svc), []) for r in c["table"] if r["pid"] == pid]
+    return out
 
 
 def clear_courtesy(svc, pid):
@@ -232,7 +324,56 @@ def server(svc):
         lu.update(name=info["name"], size=info["size"], version=f"{v[:-2]}.{v[-2:]}" if len(v) >= 3 else v,
                   since=_safe(lambda: os.path.getmtime(path), None),
                   sent=len({ip for ip, n in _SENT.get(liveupdate.folder(svc), set()) if n == info["name"]}))
-    return {"relay": relay, "liveupdate": lu}
+    from . import pesreplay
+    rp = {"on": pesreplay.enabled(), "keep": pesreplay.KEEP,
+          "folder": _safe(lambda: os.path.join(getattr(svc, "data_dir", "") or ".", "replays"), None)}
+    return {"relay": relay, "liveupdate": lu, "replays": rp, "words": _safe(lambda: words(svc), None)}
+
+
+# ---- the word filter ------------------------------------------------------------------------------------
+WORDS_HEAD = ("# Words and phrases players can't use in their name, room names or profile texts (one a line).\n"
+              "# Case doesn't matter; a word only matches whole words. Edited on the admin page.\n")
+
+
+def _words_path(svc):
+    return os.path.join(getattr(svc, "data_dir", "") or ".", "blocked_words.txt")
+
+
+def words(svc):
+    from . import peswords
+    return {"path": _words_path(svc), "words": peswords.words(svc)}
+
+
+def set_words(svc, lst):
+    """Replace the word list (the comment lines at the top of the file are kept)."""
+    from . import peswords
+    if not isinstance(lst, list):
+        raise ValueError("words must be a list")
+    seen, clean = set(), []
+    for w in lst:
+        w = " ".join(str(w).replace("#", " ").split())[:60]
+        k = peswords._norm(w).strip()
+        if k and k not in seen:
+            seen.add(k)
+            clean.append(w)
+    if len(clean) > 2000:
+        raise ValueError("too many words (2000 at most)")
+    path = _words_path(svc)
+    head = ""
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                if not line.lstrip().startswith("#"):
+                    break
+                head += line if line.endswith("\n") else line + "\n"
+    except OSError:
+        pass
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write((head or WORDS_HEAD) + "".join(w + "\n" for w in clean))
+    os.replace(tmp, path)
+    log.info("word filter: %d words", len(clean))
+    return words(svc)
 
 
 def note_liveupdate(svc, ip, name):

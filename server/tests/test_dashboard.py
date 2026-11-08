@@ -132,7 +132,7 @@ def test_admin_page_structure():
     html = html[:html.index("<script>", html.index("</style>"))] + html[html.rindex("</script>") + 9:]   # markup only
     p = P(); p.feed(html)
     assert not p.errors, p.errors[:3]
-    assert set(p.views) == {"v-overview", "v-players", "v-matches", "v-activity", "v-messages", "v-invite", "v-server"}
+    assert set(p.views) == {"v-overview", "v-players", "v-matches", "v-tourneys", "v-activity", "v-messages", "v-invite", "v-server"}
     for v, parents in p.views.items():
         assert "content" in parents and "app" in parents, (v, parents)
     assert [i for i, n in p.ids.items() if n > 1] == []

@@ -597,8 +597,44 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         return "200 OK", b'{"ok":true}', "application/json"
     if route.startswith("/admin/api/tourneys"):
         from . import pestourney                    # Online Tournament competitions (list, save, end, delete)
-        return pestourney.admin_api(service, route, method, body)
+        before = {c["compe_id"]: c["name"] for c in pestourney.competitions(service)} if method == "POST" else {}
+        status, out, ctype = pestourney.admin_api(service, route, method, body)
+        if method == "POST" and status.startswith("200"):
+            try:
+                req, res = json.loads(body or b"{}"), json.loads(out)
+                cid = res.get("compe_id", req.get("compe_id"))
+                name = before.get(_int(cid)) or req.get("name") or "a competition"
+                line = {"/admin/api/tourneys/save": f"The admin {'changed' if _int(req.get('compe_id')) in before else 'made'} the Online Tournament “{req.get('name') or name}”",
+                        "/admin/api/tourneys/end": f"The admin ended the Online Tournament “{name}”",
+                        "/admin/api/tourneys/delete": f"The admin deleted the Online Tournament “{name}”",
+                        "/admin/api/tourneys/monthly": "The admin turned the monthly Friends Cup " + ("on" if res.get("monthly_cup") else "off")}.get(route)
+                if line:
+                    events.feed(service, line, "info")
+            except Exception:  # noqa: BLE001 - the change itself is done
+                log.exception("tourney feed line")
+        return status, out, ctype
+    if route == "/admin/api/teams" and method == "GET":
+        from . import adminextra                    # team names for the tournament form (the game's own list)
+        return "200 OK", json.dumps(adminextra.teams()).encode(), "application/json"
+    if route == "/admin/api/words" and method == "POST":
+        # {words: [..]}: replace the word filter (<data>/blocked_words.txt)
+        from . import adminextra
+        try:
+            w = adminextra.set_words(service, json.loads(body or b"{}").get("words"))
+        except (ValueError, AttributeError) as e:
+            return "400 Bad Request", json.dumps({"error": str(e)}).encode(), "application/json"
+        except OSError:
+            return "500 Internal Server Error", b'{"error":"could not write the file"}', "application/json"
+        events.feed(service, f"The admin changed the word filter ({len(w['words'])} word{'' if len(w['words']) == 1 else 's'})", "info")
+        return "200 OK", json.dumps(w).encode(), "application/json"
     return "404 Not Found", b'{"error":"unknown"}', "application/json"
+
+
+def _int(v):
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return None
 
 
 def _web(service, route, headers, writer):

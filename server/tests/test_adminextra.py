@@ -106,3 +106,100 @@ def test_relay_and_live_update_card(tmp_path):
     adminextra.note_liveupdate(svc, "10.0.0.2", "roster.cpk")        # once per game and file
     lines = [f["text"] for f in events._st(svc)["feed"] if "Live Update" in f["text"]]
     assert lines == ["Bob's game downloaded the Live Update (roster.cpk)"]
+
+
+def test_tournament_mode_blocks_and_competitions(tmp_path):
+    from pesserver import pesblock, pestourney
+    svc = _svc(tmp_path); _seed(svc)
+    cid = pestourney.save(svc, {"name": "Saturday Cup", "start": int(time.time()) - 60, "end": int(time.time()) + 3600,
+                                "teams": [45, 50], "match_minutes": 6})
+    a, b = _sess(1, mtype="PES_LEAGUE"), _sess(2, mtype="PES_LEAGUE")
+    a.pes_compe = b.pes_compe = cid
+    svc.online.update({1: a, 2: b})
+    mm = pesmatch._state(svc)
+    mm["queue"] += [(1, a), (2, b)]
+    pescmds.dispatch(svc, a, "CMD_SET_MATCHREJECTPID", {"reject_pid": 2, "is_reject": "YES"})
+    snap = adminextra.augment(svc, events.snapshot(svc))
+    by = {o["pid"]: o for o in snap["online"]}
+    assert by[1]["searching_for"] == "Online Tournament" and by[1]["competition"] == "Saturday Cup"
+    assert snap["problems"] == [{"kind": "blocked", "pids": [1, 2], "by": [1]}]
+    b.pes_compe = cid + 1                                # another competition: a different queue, no problem
+    assert adminextra._problems(svc, mm) == []
+    t = next(c for c in snap["tourneys"] if c["compe_id"] == cid)
+    assert t["state"] == "running" and t["minutes"] == 6 and t["team_names"] == {"45": "Brazil", "50": "Argentina"}
+    assert t["auto"] is False and t["matches"] == 0 and "6-minute" in t["outline"]
+    room = {"compe": cid, "owner": 1, "members": [1, 2], "goals": {(1, "HOME")}, "teams": {1: 45, 2: 50},
+            "match_id": "t1", "t": time.time()}
+    pestourney.record(svc, room)
+    t = next(c for c in adminextra._tourneys(svc) if c["compe_id"] == cid)
+    assert t["matches"] == 1 and [(r["name"], r["team"], r["points"]) for r in t["table"]] == [("Ann", "Brazil", 3), ("Bob", "Argentina", 0)]
+    one = adminextra.player(svc, 1)
+    assert one["match_blocks"] == [2] and adminextra.player(svc, 2)["match_blocked_by"] == [1]
+    assert one["tourneys"] == [{"compe_id": cid, "name": "Saturday Cup", "state": "running", "rank": 1, "of": 2,
+                                "points": 3, "win": 1, "draw": 0, "lose": 0, "team": "Brazil"}]
+    assert adminextra.mode_of_room({"mode": "PES_LEAGUE"}) == "Online Tournament"
+
+
+def test_profile_coop_level_and_replays(tmp_path):
+    from pesserver import pesprofile
+    svc = _svc(tmp_path); _seed(svc)
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        pesprofile._setup(db)
+        db.execute("INSERT INTO pes_profile (pid, team, player, intro, t) VALUES (1, 'Brazil', 'Pele', 'hi', 0)")
+    pescoop.award(svc, {"owner": 1, "members": [1, 2], "goals": {(1, "HOME")}, "match_id": "c1"})
+    one = adminextra.player(svc, 1)
+    assert one["profile"] == {"team": "Brazil", "player": "Pele", "intro": "hi"}
+    assert one["coop_level"] == {"level": 1, "points": 30, "matches": 1, "next": 70}
+    assert adminextra.player(svc, 3)["coop_level"] is None and adminextra.player(svc, 3)["profile"] is None
+    d = tmp_path / "replays" / "m1"
+    d.mkdir(parents=True)
+    (d / "meta.json").write_text('{"home": 1, "away": 2, "home_name": "Ann", "away_name": "Bob", "t0": 5, "n": 3, '
+                                 '"closed": true, "home_score": 2, "away_score": 1, "home_team": 45, "away_team": 0}')
+    snap = adminextra.augment(svc, events.snapshot(svc))
+    assert snap["replays"] == [{"match_id": "m1", "home": 1, "away": 2, "home_name": "Ann", "away_name": "Bob",
+                                "home_score": 2, "away_score": 1, "t": 5, "chunks": 3, "recording": False,
+                                "home_team": "Brazil", "away_team": None}]
+    assert adminextra.server(svc)["replays"]["on"] is True
+
+
+def test_word_filter_from_the_admin_page(tmp_path):
+    from pesserver import peswords
+    svc = _svc(tmp_path); _seed(svc)
+    assert adminextra.server(svc)["words"]["words"] == []
+    f = tmp_path / "blocked_words.txt"
+    f.write_text("# my own note\nold\n")
+    w = adminextra.set_words(svc, ["Bad", "bad ", "two  words", "", "x#y"])
+    assert w["words"] == ["bad", "two words", "x y"]
+    assert f.read_text() == "# my own note\nBad\ntwo words\nx y\n"
+    assert peswords.blocked(svc, "a BAD name") == "bad" and peswords.blocked(svc, "old") is None
+    import pytest
+    with pytest.raises(ValueError):
+        adminextra.set_words(svc, "bad")
+
+
+def test_admin_routes_teams_words_and_tournament_log(tmp_path, monkeypatch):
+    import asyncio, json
+    from pesserver import httpgate, netsetup
+    svc = _svc(tmp_path); _seed(svc); svc.admin_password = "pw-123456789"
+    httpgate._FAILED.clear(); httpgate.load_remote(str(tmp_path))
+    monkeypatch.setitem(netsetup.STATE, "lan", "192.168.1.50")
+    h = {"host": "localhost:8080", "x-pes-local": "1"}
+    tok = json.loads(asyncio.run(httpgate._admin(svc, "POST", "/admin/api/login", h, b'{"local": true}', "127.0.0.1"))[1])["token"]
+    ha = {**h, "authorization": "Bearer " + tok}
+
+    def call(route, body=b"", method="POST"):
+        code, out, _ = asyncio.run(httpgate._admin(svc, method, route, ha, body, "127.0.0.1"))
+        return int(code.split()[0]), json.loads(out)
+
+    code, t = call("/admin/api/teams", method="GET")
+    assert code == 200 and t["names"]["45"] == "Brazil" and 45 in t["national"][2]["teams"]
+    assert call("/admin/api/words", b'{"words": ["bad"]}') == (200, {"path": str(tmp_path / "blocked_words.txt"), "words": ["bad"]})
+    assert call("/admin/api/words", b'{"words": "bad"}')[0] == 400
+    code, r = call("/admin/api/tourneys/save", json.dumps({"name": "Cup", "start": "2030-01-01", "end": "2030-01-02"}).encode())
+    assert code == 200
+    call("/admin/api/tourneys/save", json.dumps({"compe_id": r["compe_id"], "name": "Big Cup"}).encode())
+    call("/admin/api/tourneys/delete", json.dumps({"compe_id": r["compe_id"]}).encode())
+    lines = [f["text"] for f in events._st(svc)["feed"] if "Tournament" in f["text"] or "word" in f["text"]]
+    assert lines == ["The admin deleted the Online Tournament “Big Cup”", "The admin changed the Online Tournament “Big Cup”",
+                     "The admin made the Online Tournament “Cup”", "The admin changed the word filter (1 word)"]

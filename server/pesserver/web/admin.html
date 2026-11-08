@@ -480,6 +480,33 @@
   @media (max-width: 420px) { .kv.modes { grid-template-columns:minmax(0,1fr); gap:2px; } .kv.modes dt { margin-top:8px; font-size:13px; } }
   h3.rooms-h { margin-top:16px; }
   .pill.mode { margin-left:6px; }
+  .tn-dates { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:0 12px; }
+  @media (max-width: 420px) { .tn-dates { grid-template-columns:minmax(0,1fr); } }
+  .msgf fieldset { border:1px solid var(--line); border-radius:10px; margin:14px 0 0; padding:8px 12px 12px; min-width:0; }
+  .msgf legend { font-weight:600; font-size:14px; padding:0 4px; }
+  .tn-reg { margin-top:8px; }
+  .tn-pick > summary { display:flex; gap:10px; align-items:baseline; cursor:pointer; font-size:14px; padding:4px 0; list-style:none; }
+  .tn-pick > summary::-webkit-details-marker { display:none; }
+  .tn-pick > summary .grow { flex:1; min-width:0; }
+  .tn-pick > summary .linkbtn { white-space:nowrap; font-size:13px; }
+  .tn-pick[open] > summary .linkbtn { visibility:hidden; }
+  .tn-reg .rh { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted); font-weight:600; margin-bottom:4px; }
+  .tn-reg .rh .linkbtn { font-size:12px; font-weight:400; }
+  .tn-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(9.5em, 1fr)); gap:2px 10px; }
+  .tn-grid label { display:flex; align-items:center; gap:6px; font-weight:400; font-size:14px; margin:0; padding:3px 0; min-width:0; }
+  .tn-grid label span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tn-grid input { width:auto; flex:none; margin:0; accent-color:var(--accent); }
+  .tn { margin-bottom:16px; }
+  .tn .meta { margin:-4px 0 12px; }
+  .tn .acts { display:flex; gap:8px; flex-wrap:wrap; }
+  .tn table td.team, .tn table th.team { color:var(--muted); }
+  .tn .win1 td { font-weight:600; }
+  .tn details { margin-top:12px; }
+  .tn details .pb { white-space:pre-line; font-size:14px; padding:8px 0 0; overflow-wrap:anywhere; }
+  .steps-plain { margin:0; padding-left:1.3em; display:grid; gap:8px; font-size:14px; }
+  .team-n { display:block; font-size:12px; color:var(--muted); font-weight:400; }
+  td.h .team-n { text-align:right; }
+  #w-list { min-height:120px; font-family:ui-monospace, Menlo, Consolas, monospace; font-size:13px; }
   table.divt { width:auto; min-width:min(100%, 620px); }
   table.divt td.name { white-space:nowrap; }
   .odot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-right:7px; vertical-align:1px; }
@@ -555,6 +582,7 @@
       <a href="#messages" data-view="messages"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H6l-3 2.5V11H2z"/></svg><span class="lbl">Messages</span><span class="badge ok" id="nb-messages" hidden></span></a>
       <button type="button" class="more-btn" id="nav-more" aria-expanded="false" aria-controls="nav-sec"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="12.5" cy="8" r="1" fill="currentColor"/></svg>More<span class="badge warn" id="nb-more" hidden></span></button>
       <div class="sec" id="nav-sec">
+      <a href="#tourneys" data-view="tourneys"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5h6v3.5a3 3 0 01-6 0zM5 3.5H2.5a2.5 2.5 0 002.7 3M11 3.5h2.5a2.5 2.5 0 01-2.7 3M8 9v2.5M5.5 13.5h5M6.5 11.5h3v2h-3z"/></svg><span class="lbl">Tournaments</span></a>
       <a href="#activity" data-view="activity"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg><span class="lbl">Activity</span></a>
       <a href="#invite" data-view="invite"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4 1.2 0 2.3.4 3 1.2M12.5 8.5v5M10 11h5"/></svg><span class="lbl"><span class="lg">Invite friends</span><span class="st">Invite</span></span></a>
       <a href="#server" data-view="server"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.01M4.5 11.25h.01"/></svg><span class="lbl">Server</span><span class="badge warn" id="nb-server" hidden></span></a>
@@ -629,7 +657,7 @@
           <span class="grow"></span><span class="count" id="p-count" aria-live="polite"></span>
         </div>
         <div id="plist"><div class="skel"></div><div class="skel short"></div></div>
-        <details class="keycheck tnotes" id="p-note"><summary>How the table works</summary><p class="note"><b>Points per game</b> ranks only friends with 5+ matches, so nobody is behind just for playing less; ties go to goal difference per game. Select a name for their matches, head-to-head record and the Delete option. <span class="hide-lg">Rating is the game's own matchmaking number (it pairs players of similar skill); it doesn't change the table order.</span></p><p class="note">Kick disconnects someone now; they can reconnect and see your reason. There's no ban yet: anyone with the mod file can join.</p><p class="note"><b>Courtesy B or C</b> next to a name is the game's fair-play rating: it drops when someone quits, idles or closes the game during matches (a kick or the other player leaving doesn't count). The game warns them itself; you can clear it in their panel.</p></details>
+        <details class="keycheck tnotes" id="p-note"><summary>How the table works</summary><p class="note"><b>Points per game</b> ranks only friends with 5+ matches, so nobody is behind just for playing less; ties go to goal difference per game. Select a name for their matches, head-to-head record and the Delete option. <span class="hide-lg">Rating is the game's own matchmaking number (it pairs players of similar skill); it doesn't change the table order.</span></p><p class="note">Kick disconnects someone now; they can reconnect and see your reason. There's no ban yet: anyone with the mod file can join.</p><p class="note"><b>Courtesy B or C</b> next to a name is the game's fair-play rating: it drops when someone quits, idles or closes the game during matches (a kick or the other player leaving doesn't count). The game warns them itself; you can clear it in their panel.</p><p class="note"><b>Leaving early loses the match:</b> whoever quits, idles or drops out after kick-off loses, and the other player wins 3–0 (or by their lead if bigger). Results show it as a forfeit.</p></details>
       </section>
       <section class="card" id="c-div" aria-labelledby="h-div" hidden><div class="card-h"><h2 id="h-div" tabindex="-1">Online Divisions</h2></div><div id="divs"></div></section>
     </section>
@@ -646,6 +674,39 @@
         <div id="results"><div class="skel"></div><div class="skel short"></div></div>
       </section>
       <section class="card" id="c-md" aria-labelledby="h-md" hidden><div class="card-h"><h2 id="h-md" tabindex="-1">Matchday</h2></div><div id="md"></div></section>
+      <section class="card" id="c-rp" aria-labelledby="h-rp"><div class="card-h"><h2 id="h-rp" tabindex="-1">Match replays</h2></div><div id="rp"></div></section>
+    </section>
+
+    <!-- TOURNAMENTS -->
+    <section class="view" id="v-tourneys" aria-labelledby="t-tourneys" hidden>
+      <h1 id="t-tourneys" tabindex="-1">Tournaments</h1>
+      <p class="lead">Competitions in the game's own Online Tournament menu. Friends enter with a team; every match two entrants play there counts: 3 points a win, 1 a draw.</p>
+      <div id="tn-list"><div class="skel"></div></div>
+      <div class="grid2 row-gap">
+        <section class="card msgf" aria-labelledby="h-tnform"><h2 id="h-tnform" tabindex="-1">New tournament</h2>
+          <form id="tnform" novalidate>
+            <label for="tn-name">Name</label><input id="tn-name" maxlength="60" autocomplete="off" placeholder="e.g. Saturday Cup">
+            <div class="tn-dates"><div><label for="tn-start">Starts</label><input type="datetime-local" id="tn-start"></div><div><label for="tn-end">Ends</label><input type="datetime-local" id="tn-end"></div></div>
+            <p class="small muted" id="tn-when" style="margin:6px 0 0">Your time. Matches only count if the two friends were paired between these times.</p>
+            <label for="tn-min">Match length</label><select id="tn-min"><option value="5">5 minutes</option><option value="6">6 minutes</option><option value="8">8 minutes</option><option value="10" selected>10 minutes</option><option value="12">12 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option></select>
+            <fieldset class="tn-teams" id="tn-teams-f"><legend>Teams friends can enter with <span class="small muted" id="tn-tcount"></span></legend><div id="tn-teams"><div class="skel"></div></div></fieldset>
+            <label for="tn-info">Competition Outline <span class="small muted" style="font-weight:400">(optional)</span></label><textarea id="tn-info" maxlength="2000" placeholder="Friends read this under Competition Details. Leave it empty and the server writes one from the dates and rules." aria-describedby="tn-err"></textarea>
+            <div id="tn-err" class="small" aria-live="polite"></div>
+            <div class="row"><button class="primary needs-server" type="submit" id="tn-save">Create tournament</button><button type="button" id="tn-cancel" hidden>Cancel editing</button></div>
+          </form>
+        </section>
+        <div class="stack">
+        <section class="card" aria-labelledby="h-tnhow"><h2 id="h-tnhow">How friends play it</h2>
+          <ol class="steps-plain">
+            <li><b>eFootball → Online Tournament</b>, pick the competition and enter with a team.</li>
+            <li>In the competition's menu, choose <b>Match</b>. The server pairs two friends who entered the same competition and are searching at the same time.</li>
+            <li>The table is in the competition's <b>Rankings</b>. When it ends, each friend sees their final place the next time they open Online Tournament.</li>
+          </ol>
+          <p class="note">Leaving a match early loses it 0–3. Teams play at their real strength. Matches also count in your server's league table and ratings.</p>
+        </section>
+        <section class="card" aria-labelledby="h-tnmon"><h2 id="h-tnmon">Monthly Friends Cup</h2><div class="net" id="tn-monthly"></div></section>
+        </div>
+      </div>
     </section>
 
     <!-- ACTIVITY -->
@@ -735,7 +796,7 @@
             <li>In Steam, right-click <b>PES 2021</b> → Manage → <b>Browse local files</b>, and put the file next to <code>PES2021.exe</code>.
               <div class="small muted" style="margin-top:6px"><b>Steam Deck / Linux:</b> also set PES 2021 → Properties → Launch options to:<span class="linkrow"><code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code><button type="button" class="small" data-copytext="WINEDLLOVERRIDES=&quot;dinput8=n,b&quot; %command%" data-copied="Launch option copied">Copy</button></span></div></li>
             <li>Start the game → <b>eFootball → Quick Match → Go to Matchmaking</b>. The first time, they pick a region and a player name.
-              <div class="small muted" style="margin-top:6px">Online Divisions, Matchday, the Friendly Match Lobby (rooms where friends pick who they play) and Online Co-op work too. Two friends are paired when they search in the same mode.</div></li>
+              <div class="small muted" style="margin-top:6px">Online Divisions, Matchday, Online Tournament (your server's own competitions), the Friendly Match Lobby (rooms where friends pick who they play) and Online Co-op work too. Two friends are paired when they search in the same mode. Recent matches can be watched again under Online Tournament → Match Replays.</div></li>
           </ol>
           <p class="small muted" style="margin:8px 0 0">To stop playing on your server, they just delete the file.</p>
         </section>
@@ -745,7 +806,7 @@
     <!-- SERVER -->
     <section class="view" id="v-server" aria-labelledby="t-server" hidden>
       <h1 id="t-server" tabindex="-1">Server</h1>
-      <p class="lead">Network, the match relay, the Live Update, admin access, this computer's game and the start command.</p>
+      <p class="lead">Network, the match relay, the Live Update, the word filter, admin access, this computer's game and the start command.</p>
       <div class="grid2 eq row-gap">
         <section class="card" aria-labelledby="h-status"><h2 id="h-status" tabindex="-1">Status</h2><dl class="kv" id="srv-status"></dl></section>
         <section class="card" aria-labelledby="h-net"><h2 id="h-net" tabindex="-1">Network</h2><div class="net" id="net"><div class="skel"></div></div></section>
@@ -755,6 +816,13 @@
         <section class="card" aria-labelledby="h-cmd"><h2 id="h-cmd" tabindex="-1">Start, stop and update</h2><dl class="kv" id="cmds"></dl></section>
       </div>
       <section class="card" aria-labelledby="h-lu"><h2 id="h-lu" tabindex="-1">Live Update</h2><div class="net" id="lu"></div></section>
+      <section class="card msgf" aria-labelledby="h-words"><h2 id="h-words" tabindex="-1">Word filter</h2>
+        <p class="small muted" style="margin:-6px 0 4px">Words and phrases friends can't use in their player name, room names or profile texts. The game says "Includes unusable letters or phrases" and lets them type something else. Names already in use stay as they are.</p>
+        <form id="wform"><label for="w-list">One word or phrase a line</label><textarea id="w-list" spellcheck="false" placeholder="Nothing is blocked." aria-describedby="w-note"></textarea>
+          <div class="small muted" id="w-note" style="margin-top:6px">Whole words only: “hell” doesn't block “hello”. Capitals don't matter, and spaced-out letters (b a d) are caught too.</div>
+          <div class="row"><button class="primary needs-server" type="submit" id="w-save">Save words</button><button type="button" id="w-undo" hidden>Undo changes</button><span class="small muted" id="w-state" aria-live="polite"></span></div></form>
+        <div id="w-path"></div>
+      </section>
       <section class="card" id="thispc" aria-labelledby="pc-h">
         <h2 id="pc-h" tabindex="-1">PES 2021 on this computer</h2>
         <p class="small muted" style="margin:-6px 0 8px">Want to play on the server computer too? Set up its copy of PES 2021 here.</p>
@@ -921,8 +989,8 @@ async function api(path, opts = {}) {
 }
 
 // ---- views ----------------------------------------------------------------------------------------
-const VIEWS = ["overview", "players", "matches", "activity", "messages", "invite", "server"];
-const TITLES = {overview: "Overview", players: "Players", matches: "Matches", activity: "Activity", messages: "Messages", invite: "Invite friends", server: "Server"};
+const VIEWS = ["overview", "players", "matches", "tourneys", "activity", "messages", "invite", "server"];
+const TITLES = {overview: "Overview", players: "Players", matches: "Matches", tourneys: "Tournaments", activity: "Activity", messages: "Messages", invite: "Invite friends", server: "Server"};
 function route(focus) {
   if (focus && $("sheet").open) { sheetBack = null; closeSheet(); }
   const [v0, target] = location.hash.slice(1).split("/");
@@ -934,7 +1002,7 @@ function route(focus) {
   VIEWS.forEach(x => { $("v-" + x).hidden = x !== v; });
   document.querySelectorAll(".nav a").forEach(a => a.dataset.view === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   document.title = TITLES[v] + " · PES 2021 Server";
-  $("nav-more").classList.toggle("cur", ["activity", "invite", "server"].includes(v)); setMore(false);
+  $("nav-more").classList.toggle("cur", ["tourneys", "activity", "invite", "server"].includes(v)); setMore(false);
   if (last) render(last);
   if (v === "server" && changed) loadGames();
   navFade();
@@ -1247,6 +1315,7 @@ function render(d) {
   if (ui.view === "overview") renderOverview(d, r, pn, playing, ready);
   if (ui.view === "players") renderPlayers(d);
   if (ui.view === "matches") renderMatches(d, playing, ready);
+  if (ui.view === "tourneys") renderTourneys(d);
   if (ui.view === "activity") renderFeed(d);
   if (ui.view === "server") renderServer(d, s);
   if (ui.view === "messages") renderDmTo(d);
@@ -1263,8 +1332,8 @@ function badge(id, v, label) {
 
 function liveHtml(d, now, compact) {
   const phaseLabel = m => m.phase === "Full time" ? `<span class="pill neutral">Full time</span>`
-    : m.kickoff ? `<span class="pill live"><span class="dot"></span>${esc(m.phase)}</span> <span class="muted">&nbsp;kicked off ${ago(m.kickoff, now)}</span>${modeTag(m.mode)}`
-    : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}</span>${modeTag(m.mode)}${!compact && now - (m.started || now) > 300 ? `<span class="stuck small">Stuck? ${nm(m.home_name)} and ${nm(m.away_name)} can leave and search again.</span><span class="stuck-acts">${[[m.home, m.home_name], [m.away, m.away_name]].filter(x => x[0] != null).map(([pid, n]) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="lvdm-${pid}${compact ? "c" : ""}">Message ${nm(n)}</button>`).join("")}</span>` : ""}`;
+    : m.kickoff ? `<span class="pill live"><span class="dot"></span>${esc(m.phase)}</span> <span class="muted">&nbsp;kicked off ${ago(m.kickoff, now)}</span>${modeTag(m.competition || m.mode)}`
+    : `<span class="pill neutral">Getting ready</span> <span class="muted">&nbsp;matched ${ago(m.started || now, now)}</span>${modeTag(m.competition || m.mode)}${!compact && now - (m.started || now) > 300 ? `<span class="stuck small">Stuck? ${nm(m.home_name)} and ${nm(m.away_name)} can leave and search again.</span><span class="stuck-acts">${[[m.home, m.home_name], [m.away, m.away_name]].filter(x => x[0] != null).map(([pid, n]) => `<button type="button" class="small needs-server" data-dm="${pid}" data-key="lvdm-${pid}${compact ? "c" : ""}">Message ${nm(n)}</button>`).join("")}</span>` : ""}`;
   const going = d.live.filter(m => m.phase !== "Full time"), done = d.live.filter(m => m.phase === "Full time");
   const fin = done.length ? `<p class="finished">Just finished: ${done.map(m => `${esc(m.home_name)} ${m.home_score}–${m.away_score} ${esc(m.away_name)}`).join(" · ")}</p>` : "";
   return going.length ? `<ul class="list-plain">` + going.map(m => `
@@ -1355,6 +1424,7 @@ function renderOverview(d, r, pn, playing, ready) {
       if (p.kind === "data") attn.push(`<li><span>${I.warn} <b>${nmOf(p.pids[0])} and ${nmOf(p.pids[1])} are both searching but can't be paired:</b> their games have different player data (a different patch, Live Update or edited stats). A Live Update from your server gives everyone the same data.</span><a href="#server/h-lu">Live Update ${I.right}</a></li>`);
       else if (p.kind === "mod") attn.push(`<li><span>${I.warn} <b>${nmOf(p.old)} has an older mod,</b> so ${nmOf(p.old)} and ${nmOf(p.pids.find(x => x !== p.old))} can't be paired. Send ${nmOf(p.old)} the mod again; it replaces the old file.</span>${dmB(p.old, "amdm")}<a href="#invite">Send the mod ${I.right}</a></li>`);
       else if (p.kind === "coop_mod") attn.push(`<li><span>${I.warn} <b>${nmOf(p.pids[0])} is searching for Online Co-op, but their mod is too old for co-op.</b> Send them the mod again; Quick Match keeps working meanwhile.</span><a href="#invite">Send the mod ${I.right}</a></li>`);
+      else if (p.kind === "blocked") attn.push(`<li class="info"><span><b>${nmOf(p.pids[0])} and ${nmOf(p.pids[1])} are both searching but won't be paired:</b> ${p.by.length > 1 ? "they have each other" : `${nmOf(p.by[0])} has ${nmOf(p.pids.find(x => x !== p.by[0]))}`} on their Match Block List. That's their choice in the game (Settings → Online Settings → Match Block List).</span></li>`);
       else if (p.kind === "coop_blocked") attn.push(`<li class="info"><span><b>${nmOf(p.pids[0])} and ${nmOf(p.pids[1])} are both searching for Online Co-op,</b> but one has the other on their co-op block list, so they won't be paired.</span></li>`);
     }
     // a friend with nobody else searching in their mode for 3+ minutes
@@ -1548,6 +1618,7 @@ function renderMatches(d, playing, ready, fromLoad) {
   $("r-mode").hidden = !(modes.length > 1 || ui.rm);
   put("r-mode", (modes.length > 1 || ui.rm ? `<span class="small muted lbl">Mode</span><button type="button" data-rm="" data-key="rm-all" aria-pressed="${!ui.rm}">All modes</button>` + modes.map(m => `<button type="button" data-rm="${esc(m)}" data-key="rm-${esc(m)}" aria-pressed="${ui.rm === m}">${esc(m)}</button>`).join("") : ""));
   renderMatchday(d);
+  renderReplays(d);
   if (!res.data) return;
   const q = ui.rq, shownRs = res.data.rows, total = res.data.total;
   const onDay = ui.rr[0] === "d" ? " on " + dLong.format(new Date(+ui.rr.slice(1) * 1000)) : "";
@@ -1561,14 +1632,17 @@ function renderMatches(d, playing, ready, fromLoad) {
     }
     return /disconnect|network|comm/i.test(r.reason || "") ? "A connection dropped" : "It ended early";
   };
+  const forfeitWhy = r => { const n = r.left_pid === r.home_pid ? r.home_name : r.left_pid === r.away_pid ? r.away_name : null;
+    return n ? `${esc(n)} left early, so they lose: a forfeit` : "Decided as a forfeit"; };
+  const tm = id => id && TEAMS ? `<span class="team-n">${esc(teamName(id))}</span>` : "";
   put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results${ui.re ? " that ended early" : ""}${ui.rm ? " in " + esc(ui.rm) : ""}${q ? ` with "${esc(ui.rq)}"` : ""}${ui.rr !== "all" ? " in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
     `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col class="hm"><col class="s"><col class="aw"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th></tr></thead><tbody>` +
     shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
       const early = r.reason || r.voided, score = `${r.home_name} ${r.home_score ?? "?"}–${r.away_score ?? "?"} ${r.away_name}`;
       return `<tr${early ? ' class="has-note"' : ""}><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}${ui.rm ? "" : modeTag(r.mode || "Quick Match")}</td>
-        <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.voided ? `<span class="pill neutral tag">not counted</span>` : r.reason ? `<span class="pill warn tag">ended early</span>` : ""}</td>
-        <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}</td></tr>` +
-        (early ? `<tr class="note-r"><td class="pad"></td><td colspan="3"><span class="small ${r.voided ? "muted" : ""}">${r.reason ? why(r) + ". " : ""}${r.voided ? "Not in the table." : "Counts as it stood."}</span> <button type="button" class="small needs-server" data-count="${r.id}" data-counted="${r.voided ? 1 : 0}" data-score="${esc(score)}" data-key="cnt-${r.id}">${r.voided ? "Count it again" : "Don't count it"}</button></td></tr>` : ""); }).join("") +
+        <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}${tm(r.home_team)}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.voided ? `<span class="pill neutral tag">not counted</span>` : r.reason === "FORFEIT" ? `<span class="pill warn tag">forfeit</span>` : r.reason ? `<span class="pill warn tag">ended early</span>` : ""}</td>
+        <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}${tm(r.away_team)}</td></tr>` +
+        (early ? `<tr class="note-r"><td class="pad"></td><td colspan="3"><span class="small ${r.voided ? "muted" : ""}">${r.reason === "FORFEIT" ? forfeitWhy(r) + ". " : r.reason ? why(r) + ". " : ""}${r.voided ? "Not in the table." : r.reason === "FORFEIT" ? "Counts with this score." : "Counts as it stood."}</span> <button type="button" class="small needs-server" data-count="${r.id}" data-counted="${r.voided ? 1 : 0}" data-score="${esc(score)}" data-key="cnt-${r.id}">${r.voided ? "Count it again" : "Don't count it"}</button></td></tr>` : ""); }).join("") +
     `</tbody></table></div>` +
     (total > shownRs.length ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">Show ${Math.min(25, total - shownRs.length)} more</button>` : ""));
 }
@@ -1638,7 +1712,7 @@ async function loadPlayer() {
     `<h3>Form <span class="small muted" style="font-weight:400">last ${Math.min(10, ms.length)}, oldest → newest</span></h3>${formHtml(ms.slice(0, 10).map(m => m.res).reverse())}` +
     (rows.length ? `<h3>Head to head</h3><div class="tablewrap"><table><caption class="sr">Head to head</caption><thead><tr><th scope="col">Opponent</th><th scope="col" class="num">P</th><th scope="col" class="num">W</th><th scope="col" class="num">D</th><th scope="col" class="num">L</th><th scope="col" class="num">Goals</th><th scope="col" class="num"><abbr title="Goal difference">GD</abbr></th></tr></thead><tbody>` +
       rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td><td class="num h2h-bal ${x.gf > x.ga ? "up" : x.gf < x.ga ? "down" : ""}">${signed(x.gf - x.ga)}</td></tr>`).join("") + `</tbody></table></div>` : "") +
-    `<h3>Matches</h3>` + (all.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${nm(m.opp)}${modeTag(m.r.mode || "Quick Match")}${m.r.voided ? ' <span class="pill neutral tag">not counted</span>' : m.r.reason ? ' <span class="pill neutral tag">ended early</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
+    `<h3>Matches</h3>` + (all.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${nm(m.opp)}${modeTag(m.r.mode || "Quick Match")}${m.r.voided ? ' <span class="pill neutral tag">not counted</span>' : m.r.reason === "FORFEIT" ? ' <span class="pill neutral tag">forfeit</span>' : m.r.reason ? ' <span class="pill neutral tag">ended early</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (all.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${all.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
     (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true, pid) : "");
   $("sh-f").innerHTML = `<button type="button" class="primary needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="danger needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
@@ -1660,10 +1734,19 @@ function modesHtml(p, now) {
   if (dv) rows.push(["Online Divisions", `<b>D${dv.div}</b> · season ${dv.season}: ${plural(dv.points, "point")} from ${dv.played} of ${dv.of} matches<span class="small muted" style="display:block">${dv.wins}W ${dv.draws}D ${dv.losses}L in all seasons</span>`]);
   const md = p.matchday;
   if (md) rows.push(["Matchday", `${esc(md.side)} · ${plural(md.points, "point")} from ${plural(md.matches, "match", "matches")}`]);
+  if ((p.tourneys || []).length) rows.push(["Tournaments", p.tourneys.map(t => `<span style="display:block"><b>${esc(t.name)}</b>: ${ordinal(t.rank)} of ${t.of}, ${plural(t.points, "point")} (${t.win}W ${t.draw}D ${t.lose}L)${t.team ? ` with ${esc(t.team)}` : ""}${t.state === "ended" ? ' <span class="small muted">ended</span>' : ""}</span>`).join("") +
+    `<button type="button" class="small" style="margin-top:6px" data-goto="#tourneys">Tournaments</button>`]);
+  const cl = p.coop_level;
+  if (cl) rows.push(["Online Co-op", `Level ${cl.level} · ${plural(cl.points, "point")} from ${plural(cl.matches, "co-op match", "co-op matches")}<span class="small muted" style="display:block">${plural(cl.next, "point")} to the next level (30 a win, 20 a draw, 10 a loss)</span>`]);
+  if ((p.match_blocks || []).length) rows.push(["Blocks", `Never paired with ${names(p.match_blocks)} (their own Match Block List in the game)`]);
+  if ((p.match_blocked_by || []).length) rows.push(["Blocked by", `${names(p.match_blocked_by)}, so they're never paired`]);
   if ((p.coop_blocks || []).length) rows.push(["Co-op blocks", `Won't be paired in Online Co-op with ${names(p.coop_blocks)} (their own block list)`]);
-  if ((p.coop_blocked_by || []).length) rows.push(["Blocked by", `${names(p.coop_blocked_by)} (in Online Co-op only)`]);
+  if ((p.coop_blocked_by || []).length) rows.push(["Co-op blocked by", `${names(p.coop_blocked_by)} (in Online Co-op only)`]);
+  const pr = p.profile;
+  if (pr && (pr.team || pr.player || pr.intro)) rows.push(["Profile", [pr.team ? `Favourite team: ${esc(pr.team)}` : "", pr.player ? `favourite player: ${esc(pr.player)}` : ""].filter(Boolean).join(" · ").replace(/^f/, "F") +
+    (pr.intro ? `<span class="small muted" style="display:block;white-space:pre-line;overflow-wrap:anywhere">“${esc(pr.intro)}”</span>` : "")]);
   if (p.mod) rows.push(["Mod", esc(MODS[p.mod] || p.mod) + (p.mod !== "current" ? `<span style="display:block;margin-top:6px"><button type="button" class="small" data-goto="#invite">Send the mod</button></span>` : "")]);
-  return rows.length ? `<h3>Game modes and fair play</h3><dl class="kv modes">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : "";
+  return rows.length ? `<h3>Game modes, fair play and profile</h3><dl class="kv modes">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : "";
 }
 function cachedPlayer(pid) {
   const c = last && last.players.find(x => x.pid === pid);
@@ -1678,6 +1761,163 @@ $("sheet").addEventListener("close", () => { sheetPid = null; const b = sheetBac
 $("sh-x").onclick = closeSheet;
 $("sh-back").onclick = () => { const prev = sheetStack.pop(); if (prev == null) return; sheetPid = prev; sheetAll = false; paintBack(); loadPlayer(); (sheetStack.length ? $("sh-back") : $("sh-x")).focus(); };
 $("sheet").addEventListener("click", e => { const r = $("sheet").getBoundingClientRect(); if (e.target === $("sheet") && e.clientX < r.left) closeSheet(); });   // the backdrop
+
+// ---- tournaments (Online Tournament competitions) ---------------------------------------------------
+let TEAMS = null, teamsBusy = false;
+async function loadTeams() {
+  if (TEAMS || teamsBusy) return;
+  teamsBusy = true;
+  try { TEAMS = await api("/admin/api/teams"); } catch (e) { if (e.status === 401) return signedOut(); } finally { teamsBusy = false; }
+  if (TEAMS && last) render(last);
+}
+const teamName = id => !id ? "" : (TEAMS && TEAMS.names[String(id)]) || "Team " + id;
+const DEFAULT_TEAMS = [8, 9, 45, 14, 50, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13];      // the server's own default (pestourney.TEAMS)
+const tn = {edit: null, teams: new Set(DEFAULT_TEAMS), extra: [], init: false};
+const dtLocal = t => { const d = new Date(t * 1000); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
+const fromLocal = v => { const t = v ? new Date(v).getTime() : NaN; return isNaN(t) ? null : Math.floor(t / 1000); };   // "YYYY-MM-DDTHH:MM" is local time
+function tnRegions() {
+  const regs = TEAMS ? TEAMS.national.map(r => ({name: r.region, ids: r.teams})) : [];
+  const nat = new Set(regs.flatMap(r => r.ids)), extra = [...new Set([...tn.extra, ...[...tn.teams].filter(t => !nat.has(t))])];
+  if (extra.length) regs.push({name: "Other teams", ids: extra});
+  return regs;
+}
+function paintTnTeams() {
+  if (!TEAMS) return;
+  const chosen = [...tn.teams].map(teamName).sort((a, b) => a.localeCompare(b));
+  const sum = !chosen.length ? `<span class="err">None chosen yet</span>` : esc(chosen.length <= 5 ? andList(chosen) : chosen.slice(0, 4).join(", ") + ` and ${chosen.length - 4} more`);
+  put("tn-teams", `<details class="tn-pick" data-key="tnpick"${tn.open ? " open" : ""}><summary><span class="grow">${sum}</span><span class="linkbtn">Choose teams</span></summary>` + tnRegions().map(r => { const n = r.ids.filter(t => tn.teams.has(t)).length, rid = "tnr-" + r.name.replace(/\W/g, "");
+    return `<div class="tn-reg" role="group" aria-labelledby="${rid}"><div class="rh"><span id="${rid}">${esc(r.name)} · ${n} of ${r.ids.length}</span>` +
+      `<button type="button" class="linkbtn" data-tnreg="${esc(r.name)}" data-on="1" data-key="tnra-${rid}" aria-label="Choose every team in ${esc(r.name)}">All</button><button type="button" class="linkbtn" data-tnreg="${esc(r.name)}" data-on="0" data-key="tnrn-${rid}" aria-label="Clear ${esc(r.name)}">None</button></div><div class="tn-grid">` +
+      [...r.ids].sort((a, b) => teamName(a).localeCompare(teamName(b))).map(t => `<label><input type="checkbox" data-tnteam="${t}" data-key="tnt-${t}"${tn.teams.has(t) ? " checked" : ""}><span>${esc(teamName(t))}</span></label>`).join("") + `</div></div>`; }).join("") + `</details>`);
+  text("tn-tcount", `(${tn.teams.size} chosen)`);
+}
+function tnReset(focus) {
+  tn.edit = null; tn.teams = new Set(DEFAULT_TEAMS); tn.extra = [];
+  const t0 = Math.floor(Date.now() / 60000) * 60;
+  $("tn-name").value = ""; $("tn-info").value = ""; $("tn-min").value = "10";
+  $("tn-start").value = dtLocal(t0); $("tn-end").value = dtLocal(t0 + 7 * 86400);
+  text("h-tnform", "New tournament"); text("tn-save", "Create tournament"); $("tn-cancel").hidden = true;
+  text("tn-err", ""); document.querySelectorAll("#tnform [aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
+  paintTnTeams();
+  if (focus) $("tn-name").focus();
+}
+function tnEdit(c) {
+  const nat = new Set(TEAMS ? TEAMS.national.flatMap(r => r.teams) : []);
+  tn.edit = c.compe_id; tn.teams = new Set(c.teams); tn.extra = c.teams.filter(t => !nat.has(t));
+  $("tn-name").value = c.name; $("tn-info").value = c.info || ""; $("tn-start").value = dtLocal(c.start); $("tn-end").value = dtLocal(c.end);
+  $("tn-min").value = [...$("tn-min").options].some(o => +o.value === c.minutes) ? String(c.minutes) : "10";
+  text("h-tnform", `Change “${c.name}”`); text("tn-save", "Save changes"); $("tn-cancel").hidden = false; text("tn-err", "");
+  paintTnTeams();
+  $("h-tnform").scrollIntoView({block: "start"}); $("tn-name").focus({preventScroll: true});
+}
+function tnState(c, now) {
+  if (c.state === "running") return `<span class="pill live"><span class="dot"></span>Running</span><span class="small muted">ends in ${dur(c.end - now)}</span>`;
+  if (c.state === "upcoming") return `<span class="pill neutral">Starts in ${dur(c.start - now)}</span>`;
+  return `<span class="pill neutral">Ended ${esc(dShort.format(new Date(c.end * 1000)))}</span>`;
+}
+function tnCard(c, now) {
+  const teams = c.teams.map(t => c.team_names[String(t)] || teamName(t)), id = c.compe_id;
+  const tlist = teams.length <= 6 ? andList(teams.map(esc)) : esc(teams.slice(0, 5).join(", ")) + ` and ${teams.length - 5} more`;
+  const ended = c.state === "ended", th = (l, t, cls) => `<th scope="col" class="${cls || ""}">${t ? `<abbr title="${t}">${l}</abbr>` : l}</th>`;
+  const table = c.table.length ? `<div class="tablewrap"><table><caption class="sr">${esc(c.name)}: table</caption><thead><tr>${th("#", "", "num")}${th("Player")}${th("Team", "", "team hide-sm")}${th("P", "Played", "num")}${th("W", "Won", "num hide-sm")}${th("D", "Drawn", "num hide-sm")}${th("L", "Lost", "num hide-sm")}${th("Goals", "", "num hide-sm")}${th("Pts", "Points", "num")}</tr></thead><tbody>` +
+      c.table.map(r => `<tr${r.rank === 1 && ended && r.points ? ' class="win1"' : ""}><td class="num muted">${r.rank}</td><td class="name">${pname(r.name, r.pid, `tn-${id}-${r.pid}`)}<small class="show-sm">${r.team ? esc(r.team) + " · " : ""}${r.win}W ${r.draw}D ${r.lose}L</small></td><td class="team hide-sm">${esc(r.team || "–")}</td>` +
+        `<td class="num">${r.win + r.draw + r.lose}</td><td class="num hide-sm">${r.win}</td><td class="num hide-sm">${r.draw}</td><td class="num hide-sm">${r.lose}</td><td class="num hide-sm">${r.goals_for}:${r.goals_against}</td><td class="num"><b>${r.points}</b></td></tr>`).join("") + `</tbody></table></div>`
+    : `<p class="empty">${ended ? "Nobody played in it." : `Nobody has entered yet. Friends enter in the game: eFootball → Online Tournament → ${esc(c.name)}.`}</p>`;
+  const top = c.table[0], won = ended && top && top.points ? `<p class="small">${ICON.trophy.replace("<svg ", '<svg class="i" ')} Won by <b>${pname(top.name, top.pid, `tnw-${id}`)}</b> with ${plural(top.points, "point")}.</p>` : "";
+  return `<section class="card tn" aria-labelledby="tn-h-${id}"><div class="card-h"><h2 id="tn-h-${id}" tabindex="-1">${esc(c.name)}</h2>${tnState(c, now)}</div>` +
+    `<p class="small muted meta">${esc(fmt.format(new Date(c.start * 1000)))} – ${esc(fmt.format(new Date(c.end * 1000)))} · ${c.minutes}-minute matches · ${plural(c.matches, "match", "matches")} played · ${plural(teams.length, "team")}: ${tlist}${c.auto ? " · started by the server for this month" : ""}</p>` +
+    won + table +
+    `<details class="keycheck" data-key="tno-${id}"><summary>What friends read in the game</summary><div class="pb">${esc(c.outline)}</div></details>` +
+    `<div class="acts" style="margin-top:12px">${!ended ? `<button type="button" class="small needs-server" data-tntell="${id}" data-key="tnt-tell-${id}">Tell everyone</button>` : ""}<button type="button" class="small needs-server" data-tnedit="${id}" data-key="tnt-edit-${id}">${ended ? "Run it again" : "Change"}</button>` +
+    `${!ended ? `<button type="button" class="small needs-server" data-tnend="${id}" data-key="tnt-end-${id}">End now</button>` : ""}<button type="button" class="small danger needs-server" data-tndel="${id}" data-key="tnt-del-${id}">Delete</button></div></section>`;
+}
+function renderTourneys(d) {
+  const now = d.now, ts = d.tourneys || [];
+  if (!TEAMS) loadTeams();
+  if (!tn.init && TEAMS) { tn.init = true; tnReset(false); }
+  const cur = ts.filter(c => c.state !== "ended").sort((a, b) => a.start - b.start), past = ts.filter(c => c.state === "ended");
+  put("tn-list", (cur.length ? cur.map(c => tnCard(c, now)).join("") : `<section class="card tn"><p class="empty">No tournament is running or planned.${d.monthly_cup === false ? " Make one below, or turn the monthly Friends Cup back on." : " Make one below."}</p></section>`) +
+    (past.length ? `<details class="keycheck tn" data-key="tnpast" style="margin-bottom:16px"><summary>Past tournaments (${past.length})</summary><div style="margin-top:12px">${past.map(c => tnCard(c, now)).join("")}</div></details>` : ""));
+  const on = d.monthly_cup !== false;
+  put("tn-monthly", `<div class="switch"><span class="lbl" id="mc-l">A Friends Cup every month</span><span class="small ${on ? "ok" : "muted"}">${on ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${on}" aria-labelledby="mc-l" class="needs-server" data-monthly="${on ? 0 : 1}" data-key="monthly"></button></div>` +
+    `<div class="small muted">${on ? "When none of yours is running or planned, the server starts a Friends Cup for the month (16 national teams, 10-minute matches), so friends always have one to play." : "Off: only the tournaments you make here are played."}</div>`);
+  if (TEAMS && !shown["tn-teams"]) paintTnTeams();
+}
+const tnOf = id => ((last && last.tourneys) || []).find(c => c.compe_id === +id);
+async function tnCall(path, body, done) {
+  try { await api(path, {method: "POST", body: JSON.stringify(body)}); toast(done); }
+  catch (err) { if (err.status === 401) { signedOut(); return false; } toast(err.status === 404 ? "That tournament is gone." : "Couldn't reach the server. Try again.", true); return false; }
+  await refreshNow(); return true;
+}
+$("tn-teams").addEventListener("change", e => {
+  const t = e.target.closest("[data-tnteam]"); if (!t) return;
+  tn.teams[t.checked ? "add" : "delete"](+t.dataset.tnteam); paintTnTeams();
+  if (tn.teams.size) { $("tn-teams-f").removeAttribute("aria-invalid"); if (/team/.test($("tn-err").textContent)) text("tn-err", ""); }
+});
+["tn-name", "tn-start", "tn-end"].forEach(id => $(id).addEventListener("input", () => { $(id).removeAttribute("aria-invalid"); text("tn-err", ""); }));
+$("tn-cancel").onclick = () => { const id = tn.edit; tnReset(false); const h = id && $("tn-h-" + id); (h || $("tn-name")).focus(); };
+$("tnform").onsubmit = async e => {
+  e.preventDefault();
+  const name = $("tn-name").value.trim(), start = fromLocal($("tn-start").value), end = fromLocal($("tn-end").value), now = Date.now() / 1000;
+  const bad = (msg, f) => { text("tn-err", msg); $("tn-err").className = "small err"; if (f) { f.setAttribute("aria-invalid", "true"); (f.querySelector ? f.querySelector("input") || f : f).focus(); } };
+  if (!name) return bad("Give it a name first.", $("tn-name"));
+  if (!start) return bad("Choose when it starts.", $("tn-start"));
+  if (!end) return bad("Choose when it ends.", $("tn-end"));
+  if (end <= start) return bad("The end must be after the start.", $("tn-end"));
+  if (end <= now) return bad("That end time has already passed.", $("tn-end"));
+  if (!tn.teams.size) { tn.open = true; paintTnTeams(); return bad("Choose at least one team friends can enter with.", $("tn-teams-f")); }
+  const editing = tn.edit, body = {name, start, end, match_minutes: +$("tn-min").value, teams: [...tn.teams], info: $("tn-info").value.trim()};
+  if (editing) body.compe_id = editing;
+  $("tn-save").disabled = true;
+  try { await api("/admin/api/tourneys/save", {method: "POST", body: JSON.stringify(body)}); }
+  catch (err) { $("tn-save").disabled = false; if (err.status === 401) return signedOut();
+    return bad(err.status === 400 ? err.message.charAt(0).toUpperCase() + err.message.slice(1) + "." : err.status === 404 ? "That tournament was deleted meanwhile." : "Couldn't reach the server. Try again."); }
+  $("tn-save").disabled = false;
+  toast(editing ? `“${name}” was changed.` : `“${name}” is ready. Friends find it under eFootball → Online Tournament${start > now + 60 ? ` from ${fmt.format(new Date(start * 1000))}` : ""}.`);
+  tnReset(false); await refreshNow();
+  const c = ((last && last.tourneys) || []).find(x => x.name === name && x.start === start);
+  (c && $("tn-h-" + c.compe_id) || $("t-tourneys")).focus();
+};
+function tnTell(c) {
+  const at = t => fmt.format(new Date(t * 1000)), up = c.state === "upcoming";
+  const body = `${c.name} ${up ? `starts ${at(c.start)} and runs` : "is on"} until ${at(c.end)}. In eFootball → Online Tournament, enter with a team, then choose Match to play friends who entered. ${c.minutes}-minute matches, 3 points a win.`;
+  return [c.name.slice(0, 60), body.slice(0, 600)];
+}
+
+// ---- match replays ----------------------------------------------------------------------------------
+function renderReplays(d) {
+  const rp = d.replays || [], cfg = d.server.replays || {on: true, keep: 20}, now = d.now;
+  put("rp", (!cfg.on ? `<p class="empty">Recording is off: the server was started with <code>REPLAYS=0</code>.</p>`
+    : !rp.length ? `<p class="empty">Every online match is recorded, so friends can watch it again. None yet.</p>`
+    : `<ul class="list-plain mini">` + rp.slice(0, 8).map(r => `<li><span class="grow">${pname(r.home_name || "?", r.home, `rp-${r.match_id}-h`)} ${r.recording || r.home_score == null ? "vs" : `${r.home_score}–${r.away_score}`} ${pname(r.away_name || "?", r.away, `rp-${r.match_id}-a`)}${r.recording ? ' <span class="pill live tag"><span class="dot"></span>recording</span>' : ""}` +
+        `${r.home_team || r.away_team ? `<br><span class="small muted">${esc(r.home_team || "?")} vs ${esc(r.away_team || "?")}</span>` : ""}</span><span class="r">${r.t ? `<time datetime="${iso(r.t)}">${esc(when(r.t, now))}</time>` : ""}</span></li>`).join("") + `</ul>` +
+      (rp.length > 8 ? `<p class="note">and ${plural(rp.length - 8, "older replay")}</p>` : "")) +
+    (cfg.on ? `<p class="note">Friends watch them in the game: <b>eFootball → Online Tournament → Match Replays</b>, any team, then <b>Match List</b> and Spectate Match. The newest ${cfg.keep} are kept.</p>` : ""));
+}
+
+// ---- word filter ------------------------------------------------------------------------------------
+let wDirty = false, wShown = null;
+function renderWords(s) {
+  const w = s.words;
+  if (!w) return;
+  const v = w.words.join("\n");
+  if (!wDirty && wShown !== v) { $("w-list").value = v; wShown = v; }
+  put("w-path", `<div class="small muted" style="margin-top:12px">Kept in this file; you can edit it there too (changes apply at once):</div>` + copyRow(w.path, "File path", null, "wrap"));
+  text("w-state", wDirty ? "Not saved yet" : w.words.length ? plural(w.words.length, "word") + " blocked" : "Nothing blocked");
+  $("w-undo").hidden = !wDirty;
+}
+$("w-list").addEventListener("input", () => { wDirty = $("w-list").value !== (wShown ?? ""); $("w-undo").hidden = !wDirty; if (last) renderWords(last.server); });
+$("w-undo").onclick = () => { $("w-list").value = wShown || ""; wDirty = false; if (last) renderWords(last.server); $("w-list").focus(); };
+$("wform").onsubmit = async e => {
+  e.preventDefault();
+  const words = $("w-list").value.split("\n").map(x => x.trim()).filter(Boolean);
+  $("w-save").disabled = true;
+  try { const w = await api("/admin/api/words", {method: "POST", body: JSON.stringify({words})}); wDirty = false; wShown = null;
+    if (last) { last.server.words = w; renderWords(last.server); }
+    toast(w.words.length ? `Saved: ${plural(w.words.length, "word")} blocked. Names already in use don't change.` : "Saved: nothing is blocked."); }
+  catch (err) { if (err.status === 401) return signedOut(); toast(err.status === 400 ? "That's too many words (2,000 at most)." : "Couldn't save. Try again.", true); }
+  finally { $("w-save").disabled = false; }
+};
 
 function renderInvite(d) {
   const now = d.now, dls = d.feed.filter(f => f.kind === "web").length, ps = [...d.players].sort((a, b) => (b.created || 0) - (a.created || 0));
@@ -1695,6 +1935,7 @@ function renderServer(d, s) {
       : s.relay.enabled ? `<span class="warn">Didn't start</span><span class="small muted" style="display:block">Matches between friends whose games can't connect directly may fail. The reason is in server.log.</span>` : "Off") + kv("Server key", `<code>${esc(s.key || "?")}</code><span class="small muted" style="display:block">Only for troubleshooting: when a friend can't connect, their mod's log shows this key if it reached this server.</span>`));
   put("net", netHtml(s));
   put("lu", luHtml(s.liveupdate));
+  renderWords(s);
   put("access", remoteHtml(s) + `<div style="margin-top:6px">${location.protocol === "https:" ? "Opened over the internet, encrypted." : s.same_pc ? "Opened on the server's computer." : "On your home network the admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale."}</div>` +
     `<div>Signed in here${untilText ? ` until ${esc(untilText)}` : ""}. <button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
   put("cmds", `<dt>Stop</dt><dd>Press <b>Ctrl+C</b> in the server's window, or close the window.</dd>
@@ -1963,6 +2204,31 @@ document.addEventListener("click", async e => {
   const gt = e.target.closest("[data-goto]");
   if (gt) { sheetBack = null; closeSheet(); location.hash = gt.dataset.goto; return; }
   if (e.target.closest("[data-attnmore]")) { ui.attnAll = !ui.attnAll; if (last) render(last); const b = document.querySelector('[data-key="attnmore"]'); if (b) b.focus(); return; }
+  const tg = e.target.closest("[data-tnreg]");
+  if (tg) { const r = tnRegions().find(x => x.name === tg.dataset.tnreg); if (r) r.ids.forEach(t => tn.teams[tg.dataset.on === "1" ? "add" : "delete"](t)); paintTnTeams(); return; }
+  const te = e.target.closest("[data-tnedit]");
+  if (te) { const c = tnOf(te.dataset.tnedit); if (!c) return;
+    if (c.state === "ended") { tnEdit(c); tn.edit = null; text("h-tnform", "New tournament"); text("tn-save", "Create tournament"); $("tn-cancel").hidden = false; $("tn-name").value = c.name.slice(0, 54) + " (2)";
+      const t0 = Math.floor(Date.now() / 60000) * 60; $("tn-start").value = dtLocal(t0); $("tn-end").value = dtLocal(t0 + Math.max(3600, c.end - c.start)); }
+    else tnEdit(c);
+    return; }
+  const tt = e.target.closest("[data-tntell]");
+  if (tt) { const c = tnOf(tt.dataset.tntell); if (!c) return; const [t, b] = tnTell(c);
+    if (($("msg-title").value.trim() || $("msg-body").value.trim()) && await ask({title: "Replace what you wrote?", body: "The tournament's text replaces the title and message in the Messages form.", ok: "Replace"}) === null) return;
+    $("msg-title").value = t; $("msg-body").value = b; msgCount(); location.hash = "#messages/msg-body"; return; }
+  const tx = e.target.closest("[data-tnend]");
+  if (tx) { const c = tnOf(tx.dataset.tnend); if (!c) return;
+    if (await ask({title: `End “${c.name}” now?`, body: c.state === "upcoming" ? "It hasn't started yet. Ending it now means it never runs; it moves to Past tournaments." : "No more matches count for it. The table stays, and each friend who entered sees their final place the next time they open Online Tournament.", ok: "End now", danger: true}) === null) return;
+    return tnCall("/admin/api/tourneys/end", {compe_id: c.compe_id}, `“${c.name}” has ended.`); }
+  const tdl = e.target.closest("[data-tndel]");
+  if (tdl) { const c = tnOf(tdl.dataset.tndel); if (!c) return;
+    if (await ask({title: `Delete “${c.name}”?`, body: `Its table is removed${c.state === "running" ? " and friends can't play in it any more" : ""}. Matches already played stay in Results, your league table and ratings.` + (c.auto && c.state !== "ended" ? "\n\nThe server won't start another Friends Cup this month. To stop them for good, turn the monthly cup off." : ""), ok: "Delete", danger: true}) === null) return;
+    if (tn.edit === c.compe_id) tnReset(false);
+    if (await tnCall("/admin/api/tourneys/delete", {compe_id: c.compe_id}, `“${c.name}” was deleted.`)) $("t-tourneys").focus();
+    return; }
+  const mc = e.target.closest("[data-monthly]");
+  if (mc) { const on = mc.dataset.monthly === "1"; mc.disabled = true;
+    await tnCall("/admin/api/tourneys/monthly", {on}, on ? "A Friends Cup starts each month when none of yours is on." : "No more monthly Friends Cups. A cup that's running now keeps going; end or delete it above."); return; }
   const rms = e.target.closest("[data-rmset]");
   if (rms) { ui.rm = rms.dataset.rmset; ui.rr = "all"; ui.re = false; ui.rq = ""; $("r-q").value = ""; ui.rN = 25; loadResults(true); location.hash = "#matches/h-results"; return; }
   const pl = e.target.closest("[data-player]");
@@ -2065,7 +2331,7 @@ document.addEventListener("click", async e => {
     if (document.body.classList.contains("stale")) return toast("The server isn't answering, so nobody can be kicked right now.", true);
     if (k.getAttribute("aria-disabled") === "true") return;
     const name = k.dataset.name, pid = k.dataset.kick;
-    const reason = await ask({title: `Kick ${name}?`, body: (k.dataset.vs ? `Their match against ${k.dataset.vs} ends now. If the game reports a result, it's listed as ended early, and you can choose not to count it in Matches. ` : "Their game disconnects from the server now. ") + "They can reconnect: there's no ban yet. A kick doesn't count against their courtesy rating.\n\nThe game only says \"Connection to server lost\". When they come back, a note from you pops up.",
+    const reason = await ask({title: `Kick ${name}?`, body: (k.dataset.vs ? `Their match against ${k.dataset.vs} ends now. If the game reports a result, it's listed as ended early, and you can choose not to count it in Matches. ` : "Their game disconnects from the server now. ") + "They can reconnect: there's no ban yet. A kick doesn't count against their courtesy rating and isn't a forfeit.\n\nThe game only says \"Connection to server lost\". When they come back, a note from you pops up.",
       label: "Reason (optional)", ok: "Kick", danger: true});
     if (reason === null) return;
     k.setAttribute("aria-disabled", "true");
@@ -2128,7 +2394,7 @@ const TPL = {
   maint: ["Server maintenance", "The server is down for maintenance on [day] from [time], for about [30 minutes]. Matches still running then will be cut off. Thanks for waiting!"],
   restart: ["Quick restart", "The server restarts at [time] for a few minutes. Finish your match before then; you can play again right after."],
   update: ["Server updated", "The server is on a new version. If anything looks wrong, restart PES 2021 and tell the host."],
-  cup: ["Tournament on [Friday]", "Knockout tournament on [Friday] at [9 pm]. Be online by [8:45] and choose Quick Match when it's your turn."],
+  cup: ["[Saturday Cup]", "[Saturday Cup] is on in Online Tournament until [Sunday 11 pm]. In eFootball → Online Tournament, enter with a team, then choose Match to play friends who entered. 3 points a win."],
   welcome: ["Welcome!", "Welcome to the server. Choose Quick Match any time to play whoever is online. Have fun and play fair."]};
 async function useTemplate(k) {
   const [t, b] = TPL[k];
@@ -2234,7 +2500,7 @@ $("logout").onclick = logout; $("logout-m").onclick = logout;
 function statusOf(d, p) {
   const vs = opponent(d, p.name) || pending(d, p.name);
   const st = pending(d, p.name) ? "Getting ready"
-    : p.status === "Searching" ? `Searching in ${p.searching_for || "Quick Match"}`
+    : p.status === "Searching" ? `Searching in ${p.competition ? (p.competition.length > 24 ? p.competition.slice(0, 23) + "…" : p.competition) : p.searching_for || "Quick Match"}`
     : p.status === "In a match room" && p.room ? `In room “${p.room.length > 22 ? p.room.slice(0, 21) + "…" : p.room}”` : p.status;
   return `<span class="st">${esc(st)}</span>${vs ? ` vs <span class="nw">${esc(vs)}</span>` : ""}`;
 }
@@ -2260,7 +2526,7 @@ function start(focus) {
   let until = 0; try { until = +(localStorage.getItem("pes-admin-until") || sessionStorage.getItem("pes-admin-until") || 0); } catch (e) {}
   untilText = until ? new Intl.DateTimeFormat([], until * 1000 - Date.now() < 86400000 ? {hour: "numeric", minute: "2-digit"} : {month: "short", day: "numeric"}).format(new Date(until * 1000)) : "";
   route(focus);
-  refresh(); loadGames();
+  refresh(); loadGames(); loadTeams();
   timer = setInterval(refresh, 3000); gamesTimer = setInterval(loadGames, 15000); setInterval(paintUpd, 1000);
 }
 if (token) start();
