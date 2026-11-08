@@ -372,6 +372,11 @@ and `player_rating ORDER BY rating DESC`.
    DIVISION_POINT_INFO, DIVISION_RANKING(_BYID), RANKING(_BYID), GAMERESULTS, from the tables above.
 
 ## Still unknown (and the live test that settles it)
+> **Status 2026-11-08 (livetests.md):** push timing answered: the verdict pushed to both at END ends Quick Match,
+> Divisions, Matchday, Online Tournament and co-op cleanly (NORMAL_END, no DISCONN_P2P); the rating screen
+> appears in Divisions, Matchday, Tournament and co-op. Quick Match has no rating screen (sweep.md, and none
+> showed live). `division` / `sort` values: settled in sweep.md; the division screens are in modes2.md (built,
+> live). Still open: M+9/+0xc/+0xd/+0x10, `rating_compe` beyond "send 0", the boost-rate units.
 - Push timing: is a WATCH_GAMEADDPOINT used when the client is not waiting (the M+9 path / after
   TaskWatchGame freed its watcher)? Push at END to both and check whether MenuRating appears and the flow
   still reaches ProcEnd (STATS/RESULT still arrive). Also check that a NORMAL_END push to the waiting client

@@ -367,7 +367,8 @@ Tooling notes for later groups:
 ## Still needs a live test (exact tests)
 - room_entry_no / game_entry_no meaning (two clients, Free lobby, toggle Entry, watch the list).
 - Coop countdown unit (push countdown_end_time = now+10 s).
-- GET_COOP_LEVEL_RESULT `status` values; which `is_owner` the co-op host needs.
+- GET_COOP_LEVEL_RESULT `status` values other than "LEVEL_UP" (seen live 2026-11-08); which `is_owner` the host
+  needs with groups of 2–3 (one HOME owner works for groups of one, live).
 - NO_BANNER_INFO rendering and the `date` unit (one item, date = now).
 - p43/p48/p49/p50 names (edit-mode screenshot).
 - The gtimer incrementer (engine) was not located; the unit is from logs only.

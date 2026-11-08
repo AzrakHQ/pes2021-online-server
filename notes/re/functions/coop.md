@@ -2,7 +2,7 @@
 
 ## Corrections from later findings (2026-11-06)
 - **Live (coop2.md, livetests.md): co-op never connected in 1.01.00** — the peer list is never handed to the P2P layer, and that layer takes one peer. "The session already handles 4–6 peers" below is wrong for P2P. Fixed for one human per side by mod 0.5.0 + server `pescoop.py`; a co-op Casual Match kicked off live. The server must also echo each player's own SYNC_PROGRESS notice, answer GET_GAMERELAY with `game_sycom "P2P"`, and send real `use_team_id` values (262143 on both sides crashes the match load).
-- misc.md §1 (static, 2026-11-06): the client accepts groups of 1–3 and any number of groups; with `force_alone:"YES"` two solo copies can play 1 v 1 co-op; exactly one `is_owner:"YES"` (HOME owner); match_data = base64 of 480 bytes (float32[70] + float32[50]); a GET reply with size 0 is accepted. Not tested live.
+- misc.md §1 (static, 2026-11-06): the client accepts groups of 1–3 and any number of groups; with `force_alone:"YES"` two solo copies can play 1 v 1 co-op; exactly one `is_owner:"YES"` (HOME owner); match_data = base64 of 480 bytes (float32[70] + float32[50]); a GET reply with size 0 is accepted. Live since: solo groups, one HOME owner and 480-byte match_data all work (livetests.md).
 
 
 Two halves. **Co-op** is below. **Spectating / watching** is in
@@ -264,7 +264,7 @@ Our 1v1 handlers already relay pid lists and gate the relay check on "all room m
   SE_RESULT_LEVELUP / SE_RESULT_LEVELDOWN but no status strings near them.
 - **Server (pescoop.py, 2026-11-08):** co-op level points at the final whistle (win 30, draw 20, loss 10; a level
   every 100 points), both members' before/after values in this reply, the level in GET_COOP_PROFILE and in the
-  WATCH_COOP_MATCHING member entries. `status` "LEVEL_UP" / "NONE" is a guess (a level-up was not seen yet).
+  WATCH_COOP_MATCHING member entries. `status` "LEVEL_UP" / "NONE": "LEVEL_UP" went through the level screen live (2026-11-08); other values unknown.
 - **Live 2026-11-08, "Changes in CO-OP Level" (Online/CoopMatch/CoopMenuLevelChange):** one card per member with
   "Points earned" = `evalution`, "To level-up" = `reference`, "Rating +N" = `point`, the level and a bar
   (after_point within the level). The CO-OP Profile then showed "CO-OP Match 1".
@@ -287,6 +287,7 @@ Our 1v1 handlers already relay pid lists and gate the relay check on "all room m
 | GET_COOP_PROFILE | pid | user_info{pid, pname} and, beside it at the top level, coop_profile_data{is_follow, coop_level, coop_level_point, follower, coop_manner, online_match, vscom_match, match_data_size, match_data} [live, parsebench 2026-11-07] | level 1, points 0, manner "A", counts 0, empty match_data |
 | GET_IS_JOIN_COOP_ROOM | pid | is_join_coop_room | `"NO"` (asked on the main menu; "YES" presumably offers a rejoin) |
 | GET_COOP_REJECT_LIST / SET_COOP_REJECT{set_reject_pid_list, unset_reject_pid_list} | – | reject_list[{pid, pname}], reject_list_num | empty list; store the block list and honour it in grouping |
+| FOLLOW_USER {follow_user_id_list, unfollow_user_id_list: user_id blobs {pid, pname}} / GET_FOLLOW_LIST / LOCK_FOLLOW_USER {target_pid, is_lock} | – | follow_list[blob{user_id blob{pid, pname blob}, is_locked, is_clan_member}], follow_list_num [static, parser 0x141e03e60] | built (pescoop, 2026-11-08, unit-tested): stored per player; is_follow / follower in GET_COOP_PROFILE, the level result and the matching push come from it. Screens: CO-OP Settings → Follow List (CoopMenuFollowList); after a co-op match CoopMenuPersonalResult → CoopMenuFollowSetting (follow your human team-mates, so not reachable in 1 v 1 co-op). Not tried live; what locking does is not known |
 | GET/SET_MYCLUB_*COOP_MEMBER_LIST, GET_MATCHDAY_SP_*COOP*, GET_MYCLUB_CONFIRM_COOP_SQUAD | coop_player_list | squad trees (see `trees2.txt`) | MyClub / Matchday co-op only; out of scope for a first version |
 | GET_IS_KONAMIID_COOPERATION (HTTP, KONAMIID_API) | – | is_cooperation, is_reagree, reagree_url | not co-op ("cooperation" = account linking); belongs to the account group |
 
@@ -390,6 +391,14 @@ All of these are gate commands. Request packers come from `ct.py keys`, replies 
 
 ---------------------------------------------------------------------------------------------------
 ## Still unknown (co-op), and what would settle it
+> **Status 2026-11-08 (livetests.md):** 1. groups of 1 work: two solo groups (force_alone) played a 1 v 1 co-op
+> match. 2. one `is_owner:"YES"` on the HOME owner works for two groups of one; groups of 2–3 untested. 3. open, and
+> now known to need more than the server: the game hands at most one peer to its P2P layer, so 2v2/3v3 went
+> through Konami's game relay ("SC", CsClient), which we don't have. 4. answered: 480 bytes, stored and returned,
+> they fill Playing Styles on the CO-OP Profile. 6. `status "LEVEL_UP"` went through the level screen without
+> trouble (the screen itself not captured); the vs-COM push has a static answer (livetests.md 2026-11-07), not
+> run. 7. the push alone was enough: co-op plays to full time; whether WATCH requests are also sent was not
+> recorded. 5 is still open (countdown; room_phase in sweep.md).
 1. **How the real server formed groups** (solo grouping size; whether 1 human per group is accepted).
    - The client caps groups at 3. Nothing static forbids a group of 1 (see `cmp rdx,3` at 0x14111072f).
    - Settle: live test with `COOP_GROUP=1` and 2 clients.

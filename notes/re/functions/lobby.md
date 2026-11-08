@@ -152,6 +152,8 @@ US-English string dump from dt80, asm dumps `topmenu_build.asm`, `aaf280.asm`, `
   WatchMatch (see spectate.md).
 
 ## Still unknown
+> **Status 2026-11-08:** the PES League field is `match_type` inside COMPE_INFO's `compe_data`; it picks the
+> 1v1 menu, co-op or the lobby (tourney.md, live). WatchMatch without a chosen match is still open.
 - ~~The AFP slot count of `p_subMenu`~~ answered live: Kick Off scrolls past Cup to Friendly Match Lobby
   (5 rows visible at a time on the screenshot).
 - The exact reply field that fills the PES League competition's +0x34. It is probably `match_type` in

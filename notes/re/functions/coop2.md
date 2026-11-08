@@ -157,6 +157,8 @@ group's own pid. Leave the addresses in; they cost nothing.
   - (b) **"SC" plus a game relay** speaking Konami's CsClient protocol (not reverse-engineered). Much bigger.
 
 ## Still open
+> **Status 2026-11-08:** the first point is answered: with mod 0.5.0 copying the members' addresses, co-op links
+> up and plays to full time (livetests.md). The WithTurn vector is still open.
 - Whether the P2P/TURN layer connects with a 0.0.0.0 reflexive hint (live test §6).
 - What the WithTurn "exactly one element" vector is (it matters only for 2v2 / 3v3).
 
@@ -191,6 +193,12 @@ group's own pid. Leave the addresses in; they cost nothing.
 - **Even when called, 0x141092720 handles at most one peer** (`cmp rdx,2; jae skip`). With 2 or more peers it
   sends SetPeers with count 0. So in 1.01, P2P can carry 1 vs 1 co-op at most. 2v2 / 3v3 co-op can only run on
   "SC", the game relay [static 0x1410927ab; inferred about retail].
+- **The NAT layer itself holds at most 2 peers** (2026-11-08) [static]: NtlImpl's SetPeers (vtable slot 7,
+  0x1411d88e0, reached through 0x14114c770) rejects a count of 0 or more than 2 (`cmp r8d,2; ja` at 0x1411d8959).
+  Its peer table is part of the object: 0x214-byte slots from +0x43c, the count at +0x864 (= 0x43c + 2 × 0x214).
+  0x141092720's own stack buffer is 0x418 = 2 × 0x20c. So skipping the `cmp rdx,2` check could give 3 humans at
+  most (2 peers); 2v2 (3 peers) and 3v3 (5 peers) would mean moving NtlImpl's table, which we don't do.
+  2v2 / 3v3 need the "SC" relay.
 
 ### Corrected WATCH_COOP_MATCHING push
 - **No change is needed.** The push in the log is right. pid, side, is_owner and owner_pid are all used as

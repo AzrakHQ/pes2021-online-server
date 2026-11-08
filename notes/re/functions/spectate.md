@@ -211,6 +211,11 @@ Effort estimate: ~1.5–2 days of server work + 1 live session (2 players + 1 vi
    / `direct_online_observe_record` debug vars; not reachable without patching.
 
 ## Still unknown
+> **Status 2026-11-08:** answered by misc.md §2 and the live replays (spectate2.md, livetests.md): `data` is
+> base64 of a 256-byte buffer (keep `data_len` bytes); the viewer fetches `/r/<match_id>/N.enc`; both players
+> upload and the server keeps one stream; the chunk encryption, padding and compression pesreplay.py writes play live; the viewer reaches the
+> watch list through the PES League lobby. Still open: the three header bytes after the id, the kind-3 reason
+> values, viewer pacing.
 - Whether the viewer's `id` path component is exactly the match_id string (it comes from observe config +0x48;
   the writer of that field for the real menu path was not traced). Live test: a viewer's first GET shows it.
 - Base64 vs. raw bytes in `data` (encoder 0x14184d8c0 not read in full) — first live SEND_GAME_SEQUENCE_DATA settles it.

@@ -60,6 +60,8 @@ def get_is_join_coop_room(svc, sess, req):
 def _setup(db):
     db.execute("CREATE TABLE IF NOT EXISTS pes_coop_reject (pid INTEGER, target INTEGER, UNIQUE (pid, target))")
     db.execute("CREATE TABLE IF NOT EXISTS pes_coop_data (pid INTEGER PRIMARY KEY, size INTEGER NOT NULL, data TEXT NOT NULL)")
+    db.execute("""CREATE TABLE IF NOT EXISTS pes_coop_follow (pid INTEGER, target INTEGER, locked INTEGER NOT NULL DEFAULT 0,
+                  UNIQUE (pid, target))""")
     db.execute("""CREATE TABLE IF NOT EXISTS pes_coop_level (pid INTEGER PRIMARY KEY, points INTEGER NOT NULL DEFAULT 0,
                   matches INTEGER NOT NULL DEFAULT 0, wins INTEGER NOT NULL DEFAULT 0)""")
 
@@ -128,7 +130,7 @@ def get_coop_level_result(svc, sess, req):
                                   "user_id": msgpack.packb({"pid": p, "pname": _pname_of(svc, p)}, use_bin_type=True),
                                   # evalution / reference: "Points earned" / "To level-up" [guess; point is
                                   # the "Rating +N" line, live 2026-11-08]
-                                  "is_clan_owner": "NO", "is_follow": "NO", "evalution": d["point"],
+                                  "is_clan_owner": "NO", "is_follow": _yes(follows(svc, pid, p)), "evalution": d["point"],
                                   "reference": LEVEL_POINTS - d["after_point"] % LEVEL_POINTS,
                                   "point": d["point"], "before_point": d["before_point"], "after_point": d["after_point"],
                                   "before_level": d["before_level"], "after_level": d["after_level"]}, use_bin_type=True))
@@ -160,6 +162,7 @@ def forget(svc, pid):
         db.execute("DELETE FROM pes_coop_reject WHERE pid=? OR target=?", (pid, pid))
         db.execute("DELETE FROM pes_coop_level WHERE pid=?", (pid,))
         db.execute("DELETE FROM pes_coop_data WHERE pid=?", (pid,))
+        db.execute("DELETE FROM pes_coop_follow WHERE pid=? OR target=?", (pid, pid))
     _state(svc).get("coop_last", {}).pop(pid, None)
 
 
@@ -195,6 +198,86 @@ def set_coop_reject(svc, sess, req):
     return _reject_reply(svc, pid)
 
 
+# ---- follow list (CO-OP Settings -> Follow List; after a co-op match with human team-mates, the follow screen) ----
+FOLLOW_MAX = 100          # a sanity cap; the game's own limit is not known
+
+
+def _yes(b):
+    return "YES" if b else "NO"
+
+
+def follows(svc, pid, target):
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        return db.execute("SELECT 1 FROM pes_coop_follow WHERE pid=? AND target=?", (pid, target)).fetchone() is not None
+
+
+def followers(svc, pid):
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        return db.execute("SELECT COUNT(*) FROM pes_coop_follow WHERE target=?", (pid,)).fetchone()[0]
+
+
+def _user_pids(items):
+    """follow_user_id_list / unfollow_user_id_list: user_id blobs {pid, pname{...}} (packer 0x141e01650)."""
+    from .pesprofile import _blob
+    out = []
+    for it in items or []:
+        p = it if isinstance(it, int) else _blob(it).get("pid")
+        if isinstance(p, int) and p > 0:
+            out.append(p)
+    return out
+
+
+@cmd("CMD_FOLLOW_USER")
+def follow_user(svc, sess, req):
+    pid = _pid(sess)
+    add = [t for t in _user_pids(req.get("follow_user_id_list")) if t != pid]
+    drop = _user_pids(req.get("unfollow_user_id_list"))
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        for t in add:
+            n = db.execute("SELECT COUNT(*) FROM pes_coop_follow WHERE pid=?", (pid,)).fetchone()[0]
+            if n >= FOLLOW_MAX or not db.execute("SELECT 1 FROM pes_players WHERE pid=?", (t,)).fetchone():
+                continue
+            db.execute("INSERT OR IGNORE INTO pes_coop_follow (pid, target) VALUES (?,?)", (pid, t))
+        for t in drop:
+            db.execute("DELETE FROM pes_coop_follow WHERE pid=? AND target=?", (pid, t))
+    if add or drop:
+        log.info("COOP follow pid %s: +%s -%s", pid, add, drop)
+    return {"result": NOERR}
+
+
+@cmd("CMD_LOCK_FOLLOW_USER")
+def lock_follow_user(svc, sess, req):
+    """{target_pid, is_lock YES/NO}: shown as is_locked in the list (what locking does in the game is not known)."""
+    pid, t = _pid(sess), req.get("target_pid")
+    if isinstance(t, int):
+        db = pescmds._db(svc)
+        with svc.accounts.lock, db:
+            _setup(db)
+            db.execute("UPDATE pes_coop_follow SET locked=? WHERE pid=? AND target=?",
+                       (1 if req.get("is_lock") == "YES" else 0, pid, t))
+    return {"result": NOERR}
+
+
+@cmd("CMD_GET_FOLLOW_LIST")
+def get_follow_list(svc, sess, req):
+    """Layout from the parser 0x141e03e60: follow_list[] -> blob{user_id: blob{pid, pname: blob{...}}, is_locked,
+    is_clan_member}, follow_list_num."""
+    pid = _pid(sess)
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        rows = db.execute("SELECT target, locked FROM pes_coop_follow WHERE pid=? ORDER BY rowid", (pid,)).fetchall()
+    out = [msgpack.packb({"user_id": msgpack.packb({"pid": t, "pname": _pname_of(svc, t)}, use_bin_type=True),
+                          "is_locked": _yes(lk), "is_clan_member": "NO"}, use_bin_type=True) for t, lk in rows]
+    return {"result": NOERR, "follow_list": out, "follow_list_num": len(out)}
+
+
 @cmd("CMD_GET_COOP_PROFILE")
 def get_coop_profile(svc, sess, req):
     """A player's co-op card: the courtesy rating (pesmanner), the co-op level and points, co-op matches played."""
@@ -202,7 +285,9 @@ def get_coop_profile(svc, sess, req):
     pid = req.get("pid") if isinstance(req.get("pid"), int) else _pid(sess)
     grade = pesmanner.rating(svc, pid)["grade"] if isinstance(pid, int) else "A"
     lv, pts, n = level(svc, pid) if isinstance(pid, int) else (1, 0, 0)
-    data = {"is_follow": "NO", "coop_level": lv, "coop_level_point": pts, "follower": 0, "coop_manner": grade,
+    me = _pid(sess)
+    data = {"is_follow": _yes(isinstance(pid, int) and follows(svc, me, pid)), "coop_level": lv,
+            "coop_level_point": pts, "follower": followers(svc, pid) if isinstance(pid, int) else 0, "coop_manner": grade,
             "online_match": n, "vscom_match": 0}
     data["match_data_size"], data["match_data"] = match_data(svc, pid) if isinstance(pid, int) else (0, "")
     # two top-level blobs, side by side (checked on the game's own parser with tools/parsebench.py)
@@ -307,7 +392,8 @@ def _group(svc, pid, owner, order, gid, team, viewer):
     member_list[] -> blob{member: blob{...}}}. member is the 1v1 member blob (pid, pname, is_owner, side,
     addresses rewritten for the viewer); exactly one is_owner YES in the push, on the HOME owner."""
     entry = msgpack.packb({"member": _member(svc, pid, owner, order, viewer), "guest_kind": "GUEST_NONE",
-                           "is_follow": "NO", "coop_level": level(svc, pid)[0], "coop_manner": _manner(svc, pid)},
+                           "is_follow": _yes(follows(svc, _pid(viewer), pid)), "coop_level": level(svc, pid)[0],
+                           "coop_manner": _manner(svc, pid)},
                           use_bin_type=True)
     return msgpack.packb({"member_list": [entry], "member_list_num": 1, "use_team_id": team, "owner_pid": pid,
                           "group_id": gid}, use_bin_type=True)

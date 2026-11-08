@@ -385,6 +385,8 @@ from key order. The nested maps are gate **blobs**.
 4. Matchday (C3) after Divisions works; group stage only.
 
 ## Still unknown
+> **Status 2026-11-08:** the season-end screen choice is answered live: the game picks promotion / relegation /
+> stay itself from the points and thresholds of the reply before FINISH_SEASON (livetests.md 2026-11-07).
 - The field that makes MenuSeasonResults choose `0_promotion` or `1_normal` (A5 test 1 shows the screen; then try a FINISH_SEASON with a changed division).
 - Whether `match_record.rating` must be a float.
 - Whether OLXH171 appears on a Divisions verdict (expected not).

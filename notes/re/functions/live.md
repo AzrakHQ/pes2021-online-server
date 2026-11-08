@@ -274,6 +274,10 @@ Examples: version_dp.bin "1.00" → 100, so GET_SVRVERSION `dlc_version` "1.00" 
 Confidence: high for the reply shape, the "new" comparisons, GET, the exact size and SHA-256 (all read in code). Medium for the version_wu.bin layout and the table list (inferred from the dp/xu files and the name table).
 
 ## 6. Still unknown / what a live test would settle
+> **Status 2026-11-08:** settled in sweep.md: the server DLC version source, `livedata_version` (no consumer),
+> version_wu.bin +0x14 (stored, never read), ERR_DIFFERENT_LIVEDATA_VERSION. Live: Team.bin and
+> PlayerAssignment.bin are reloaded from a Live Update (livetests.md), and the update must stay listed. The
+> rest is still open.
 
 - **Source of the `[netmgr+0x68]` server DLC version** in state 4 (inferred: GET_SVRVERSION `dlc_version`). Test: reply "1.01" and expect SGJC392.
 - **Whether the client uses GET_SVRVERSION's `livedata_version`.** No consumer was found.
