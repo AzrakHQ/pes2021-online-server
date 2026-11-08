@@ -254,7 +254,14 @@ Our 1v1 handlers already relay pid lists and gate the relay check on "all room m
 ### CMD_GET_COOP_LEVEL_RESULT — level/point change screen
 - **Request:** `{pid, match_id}` (0x141ba8800).
 - **Reply** (0x141ba8ec0): `coop_level_user_list[ blob{status STR, user_id{pid, pname{...}}, is_clan_owner, is_follow, evalution NUM, reference NUM, point, before_point, after_point, before_level, after_level} ]`.
-- **Server:** one entry per member, with unchanged points/levels and `status` (values unknown) [guess].
+- Entry layout (parser keys in order, 2026-11-08): blob{status STR, user_id blob{pid, pname blob{name, xuid_one,
+  psn_user_id blob{account_id, online_id, is_valid_cache}, is_deleted}}, is_clan_owner, is_follow, evalution NUM,
+  reference NUM, point, before_point, after_point, before_level, after_level}. The exe has the sounds
+  SE_RESULT_LEVELUP / SE_RESULT_LEVELDOWN but no status strings near them.
+- **Server (pescoop.py, 2026-11-08):** co-op level points at the final whistle (win 30, draw 20, loss 10; a level
+  every 100 points), both members' before/after values in this reply, the level in GET_COOP_PROFILE and in the
+  WATCH_COOP_MATCHING member entries. `status` "LEVEL_UP" / "NONE" is a guess.
+- It arrives after LEAVE_ROOM (live 2026-11-08), so the server keeps the values per player, not per room.
 
 ### CMD_GET_GAMERESULTS_COOP — co-op match history (menu)
 - **Used in:** 0x140d78000.
