@@ -131,3 +131,18 @@ def test_coop_level_points_at_full_time(svc, pushes):
     assert pescoop.level(svc, 1)[0] == 2                      # 10 + 4 x 30 = 130 points: level 2
     pescoop.forget(svc, 1)
     assert pescoop.level(svc, 1) == (1, 0, 0)
+
+
+def test_coop_gets_the_full_time_push_without_a_rating_change(svc, pushes):
+    a, b = _player(svc, 1), _player(svc, 2)
+    _search(svc, a); _search(svc, b)
+    (rid, room), = pesmatch._state(svc)["rooms"].items()
+    room["goals"] = {(500, "HOME")}
+    pushes.clear()
+    for s in (a, b):
+        pescmds._dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "END"})
+    sent = [(p, m) for p, m, _ in pushes]
+    assert sorted(sent) == [(1, "CMD_WATCH_GAMEADDPOINT"), (2, "CMD_WATCH_GAMEADDPOINT")]
+    players = [_unpack(x) for x in pushes[0][2]["player_list"]]
+    assert all(x["rating"] == x["oldrating"] for x in players)
+    assert svc.accounts.db.execute("SELECT rating FROM pes_players WHERE pid=1").fetchone()[0] in (None, 1000)

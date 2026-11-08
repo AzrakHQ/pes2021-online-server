@@ -473,10 +473,10 @@ def change_gamephase(svc, sess, req):
         if room.get("coop") and all(room["phase"].get(p) == "END" for p in room["members"]):
             from . import pescoop
             pescoop.award(svc, room)              # co-op level points at the final whistle
-        if (os.environ.get("PESSERVER_VERDICT_AT_END", "1") != "0" and not room.get("coop")
+        if (os.environ.get("PESSERVER_VERDICT_AT_END", "1") != "0"
                 and "pushed_at_end" not in room
                 and all(room["phase"].get(p) == "END" for p in room["members"])):
-            # At the final whistle, to every member (every one-on-one match; PESSERVER_VERDICT_AT_END=0 turns it
+            # At the final whistle, to every member (every match, co-op too; PESSERVER_VERDICT_AT_END=0 turns it
             # off). The Friendly Match Lobby's "N Match(es)" / "Wins" counters only count this push (lobby2.md),
             # and with it neither game reports the link as lost when the first player leaves the result screens.
             room["pushed_at_end"] = True
@@ -621,11 +621,14 @@ def _verdict(svc, rid, room):
                or (ELO_START, 0)) for p in (home, away)}
     result = {home: 0.5 + 0.5 * ((score["HOME"] > score["AWAY"]) - (score["HOME"] < score["AWAY"]))}
     result[away] = 1 - result[home]
-    new = {p: (_elo(old[p][0], old[q][0], result[p]), old[p][1] + 1 if result[p] == 1 else 0)
-           for p, q in ((home, away), (away, home))}
-    with svc.accounts.lock, db:
-        for p, (r, streak) in new.items():
-            db.execute("UPDATE pes_players SET rating=?, win_streak=? WHERE pid=?", (r, streak, p))
+    if room.get("coop"):
+        new = dict(old)                      # co-op: no 1v1 rating change (the co-op level is pescoop's)
+    else:
+        new = {p: (_elo(old[p][0], old[q][0], result[p]), old[p][1] + 1 if result[p] == 1 else 0)
+               for p, q in ((home, away), (away, home))}
+        with svc.accounts.lock, db:
+            for p, (r, streak) in new.items():
+                db.execute("UPDATE pes_players SET rating=?, win_streak=? WHERE pid=?", (r, streak, p))
     shown = {p: (old[p][0], new[p][0]) for p in (home, away)}
     if room.get("mode") == "PES_LEAGUE":
         # Online Tournament: the game's "Changes in rating" screen shows the competition points (its rankings
@@ -656,8 +659,9 @@ def _verdict(svc, rid, room):
         pestourney.record(svc, room)
     log.info("VERDICT room %s %d-%d: %s", rid, score["HOME"], score["AWAY"],
              {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
-    events.feed(svc, "Ratings: " + ", ".join(f"{events.name_of(svc, p)} {old[p][0]} → {new[p][0]}" for p in (home, away)),
-                "result")
+    if not room.get("coop"):
+        events.feed(svc, "Ratings: " + ", ".join(f"{events.name_of(svc, p)} {old[p][0]} → {new[p][0]}" for p in (home, away)),
+                    "result")
     return room["verdict"]
 
 

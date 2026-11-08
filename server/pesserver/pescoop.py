@@ -125,7 +125,10 @@ def get_coop_level_result(svc, sess, req):
         up = d["after_level"] > d["before_level"]
         out.append(msgpack.packb({"status": "LEVEL_UP" if up else "NONE",
                                   "user_id": msgpack.packb({"pid": p, "pname": _pname_of(svc, p)}, use_bin_type=True),
-                                  "is_clan_owner": "NO", "is_follow": "NO", "evalution": 0, "reference": 0,
+                                  # evalution / reference: "Points earned" / "To level-up" [guess; point is
+                                  # the "Rating +N" line, live 2026-11-08]
+                                  "is_clan_owner": "NO", "is_follow": "NO", "evalution": d["point"],
+                                  "reference": LEVEL_POINTS - d["after_point"] % LEVEL_POINTS,
                                   "point": d["point"], "before_point": d["before_point"], "after_point": d["after_point"],
                                   "before_level": d["before_level"], "after_level": d["after_level"]}, use_bin_type=True))
     return {"result": NOERR, "coop_level_user_list": out}
