@@ -36,6 +36,8 @@ def _setup(db):
                   points INTEGER NOT NULL DEFAULT 0, win INTEGER NOT NULL DEFAULT 0, draw INTEGER NOT NULL DEFAULT 0,
                   lose INTEGER NOT NULL DEFAULT 0, goals_for INTEGER NOT NULL DEFAULT 0,
                   goals_against INTEGER NOT NULL DEFAULT 0, joined REAL NOT NULL, PRIMARY KEY (compe_id, pid))""")
+    if "rules" not in {r[1] for r in db.execute("PRAGMA table_info(pes_tourney)")}:
+        db.execute("ALTER TABLE pes_tourney ADD COLUMN rules TEXT NOT NULL DEFAULT '{}'")
     db.execute("CREATE TABLE IF NOT EXISTS pes_tourney_cfg (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
     db.execute("""CREATE TABLE IF NOT EXISTS pes_tourney_match (compe_id INTEGER, match_id TEXT, pid INTEGER,
                   opp INTEGER, my_team INTEGER, opp_team INTEGER, my_goals INTEGER, opp_goals INTEGER,
@@ -67,10 +69,24 @@ def competitions(svc, now=None):
                        "created) VALUES (?,?,?,?,?,?,?,?)",
                        (cid, f"Friends Cup {label}", MATCH_1VS1, start, end, json.dumps(TEAMS), start, now))
             log.info("TOURNEY new competition %d: Friends Cup %s", cid, label)
-        rows = db.execute("SELECT compe_id, name, match_type, start_date, end_date, teams, info FROM pes_tourney "
+        rows = db.execute("SELECT compe_id, name, match_type, start_date, end_date, teams, info, rules FROM pes_tourney "
                           "ORDER BY start_date DESC, compe_id DESC").fetchall()
     return [{"compe_id": r[0], "name": r[1], "match_type": r[2], "start": r[3], "end": r[4],
-             "teams": json.loads(r[5]), "info": r[6]} for r in rows]
+             "teams": json.loads(r[5]), "info": r[6], "rules": json.loads(r[7] or "{}")} for r in rows]
+
+
+# compe_regulation, at the top level of GET_PESLEAGUE_COMPE_INFO (layout from the game's parser, 2026-11-08):
+# match_time NUM, condition STR (CONDITION_WORST..CONDITION_BEST), ranking_match_num NUM, trade_num NUM,
+# extra_time STR, guest STR (GUEST / GUEST_NONE / PLATFORM_GUEST), is_equalization / is_3member_coop /
+# is_ex_substitution "YES"/"NO". match_time is the match length in real minutes (live 2026-11-08: 5 gave a
+# 2.5-minute half); without it the game plays a match of about 2 minutes, so it is always sent.
+MATCH_MINUTES = 10                  # like Quick Match
+def regulation(c):
+    r = c.get("rules") or {}
+    # is_equalization NO: with YES the game tells players their ratings are evened out and asks the server for
+    # the evened-out stats (GET_PLAYER_PARAMETERLIST is_equalization YES), which this server does not make; teams
+    # play at their real strength, as in Quick Match, and the game says so (no notice; live 2026-11-08).
+    return {"match_time": int(r.get("match_minutes") or MATCH_MINUTES), "is_equalization": "NO"}
 
 
 def get(svc, compe_id):
@@ -131,8 +147,10 @@ def compe_info(svc, sess, req):
         return pesreplay.peslg_compe_info(svc, sess, req)
     f = _fields(svc, c, _pid(sess, req))
     # the fields must also be inside compe_data, or the game takes the default competition type (live 2026-11-06)
-    return {"result": NOERR, **f, "eula_url": "", "entry_compe": f["is_entry"],
-            "compe_data": _pack({**f, "eula_url": "", "entry_compe": f["is_entry"]})}
+    out = {"result": NOERR, **f, "eula_url": "", "entry_compe": f["is_entry"],
+           "compe_data": _pack({**f, "eula_url": "", "entry_compe": f["is_entry"]})}
+    out["compe_regulation"] = _pack(regulation(c))
+    return out
 
 
 @cmd("CMD_GET_PESLEAGUE_COMPE_TEAM_LIST")
@@ -340,7 +358,8 @@ def _when(v, default):
 
 
 def save(svc, d):
-    """Create (no compe_id) or change a competition. Keys: name, start, end, teams [ids], info (overview text)."""
+    """Create (no compe_id) or change a competition. Keys: name, start, end, teams [ids], info (overview text),
+    match_minutes (5-30, default 10)."""
     now = time.time()
     cur = get(svc, d.get("compe_id")) if d.get("compe_id") not in (None, "") else None
     if d.get("compe_id") not in (None, "") and cur is None:
@@ -361,17 +380,27 @@ def save(svc, d):
     if not teams:
         raise ValueError("a competition needs at least one team")
     info = str(d.get("info") if d.get("info") is not None else (cur or {}).get("info") or "")[:2000]
+    rules = dict((cur or {}).get("rules") or {})
+    if d.get("match_minutes") not in (None, ""):
+        try:
+            m = int(d["match_minutes"])
+        except (TypeError, ValueError):
+            raise ValueError("match_minutes must be a number")
+        if not 5 <= m <= 30:
+            raise ValueError("match_minutes must be 5 to 30")
+        rules["match_minutes"] = m
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
         if cur:
-            db.execute("UPDATE pes_tourney SET name=?, start_date=?, end_date=?, teams=?, info=? WHERE compe_id=?",
-                       (name, start, end, json.dumps(teams), info, cur["compe_id"]))
+            db.execute("UPDATE pes_tourney SET name=?, start_date=?, end_date=?, teams=?, info=?, rules=? WHERE compe_id=?",
+                       (name, start, end, json.dumps(teams), info, json.dumps(rules), cur["compe_id"]))
             cid = cur["compe_id"]
         else:
             cid = max(FIRST_ID, (db.execute("SELECT MAX(compe_id) FROM pes_tourney").fetchone()[0] or 0) + 1)
-            db.execute("INSERT INTO pes_tourney (compe_id, name, match_type, start_date, end_date, teams, info, auto, "
-                       "created) VALUES (?,?,?,?,?,?,?,0,?)", (cid, name, MATCH_1VS1, start, end, json.dumps(teams), info, now))
+            db.execute("INSERT INTO pes_tourney (compe_id, name, match_type, start_date, end_date, teams, info, rules, "
+                       "auto, created) VALUES (?,?,?,?,?,?,?,?,0,?)",
+                       (cid, name, MATCH_1VS1, start, end, json.dumps(teams), info, json.dumps(rules), now))
     log.info("TOURNEY saved competition %d: %s", cid, name)
     return cid
 

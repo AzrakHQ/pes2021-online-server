@@ -147,3 +147,19 @@ def test_monthly_cup_comes_each_month(svc):
     nxt = pestourney.competitions(svc, first[0]["end"] + 3600)
     assert len(first) == 1 and len(nxt) == 2 and nxt[0]["start"] == first[0]["end"]
     assert nxt[0]["name"] != first[0]["name"]
+
+
+def test_match_rules_in_compe_info(svc):
+    """compe_regulation (top level of COMPE_INFO): match_time in minutes, always sent (the game's own default is
+    about 2 minutes); the host can change it. No evened-out ratings (the server has no such stats to give)."""
+    import json
+    cup = pestourney.competitions(svc)[0]
+    info = pescmds._dispatch(svc, Sess(1), "CMD_GET_PESLEAGUE_COMPE_INFO", {"compe_id": cup["compe_id"]})
+    assert unb(info["compe_regulation"]) == {"match_time": 10, "is_equalization": "NO"}
+    st, _, _ = pestourney.admin_api(svc, "/admin/api/tourneys/save", "POST", json.dumps(
+        {"compe_id": cup["compe_id"], "match_minutes": 15}).encode())
+    assert st == "200 OK"
+    info = pescmds._dispatch(svc, Sess(1), "CMD_GET_PESLEAGUE_COMPE_INFO", {"compe_id": cup["compe_id"]})
+    assert unb(info["compe_regulation"]) == {"match_time": 15, "is_equalization": "NO"}
+    assert pestourney.admin_api(svc, "/admin/api/tourneys/save", "POST", json.dumps(
+        {"compe_id": cup["compe_id"], "match_minutes": 3}).encode())[0] == "400 Bad Request"
