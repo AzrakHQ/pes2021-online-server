@@ -1,4 +1,4 @@
-"""Player names (pesnames.py): stored lowercased with _, unique apart from case/spaces/_-.; claims, Move, Block."""
+"""Player names (pesnames.py): kept as typed plus a lowercase _ handle, unique apart from case/spaces/_-.; claims, Move, Block."""
 import asyncio, json
 from types import SimpleNamespace
 
@@ -37,10 +37,21 @@ def test_clean_and_key():
     assert pesnames.key("Mo Rashad") == pesnames.key("mo_rashad") == pesnames.key("MoRashad") == "morashad"
 
 
-def test_names_are_stored_clean_and_unique(svc):
+def test_shown():
+    assert pesnames.shown("  Mohamed   Rashad ") == "Mohamed Rashad"
+    assert pesnames.shown("Mo\u200b\x07Ra\tshad") == "MoRa shad"      # control / invisible characters go
+    assert pesnames.shown("محمد رشاد") == "محمد رشاد"
+    assert len(pesnames.shown("x" * 50)) == pesnames.SHOWN_MAX
+
+
+def test_names_are_kept_as_typed_with_a_unique_handle(svc):
     a, b = _copy(svc, 1), _copy(svc, 2)
     assert _name(svc, a, "Mohamed Rashad") == "NOERR"
-    assert pescmds._player(svc, a.pes_username)["name"] == "mohamed_rashad"
+    assert pescmds._player(svc, a.pes_username)["name"] == "Mohamed Rashad"          # the game shows it as typed
+    assert pesnames.handle_of(svc, a.pes_pid) == "mohamed_rashad"
+    p = next(p for p in events.snapshot(svc)["players"] if p["pid"] == a.pes_pid)
+    assert (p["name"], p["handle"]) == ("Mohamed Rashad", "mohamed_rashad")
+    assert events.player_detail(svc, a.pes_pid)["handle"] == "mohamed_rashad"
     for similar in ("mohamed_rashad", "MOHAMED RASHAD", "Mohamed-Rashad", "MohamedRashad"):
         assert _name(svc, b, similar) == "ERR_ALREADYEXISTS"       # "There is already a User with that name."
     assert _name(svc, b, "!!") == "ERR_INVALIDLETTER"
@@ -56,9 +67,9 @@ def test_a_taken_name_from_a_new_copy_is_a_claim_the_host_can_move(svc):
     assert _name(svc, new, "mohamed rashad") == "ERR_ALREADYEXISTS"
     claims = pesnames.claims_for(svc, pid)
     assert len(claims) == 1 and claims[0]["copy"] == new.pes_username and claims[0]["ip"] == "203.0.113.5"
-    assert any("asked for the name mohamed_rashad" in f["text"] for f in events._st(svc)["feed"])
-    assert [p["name"] for p in events.snapshot(svc)["players"]] == ["mohamed_rashad"]   # the nameless copy isn't listed
-    assert pesnames.move(svc, pid, new.pes_username) == {"pid": pid, "name": "mohamed_rashad"}
+    assert any("asked for the name mohamed rashad, which Mohamed Rashad has" in f["text"] for f in events._st(svc)["feed"])
+    assert [p["name"] for p in events.snapshot(svc)["players"]] == ["Mohamed Rashad"]   # the nameless copy isn't listed
+    assert pesnames.move(svc, pid, new.pes_username) == {"pid": pid, "name": "Mohamed Rashad"}
     again = _copy(svc, 9)
     assert again.pes_pid == pid and pescmds._dispatch(svc, again, "CMD_GET_PLAYER_DATA", {})["has_data"] == "YES"
     assert pesnames.claims_for(svc, pid) == []
@@ -116,6 +127,24 @@ def test_player_routes(svc):
     st, out, _ = call("POST", "/admin/api/players/block", json.dumps({"pid": a.pes_pid, "on": True}).encode())
     assert st.startswith("200") and json.loads(out)["blocked"] is True
     st, out, _ = call("POST", "/admin/api/players/move", json.dumps({"pid": a.pes_pid, "copy": b.pes_username}).encode())
-    assert st.startswith("200") and json.loads(out)["name"] == "mohamed_rashad"
+    assert st.startswith("200") and json.loads(out)["name"] == "Mohamed Rashad"
     st, out, _ = call("POST", "/admin/api/players/move", json.dumps({"pid": a.pes_pid, "copy": b.pes_username}).encode())
     assert st.startswith("404")
+
+
+def test_players_named_before_handles_get_one(tmp_path):
+    """An older database: the name column already holds the cleaned form and there is no handle column."""
+    import sqlite3
+    path = str(tmp_path / "a.db")
+    s = Service(Accounts(path))
+    s.data_dir = str(tmp_path)
+    db = s.accounts.db
+    with db:
+        db.execute("CREATE TABLE pes_players(pid INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, name TEXT,"
+                   " steamid TEXT, psid INTEGER, created REAL NOT NULL, last_login REAL)")
+        db.execute("INSERT INTO pes_players(username, name, created) VALUES('old', 'omar_10', 0)")
+    pescmds._db(s)
+    assert [(p["name"], p["handle"]) for p in events.snapshot(s)["players"]] == [("omar_10", "omar_10")]
+    b = _copy(s, 2)
+    assert _name(s, b, "Omar 10") == "ERR_ALREADYEXISTS"
+    assert sqlite3.connect(path).execute("SELECT handle FROM pes_players WHERE username='old'").fetchone()[0] == "omar_10"

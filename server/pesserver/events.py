@@ -277,13 +277,13 @@ def snapshot(svc):
     try:
         pescmds._db(svc)                  # adds the rating columns to older databases
         from . import pesnames
-        pesnames._db(svc)                 # ... and the blocked column
+        pesnames._db(svc)                 # ... and the blocked and handle columns
         # a copy that hasn't picked a name yet (or whose name was taken) is not a player on the page yet
-        rows = db.execute("SELECT pid, name, username, created, last_login, rating, win_streak, blocked FROM pes_players"
+        rows = db.execute("SELECT pid, name, username, created, last_login, rating, win_streak, blocked, handle FROM pes_players"
                           " WHERE name IS NOT NULL ORDER BY last_login DESC").fetchall()
     except Exception:  # noqa: BLE001
         rows = []
-    for pid, name, username, created, last, rating, streak, blocked in rows:
+    for pid, name, username, created, last, rating, streak, blocked, handle in rows:
         w = d = l = gf = ga = 0
         form, run, running = [], 0, True          # newest first while reading
         for hp, ap, hs, as_ in db.execute("SELECT home_pid, away_pid, home_score, away_score FROM pes_matches"
@@ -298,7 +298,8 @@ def snapshot(svc):
                 form.append(res)
             running = running and res == "W"
             run += running
-        players.append({"pid": pid, "name": name or f"Player {pid}", "created": created, "last_login": last,
+        players.append({"pid": pid, "name": name or f"Player {pid}", "handle": handle or pesnames.clean(name),
+                        "created": created, "last_login": last,
                         "blocked": bool(blocked),
                         "online": pid in svc.online, "played": w + d + l, "won": w, "drawn": d, "lost": l,
                         "gf": gf, "ga": ga, "rating": rating, "streak": streak,
@@ -325,7 +326,8 @@ def player_detail(svc, pid):
         "SELECT " + ", ".join(keys) + " FROM pes_matches WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid))]
     name = r[1] or f"Player {pid}"
     sess = svc.online.get(pid)
-    return {"pid": pid, "name": name, "created": r[2], "last_login": r[3], "rating": r[4], "streak": r[5],
+    from . import pesnames
+    return {"pid": pid, "name": name, "handle": pesnames.handle_of(svc, pid), "created": r[2], "last_login": r[3], "rating": r[4], "streak": r[5],
             "online": sess is not None, "ip": getattr(sess, "peer_ip", "") if sess else "",
             "since": getattr(sess, "connected_at", None) if sess else None, "matches": matches,
             "feed": [f for f in _st(svc)["feed"] if name in f["text"]][:40]}

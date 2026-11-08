@@ -1,10 +1,11 @@
 """Player names, blocking, and moving a player to a new copy of the mod.
 
 Each copy of the mod is one player (its install id, gate.py / pescmds.account_key). In the game the player
-types a name the first time (CMD_CREATE_PLAYER); the server stores it lowercased with spaces as "_":
-"Mohamed Rashad" -> mohamed_rashad. Letters of any language are kept. A name that is the same as one a player
-already has, apart from case, spaces, "_", "-" and ".", is refused with the game's own "There is already a
-User with that name." (ERR_ALREADYEXISTS).
+types a name the first time (CMD_CREATE_PLAYER). The server keeps it as typed ("Mohamed Rashad": the game and
+the admin page show that) and also stores its handle, lowercased with spaces as "_": mohamed_rashad. Letters
+of any language are kept. A name whose handle is the same as another player's, apart from "_" (so apart from
+case, spaces, "_", "-" and "."), is refused with the game's own "There is already a User with that name."
+(ERR_ALREADYEXISTS), so two accounts never share a name.
 
 - A friend on a new PC or in a fresh game folder is a new copy: their old name is taken by their old self.
   The server remembers that try (a "claim"), the activity feed and the player's panel say so, and the host
@@ -19,11 +20,19 @@ import logging, re, time, unicodedata
 from . import pescmds
 
 log = logging.getLogger("pesserver.names")
-NAME_MAX = 24
+NAME_MAX = 24        # the handle
+SHOWN_MAX = 32       # the name as typed
+
+
+def shown(raw):
+    """The name as the player typed it, tidied: no control characters, single spaces, trimmed."""
+    s = unicodedata.normalize("NFKC", str(raw or ""))
+    s = "".join(" " if ch.isspace() else ch for ch in s if ch.isspace() or not unicodedata.category(ch).startswith("C"))
+    return re.sub(r" +", " ", s).strip()[:SHOWN_MAX].strip()
 
 
 def clean(raw):
-    """The stored form: lowercased, spaces / - / . as one "_", letters (any language), digits and _ only."""
+    """The handle: lowercased, spaces / - / . as one "_", letters (any language), digits and _ only."""
     s = unicodedata.normalize("NFKC", str(raw or "")).strip().casefold()
     s = re.sub(r"[\s\-.]+", "_", s)
     s = "".join(ch for ch in s if ch == "_" or ch.isalnum())
@@ -39,6 +48,11 @@ def _setup(db):
     cols = {r[1] for r in db.execute("PRAGMA table_info(pes_players)")}
     if "blocked" not in cols:
         db.execute("ALTER TABLE pes_players ADD COLUMN blocked INTEGER NOT NULL DEFAULT 0")
+    if "handle" not in cols:
+        # players named before handles existed: their stored name already is the cleaned form
+        db.execute("ALTER TABLE pes_players ADD COLUMN handle TEXT")
+        for pid, name in db.execute("SELECT pid, name FROM pes_players WHERE name IS NOT NULL").fetchall():
+            db.execute("UPDATE pes_players SET handle=? WHERE pid=?", (clean(name), pid))
     db.execute("""CREATE TABLE IF NOT EXISTS pes_name_claims (username TEXT PRIMARY KEY, wanted TEXT NOT NULL,
                   pid INTEGER NOT NULL, ip TEXT, t REAL NOT NULL)""")
 
@@ -55,8 +69,16 @@ def holder(svc, name, but_username):
     k = key(name)
     db = _db(svc)
     with svc.accounts.lock:
-        rows = db.execute("SELECT pid, name FROM pes_players WHERE name IS NOT NULL AND username<>?", (but_username,)).fetchall()
-    return next(((p, n) for p, n in rows if key(n) == k), None)
+        rows = db.execute("SELECT pid, name, handle FROM pes_players WHERE name IS NOT NULL AND username<>?",
+                          (but_username,)).fetchall()
+    return next(((p, n) for p, n, h in rows if key(h or n) == k), None)
+
+
+def handle_of(svc, pid):
+    db = _db(svc)
+    with svc.accounts.lock:
+        r = db.execute("SELECT handle, name FROM pes_players WHERE pid=?", (pid,)).fetchone()
+    return (r[0] or clean(r[1])) if r and (r[0] or r[1]) else None
 
 
 def claim(svc, sess, username, wanted, pid, owner):

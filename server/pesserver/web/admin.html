@@ -268,6 +268,8 @@
   td.name { font-weight:600; min-width:9em; max-width:20em; }
   td.name .pname, td.h .pname, td.a .pname { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:16em; display:inline-block; vertical-align:bottom; }
   td.name small { display:block; font-weight:400; color:var(--muted); font-size:12px; }
+  .handle { font-weight:400; color:var(--muted); font-size:12px; margin-left:6px; white-space:nowrap; }
+  .sh-handle { display:block; font-weight:400; color:var(--muted); font-size:13px; margin-top:2px; }
   td.act { width:1%; white-space:nowrap; text-align:left; }
   td.act .slot { display:inline-block; min-width:4.6em; }
   @media (max-width: 520px) { td.act [data-kick], td.act .slot { display:none; } }
@@ -1227,6 +1229,7 @@ function myMatches(list, pid) {
 // oldest on the left, newest on the right (like a league table)
 const formHtml = f => f.length ? `<span class="form" title="Last ${f.length} results, newest on the right" aria-label="Last ${f.length}, oldest first: ${f.map(x => ({W: "won", D: "drew", L: "lost"})[x]).join(", ")}">` + f.map(x => `<span class="${x}" aria-hidden="true">${x}</span>`).join("") + `</span>` : `<span class="muted">–</span>`;
 const formOf = (list, pid, n) => myMatches(list, pid).filter(m => !m.r.voided).slice(0, n || 5).map(m => m.res).reverse();
+const handleTag = p => p.handle && p.handle !== p.name ? `<span class="handle" title="Handle: no two players share it" dir="ltr">@<bdi>${esc(p.handle)}</bdi></span>` : "";
 const pname = (name, pid, key) => pid == null ? nm(name) : `<button type="button" class="pname" data-player="${pid}" data-key="${key || "pn-" + pid}" aria-haspopup="dialog">${nm(name)}</button>`;
 
 let msgDirty = false;
@@ -1525,7 +1528,7 @@ function renderPlayers(d) {
     `<button type="button" data-pf="${k}" data-key="pf-${k}" aria-pressed="${ui.pf === k}">${l} <span class="n">${counts[k]}</span></button>`).join(""));
   put("p-rank", rankSeg("pr"));
   const q = ui.pq.toLowerCase();
-  let list = d.players.filter(p => (ui.pf === "all" || (ui.pf === "online" ? p.online : !p.played)) && (!q || p.name.toLowerCase().includes(q)));
+  let list = d.players.filter(p => (ui.pf === "all" || (ui.pf === "online" ? p.online : !p.played)) && (!q || p.name.toLowerCase().includes(q) || (p.handle || "").includes(q.replace(/^@/, "").replace(/[\s.-]+/g, "_"))));
   const key = {name: p => p.name.toLowerCase(), rank: p => rankOf.get(p.pid) || 1e9, rating: p => p.rating ?? 0, played: p => p.played, won: p => p.won, drawn: p => p.drawn, lost: p => p.lost,
     gd: p => gd(p), pts: p => pts(p), ppg: p => p.played ? ppg(p) : -1, seen: p => p.online ? 1e12 : (p.last_login || 0), joined: p => p.created || 0}[ui.sort] || (p => pts(p));
   list.sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * ui.dir || (rankOf.get(a.pid) || 1e9) - (rankOf.get(b.pid) || 1e9) || a.name.localeCompare(b.name); });
@@ -1540,7 +1543,7 @@ function renderPlayers(d) {
     `<th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
     list.map(p => { const o = onlineBy.get(p.pid);
       return `<tr><td class="num muted">${rankOf.get(p.pid) || "–"}</td>
-      <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}${courtTag(p)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · <span class="nw">${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
+      <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}${handleTag(p)}${courtTag(p)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · <span class="nw">${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
       <td class="hide-md st-cell">${o && downSince ? `<span class="muted">Was online at ${hm.format(new Date(lastOkAt))}</span>` : o ? `<span class="odot" aria-hidden="true"></span><span class="sr">Online: </span>` + statusOf(d, o)
           : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
       <td class="num hide-lg">${p.rating ?? "–"}</td><td class="num hide-sm">${p.played}</td><td class="num hide-sm">${p.won}</td><td class="num hide-sm">${p.drawn}</td><td class="num hide-sm">${p.lost}</td>
@@ -1665,12 +1668,16 @@ function paintBack() {
   $("sh-back").hidden = prev == null; $("sh-back").textContent = "← " + (p ? p.name : "Back");
   $("sh-back").setAttribute("aria-label", "Back to " + (p ? p.name : "the previous player"));
 }
+function shTitle(p) {
+  $("sh-t").textContent = p.name;
+  if (p.handle && p.handle !== p.name) { const h = document.createElement("span"); h.className = "sh-handle"; h.dir = "ltr"; const t = document.createElement("bdi"); t.textContent = p.handle; h.append("@", t); $("sh-t").append(h); }
+}
 async function openPlayer(pid, opener) {
   if ($("sheet").open && sheetPid != null && sheetPid !== pid) sheetStack.push(sheetPid); else if (!$("sheet").open) sheetStack = [];
   sheetPid = pid; sheetAll = false; if (!$("sheet").open) sheetBack = opener || document.activeElement;   // h2h links keep the first opener
   paintBack();
   const p0 = last && last.players.find(p => p.pid === pid);
-  $("sh-t").textContent = p0 ? p0.name : "Player"; $("sh-av").innerHTML = p0 ? avatar(p0) : "";
+  shTitle(p0 || {name: "Player"}); $("sh-av").innerHTML = p0 ? avatar(p0) : "";
   $("sh-b").innerHTML = `<div class="skel"></div><div class="skel short"></div><div class="skel"></div>`; $("sh-f").innerHTML = "";
   if (!$("sheet").open) $("sheet").showModal();
   $("sh-x").focus();
@@ -1692,7 +1699,7 @@ async function loadPlayer() {
   for (const m of ms) { const k = m.oppPid ?? "x" + m.opp, x = h2h.get(k) || {name: m.opp, pid: m.oppPid, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0}; x.p++; x[m.res.toLowerCase()]++; x.gf += m.mine; x.ga += m.theirs; h2h.set(k, x); }
   const rows = [...h2h.values()].sort((a, b) => b.p - a.p || a.name.localeCompare(b.name));
   const rank = last ? ranked(last).findIndex(x => x.pid === pid) + 1 : 0;
-  $("sh-t").textContent = p.name; $("sh-av").innerHTML = avatar(p);
+  shTitle(p); $("sh-av").innerHTML = avatar(p);
   const list = sheetAll ? all : all.slice(0, 10);
   $("sh-b").innerHTML =
     `<p class="small muted" style="margin:0 0 12px">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span> ${(o => o ? statusOf(last, o) + (o.status === "Searching" && o.searching_since ? ` for ${inMin(now - o.searching_since)}` : "") + " · " : "")(last && last.online.find(x => x.pid === pid))}connected ${dur(now - p.since)} · <span title="Address ${esc(p.ip)}">${where(p.ip)}</span>` : p.last_login ? "Last seen " + esc(ago(p.last_login, now)) : "Never signed in"}` +

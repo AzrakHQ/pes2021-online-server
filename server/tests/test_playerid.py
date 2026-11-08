@@ -53,7 +53,7 @@ def test_two_installs_with_the_same_steam_id_are_two_players(tmp_path):
             srv.close()
     asyncio.run(go())
     rows = svc.accounts.db.execute("SELECT username, name, steamid FROM pes_players ORDER BY pid").fetchall()
-    assert rows == [("m:" + ID_A, "mohamed", STEAM_USER), ("m:" + ID_B, "friend", STEAM_USER), (STEAM_USER, "old_mod", None)]
+    assert rows == [("m:" + ID_A, "Mohamed", STEAM_USER), ("m:" + ID_B, "Friend", STEAM_USER), (STEAM_USER, "Old mod", None)]
 
 
 def test_a_bad_id_line_drops_the_connection(tmp_path):

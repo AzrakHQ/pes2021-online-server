@@ -249,11 +249,11 @@ def create_player(svc, sess, req):
     if not u or not typed:
         return {"result": "ERR_INVALIDARG"}
     from . import pesnames, peswords
-    name = pesnames.clean(typed)                         # "Mohamed Rashad" -> mohamed_rashad (pesnames.py)
-    if len(name) < 2:
+    name, handle = pesnames.shown(typed), pesnames.clean(typed)   # "Mohamed Rashad", mohamed_rashad (pesnames.py)
+    if len(handle) < 2:
         log.info("CREATE_PLAYER refused name %r (no usable letters)", typed)
         return {"result": "ERR_INVALIDLETTER"}           # "Includes unusable letters or phrases."
-    if peswords.blocked(svc, typed) or peswords.blocked(svc, name.replace("_", " ")):
+    if peswords.blocked(svc, name) or peswords.blocked(svc, handle.replace("_", " ")):
         log.info("CREATE_PLAYER refused name %r (blocked word)", typed)
         return {"result": "ERR_NGWORDINPNAME"}           # "Includes unusable letters or phrases."
     taken = pesnames.holder(svc, name, u)
@@ -265,9 +265,9 @@ def create_player(svc, sess, req):
         return {"result": "ERR_ALREADYEXISTS"}           # "There is already a User with that name."
     db = _db(svc)
     with svc.accounts.lock, db:
-        db.execute("UPDATE pes_players SET name=? WHERE username=?", (name, u))
+        db.execute("UPDATE pes_players SET name=?, handle=? WHERE username=?", (name, handle, u))
     pesnames.named(svc, u)
-    log.info("CREATE_PLAYER username=%s name=%s", u, name)
+    log.info("CREATE_PLAYER username=%s name=%s handle=%s", u, name, handle)
     return {"result": NOERR}
 
 
