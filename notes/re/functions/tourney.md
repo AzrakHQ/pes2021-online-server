@@ -44,7 +44,11 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
     PLATFORM_GUEST), is_equalization / is_3member_coop / is_ex_substitution "YES"/"NO" (+0x610/+0x630/+0x650).
   - **match_time = match length in real minutes [live]:** without the blob a whole match took ~2 minutes
     (1ST→BREAK1 3345 gtimer ticks); with match_time 5 the first half took 8100 ticks (2.5 min). A 10-minute
-    Quick Match half is ~17150 ticks.
+    Quick Match half is ~17150 ticks. Checked by the in-game clock 60 s after kick-off: match_time 7 → 13:04
+    (a 7-minute match), 10 → 9:05 (10 minutes, like Quick Match).
+  - Measure by the clock, not by gtimer over a whole half: a match with tools/attack.py running took 9.5 real
+    minutes for a 10-minute half (28709 ticks). The two copies play in lockstep and the key tool keeps moving
+    the focus, so both slow down.
   - **is_equalization [live]:** "YES" (and the default) shows "Any players used in this competition will have
     their overall ratings recalibrated…" at team select, and before the match the game sends
     GET_PLAYER_PARAMETERLIST with `is_equalization:"YES"`, expecting the evened-out stats from the server. With
