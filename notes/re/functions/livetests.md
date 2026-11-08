@@ -610,3 +610,19 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
     (bare NOERR) and GET_COOP_PROFILE; both copies on Online/CoopMatch/CoopMenuPersonalResult. The first time
     a co-op match was seen ending. Whether the link drop also happens when the players move on promptly is not
     checked.
+
+## 2026-11-08: Online Tournament (pestourney.py), two copies
+- Friends Cup November 2026 (auto-made) next to Match Replays in the list; entry and team select (Belgium, Czech
+  Republic) → the "eFootball League" 1v1 menu. Rankings (5 pages), Competition Info, Regulations and Current
+  Match Results ("No game data." before a match) all open.
+- Start Match on both → START_MATCHING `PES_LEAGUE` → paired → QuickMatchMenu → a whole match (0-0) → verdict →
+  "TOURNEY 100: pid 3 DRAW 0-0 (+1)" for both → Full Time → "Changes in rating" → back in the 1v1 menu with
+  Points 1, W/D/L 0/1/0.
+- Without compe_regulation the match lasted ~2 minutes; with match_time 5 the first half took 2.5 minutes.
+  Second match: "Changes in rating" showed the competition points, 1 > 2 (+1).
+- is_equalization "NO": no "ratings recalibrated" notice at team select (with YES the game also asks
+  GET_PLAYER_PARAMETERLIST is_equalization YES for evened-out stats the server doesn't have).
+- Ended the cup in the test database → entering Online Tournament showed "Competition Results" (schedule,
+  User Numbers 2, Final Position 1ST) → A → the list with only Match Replays (no second cup that month).
+- Competition Outline: the host's text, then the generated one, line breaks included.
+- Layouts and the full path: tourney.md.
