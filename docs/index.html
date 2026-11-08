@@ -471,9 +471,9 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
               <li>Downloads the server program from this project's <a href="https://github.com/MohamedAliRashad/pes2021-private-server/releases/latest">latest release</a> (built by GitHub from the public code) and sets it up as your own user, no sudo: a <code>systemd --user</code> service (so it runs without a window and starts when you log in), an apps-menu entry and the <code>pes2021-server</code> command. Updates from the admin page are checked against the release's checksums and test-run before they replace the program.</li>
               <li>Keeps the program, players, results and its log in one folder: <code>~/.local/share/pes2021-server</code>.</li>
               <li>Opens ports on your router (UPnP) so friends outside your home can reach you, and closes them when the server stops; after a power cut they usually expire on their own within 2 hours.</li>
-              <li>If PES 2021 is installed on this computer, the admin page can put the mod in for you with one click. On Linux it also sets the Wine option in the game's Proton prefix (only its registry file is changed, and a backup copy, <code>user.reg.pes2021-backup</code>, is kept next to it).</li>
+              <li>If PES 2021 is installed on this computer, the server puts the mod in by itself and keeps it up to date (only while the game is closed, never over another mod; a switch on the admin page turns it off). On Linux it also sets the Wine option in the game's Proton prefix (only its registry file is changed, and a backup copy, <code>user.reg.pes2021-backup</code>, is kept next to it).</li>
               <li>The admin page is plain HTTP and opens only from your home network (and Tailscale).</li>
-              <li>While your router ports are open, your server's address is public: anyone who has it can open your friends' page, download the mod and join, unless you turn on <b>Only invited friends can join</b> (Invite friends). <b>Revoke</b> locks one person out.</li>
+              <li>While your router ports are open, your server's address is public: anyone who has it can open your friends' page, download the mod and join. <b>Block</b> on a player's panel locks one copy of the mod out.</li>
             </ul>
           </details>
         </div>
@@ -482,16 +482,16 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       <div class="card step" id="share">
         <div>
           <div class="step-num" aria-hidden="true">2</div>
-          <h3>The host invites each friend</h3>
-          <p class="small muted">On your admin page open <b>Invite friends</b> and press <b>Make their invite</b>. Each friend gets a handle like <b>@nutmeg_ninja</b> (keep the funny one or type your own) and their own link; the page they open has their personal mod and the steps.</p>
+          <h3>The host invites friends</h3>
+          <p class="small muted">On your admin page open <b>Invite friends</b> and press <b>Copy message</b>: one link for everyone. It opens a page with the mod (already set up for your server) and the steps.</p>
           <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> means friends outside your home should be able to connect. If it says <b>Friends use</b> and your address (you set a fixed one), friends can connect only if that address's ports are open; the server can't check this itself. If it says <b>Home network only</b>, only friends on your Wi-Fi can join; for friends elsewhere, or if it warns about router ports or CGNAT, see <a href="#hosthelp">Help → For hosts</a>.</p>
-          <p class="small muted"><b>Copy message</b> and send it on <b>Discord, WhatsApp or Telegram</b>. The link is theirs alone: it's how the server knows them on any PC. In the game they still pick their own name.</p>
+          <p class="small muted">Send it on <b>Discord, WhatsApp or Telegram</b>. Each friend picks their own name in the game; names are unique on your server (a friend on a new PC gets their old player back with <b>Move</b> on the admin page).</p>
           <p class="small muted"><b>First test:</b> have one friend start the game. They appear under <b>Online now</b> on your admin page within a minute.</p>
         </div>
         <div>
           <figure class="mini-shot">
-            <a class="light" href="admin-invite-light.webp"><img src="admin-invite-light.webp" width="670" height="477" loading="lazy" alt="The real admin page, Invite friends: a handle box with @nutmeg_ninja, Make their invite, the message with their personal link to copy, and the list of invites."></a>
-            <a class="dark" href="admin-invite-dark.webp"><img src="admin-invite-dark.webp" width="670" height="477" loading="lazy" alt="The real admin page in dark mode, Invite friends: a handle box, Make their invite, the message with their personal link to copy, and the list of invites."></a>
+            <a class="light" href="admin-invite-light.webp"><img src="admin-invite-light.webp" width="670" height="477" loading="lazy" alt="The real admin page, Invite friends: the message with your server's link, Copy message, and who has joined."></a>
+            <a class="dark" href="admin-invite-dark.webp"><img src="admin-invite-dark.webp" width="670" height="477" loading="lazy" alt="The real admin page in dark mode, Invite friends: the message with your server's link, Copy message, and who has joined."></a>
             <figcaption class="small muted">Click or tap to enlarge.</figcaption>
           </figure>
           <p class="small muted"><b>Playing on the same PC?</b> If the installer found PES 2021 on it, the admin page has a <b>The server computer</b> card: close the game and click <b>Install mod</b>.</p>
@@ -666,7 +666,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
         <li>If something is broken, run the install line again: it repairs the setup and updates the program.</li>
         <li>Remove everything: click <b>Uninstall</b> on the admin page's server-computer card (if you used it), stop the server, run <code>systemctl --user disable pes2021-server</code>, then delete <code>~/.local/share/pes2021-server</code>, <code>~/.config/systemd/user/pes2021-server.service</code>, <code>~/.local/share/applications/pes2021-server.desktop</code> and <code>~/.local/bin/pes2021-server</code>. This deletes players, results and the server's identity, so old mod files stop working.</li>
       </ul>
-      <p><b>Who can join?</b> With <b>Only invited friends can join</b> on (Invite friends), only friends you invited. Otherwise anyone who has your server's mod or address; while your router ports are open, that address is public. <b>Revoke</b> on an invite locks that person out.</p>
+      <p><b>Who can join?</b> Anyone who has your server's mod or address; while your router ports are open, that address is public, so share it only with friends. <b>Block</b> on a player's panel (Players) stops that copy of the mod from signing in.</p>
     </details>
     <details class="q" id="faq-update">
       <summary>After I update the server, do friends need a new file?</summary>

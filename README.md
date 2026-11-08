@@ -42,18 +42,19 @@ terminal? Close it (Ctrl+C), then run the line once.
 
 ## 2. Host: invite your friends
 
-Open the admin page → **Invite friends** → **Make their invite**. Each friend gets a handle like `@nutmeg_ninja`
-(keep the funny one or type your own) and a message with their personal link to paste into Discord, WhatsApp or
-Telegram. The link opens a page with their own copy of the mod and the steps; you never send files yourself.
+Open the admin page → **Invite friends** → **Copy message**, and paste it into Discord, WhatsApp or Telegram. The
+link opens a page with the mod (already set up for your server) and the steps; you never send files yourself.
 
-Their copy knows your server, keeps working after it restarts, and tells the server who they are on any PC. In
-the game they still choose their own name (no two players can take the same one). **Revoke** locks one person
-out, and **Only invited friends can join** keeps everyone else out. Details and the admin API:
-[Invites](server/README.md#invites-one-mod-per-friend).
+Each copy of the mod is one player. The first time, the game asks for a name: the server keeps it lowercased with
+`_` for spaces (`Mohamed Rashad` → `mohamed_rashad`, letters of any language), and a name someone already has
+(apart from capitals, spaces, `_`, `-` and `.`) is refused with the game's own "There is already a User with that
+name." A friend on a **new PC or game folder** gets that message for their own name: you see a note, and on their
+panel (Players) **Move** puts their old player (name, rating, results) on the new copy. **Block** on a player's
+panel stops their copy from signing in.
 
-**Playing on the same PC?** The installer finds PES 2021 on your computer (Steam libraries and
-`~/Games`): close the game, then on the admin page under **The server computer** click **Install mod**. On Linux it
-also sets the Wine option for you, so no launch option is needed.
+**PES 2021 on the server's own PC** gets the mod by itself: the server finds it (Steam libraries and `~/Games`)
+and, while the game is closed, puts the mod in and keeps it up to date, Wine option included. A copy with another
+mod is left alone; **PES 2021 on this computer** (Server page) has the switch and the buttons.
 
 ## 3. Friends: drop it in and play
 
@@ -77,13 +78,13 @@ delete the file.
 |---|---|
 | A friend can't connect | The host's server must be running. The mod writes what it tried to `pes2021-online.log` in the game folder |
 | "Router ports are closed" on the host | Turn on **UPnP** in your router settings and start the server again, or forward the ports it lists |
-| The match ends right after kick-off ("unforeseen circumstances") | A Windows player and a Linux / Steam Deck player computed the match differently. Both open their invite link again and download their mod (version 0.4.0 or newer keeps their games in step), and the host updates the server (admin page → Server → **Update now**) |
+| The match ends right after kick-off ("unforeseen circumstances") | A Windows player and a Linux / Steam Deck player computed the match differently. Both download the mod again from the friends' link (version 0.4.0 or newer keeps their games in step), and the host updates the server (admin page → Server → **Update now**) |
 | "Failed to connect with opponent" | The two PCs can't reach each other directly. Everyone installs [Tailscale](https://tailscale.com); the host runs the install line again with `PUBLIC_IP=<host's Tailscale IP>` before `sh` (`curl -fsSL … \| PUBLIC_IP=100.x.y.z sh`) |
 | Play on another server | Get that server's file and replace yours, or hold **Shift** while the game starts and paste its address |
 
-**New players:** the first time a friend goes online with their mod (eFootball → Quick Match), the game asks for
-a region and a player name, and your server saves that player, tied to their invite (the same player on any PC).
-They appear on the admin page, where you can also delete a player.
+**New players:** the first time a friend goes online with the mod (eFootball → Quick Match), the game asks for a
+region and a player name, and your server saves that player, tied to their copy of the mod. They appear on the
+admin page, where you can also block, move or delete a player.
 
 **Updating:** the admin page tells you when a newer version is out; press **Update now** (Server page, or the banner).
 

@@ -72,30 +72,28 @@ curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/monthly -d '{"on": fal
 names any id). `match_minutes` is 5 to 30 (default 10). `info` is shown in the game under Competition Details → Competition
 Outline. When a competition ends, each player sees their final position the next time they open Online Tournament.
 
-## Invites: one mod per friend
+## Players: names, Block, Move
 
-Each friend can get their own copy of the mod with a handle like `@panenka_panda` (a funny football one, or one you
-pick: lowercase letters, digits and `_`) and a secret code written in. The server then knows them by that code: on any PC, in any game folder,
-after a reinstall. In the game they still choose their own name, and no two players can take the same one.
-Revoking an invite is a ban: that copy can't sign in any more. Needs mod 0.6.0 (this release).
-
-With **invites only** switched on, a newcomer without an invite gets "Unable to login" and the activity feed
-tells you to make them one. Players the server already knows keep playing. It is off by default.
+Each copy of the mod is one player (its install id, sent on the mod's id line). The first time, the game asks for
+a name; `pesserver/pesnames.py` stores it lowercased with `_` for spaces, `-` and `.` (letters of any language,
+digits and `_`; at most 24), and refuses one that equals an existing name apart from case and those characters
+(`ERR_ALREADYEXISTS`, "There is already a User with that name."). When a new copy asks for a taken name the server
+keeps a *claim*: the activity feed and that player's panel offer **Move**, which puts the old player (name, rating,
+results) on the new copy. **Block** makes a copy's sign-in fail with the game's "account suspended" message.
 
 ```bash
-curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{}'                      # a funny handle
-curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{"handle": "nice_cat"}'  # your own (@ optional)
-curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{"pid": 3}'              # for a player you already have
-curl -s -H "Authorization: Bearer $T" $A/invites                                         # all invites, with their links
-curl -s -H "Authorization: Bearer $T" -X POST $A/invites/settings -d '{"invites_only": true}'
-curl -s -H "Authorization: Bearer $T" -X POST $A/invites/rename -d '{"id": 1, "handle": "rabona_raccoon"}'
-curl -s -H "Authorization: Bearer $T" -X POST $A/invites/revoke -d '{"id": 1}'           # ban; add "back": true to undo
-curl -s -H "Authorization: Bearer $T" -X POST $A/invites/delete -d '{"id": 1}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/players/block -d '{"pid": 3, "on": true}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/players/move -d '{"pid": 3, "copy": "m:<install id>"}'   # copy: from the player's "claims"
 ```
 
-Each invite has a `link`, `/mod/dinput8.dll?invite=<code>` on this server's web address: send it to that friend
-only (whoever has the link or the file plays as them). A friend who already played gets their old account moved
-onto the invite the first time they sign in with it, if you made the invite with their `pid`.
+## The mod in PES 2021 on the server's own computer
+
+`pesserver/gamesetup.py` finds PES 2021 copies (Steam libraries, `~/Games`) and, every minute while the game isn't
+running, puts the mod into each copy without one and replaces this server's mod when the file it hands out changed
+(a new mod version, new addresses), with the Wine `dinput8` override in the copy's prefix. Copies with another
+server's mod, someone else's `dinput8.dll`, or one the host removed the mod from are left alone.
+`GET/POST /admin/api/games/auto {"on"}` switches it (saved in `<data>/auto.json`); `AUTO_MOD=0` turns it off for a
+development server.
 
 ## The host program on Linux: install, update, restart
 
@@ -147,7 +145,7 @@ can't work.
 | `pesserver/pesresults.py`, `pesranking.py` | match history (Last 20 results), Play Analysis uploads, rankings (overall and per division) |
 | `pesserver/pesblock.py` | Match Block List: blocked pairs are never matched |
 | `pesserver/peswords.py` | the host's word filter: whole words or phrases in `<data>/blocked_words.txt` (one a line) are refused in player names, room names and profile texts |
-| `pesserver/pesinvite.py` | invites: one mod per friend with a handle and a secret code (sent on the mod's id line); invites only, revoke = ban, unique player names |
+| `pesserver/pesnames.py` | player names (lowercased, `_`, unique apart from case/spaces/`_-.`), claims and Move to a new copy, Block |
 | `pesserver/announce.py` | news, messages to one player (their Information list), restart warning, lobby welcome notes |
 | `pesserver/hostctl.py` | the Linux host program: `install` (systemd user service, apps-menu entry), `open`, `selfcheck`; update from the admin page (checksum, self-check, swap, restart), restart, stop, start when I log in |
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
@@ -156,7 +154,7 @@ can't work.
 | `pesserver/turn.py`, `turnrelay.py`, `turndtls.py` | the relay: TURN list and credentials; TURN over TLS (first leg, sends the dual-route directive); TURN over DTLS with the game's framing (second leg, the one the match uses). Details: `notes/re/functions/ktcdtls.md`, `turncycle.md`, `turnlinkup.md` |
 | `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner |
 | `pesserver/identity.py` | the server's Ed25519 identity, signed notes and hellos for the mod, writing settings into the mod DLL |
-| `pesserver/gamesetup.py` | admin page "The server computer" card: finds PES copies on this computer and installs the mod |
+| `pesserver/gamesetup.py` | PES 2021 on the server's own computer: finds the copies, keeps the mod in them up to date by itself (and the admin page's buttons) |
 | `pesserver/certs.py`, `updates.py` | the server's CA and TLS certificate; the "newer version is out" check |
 | `pesserver/__main__.py` | command line: `host` (the program), `serve` (development), `adduser` |
 | `mod/` | the mod (`dinput8.dll`): MinHook hooks, Monocypher signatures, same-math functions from musl (`mod/musl-math/`, checked by `mod/test/mathcheck.c`), built by `mod/build.sh` (MinGW) |
