@@ -470,6 +470,9 @@ def change_gamephase(svc, sess, req):
     rid, room = _room_of(svc, pid)
     if room is not None:
         room.setdefault("phase", {})[pid] = str(req.get("phase", ""))
+        if room.get("coop") and all(room["phase"].get(p) == "END" for p in room["members"]):
+            from . import pescoop
+            pescoop.award(svc, room)              # co-op level points at the final whistle
         if (os.environ.get("PESSERVER_VERDICT_AT_END", "1") != "0" and not room.get("coop")
                 and "pushed_at_end" not in room
                 and all(room["phase"].get(p) == "END" for p in room["members"])):

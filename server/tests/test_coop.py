@@ -107,3 +107,27 @@ def test_different_data_is_not_paired_and_cancel_leaves_the_queue(svc, pushes):
     pescmds._dispatch(svc, a, "CMD_CANCEL_COOP_MATCHING", {})
     _search(svc, _player(svc, 3))
     assert pushes == [] and [x[0] for x in pesmatch._state(svc)["coop_queue"]] == [2, 3]
+
+
+def test_coop_level_points_at_full_time(svc, pushes):
+    a, b = _player(svc, 1), _player(svc, 2)
+    _search(svc, a); _search(svc, b)
+    (rid, room), = pesmatch._state(svc)["rooms"].items()
+    room["goals"] = {(500, "AWAY"), (700, "AWAY"), (900, "HOME")}
+    for s in (a, b):
+        pescmds._dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "END"})
+    pescmds._dispatch(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "END"})    # repeated END: counted once
+    assert pescoop.level(svc, 1) == (1, 10, 1) and pescoop.level(svc, 2) == (1, 30, 1)
+    pesmatch._state(svc)["rooms"].clear()                     # the game asks after leaving the room
+    r = pescmds._dispatch(svc, b, "CMD_GET_COOP_LEVEL_RESULT", {"pid": 2, "match_id": "x"})
+    rows = {(u := _unpack(_unpack(e)["user_id"]))["pid"]: _unpack(e) for e in r["coop_level_user_list"]}
+    assert set(rows) == {1, 2} and (rows[2]["before_point"], rows[2]["after_point"], rows[2]["point"]) == (0, 30, 30)
+    assert rows[1]["after_level"] == 1 and _unpack(_unpack(r["coop_level_user_list"][0])["user_id"])["pname"]
+    prof = _unpack(pescmds._dispatch(svc, a, "CMD_GET_COOP_PROFILE", {"pid": 2})["coop_profile_data"])
+    assert (prof["coop_level"], prof["coop_level_point"], prof["online_match"]) == (1, 30, 1)
+    room2 = {"owner": 1, "members": [1, 2], "coop": True, "goals": {(1, "HOME")} }
+    for _ in range(4):
+        room2.pop("coop_awarded", None); pescoop.award(svc, room2)
+    assert pescoop.level(svc, 1)[0] == 2                      # 10 + 4 x 30 = 130 points: level 2
+    pescoop.forget(svc, 1)
+    assert pescoop.level(svc, 1) == (1, 0, 0)

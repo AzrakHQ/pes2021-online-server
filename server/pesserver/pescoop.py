@@ -59,6 +59,76 @@ def get_is_join_coop_room(svc, sess, req):
 # ---- profile and block list -------------------------------------------------------------------------
 def _setup(db):
     db.execute("CREATE TABLE IF NOT EXISTS pes_coop_reject (pid INTEGER, target INTEGER, UNIQUE (pid, target))")
+    db.execute("""CREATE TABLE IF NOT EXISTS pes_coop_level (pid INTEGER PRIMARY KEY, points INTEGER NOT NULL DEFAULT 0,
+                  matches INTEGER NOT NULL DEFAULT 0, wins INTEGER NOT NULL DEFAULT 0)""")
+
+
+# ---- co-op level: points per finished co-op match, a level every LEVEL_POINTS -------------------------------
+LEVEL_POINTS = 100
+MAX_LEVEL = 99
+AWARD = {"WIN": 30, "DRAW": 20, "LOSE": 10}
+
+
+def level_of(points):
+    return min(MAX_LEVEL, 1 + int(points) // LEVEL_POINTS)
+
+
+def level(svc, pid):
+    """(level, points, matches) of a player's co-op card."""
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        r = db.execute("SELECT points, matches FROM pes_coop_level WHERE pid=?", (pid,)).fetchone()
+    pts, n = r or (0, 0)
+    return level_of(pts), pts, n
+
+
+def award(svc, room):
+    """At the final whistle of a co-op match (both games at END): points for both players, once per room.
+    The before/after values are kept for GET_COOP_LEVEL_RESULT, which comes after the room is gone."""
+    if room.get("coop_awarded") or len(room.get("members", [])) != 2:
+        return
+    room["coop_awarded"] = True
+    goals = room.get("goals", set())
+    score = {s: sum(1 for _, g in goals if g == s) for s in ("HOME", "AWAY")}
+    home = room["owner"]
+    away = next(p for p in room["members"] if p != home)
+    mid = room.get("match_id") or ""
+    db = pescmds._db(svc)
+    done = {}
+    with svc.accounts.lock, db:
+        _setup(db)
+        for me, side in ((home, "HOME"), (away, "AWAY")):
+            mine, theirs = (score["HOME"], score["AWAY"]) if side == "HOME" else (score["AWAY"], score["HOME"])
+            res = "WIN" if mine > theirs else "LOSE" if mine < theirs else "DRAW"
+            before = (db.execute("SELECT points FROM pes_coop_level WHERE pid=?", (me,)).fetchone() or (0,))[0]
+            db.execute("INSERT INTO pes_coop_level (pid, points, matches, wins) VALUES (?,?,1,?) ON CONFLICT (pid) DO "
+                       "UPDATE SET points=points+?, matches=matches+1, wins=wins+?",
+                       (me, AWARD[res], int(res == "WIN"), AWARD[res], int(res == "WIN")))
+            done[me] = {"match_id": mid, "point": AWARD[res], "before_point": before, "after_point": before + AWARD[res],
+                        "before_level": level_of(before), "after_level": level_of(before + AWARD[res])}
+    st = _state(svc).setdefault("coop_last", {})
+    for pid in done:
+        st[pid] = {"members": [home, away], "rows": done}
+    log.info("COOP level: %s", {p: f"{d['before_point']}->{d['after_point']} (L{d['after_level']})" for p, d in done.items()})
+
+
+@cmd("CMD_GET_COOP_LEVEL_RESULT")
+def get_coop_level_result(svc, sess, req):
+    """The co-op level screen after a co-op match: both players' points and levels, before and after (layout from
+    the parser 0x141ba8ec0; status values unknown, notes/re/functions/coop.md)."""
+    pid = _pid(sess) or req.get("pid")
+    last = _state(svc).get("coop_last", {}).get(pid)
+    out = []
+    for p in (last or {}).get("members", []):
+        d = last["rows"][p]
+        up = d["after_level"] > d["before_level"]
+        out.append(msgpack.packb({"status": "LEVEL_UP" if up else "NONE",
+                                  "user_id": msgpack.packb({"pid": p, "pname": _pname_of(svc, p)}, use_bin_type=True),
+                                  "is_clan_owner": "NO", "is_follow": "NO", "evalution": 0, "reference": 0,
+                                  "point": d["point"], "before_point": d["before_point"], "after_point": d["after_point"],
+                                  "before_level": d["before_level"], "after_level": d["after_level"]}, use_bin_type=True))
+    return {"result": NOERR, "coop_level_user_list": out}
 
 
 def _pname_of(svc, pid):
@@ -79,11 +149,13 @@ def blocked(svc, a, b):
 
 
 def forget(svc, pid):
-    """A deleted player: drop their block list and their place on other players' lists."""
+    """A deleted player: drop their block list, their place on other players' lists and their co-op level."""
     db = pescmds._db(svc)
     with svc.accounts.lock, db:
         _setup(db)
         db.execute("DELETE FROM pes_coop_reject WHERE pid=? OR target=?", (pid, pid))
+        db.execute("DELETE FROM pes_coop_level WHERE pid=?", (pid,))
+    _state(svc).get("coop_last", {}).pop(pid, None)
 
 
 def _reject_reply(svc, pid):
@@ -120,13 +192,13 @@ def set_coop_reject(svc, sess, req):
 
 @cmd("CMD_GET_COOP_PROFILE")
 def get_coop_profile(svc, sess, req):
-    """A player's co-op card. The courtesy rating is the real one (pesmanner); level and counts are not
-    tracked (level 1)."""
+    """A player's co-op card: the courtesy rating (pesmanner), the co-op level and points, co-op matches played."""
     from . import pesmanner
     pid = req.get("pid") if isinstance(req.get("pid"), int) else _pid(sess)
     grade = pesmanner.rating(svc, pid)["grade"] if isinstance(pid, int) else "A"
-    data = {"is_follow": "NO", "coop_level": 1, "coop_level_point": 0, "follower": 0, "coop_manner": grade,
-            "online_match": 0, "vscom_match": 0, "match_data_size": 0, "match_data": ""}
+    lv, pts, n = level(svc, pid) if isinstance(pid, int) else (1, 0, 0)
+    data = {"is_follow": "NO", "coop_level": lv, "coop_level_point": pts, "follower": 0, "coop_manner": grade,
+            "online_match": n, "vscom_match": 0, "match_data_size": 0, "match_data": ""}
     # two top-level blobs, side by side (checked on the game's own parser with tools/parsebench.py)
     info = {"pid": pid, "pname": _pname_of(svc, pid)}
     return {"result": NOERR, "user_info": msgpack.packb(info, use_bin_type=True),
@@ -204,7 +276,7 @@ def _group(svc, pid, owner, order, gid, team, viewer):
     member_list[] -> blob{member: blob{...}}}. member is the 1v1 member blob (pid, pname, is_owner, side,
     addresses rewritten for the viewer); exactly one is_owner YES in the push, on the HOME owner."""
     entry = msgpack.packb({"member": _member(svc, pid, owner, order, viewer), "guest_kind": "GUEST_NONE",
-                           "is_follow": "NO", "coop_level": 1, "coop_manner": _manner(svc, pid)},
+                           "is_follow": "NO", "coop_level": level(svc, pid)[0], "coop_manner": _manner(svc, pid)},
                           use_bin_type=True)
     return msgpack.packb({"member_list": [entry], "member_list_num": 1, "use_team_id": team, "owner_pid": pid,
                           "group_id": gid}, use_bin_type=True)
