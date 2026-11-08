@@ -356,9 +356,16 @@ def start_coop_matching(svc, sess, req):
 
 @cmd("CMD_CANCEL_COOP_MATCHING")
 def cancel_coop_matching(svc, sess, req):
+    """Cancel on the co-op search: like Quick Match, the game waits for its push to say the search ended
+    (WATCH_COOP_MATCHING matching_state CANCEL -> 4, coop.md), so send it when the player was still queued."""
     q = _queue(svc)
-    q[:] = [x for x in q if x[0] != _pid(sess)]
-    log.info("COOP cancel pid %s", _pid(sess))
+    pid = _pid(sess)
+    searching = any(x[0] == pid for x in q)
+    q[:] = [x for x in q if x[0] != pid]
+    log.info("COOP cancel pid %s", pid)
+    if searching:
+        pesmatch._send_later(sess, "CMD_WATCH_COOP_MATCHING", 0, 0x60, 1,
+                             {"result": NOERR, "matching_state": "CANCEL", "group_list_num": 0, "group_list": []})
     return {"result": NOERR}
 
 
@@ -368,7 +375,7 @@ def _tell_old_mod(svc, pid):
     if pid not in told:
         told.add(pid)
         events.feed(svc, f"{events.name_of(svc, pid)} is searching for an Online Co-op match, but their mod can't "
-                         "connect co-op matches. Send them the mod again (Download the mod for friends)", "warn")
+                         "connect co-op matches. Send them your Invite friends link again for the new mod", "warn")
 
 
 def _try_pair(svc):

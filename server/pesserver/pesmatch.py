@@ -144,11 +144,21 @@ def start_matching(svc, sess, req):
 
 @cmd("CMD_CANCEL_MATCHING")
 def cancel_matching(svc, sess, req):
+    """The player pressed Cancel on "Searching for an opponent". After the reply the game keeps waiting on its
+    WATCH_MATCHING until that says the search ended: push matching_state CANCEL (enum 0x14021b120: CHECKALIVE,
+    SEARCHING, FOUND, FINISH, CANCEL, TIMEOUT, FAILED). Without it the game stayed on the searching screen for
+    minutes (live 2026-11-08)."""
     st = _state(svc)
-    st["queue"] = [(p, s) for p, s in st["queue"] if p != _pid(sess)]
-    st["watch"].pop(_pid(sess), None)
-    _forget_mismatch(st, _pid(sess))
-    log.info("MATCH cancel pid %s", _pid(sess))
+    pid = _pid(sess)
+    searching = any(p == pid for p, _ in st["queue"])      # still queued = not paired (pairing dequeues both)
+    st["queue"] = [(p, s) for p, s in st["queue"] if p != pid]
+    parked = st["watch"].pop(pid, None)
+    _forget_mismatch(st, pid)
+    log.info("MATCH cancel pid %s%s", pid, "" if searching else " (not searching: no CANCEL push)")
+    if pid is not None and searching:                      # a pairing that already went out stands
+        s2, rqid, kind, seq = parked if parked else (sess, 0, 0x60, 1)
+        _send_later(s2, "CMD_WATCH_MATCHING", rqid, kind, seq,
+                    {"result": NOERR, "matching_state": "CANCEL", "player_num": 0, "member": []})
     return {"result": NOERR}
 
 

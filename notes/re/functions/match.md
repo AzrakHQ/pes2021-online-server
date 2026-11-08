@@ -333,6 +333,14 @@ The client carries a table of (command, server error code, message id) at 0x1428
 6. Implement CMD_RECONNECT (key like SET_CURRENTPLAYER). Optional: push WATCH_CHECK_ALIVE_PLAYER to arbitrate
    disconnects.
 
+## Cancelling a search (2026-11-08)
+- [log] The host pressed Cancel on "Searching for an opponent": CANCEL_MATCHING → our bare NOERR, then the game only
+  sent heartbeats and stayed on the searching screen for three minutes (until LEAVE_ROOM).
+- WATCH_MATCHING's `matching_state` enum [static 0x14021b120]: CHECKALIVE, SEARCHING, FOUND, FINISH, CANCEL,
+  TIMEOUT, FAILED. The game's search ends on the push, not on the CANCEL_MATCHING reply [inferred], so the server
+  now pushes `matching_state "CANCEL"` to a player who was still queued (co-op: WATCH_COOP_MATCHING CANCEL, the
+  same enum, coop.md). A player already paired gets no CANCEL (their FINISH stands). Not checked live yet.
+
 ## Still unknown
 > **Status 2026-11-08:** items 1–3 and the gtimer unit were settled in sweep.md (the DATAPACK compare is in
 > gncx_labels.md; gtimer against the match clock in tourney.md). Reconnect, live: after a 7 s server outage both

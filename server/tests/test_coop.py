@@ -105,6 +105,8 @@ def test_different_data_is_not_paired_and_cancel_leaves_the_queue(svc, pushes):
     _search(svc, a); _search(svc, b)
     assert pushes == []
     pescmds._dispatch(svc, a, "CMD_CANCEL_COOP_MATCHING", {})
+    assert [b["matching_state"] for _, _, b in pushes] == ["CANCEL"]     # the search screen is told it ended
+    pushes.clear()
     _search(svc, _player(svc, 3))
     assert pushes == [] and [x[0] for x in pesmatch._state(svc)["coop_queue"]] == [2, 3]
 
@@ -181,3 +183,12 @@ def test_follow_list_round_trip(svc):
     assert pescmds._dispatch(svc, a, "CMD_GET_FOLLOW_LIST", {})["follow_list_num"] == 1
     pescoop.forget(svc, 3)
     assert pescmds._dispatch(svc, a, "CMD_GET_FOLLOW_LIST", {})["follow_list_num"] == 0
+
+
+def test_cancel_pushes_cancel_so_the_game_leaves_the_search(svc, pushes):
+    a = _player(svc, 1)
+    _search(svc, a)
+    assert pescmds._dispatch(svc, a, "CMD_CANCEL_COOP_MATCHING", {}) == {"result": "NOERR"}
+    assert [(p, m, b["matching_state"]) for p, m, b in pushes] == [(1, "CMD_WATCH_COOP_MATCHING", "CANCEL")]
+    pescmds._dispatch(svc, a, "CMD_CANCEL_COOP_MATCHING", {})          # not searching any more: nothing more
+    assert len(pushes) == 1

@@ -225,3 +225,25 @@ def test_same_math_mod_is_only_paired_with_same_math(svc, monkeypatch):
     assert _rooms(svc) == [[2, 3]]
     _searching(svc, 4, math=True)
     assert _rooms(svc) == [[2, 3], [1, 4]]
+
+
+def test_cancel_tells_the_waiting_search_it_ended(svc, monkeypatch):
+    pushed = []
+    monkeypatch.setattr(pesmatch, "_send_later", lambda s, msgid, rq, k, sq, body: pushed.append((s.pes_pid, msgid, rq, body)))
+    a = _searching(svc, 1)
+    w = pescmds._dispatch(svc, a, "CMD_WATCH_MATCHING", {"rqid": 7})           # the game's parked watch
+    assert w.get("_defer")
+    assert pescmds._dispatch(svc, a, "CMD_CANCEL_MATCHING", {}) == {"result": "NOERR"}
+    assert [(p, m, rq, b["matching_state"]) for p, m, rq, b in pushed] == [(1, "CMD_WATCH_MATCHING", 7, "CANCEL")]
+    pushed.clear()
+    pescmds._dispatch(svc, a, "CMD_CANCEL_MATCHING", {})                       # not searching: no second push
+    assert pushed == []
+
+
+def test_cancel_after_a_pairing_sends_no_cancel(svc, monkeypatch):
+    pushed = []
+    monkeypatch.setattr(pesmatch, "_send_later", lambda s, msgid, rq, k, sq, body: pushed.append((s.pes_pid, msgid, body)))
+    a, b = _searching(svc, 1), _searching(svc, 2)                              # paired at once
+    assert {body["matching_state"] for _, _, body in pushed} == {"FINISH"}
+    pescmds._dispatch(svc, a, "CMD_CANCEL_MATCHING", {})
+    assert all(body["matching_state"] == "FINISH" for _, _, body in pushed)
