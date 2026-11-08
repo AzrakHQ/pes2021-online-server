@@ -44,7 +44,7 @@ def test_banner(monkeypatch, tmp_path):
     monkeypatch.setitem(httpgate.REMOTE, "on", True)
     assert "Internet       https://203.0.113.7:8080/admin" in netsetup.banner(color=False)
     monkeypatch.setitem(httpgate.REMOTE, "on", False)
-    assert "pw-1" in b and "download the one file" in b
+    assert "pw-1" in b and "invite your friends" in b
     assert "join" not in b and "irm " not in b and "trycloudflare" not in b
     assert "Password" not in netsetup.banner(color=False)
     assert netsetup.game_addrs() == ["192.168.1.50", "203.0.113.7"]

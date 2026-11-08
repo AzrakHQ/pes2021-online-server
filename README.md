@@ -17,15 +17,20 @@ curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-se
 ```
 
 It downloads the server (one program, about 30 MB, no sudo), sets it up to run **in the background** (it starts by
-itself when you log in), adds **PES 2021 Server** to your apps menu and opens the **admin page** in your browser. You
-can close the terminal.
+itself when you log in), adds **PES 2021 Server** to your apps menu, opens the **admin page** in your browser and
+shows the server's screen (admin page address, password, then who comes online and every result, live). **Ctrl+C**
+closes that view; the server keeps running, so you can close the terminal.
+
+In a terminal later:
+
+- `pes2021-server`: the server's screen again, live (it starts the server if it isn't running).
+- `pes2021-server stop`: stops it. `pes2021-server open`: opens the admin page.
 
 From then on everything is on the admin page:
 
 - **Server → The server program:** **Update now** (or **Update when nobody's playing**) when a new version is out,
   **Restart**, **Stop the server**, **Start when I log in**, and the recent log.
-- To open the admin page again, or to start a stopped server: **PES 2021 Server** in your apps menu, or
-  `pes2021-server open`.
+- To open the admin page again, or to start a stopped server: **PES 2021 Server** in your apps menu.
 - On the server's own PC the admin page opens without a password; other devices on your Wi-Fi (or Tailscale) use the
   password shown on the Server page. To open it from anywhere, turn on **Admin page from the internet** on its
   Network card (HTTPS: the browser warns once, since the certificate is the server's own).

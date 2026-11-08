@@ -197,12 +197,15 @@ def test_install_sets_up_the_service_menu_entry_and_command(tmp_path, monkeypatc
     up = iter([False, True])                                   # not running yet; answering after the start
     monkeypatch.setattr(hostctl, "_answering", lambda port=8080, timeout=1.5: next(up, True))
     monkeypatch.setattr(hostctl, "_open_page", lambda port=8080: ("http://localhost:8080/admin", True))
+    shown = []
+    monkeypatch.setattr(hostctl, "cmd_console", lambda a: shown.append(a))           # then the live screen
     hostctl.cmd_install(SimpleNamespace(data=str(prog.parent), no_autostart=False))
+    assert shown
     assert ("enable", hostctl.UNIT_NAME) in calls and ("start", hostctl.UNIT_NAME) in calls
     assert f'ExecStart="{prog}" host' in open(hostctl.unit_path()).read()
     assert 'open' in (home / ".local/share/applications/pes2021-server.desktop").read_text()
     assert os.readlink(home / ".local/bin/pes2021-server") == str(prog)
-    assert "running in the background" in capsys.readouterr().out
+    assert "runs in the background" in capsys.readouterr().out
 
 
 def test_install_refuses_while_a_server_runs_in_a_window(tmp_path, monkeypatch):
@@ -215,3 +218,32 @@ def test_install_refuses_while_a_server_runs_in_a_window(tmp_path, monkeypatch):
     with pytest.raises(SystemExit) as e:
         hostctl.cmd_install(SimpleNamespace(data=str(tmp_path / "data"), no_autostart=False))
     assert "already running in another window" in str(e.value)
+
+
+def test_background_screen_file_and_live_view(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("PES_SERVICE", "1")
+    hostctl.console_open(str(tmp_path))
+    hostctl.console("\x1b[1mBANNER\x1b[0m", banner=True)
+    hostctl.console("   19:00  Sami10 came online")
+    text = (tmp_path / "console.log").read_text()
+    assert "BANNER" in text and "came online" in text
+    monkeypatch.delenv("PES_SERVICE")
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "cfg"))
+    os.makedirs(os.path.dirname(hostctl.unit_path())); open(hostctl.unit_path(), "w").close()
+    monkeypatch.setattr(hostctl, "systemd_ok", lambda: True)
+    monkeypatch.setattr(hostctl, "_systemctl", lambda *a, timeout=15: (0, "active"))
+    monkeypatch.setattr(hostctl, "_answering", lambda port=8080, timeout=1.5: True)
+    hostctl.cmd_console(SimpleNamespace(data=str(tmp_path), no_follow=True))
+    out = capsys.readouterr().out
+    assert "BANNER" in out and "\x1b[" not in out and "came online" in out and "pes2021-server stop" in out
+    hostctl.CONSOLE["path"] = None
+
+
+def test_stop_command(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "cfg"))
+    os.makedirs(os.path.dirname(hostctl.unit_path())); open(hostctl.unit_path(), "w").close()
+    calls = []
+    monkeypatch.setattr(hostctl, "systemd_ok", lambda: True)
+    monkeypatch.setattr(hostctl, "_systemctl", lambda *a, timeout=15: (calls.append(a), (0, "active"))[1])
+    hostctl.cmd_stop(SimpleNamespace())
+    assert ("stop", hostctl.UNIT_NAME) in calls and "is stopped" in capsys.readouterr().out

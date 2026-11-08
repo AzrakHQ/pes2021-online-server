@@ -106,7 +106,12 @@ onto the invite the first time they sign in with it, if you made the invite with
   "restart me"), enabled unless `--no-autostart`;
 - `~/.local/share/applications/pes2021-server.desktop` ("PES 2021 Server": `pes2021-server open` starts the
   server if needed and opens the admin page) and `~/.local/bin/pes2021-server`;
-- then it starts the service and opens `http://localhost:8080/admin`. `--here` runs it in the terminal instead.
+- then it starts the service, opens `http://localhost:8080/admin` and shows the server's screen. `--here` runs it in
+  the terminal instead.
+
+A server in the background also writes its window's screen (the banner, activity lines and warnings, in colour) to
+`<data>/console.log`, a new file at each start. `pes2021-server` with no arguments (`console`) shows it live, starting
+the service if needed; Ctrl+C closes the view only. `pes2021-server stop` stops the service.
 
 The admin page (Server → The server program) uses the admin API:
 

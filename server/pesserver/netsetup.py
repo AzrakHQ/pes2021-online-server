@@ -342,7 +342,7 @@ def banner(password=None, color=True):
         out.append(f"   {B('Internet')}       {C(f'https://{wan}:{port}/admin')}")
     if password:
         out.append(f"   {B('Password')}       {Y(password)}" + D("   (other devices)"))
-    out += ["", D("   Open it to download the one file your friends need."), ""]
+    out += ["", D("   Open it to invite your friends (Invite friends) and to update or stop the server."), ""]
     if PASSWORD_IGNORED:
         out.append(Y("   !  ADMIN_PASSWORD was the example or too short, so this generated password is used instead."))
     from . import certs

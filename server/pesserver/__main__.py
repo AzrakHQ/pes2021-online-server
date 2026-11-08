@@ -6,6 +6,8 @@
                               to the apps menu, open the admin page (run.sh does this; hostctl.py)
   pesserver open              start it if it isn't running and open the admin page (the apps-menu entry)
   pesserver selfcheck         prints "pes2021-server ok <version>" (the updater test-runs new downloads)
+  pesserver                   installed: the background server's screen, live (console); else host
+  pesserver stop              stop the background server
   pesserver serve ...         development (tools/pes.py restart)
   pesserver adduser NAME PW   add an account by hand
 """
@@ -87,9 +89,13 @@ async def run(a):
     from . import identity
     identity.init(data_dir)
     logging.info("server identity %s", identity.public_hex())
+    from . import hostctl
+    hostctl.console_open(data_dir)
+
     def show_banner():
         if netsetup.STATE["ready"]:
             print(netsetup.banner(svc.admin_password, color=sys.stdout.isatty()), flush=True)
+            hostctl.console(netsetup.banner(svc.admin_password, color=True), banner=True)
 
     if a.auto_net:
         await asyncio.to_thread(netsetup.setup, use_upnp=os.environ.get("UPNP", "1") != "0")
@@ -190,15 +196,22 @@ def main():
     o = sub.add_parser("open", help="start the server if needed and open its admin page")
     o.add_argument("--data", default=default_data_dir())
     sub.add_parser("selfcheck")
+    st = sub.add_parser("stop", help="stop the server running in the background")
+    cn = sub.add_parser("console", help="show the background server's screen live (Ctrl+C closes the view)")
+    cn.add_argument("--data", default=default_data_dir()); cn.add_argument("--no-follow", action="store_true")
     argv = sys.argv[1:]
+    from . import hostctl
+    if not argv and hostctl.installed():
+        argv = ["console"]                    # installed (Linux service): show the background server's screen
     if not argv or (argv[0].startswith("-") and argv[0] not in ("-h", "--help", "--db")):
         argv = ["host"] + argv                # the program's own options, e.g. --data DIR
     a = p.parse_args(argv)
     if a.cmd is None:
         p.error("choose a command: host, serve or adduser")
     from . import hostctl
-    if a.cmd in ("install", "open", "selfcheck"):
-        return {"install": hostctl.cmd_install, "open": hostctl.cmd_open}.get(a.cmd, lambda _: hostctl.cmd_selfcheck())(a)
+    if a.cmd in ("install", "open", "selfcheck", "stop", "console"):
+        return {"install": hostctl.cmd_install, "open": hostctl.cmd_open, "stop": hostctl.cmd_stop,
+                "console": hostctl.cmd_console}.get(a.cmd, lambda _: hostctl.cmd_selfcheck())(a)
     if a.cmd == "host":
         _host_setup(a)
     fmt = "%(asctime)s %(name)s %(message)s"
@@ -212,7 +225,9 @@ def main():
         c = logging.StreamHandler()
         c.setLevel(logging.WARNING)
         c.setFormatter(logging.Formatter("   %(message)s"))
-        logging.basicConfig(level=logging.INFO, handlers=[f, c])
+        from .hostctl import ConsoleLog
+        w = ConsoleLog(); w.setLevel(logging.WARNING)              # a server in the background: its screen file
+        logging.basicConfig(level=logging.INFO, handlers=[f, c, w])
     else:
         logging.basicConfig(level=logging.INFO, format=fmt)
     if a.cmd == "adduser":

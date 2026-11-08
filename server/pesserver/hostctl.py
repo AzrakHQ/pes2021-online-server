@@ -94,6 +94,11 @@ def _systemctl(*args, timeout=15):
         return 127, str(e)
 
 
+def installed():
+    """Set up by `install` (Linux, the service exists): then `pes2021-server` alone shows its screen."""
+    return sys.platform.startswith("linux") and bool(program()) and os.path.exists(unit_path()) and not in_service()
+
+
 def systemd_ok():
     return shutil.which("systemctl") is not None and _systemctl("show-environment")[0] == 0
 
@@ -424,6 +429,116 @@ def admin_api(svc, route, method, body):
     return "200 OK", status(svc)
 
 
+# ---- the terminal screen of a server in the background ------------------------------------------------------
+# A server started by the service has no window, so it also writes what the window used to show (the banner,
+# the activity lines, warnings) to <data>/console.log, in colour. `pes2021-server` shows that file live.
+CONSOLE = {"path": None, "banner": ""}
+CONSOLE_MAX = 2 << 20
+
+
+def console_open(data_dir):
+    if not in_service():
+        return
+    CONSOLE["path"] = os.path.join(data_dir, "console.log")
+    try:                                                 # a new run starts a new screen (a new file, so a
+        open(CONSOLE["path"] + ".new", "w").close()      # live view notices even if it grows back quickly)
+        os.replace(CONSOLE["path"] + ".new", CONSOLE["path"])
+    except OSError:
+        CONSOLE["path"] = None
+
+
+def console(text, banner=False):
+    """Add text (with colours) to the background server's screen."""
+    path = CONSOLE["path"]
+    if not path:
+        return
+    if banner:
+        CONSOLE["banner"] = text
+    try:
+        if os.path.getsize(path) > CONSOLE_MAX:          # keep the banner and the newest lines
+            with open(path, encoding="utf-8", errors="replace") as f:
+                tail = f.read().splitlines()[-300:]
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(CONSOLE["banner"] + "\n" + "\n".join(tail) + "\n")
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
+    except OSError:
+        pass
+
+
+class ConsoleLog(logging.Handler):
+    """Warnings on the background server's screen, as the window showed them."""
+    def emit(self, record):
+        try:
+            console("   " + record.getMessage())
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def _strip(t):
+    import re
+    return re.sub(r"\x1b\[[0-9;]*m", "", t)
+
+
+def cmd_console(args):
+    """`pes2021-server` in a terminal: start the background server if needed and show its screen live.
+    Ctrl+C closes the view; the server keeps running."""
+    data = args.data
+    if not (os.path.exists(unit_path()) and systemd_ok()):
+        os.execve(program() or sys.executable, ([program()] if program() else [sys.executable, "-m", "pesserver"]) +
+                  ["host", "--data", data], clean_env())      # not installed: run in this window, as before
+    if _systemctl("is-active", UNIT_NAME)[1].splitlines()[:1] != ["active"]:
+        if _answering():
+            sys.exit("   A PES 2021 server is already running in another window (not in the background).")
+        print("   Starting the PES 2021 server in the background...", flush=True)
+        _systemctl("start", UNIT_NAME)
+    path = os.path.join(data, "console.log")
+    end = time.time() + 60
+    while time.time() < end and not (os.path.exists(path) and os.path.getsize(path) > 0 and _answering()):
+        time.sleep(0.5)
+    tty = sys.stdout.isatty()
+    show = (lambda t: sys.stdout.write(t)) if tty else (lambda t: sys.stdout.write(_strip(t)))
+    pos, ino = 0, None
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            ino = os.fstat(f.fileno()).st_ino
+            show(f.read()); pos = f.tell()
+    except OSError:
+        print("   The server is running, but its screen isn't there yet. Admin page: http://localhost:8080/admin")
+    hint = "   Ctrl+C closes this view; the server keeps running. Stop it: pes2021-server stop"
+    show(("\x1b[2m" + hint + "\x1b[0m\n") if tty else hint + "\n"); sys.stdout.flush()
+    if not tty or getattr(args, "no_follow", False):
+        return
+    try:
+        while True:
+            time.sleep(0.5)
+            try:
+                st = os.stat(path)
+            except OSError:
+                continue
+            size = st.st_size
+            if st.st_ino != ino or size < pos:                 # the server restarted: a new screen
+                ino, pos = st.st_ino, 0
+                show("\n")
+            if size > pos:
+                with open(path, encoding="utf-8", errors="replace") as f:
+                    f.seek(pos); show(f.read()); pos = f.tell()
+                sys.stdout.flush()
+    except KeyboardInterrupt:
+        print("\n   Closed the view. The server keeps running in the background (stop it: pes2021-server stop).\n", flush=True)
+
+
+def cmd_stop(args):
+    if os.path.exists(unit_path()) and systemd_ok() and _systemctl("is-active", UNIT_NAME)[1].splitlines()[:1] == ["active"]:
+        code, out = _systemctl("stop", UNIT_NAME, timeout=60)
+        print("   The PES 2021 server is stopped. Start it again: pes2021-server (or PES 2021 Server in your apps menu)."
+              if code == 0 else f"   Couldn't stop it: {out}", flush=True)
+        return
+    if _answering():
+        sys.exit("   The server runs in a terminal window: press Ctrl+C there (or stop it on the admin page, Server).")
+    print("   The PES 2021 server isn't running.", flush=True)
+
+
 # ---- command line: install, open, selfcheck ------------------------------------------------------------------------
 def _answering(port=8080, timeout=1.5):
     try:
@@ -477,13 +592,10 @@ def cmd_install(args):
         sys.exit("   The server didn't answer within a minute. Its log: journalctl --user -u pes2021-server -e")
     url, opened = _open_page()
     print(f"""
-   The PES 2021 server is running in the background.
-
-   Admin page:  {url}   {"(opened in your browser)" if opened else ""}
-   Everything else (inviting friends, updating, stopping) is on that page.
-   {"It starts by itself when you log in." if not args.no_autostart else "It doesn't start by itself; turn that on in the admin page (Server)."}
-   Later: open "PES 2021 Server" from your apps menu, or run: pes2021-server open
-""", flush=True)
+   Installed. The server runs in the background{" and starts by itself when you log in" if not args.no_autostart else ""}.
+   The admin page {"is open in your browser" if opened else f"is at {url}"}: inviting friends, updating and stopping are there.
+   Later: run pes2021-server to see this screen again, or open "PES 2021 Server" from your apps menu.""", flush=True)
+    cmd_console(args)
 
 
 def cmd_open(args):

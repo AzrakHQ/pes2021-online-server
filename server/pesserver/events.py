@@ -55,6 +55,8 @@ def feed(svc, text, kind="info"):
         line = time.strftime("%H:%M", time.localtime(item["t"])) + "  " + text
         color = {"goal": "1;32", "result": "1", "warn": "33"}.get(kind)
         print(f"   \033[{color}m{line}\033[0m" if color and sys.stdout.isatty() else "   " + line, flush=True)
+        from . import hostctl                         # a server in the background: its screen file (pes2021-server)
+        hostctl.console(f"   \033[{color}m{line}\033[0m" if color else "   " + line)
     try:
         db = svc.accounts.db
         with svc.accounts.lock, db:
