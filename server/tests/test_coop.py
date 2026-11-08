@@ -146,3 +146,15 @@ def test_coop_gets_the_full_time_push_without_a_rating_change(svc, pushes):
     players = [_unpack(x) for x in pushes[0][2]["player_list"]]
     assert all(x["rating"] == x["oldrating"] for x in players)
     assert svc.accounts.db.execute("SELECT rating FROM pes_players WHERE pid=1").fetchone()[0] in (None, 1000)
+
+
+def test_coop_match_data_is_kept_and_returned(svc):
+    a = _player(svc, 1)
+    assert pescmds._dispatch(svc, a, "CMD_GET_COOP_MATCH_DATA", {"pid": 1}) == {"result": "NOERR", "match_data_size": 0, "match_data": ""}
+    pescmds._dispatch(svc, a, "CMD_SET_COOP_MATCH_DATA", {"match_stats": b"x", "match_data_size": 480, "match_data": "QUJD" * 160})
+    r = pescmds._dispatch(svc, a, "CMD_GET_COOP_MATCH_DATA", {"pid": 1})
+    assert r["match_data_size"] == 480 and r["match_data"] == "QUJD" * 160
+    prof = _unpack(pescmds._dispatch(svc, _player(svc, 2), "CMD_GET_COOP_PROFILE", {"pid": 1})["coop_profile_data"])
+    assert prof["match_data_size"] == 480 and prof["match_data"] == "QUJD" * 160
+    pescmds._dispatch(svc, a, "CMD_SET_COOP_MATCH_DATA", {"match_data_size": 99999, "match_data": "x"})   # ignored
+    assert pescoop.match_data(svc, 1)[0] == 480

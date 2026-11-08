@@ -59,6 +59,7 @@ def get_is_join_coop_room(svc, sess, req):
 # ---- profile and block list -------------------------------------------------------------------------
 def _setup(db):
     db.execute("CREATE TABLE IF NOT EXISTS pes_coop_reject (pid INTEGER, target INTEGER, UNIQUE (pid, target))")
+    db.execute("CREATE TABLE IF NOT EXISTS pes_coop_data (pid INTEGER PRIMARY KEY, size INTEGER NOT NULL, data TEXT NOT NULL)")
     db.execute("""CREATE TABLE IF NOT EXISTS pes_coop_level (pid INTEGER PRIMARY KEY, points INTEGER NOT NULL DEFAULT 0,
                   matches INTEGER NOT NULL DEFAULT 0, wins INTEGER NOT NULL DEFAULT 0)""")
 
@@ -158,6 +159,7 @@ def forget(svc, pid):
         _setup(db)
         db.execute("DELETE FROM pes_coop_reject WHERE pid=? OR target=?", (pid, pid))
         db.execute("DELETE FROM pes_coop_level WHERE pid=?", (pid,))
+        db.execute("DELETE FROM pes_coop_data WHERE pid=?", (pid,))
     _state(svc).get("coop_last", {}).pop(pid, None)
 
 
@@ -201,7 +203,8 @@ def get_coop_profile(svc, sess, req):
     grade = pesmanner.rating(svc, pid)["grade"] if isinstance(pid, int) else "A"
     lv, pts, n = level(svc, pid) if isinstance(pid, int) else (1, 0, 0)
     data = {"is_follow": "NO", "coop_level": lv, "coop_level_point": pts, "follower": 0, "coop_manner": grade,
-            "online_match": n, "vscom_match": 0, "match_data_size": 0, "match_data": ""}
+            "online_match": n, "vscom_match": 0}
+    data["match_data_size"], data["match_data"] = match_data(svc, pid) if isinstance(pid, int) else (0, "")
     # two top-level blobs, side by side (checked on the game's own parser with tools/parsebench.py)
     info = {"pid": pid, "pname": _pname_of(svc, pid)}
     return {"result": NOERR, "user_info": msgpack.packb(info, use_bin_type=True),
@@ -216,10 +219,35 @@ def _manner(svc, pid):
         return "A"
 
 
+def match_data(svc, pid):
+    """(size, data) the player's game last uploaded with SET_COOP_MATCH_DATA, or (0, "")."""
+    db = pescmds._db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        r = db.execute("SELECT size, data FROM pes_coop_data WHERE pid=?", (pid,)).fetchone()
+    return r or (0, "")
+
+
+@cmd("CMD_SET_COOP_MATCH_DATA")
+def set_coop_match_data(svc, sess, req):
+    """After each co-op match the game uploads its 480-byte co-op score tables (base64 text) with the new totals;
+    they come back before the next co-op match (GET_COOP_MATCH_DATA) and on the co-op card (Playing Styles and
+    Skills)."""
+    pid = _pid(sess)
+    data, size = req.get("match_data"), req.get("match_data_size")
+    if isinstance(pid, int) and isinstance(data, str) and isinstance(size, int) and 0 < size <= 4096 and len(data) <= 8192:
+        db = pescmds._db(svc)
+        with svc.accounts.lock, db:
+            _setup(db)
+            db.execute("INSERT OR REPLACE INTO pes_coop_data (pid, size, data) VALUES (?,?,?)", (pid, size, data))
+    return {"result": NOERR}
+
+
 @cmd("CMD_GET_COOP_MATCH_DATA")
 def get_coop_match_data(svc, sess, req):
-    # 480 bytes of score tables the game keeps between co-op matches; empty is accepted (it zeroes its copy)
-    return {"result": NOERR, "match_data_size": 0, "match_data": ""}
+    # the 480 bytes of co-op score tables the game keeps between co-op matches (empty: it zeroes its copy)
+    size, data = match_data(svc, _pid(sess))
+    return {"result": NOERR, "match_data_size": size, "match_data": data}
 
 
 def _queue(svc):
