@@ -218,11 +218,14 @@ def mainmenu_1vs1(svc, sess, req):
     pid = _pid(sess, req)
     sess.pes_compe = c["compe_id"]
     e = entry(svc, c["compe_id"], pid) or {"team_id": c["teams"][0], "points": 0, "win": 0, "draw": 0, "lose": 0}
+    played = e["win"] + e["draw"] + e["lose"]
+    # regulation_match_num is the "Best N consecutive match result" header and match_num "Matches to achieve
+    # record" (live 2026-11-08); every match counts here, so N = the matches played (at least 1)
     return {"result": NOERR, "compe_end_time": c["end"], "draw_count": e["draw"], "lose_count": e["lose"],
-            "match_num": e["win"] + e["draw"] + e["lose"], "matching_first_date": c["start"],
+            "match_num": played, "matching_first_date": c["start"],
             # the "Matchmaking window closes in" clock is matching_first_date + matching_time (live 2026-11-08)
             "matching_interval": 0, "matching_time": c["end"] - c["start"], "point": e["points"],
-            "rank_type": "NONE", "regulation_match_num": 0, "team_id": e["team_id"], "team_name": "",
+            "rank_type": "NONE", "regulation_match_num": max(1, played), "team_id": e["team_id"], "team_name": "",
             "win_count": e["win"]}
 
 

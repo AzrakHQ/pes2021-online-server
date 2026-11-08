@@ -55,8 +55,9 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
 - **1VS1_MAINMENU_INFO** (0x141c36530): compe_end_time ("Competition ends in"), matching_first_date +
   matching_time = the end of the matchmaking window ("Matchmaking window closes in"; [live]: a value of
   end − now showed the wrong time), matching_interval, point, win/draw/lose_count, match_num ("Matches to achieve
-  record" showed the match count), regulation_match_num (the "Best N consecutive match result" header; 0 shows
-  "Best 0"), rank_type, team_id (the flag and name shown), team_name.
+  record"), regulation_match_num (the "Best N consecutive match result" header: 5 showed "Best 5 …" [live]; the
+  eFootball League ranked a player by their best N consecutive matches), rank_type, team_id (the flag and name
+  shown), team_name. pestourney counts every match, so it sends N = matches played (at least 1).
 - **COMPE_RANKING / _BYID** (0x141c1b2e0): `rank_list` [blob{pid, entry_name, team_id, clan_owner_name
   blob{name, xuid_one, psn_user_id blob{account_id, online_id, is_valid_cache}, is_deleted}, point, rank,
   win_count, draw_count, lose_count, match_num, get_score, lose_score, diff_score, recode_date,
