@@ -232,8 +232,8 @@ def record(svc, room):
     Returns {pid: (points before, points after)} (the same again on a repeat call), or {} for no competition."""
     cid = room.get("compe")
     c = get(svc, cid)
-    if c is None:
-        return {}
+    if c is None or not c["start"] <= room.get("t", time.time()) < c["end"]:
+        return {}                         # (a match paired before the start or after the end does not count)
     out = {}
     goals = room.get("goals", set())
     score = {s: sum(1 for _, g in goals if g == s) for s in ("HOME", "AWAY")}

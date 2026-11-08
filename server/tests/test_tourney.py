@@ -194,3 +194,13 @@ def test_results_notice_after_the_end(svc):
         assert pescmds._dispatch(svc, a, "CMD_GET_PESLEAGUE_COMPE_RESULT_LIST", {"is_unconfirm_list": "NO"})["result_list_num"] == 1
         assert pescmds._dispatch(svc, b, "CMD_GET_PESLEAGUE_MAINMENU_INFO", {"mode": "PESLEAGUE"})["new_result"] == "YES"
     asyncio.run(go())
+
+
+def test_matches_outside_the_dates_do_not_count(svc):
+    _players(svc, 1, 2)
+    cup = pestourney.competitions(svc)[0]
+    room = {"owner": 1, "members": [1, 2], "compe": cup["compe_id"], "goals": {(1, "HOME")}, "match_id": "late",
+            "t": cup["end"] + 5}
+    assert pestourney.record(svc, room) == {} and pestourney.entry(svc, cup["compe_id"], 1) is None
+    room.update(t=cup["start"] + 5, match_id="ok")
+    assert pestourney.record(svc, room) == {1: (0, 3), 2: (0, 0)}
