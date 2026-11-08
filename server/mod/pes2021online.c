@@ -34,6 +34,9 @@
  *   - Online Co-op: the game forgets to give its P2P layer the opponent it was matched with, so co-op never
  *     connects. Two hooks on the game's co-op code add the step Quick Match has (see "Online Co-op" below);
  *     the id line then also says "coop1". Only on the exact 1.01.00 code.
+ *   - Invites: a copy the host made for one friend carries an invite code ("invite=" in the settings area);
+ *     the id line then ends with " inv=<code>" so the server knows that friend on any PC. Sent only to the
+ *     server whose key made the file, and only if its /mod/hello answers version 4.
  * The game's own files are not modified; in memory only the co-op functions above are hooked. dinput8 itself is forwarded to the system DLL.
  *
  * MIT license (this file). MinHook (BSD 2-clause) hooks; Monocypher (CC0/BSD 2-clause) checks signatures.
@@ -57,7 +60,7 @@
 #include "monocypher/monocypher.h"
 #include "monocypher/monocypher-ed25519.h"
 
-#define MOD_VERSION "0.5.0"
+#define MOD_VERSION "0.6.0"
 
 /* Reserved settings area: the server overwrites everything after the 32-byte marker with
  * "key=...\nname=...\nurl=...\naddrs=a,b\nbook=...\n" (see server/pesserver/identity.py pack_mod). */
@@ -97,7 +100,9 @@ static volatile LONG g_id_on;     /* the server in use reads the player-id line 
 static volatile LONG g_math_on;   /* the game gets our math functions (server pairs by them) */
 static volatile LONG g_coop_fix;  /* the co-op hooks are in (id line says coop1) */
 static char g_id_hex[33];         /* this install's player id ("" = none) */
-static char g_id_line[64];        /* the line for the server in use */
+static char g_id_line[128];       /* the line for the server in use */
+static char g_invite[33];         /* this copy's invite code from the host ("" = none) */
+static char g_invite_key[65];     /* the key of the server that made it: the code goes to that server only */
 
 /* ------------------------------------------------------------------------------------------ log */
 static void logf_(const char *fmt, ...)
@@ -233,6 +238,11 @@ static void load_settings(void)
         if (!eq) continue;
         *eq = 0; char *v = eq + 1; trim(v);
         if (!strcmp(line, "key")) { if (parse_key(v, &g_srv)) strcpy(embedded_key, g_srv.keyhex); }
+        else if (!strcmp(line, "invite")) {
+            size_t n = strlen(v), ok = n == 32;
+            for (size_t i = 0; ok && i < n; i++) ok = (v[i] >= '0' && v[i] <= '9') || (v[i] >= 'a' && v[i] <= 'f');
+            if (ok) strcpy(g_invite, v);
+        }
         else if (!strcmp(line, "name")) snprintf(g_srv.name, sizeof g_srv.name, "%s", v);
         else if (!strcmp(line, "url")) snprintf(g_srv.url, sizeof g_srv.url, "%s", v);
         else if (!strcmp(line, "book")) snprintf(g_srv.book, sizeof g_srv.book, "%s", v);
@@ -254,6 +264,8 @@ static void load_settings(void)
             g_srv = s;
         }
     }
+    if (g_invite[0] && embedded_key[0]) strcpy(g_invite_key, embedded_key);
+    else g_invite[0] = 0;
     snprintf(g_cache, sizeof g_cache, "cache-%.16s", g_srv.keyhex);
 }
 
@@ -307,7 +319,10 @@ static void use_server(int hello_v)
 {
     LONG math = hello_v >= 3 || GetEnvironmentVariableA("PES2021ONLINE_TEST_MATH", NULL, 0) > 0;  /* tests only */
     EnterCriticalSection(&g_slock);
-    if (hello_v >= 3) snprintf(g_id_line, sizeof g_id_line, "PESID2 %s math1%s\n", g_id_hex, g_coop_fix ? " coop1" : "");
+    /* the invite code only to the server that made this file, and only if it reads it (version 4) */
+    BOOL inv = hello_v >= 4 && g_invite[0] && !strcmp(g_srv.keyhex, g_invite_key);
+    if (hello_v >= 3) snprintf(g_id_line, sizeof g_id_line, "PESID2 %s math1%s%s%s\n", g_id_hex,
+                               g_coop_fix ? " coop1" : "", inv ? " inv=" : "", inv ? g_invite : "");
     else snprintf(g_id_line, sizeof g_id_line, "PESID1 %s\n", g_id_hex);
     LeaveCriticalSection(&g_slock);
     InterlockedExchange(&g_id_on, hello_v >= 2 && g_id_hex[0]);
@@ -380,13 +395,13 @@ static BOOL hello(const char *ip, server_t *s)
     unsigned char rnd[16]; char nonce[33], url[160], body[1024];
     if (BCryptGenRandom(NULL, rnd, sizeof rnd, BCRYPT_USE_SYSTEM_PREFERRED_RNG) != 0) return FALSE;
     for (int i = 0; i < 16; i++) sprintf(nonce + 2 * i, "%02x", rnd[i]);
-    snprintf(url, sizeof url, "http://%s:8080/mod/hello?n=%s&v=3", ip, nonce);
+    snprintf(url, sizeof url, "http://%s:8080/mod/hello?n=%s&v=4", ip, nonce);
     if (!http_get(url, body, sizeof body, 2500)) return FALSE;
     char *nl = strchr(body, '\n');
     if (!nl) return FALSE;
     char claimed[65] = "";
     int v = 0;                                /* older servers answer a lower version */
-    if (sscanf(nl + 1, "PES2021ONLINE-HELLO %d\n%64[0-9a-f]\n", &v, claimed) != 2 || v < 1 || v > 3) return FALSE;
+    if (sscanf(nl + 1, "PES2021ONLINE-HELLO %d\n%64[0-9a-f]\n", &v, claimed) != 2 || v < 1 || v > 4) return FALSE;
     server_t learned; memset(&learned, 0, sizeof learned);
     if (!s->keyhex[0]) {                      /* first contact with a typed address: trust on first use */
         if (!parse_key(claimed, &learned)) return FALSE;
@@ -1070,8 +1085,9 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID reserved)
     load_settings();
     make_player_id();
     g_force_prompt = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
-    logf_("PES 2021 Online mod " MOD_VERSION "; server \"%s\" key %.16s...%s", g_srv.name,
-          g_srv.keyhex[0] ? g_srv.keyhex : "(none)", g_force_prompt ? " (Shift held)" : "");
+    logf_("PES 2021 Online mod " MOD_VERSION "; server \"%s\" key %.16s...%s%s", g_srv.name,
+          g_srv.keyhex[0] ? g_srv.keyhex : "(none)", g_force_prompt ? " (Shift held)" : "",
+          g_invite[0] ? "; made for one player (invite)" : "");
     install_hooks();
     if (GetEnvironmentVariableA("PES2021ONLINE_TEST_MATH", NULL, 0)) use_server(0);  /* tests: same math, no server */
     return TRUE;

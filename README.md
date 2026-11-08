@@ -35,6 +35,11 @@ friend on Discord, WhatsApp or Telegram (email usually blocks this kind of file)
 
 It already knows your server, and keeps working after your server restarts.
 
+**Want each friend to have their own?** Make them an *invite*: a copy of the mod with their own handle written
+in, so the server knows them on any PC and you can lock one person out without touching anyone else. You can
+also let only invited friends in. The admin page doesn't have an invites screen yet; until then see
+[Invites](server/README.md#invites-one-mod-per-friend).
+
 **Playing on the same PC?** The installer finds PES 2021 on your computer (Steam libraries and
 `~/Games`): close the game, then on the admin page under **The server computer** click **Install mod**. On Linux it
 also sets the Wine option for you, so no launch option is needed.

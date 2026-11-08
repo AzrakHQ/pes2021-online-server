@@ -8,14 +8,14 @@ from .protocol import Codec, ProtocolError, Message, _read_or_none
 log = logging.getLogger("pesserver.gate")
 
 # The mod starts each gate connection with one line naming its install, before the game's first
-# frame: b"PESID1 <32 hex>\n" (40 bytes, mod 0.3.0, hello version 2) or b"PESID2 <32 hex> <features>\n"
+# frame: b"PESID1 <32 hex>\n" (40 bytes, mod 0.3.0, hello version 2) or b"PESID2 <32 hex> <features>[ inv=<32 hex>]\n"
 # (mod 0.4.0+, hello version 3; "math1" = the game gets the mod's same-math functions; mod 0.5.0+ "coop1" =
 # its Online Co-op fix is in, pescoop.py). The game's own
 # first bytes are a frame header XORed with 5b9f2e64 (first byte 0x5b), so they can't be confused.
 # Accounts are then stored by this id instead of the Steam id, which every copy that doesn't really
 # run through Steam shares; matchmaking pairs only games with the same math (pesmatch.py).
 ID_MAGIC, ID_LEN = b"PESID1 ", 40
-ID2_MAGIC, ID2_MAX = b"PESID2 ", 128
+ID2_MAGIC, ID2_MAX = b"PESID2 ", 200
 
 
 class _Prefixed:
@@ -56,15 +56,20 @@ async def take_player_id(reader, sess):
             line = head if b"\n" in head else head + await reader.readuntil(b"\n")
         except (asyncio.LimitOverrunError, asyncio.IncompleteReadError):
             raise ProtocolError("bad player id line") from None
-        m = re.fullmatch(rb"PESID2 ([0-9a-f]{32})((?: [a-z0-9]{1,16}){0,8})\n", line) if len(line) <= ID2_MAX else None
+        # mod 0.6.0 (hello version 4) adds " inv=<32 hex>": its invite code (pesinvite.py)
+        m = re.fullmatch(rb"PESID2 ([0-9a-f]{32})((?: [a-z0-9]{1,16}){0,8})(?: inv=([0-9a-f]{32}))?\n", line) \
+            if len(line) <= ID2_MAX else None
     else:
         return _Prefixed(reader, head)
     if not m:
         raise ProtocolError("bad player id line")
     sess.mod_id = m.group(1).decode()
-    sess.mod_features = frozenset(m.group(2).decode().split()) if m.lastindex == 2 else frozenset()
-    log.info("mod install id %s… from %s%s", sess.mod_id[:8], sess.peer_ip,
-             f" ({' '.join(sorted(sess.mod_features))})" if sess.mod_features else "")
+    feats = m.group(2) if m.re.groups >= 2 else None
+    sess.mod_features = frozenset(feats.decode().split()) if feats else frozenset()
+    sess.mod_invite = m.group(3).decode() if m.re.groups >= 3 and m.group(3) else None
+    log.info("mod install id %s… from %s%s%s", sess.mod_id[:8], sess.peer_ip,
+             f" ({' '.join(sorted(sess.mod_features))})" if sess.mod_features else "",
+             " with an invite" if sess.mod_invite else "")
     return reader
 
 

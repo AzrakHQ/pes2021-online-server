@@ -72,6 +72,31 @@ curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/monthly -d '{"on": fal
 names any id). `match_minutes` is 5 to 30 (default 10). `info` is shown in the game under Competition Details → Competition
 Outline. When a competition ends, each player sees their final position the next time they open Online Tournament.
 
+## Invites: one mod per friend
+
+Each friend can get their own copy of the mod with a handle (a funny football name like "Panenka Panda", or one
+you pick) and a secret code written in. The server then knows them by that code: on any PC, in any game folder,
+after a reinstall. In the game they still choose their own name, and no two players can take the same one.
+Revoking an invite is a ban: that copy can't sign in any more. Needs mod 0.6.0 (this release).
+
+With **invites only** switched on, a newcomer without an invite gets "Unable to login" and the activity feed
+tells you to make them one. Players the server already knows keep playing. It is off by default.
+
+```bash
+curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{}'                      # a funny handle
+curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{"handle": "Sami"}'      # your own
+curl -s -H "Authorization: Bearer $T" -X POST $A/invites/new -d '{"pid": 3}'              # for a player you already have
+curl -s -H "Authorization: Bearer $T" $A/invites                                         # all invites, with their links
+curl -s -H "Authorization: Bearer $T" -X POST $A/invites/settings -d '{"invites_only": true}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/invites/rename -d '{"id": 1, "handle": "Rabona Raccoon"}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/invites/revoke -d '{"id": 1}'           # ban; add "back": true to undo
+curl -s -H "Authorization: Bearer $T" -X POST $A/invites/delete -d '{"id": 1}'
+```
+
+Each invite has a `link`, `/mod/dinput8.dll?invite=<code>` on this server's web address: send it to that friend
+only (whoever has the link or the file plays as them). A friend who already played gets their old account moved
+onto the invite the first time they sign in with it, if you made the invite with their `pid`.
+
 ## Code layout
 
 | Path | What |
@@ -89,6 +114,7 @@ Outline. When a competition ends, each player sees their final position the next
 | `pesserver/pesresults.py`, `pesranking.py` | match history (Last 20 results), Play Analysis uploads, rankings (overall and per division) |
 | `pesserver/pesblock.py` | Match Block List: blocked pairs are never matched |
 | `pesserver/peswords.py` | the host's word filter: whole words or phrases in `<data>/blocked_words.txt` (one a line) are refused in player names, room names and profile texts |
+| `pesserver/pesinvite.py` | invites: one mod per friend with a handle and a secret code (sent on the mod's id line); invites only, revoke = ban, unique player names |
 | `pesserver/announce.py` | news, messages to one player (their Information list), restart warning, lobby welcome notes |
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |

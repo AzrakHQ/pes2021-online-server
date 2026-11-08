@@ -304,7 +304,7 @@ def test_mod_identity_note_hello_and_dll(tmp_path, monkeypatch):
             assert check(body.decode()) == f"PES2021ONLINE-HELLO 1\n{identity.public_hex()}\n00112233aabbccdd\n"
             head, body = await get(port, "/mod/hello?n=00112233aabbccdd&v=2")      # 0.3.0 mods: reads the player id
             assert check(body.decode()) == f"PES2021ONLINE-HELLO 2\n{identity.public_hex()}\n00112233aabbccdd\n"
-            for asked, got in (("3", 3), ("9", 3), ("x", 1)):                  # 0.4.0 mods ask v=3
+            for asked, got in (("3", 3), ("4", 4), ("9", 4), ("x", 1)):        # 0.4.0 mods ask v=3, 0.6.0 v=4
                 head, body = await get(port, f"/mod/hello?n=00112233aabbccdd&v={asked}")
                 assert check(body.decode()).startswith(f"PES2021ONLINE-HELLO {got}\n")
             head, body = await get(port, "/mod/hello?n=not-hex")

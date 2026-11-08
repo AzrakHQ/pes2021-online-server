@@ -199,8 +199,12 @@ def login(svc, sess, req):
     game_user = str(req.get("username", ""))
     if not game_user:
         return {"result": "ERR_LOGIN_FAILED"}
-    username = account_key(sess, game_user)
+    from . import pesinvite
+    username, err = pesinvite.account_for_login(svc, sess, account_key(sess, game_user))
+    if err:
+        return {"result": err}
     p = _ensure_account(svc, username)
+    pesinvite.after_login(svc, username, p["pid"])
     if username != game_user:                           # keep the game's own id for reference
         with svc.accounts.lock, svc.accounts.db as db:
             db.execute("UPDATE pes_players SET steamid=? WHERE username=?", (game_user, username))
@@ -208,8 +212,8 @@ def login(svc, sess, req):
         sess.pes_username = username
         sess.pes_pid = p["pid"]
         svc.online[p["pid"]] = sess
-    log.info("LOGIN username=%s%s pid=%s platform=%s sku=%s", game_user,
-             f" install={username[2:10]}…" if username != game_user else "", p["pid"], req.get("platform"), req.get("sku"))
+    who = f" invite={username[2:]}" if username.startswith("i:") else f" install={username[2:10]}…" if username != game_user else ""
+    log.info("LOGIN username=%s%s pid=%s platform=%s sku=%s", game_user, who, p["pid"], req.get("platform"), req.get("sku"))
     return {"result": NOERR}
 
 
@@ -249,6 +253,9 @@ def create_player(svc, sess, req):
         return {"result": "ERR_NGWORDINPNAME"}           # "Includes unusable letters or phrases."
     db = _db(svc)
     with svc.accounts.lock, db:
+        if db.execute("SELECT 1 FROM pes_players WHERE name=? COLLATE NOCASE AND username<>?", (name, u)).fetchone():
+            log.info("CREATE_PLAYER refused name %r (someone has it)", name)
+            return {"result": "ERR_ALREADYEXISTS"}       # "There is already a User with that name."
         db.execute("UPDATE pes_players SET name=? WHERE username=?", (name, u))
     log.info("CREATE_PLAYER username=%s name=%s", u, name)
     return {"result": NOERR}

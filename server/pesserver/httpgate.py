@@ -39,7 +39,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
             elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
                 if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
-                    note_download(service, (writer.get_extra_info("peername") or ("",))[0])
+                    note_download(service, (writer.get_extra_info("peername") or ("",))[0], _invite_of(service, path))
             elif method in ("GET", "HEAD") and route.startswith("/r/"):
                 from . import pesreplay                     # match replays: /r/<match_id>/<N>.enc
                 parts = route.split("/")
@@ -586,6 +586,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         pesresults.forget(service, pid)
         pesavatar.forget(service, pid)
         pesprofile.forget(service, pid)
+        from . import pesinvite
+        pesinvite.forget(service, pid)
         pesblock.forget(service, pid)
         from . import pesdivisions, pesmatchday, pestourney
         pesdivisions.forget(service, pid)
@@ -595,6 +597,17 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             sess.close()                # their next login registers them again (name prompt)
         events.feed(service, f"{name} was deleted by the admin", "warn")
         return "200 OK", b'{"ok":true}', "application/json"
+    if route.startswith("/admin/api/invites"):
+        from . import pesinvite                     # invites: one mod per friend, with a handle (pesinvite.py)
+        status, res = pesinvite.admin_api(service, route, method, body, mod_url(service, headers, writer))
+        if method == "POST" and status.startswith("200") and route != "/admin/api/invites/settings":
+            what = {"/admin/api/invites/new": "made an invite for", "/admin/api/invites/rename": "renamed an invite to",
+                    "/admin/api/invites/revoke": "revoked the invite of", "/admin/api/invites/delete": "deleted an invite"}
+            verb = what.get(route, "changed an invite")
+            if route == "/admin/api/invites/revoke" and res.get("revoked") is None:
+                verb = "let back in"
+            events.feed(service, f"The admin {verb}" + (f" {res['handle']}" if res.get("handle") else ""), "info")
+        return status, json.dumps(res).encode(), "application/json"
     if route.startswith("/admin/api/tourneys"):
         from . import pestourney                    # Online Tournament competitions (list, save, end, delete)
         before = {c["compe_id"]: c["name"] for c in pestourney.competitions(service)} if method == "POST" else {}
@@ -701,7 +714,12 @@ def _mod(service, route, headers, writer, path=""):
             return "400 Bad Request", b"bad nonce", "text/plain", b""
     if not os.path.isfile(MOD_DLL):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
-    return "200 OK", mod_bytes(mod_url(service, headers, writer)), "application/octet-stream", \
+    code = parse_qs(urlsplit(path).query).get("invite", [""])[0]
+    inv = _invite_of(service, path)
+    if code and (inv is None or inv["revoked"] is not None):
+        return "404 Not Found", "This invite link doesn't work any more. Ask your host for a new one.".encode(), \
+            "text/plain; charset=utf-8", b""
+    return "200 OK", mod_bytes(mod_url(service, headers, writer), inv["code"] if inv else None), "application/octet-stream", \
         b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
 
 
@@ -731,17 +749,26 @@ def _tailscale(addr):
 _DOWNLOADS = {}
 
 
-def note_download(service, peer):
+def _invite_of(service, path):
+    """The invite named by ?invite=<code> in a mod download, or None."""
+    from urllib.parse import parse_qs, urlsplit
+    from . import pesinvite
+    code = parse_qs(urlsplit(path).query).get("invite", [""])[0]
+    return pesinvite.by_code(service, code) if code else None
+
+
+def note_download(service, peer, invite=None):
     """An activity line when someone downloads the mod (once per address per 10 minutes), so the host
     sees that a friend got the file. Says where from, not who: downloads need no sign-in."""
     import ipaddress, time as _time
     from . import events
     now = _time.time()
-    if now - _DOWNLOADS.get(peer, 0) < 600:
+    key = (peer, invite["id"] if invite else None)
+    if now - _DOWNLOADS.get(key, 0) < 600:
         return
     if len(_DOWNLOADS) > 500:
         _DOWNLOADS.clear()
-    _DOWNLOADS[peer] = now
+    _DOWNLOADS[key] = now
     try:
         ip = ipaddress.ip_address(peer.split("%")[0])
         ip = (ip.ipv4_mapped or ip) if ip.version == 6 else ip
@@ -757,7 +784,8 @@ def note_download(service, peer):
         where = f" on your home network ({ip})"
     else:
         where = f" from the internet ({ip})"
-    events.feed(service, f"Someone{where} downloaded the mod", "web")
+    events.feed(service, f"{invite['handle']}'s mod was downloaded{where}" if invite
+                else f"Someone{where} downloaded the mod", "web")
 
 
 def mod_url(service, headers, writer):
@@ -791,10 +819,12 @@ def mod_sha256(url=""):
     return _SHA[k]
 
 
-def mod_bytes(url=""):
-    """The mod DLL with this server's identity and addresses written in."""
+def mod_bytes(url="", invite=None):
+    """The mod DLL with this server's identity and addresses written in (and a friend's invite code)."""
     from . import identity, netsetup
     settings = identity.mod_settings(os.environ.get("SERVER_NAME", "PES 2021 server"), url, netsetup.game_addrs())
+    if invite:
+        settings += f"invite={invite}\n"
     return identity.pack_mod(open(MOD_DLL, "rb").read(), settings)
 
 
