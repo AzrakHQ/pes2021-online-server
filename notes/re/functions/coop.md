@@ -245,6 +245,10 @@ Our 1v1 handlers already relay pid lists and gate the relay check on "all room m
 - **Sent via:** the game result queue: `QueueProcessCommandFunctor<gamequeue::SendCoopMatchData, CommandObjectCmdSetCoopMatchData>` (RTTI 0x143653bf0).
 - **Reply:** `{result}`.
 - **Server:** store `match_data` per pid (it comes back in GET_COOP_MATCH_DATA and GET_COOP_PROFILE `coop_profile_data.match_data`); NOERR.
+- **Live 2026-11-08 (pescoop.py):** request {match_stats blob{grade}, match_data_size 480, match_data (640 base64
+  chars)} from both games after each co-op match. Stored and returned: the CO-OP Profile then showed a Playing
+  Style ("Stretch Passer") worked out by the game from these tables, and the next co-op match kicked off normally
+  with the 480 bytes returned by GET_COOP_MATCH_DATA.
 
 ### CMD_SET_COOP_PLAYER_GRADE — players rate each other
 - **Request** (0x141dd5bf0): `grade_list[{pid, grade}]`, `oppo_grade_list[{pid, grade}]`.

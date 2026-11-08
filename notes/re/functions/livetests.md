@@ -635,3 +635,5 @@ messages.json, private_popup.json) and `tools/parsebench.py`. No key presses exc
 - "Changes in CO-OP Level": Points earned 20, To level-up 60, Rating +20, Lv.1 with the bar at 40 % for both
   (pescoop: draw 20 points, a level every 100). CO-OP Profile: CO-OP Match 1.
 - Match length in Online Tournament checked by the clock: match_time 7 → a 7-minute match, 10 → 10 minutes.
+- Co-op match data stored and returned: CO-OP Profile → Playing Styles "Stretch Passer" after three co-op
+  matches; the next match started with GET_COOP_MATCH_DATA returning 480 bytes (no problem).
