@@ -5,28 +5,35 @@
 Konami shut down the PES 2021 servers. Run your own and play **online Quick Match** with your friends.
 Free, no accounts.
 
-You need **PES 2021 on Steam** (v1.01.00). The host needs a PC that stays on while you play: **Windows, Linux or
-Steam Deck**, nothing else to install.
+You need **PES 2021 on Steam** (v1.01.00). The host needs a **Linux** PC or **Steam Deck** that stays on while you
+play; nothing else to install. Friends can play on Linux, Steam Deck or Windows.
 
-## 1. Host: start the server
+## 1. Host: install the server (once)
 
-**Windows** (Start menu → PowerShell):
-
-```powershell
-irm https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.ps1 | iex
-```
-
-**Linux, Steam Deck, Mac** (terminal):
+In a terminal:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh
 ```
 
-It downloads the server (one program, 15–30 MB, no admin rights) and prints your **admin page** and its
-**password**. On the server's own PC the admin page opens without the password; other devices on your Wi-Fi
-(or Tailscale) use it. To open it from anywhere, turn on **Admin page from the internet** on its Network card
-(HTTPS: the browser warns once, since the certificate is the server's own). Keep the window open while you play: **Ctrl+C** or closing it stops the server. Paste the same line
-next time: it always starts the newest version.
+It downloads the server (one program, about 30 MB, no sudo), sets it up to run **in the background** (it starts by
+itself when you log in), adds **PES 2021 Server** to your apps menu and opens the **admin page** in your browser. You
+can close the terminal.
+
+From then on everything is on the admin page:
+
+- **Server → The server program:** **Update now** (or **Update when nobody's playing**) when a new version is out,
+  **Restart**, **Stop the server**, **Start when I log in**, and the recent log.
+- To open the admin page again, or to start a stopped server: **PES 2021 Server** in your apps menu, or
+  `pes2021-server open`.
+- On the server's own PC the admin page opens without a password; other devices on your Wi-Fi (or Tailscale) use the
+  password shown on the Server page. To open it from anywhere, turn on **Admin page from the internet** on its
+  Network card (HTTPS: the browser warns once, since the certificate is the server's own).
+
+Options (after `sh -s --`): `--here` runs it in the terminal instead (Ctrl+C stops it), `--no-autostart` doesn't
+start it when you log in, `--data DIR` keeps players and results somewhere else. Running the line again repairs the
+setup and updates the program; players, results and friends' mods are kept. Already ran an older version in a
+terminal? Close it (Ctrl+C), then run the line once.
 
 ## 2. Host: invite your friends
 
@@ -65,16 +72,15 @@ delete the file.
 |---|---|
 | A friend can't connect | The host's server must be running. The mod writes what it tried to `pes2021-online.log` in the game folder |
 | "Router ports are closed" on the host | Turn on **UPnP** in your router settings and start the server again, or forward the ports it lists |
-| The match ends right after kick-off ("unforeseen circumstances") | A Windows player and a Linux / Steam Deck player computed the match differently. Both download the mod again from the admin page (version 0.4.0 or newer keeps their games in step), and the host updates the server (paste the start line again) |
-| "Failed to connect with opponent" | The two PCs can't reach each other directly. Everyone installs [Tailscale](https://tailscale.com); the host starts the server again with `PUBLIC_IP=<host's Tailscale IP>` before `sh` (PowerShell: `$env:PUBLIC_IP="…";` before `irm`) |
+| The match ends right after kick-off ("unforeseen circumstances") | A Windows player and a Linux / Steam Deck player computed the match differently. Both open their invite link again and download their mod (version 0.4.0 or newer keeps their games in step), and the host updates the server (admin page → Server → **Update now**) |
+| "Failed to connect with opponent" | The two PCs can't reach each other directly. Everyone installs [Tailscale](https://tailscale.com); the host runs the install line again with `PUBLIC_IP=<host's Tailscale IP>` before `sh` (`curl -fsSL … \| PUBLIC_IP=100.x.y.z sh`) |
 | Play on another server | Get that server's file and replace yours, or hold **Shift** while the game starts and paste its address |
 
-**New players** need nothing from you: the first time someone with your mod goes online (eFootball →
-Quick Match), the game asks for a region and a player name, and your server saves that player, tied to
-their copy of the mod (each game folder gets its own player, also when the game reports the same Steam ID).
+**New players:** the first time a friend goes online with their mod (eFootball → Quick Match), the game asks for
+a region and a player name, and your server saves that player, tied to their invite (the same player on any PC).
 They appear on the admin page, where you can also delete a player.
 
-Updating: paste your start line again (the admin page also tells you when a newer version is out).
+**Updating:** the admin page tells you when a newer version is out; press **Update now** (Server page, or the banner).
 
 <details><summary><b>Set up earlier with a join line?</b></summary>
 

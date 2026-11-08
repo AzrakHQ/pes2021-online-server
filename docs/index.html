@@ -447,35 +447,33 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       <div class="card step" id="host">
         <div>
           <div class="step-num" aria-hidden="true">1</div>
-          <h3>The host starts the server</h3>
-          <p class="small">One person hosts on their PC (Windows, Linux or Steam Deck) and keeps it on while you play: one line, about a minute, nothing to install.</p>
-          <p class="small muted"><b>Windows:</b> open the Start menu, type <b>PowerShell</b>, press Enter, paste the Windows line and press Enter. <b>Linux:</b> open a terminal (on Ubuntu <b>Ctrl+Alt+T</b>) and paste the Linux line. <b>Steam Deck:</b> switch to Desktop Mode, open <b>Konsole</b> and paste the Linux line.</p>
-          <p class="small muted">It downloads the server (15–30 MB, no administrator rights needed) and shows <b>your admin page</b> and <b>its password</b>. Keep that window open while you play; <b>Ctrl+C</b> or closing it stops the server. Next time, paste the same line: it always starts the newest version.</p>
+          <h3>The host installs the server</h3>
+          <p class="small">One person hosts on their <b>Linux</b> PC or <b>Steam Deck</b> and keeps it on while you play: one line, once, about a minute.</p>
+          <p class="small muted"><b>Linux:</b> open a terminal (on Ubuntu <b>Ctrl+Alt+T</b>) and paste the line. <b>Steam Deck:</b> switch to Desktop Mode, open <b>Konsole</b> and paste it.</p>
+          <p class="small muted">It downloads the server (about 30 MB, no sudo), runs it <b>in the background</b> (it starts by itself when you log in), adds <b>PES 2021 Server</b> to your apps menu and opens <b>your admin page</b>. You can close the terminal. Updating, restarting and stopping are buttons on the admin page (Server).</p>
         </div>
         <div>
-          <div class="cmd"><span class="label">Windows PowerShell</span><pre id="c-host-win">irm https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>ps1 | iex</pre><button class="copy" data-copy="c-host-win" type="button">Copy</button></div>
-          <div class="cmd"><span class="label">Linux, Steam Deck, Mac terminal</span><pre id="c-host">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
+          <div class="cmd"><span class="label">Linux or Steam Deck terminal</span><pre id="c-host">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
           <div class="banner-mock" role="img" aria-label="Example of what the host sees when the server is ready: the admin page address and its password.">
             <div class="bm-title">⚽ PES 2021 SERVER <span>● ONLINE</span></div>
             <div><span class="bm-k">Admin page</span>http://192.168.1.50/admin</div>
             <div><span class="bm-k">Password</span>k7Rm-2Qx9-PaLw</div>
           </div>
           <ul class="small muted linuxes">
-            <li><b>Windows:</b> the first time, Windows asks whether to let the server through its firewall: click <b>Allow</b>. New, needs testers.</li>
-            <li><b>Linux:</b> on Linux the admin page is at <code>http://&lt;address&gt;:8080/admin</code> (the window shows it). If it says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first. <b>Fedora</b> also needs its firewall opened: <code>sudo firewall-cmd --permanent --add-port={8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code></li>
-            <li><b>Steam Deck, Mac (Apple silicon):</b> new, needs testers.</li>
+            <li><b>Linux:</b> the admin page is at <code>http://localhost:8080/admin</code> on the server's own PC (from other devices: <code>http://&lt;address&gt;:8080/admin</code> with the password on its Server page). If it says <code>curl: command not found</code>, run <code>sudo apt install curl</code> first. <b>Fedora</b> also needs its firewall opened: <code>sudo firewall-cmd --permanent --add-port={8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code></li>
+            <li><b>Steam Deck:</b> new, needs testers.</li>
             <li>Tested on a desktop Linux PC. Players who use the mod need nothing else; the older "join line" setup without the mod needs port 443, which on Linux only a server started with administrator rights gets.</li>
           </ul>
           <details class="changes">
             <summary>What the line does</summary>
             <ul>
-              <li>Prefer to read it first? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/run.ps1">run.ps1</a> (Windows) and <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/run.sh">run.sh</a> (Linux, Mac) are about 40 lines each.</li>
-              <li>Downloads the server program from this project's <a href="https://github.com/MohamedAliRashad/pes2021-private-server/releases/latest">latest release</a> (built by GitHub from the public code), only when there's a newer one, and runs it in that window as your own user: no administrator rights, nothing installed system-wide. It uses about 50 MB of memory.</li>
-              <li>Keeps the program, players, results and its log in one folder: <code>%LOCALAPPDATA%\PES2021 Server</code> on Windows, <code>~/.local/share/pes2021-server</code> on Linux. Delete that folder to remove everything.</li>
+              <li>Prefer to read it first? <a href="https://github.com/MohamedAliRashad/pes2021-private-server/blob/main/run.sh">run.sh</a> is about 50 lines.</li>
+              <li>Downloads the server program from this project's <a href="https://github.com/MohamedAliRashad/pes2021-private-server/releases/latest">latest release</a> (built by GitHub from the public code) and sets it up as your own user, no sudo: a <code>systemd --user</code> service (so it runs without a window and starts when you log in), an apps-menu entry and the <code>pes2021-server</code> command. Updates from the admin page are checked against the release's checksums and test-run before they replace the program.</li>
+              <li>Keeps the program, players, results and its log in one folder: <code>~/.local/share/pes2021-server</code>.</li>
               <li>Opens ports on your router (UPnP) so friends outside your home can reach you, and closes them when the server stops; after a power cut they usually expire on their own within 2 hours.</li>
               <li>If PES 2021 is installed on this computer, the admin page can put the mod in for you with one click. On Linux it also sets the Wine option in the game's Proton prefix (only its registry file is changed, and a backup copy, <code>user.reg.pes2021-backup</code>, is kept next to it).</li>
               <li>The admin page is plain HTTP and opens only from your home network (and Tailscale).</li>
-              <li>While your router ports are open, your server's address is public: anyone who has it can open your friends' page, download the mod and join. There's no ban yet; <b>Kick</b> on the admin page disconnects someone, but they can come back.</li>
+              <li>While your router ports are open, your server's address is public: anyone who has it can open your friends' page, download the mod and join, unless you turn on <b>Only invited friends can join</b> (Invite friends). <b>Revoke</b> locks one person out.</li>
             </ul>
           </details>
         </div>
@@ -484,16 +482,16 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       <div class="card step" id="share">
         <div>
           <div class="step-num" aria-hidden="true">2</div>
-          <h3>The host sends friends one file</h3>
-          <p class="small muted">Open your admin page, sign in with the password, and click <b>Download the mod for friends</b>. You get one small file, <code>dinput8.dll</code>, made for your server.</p>
+          <h3>The host invites each friend</h3>
+          <p class="small muted">On your admin page open <b>Invite friends</b> and press <b>Make their invite</b>. Each friend gets a handle like <b>@nutmeg_ninja</b> (keep the funny one or type your own) and their own link; the page they open has their personal mod and the steps.</p>
           <p class="small muted"><b>Before you send it,</b> look at the top of your admin page: <b>✓ Router ports open</b> means friends outside your home should be able to connect. If it says <b>Friends use</b> and your address (you set a fixed one), friends can connect only if that address's ports are open; the server can't check this itself. If it says <b>Home network only</b>, only friends on your Wi-Fi can join; for friends elsewhere, or if it warns about router ports or CGNAT, see <a href="#hosthelp">Help → For hosts</a>.</p>
-          <p class="small muted">Send it to each friend on <b>Discord, WhatsApp or Telegram</b>. Email usually blocks this kind of file. Or copy the link under the button (your server's address) and send that: it opens a page where friends download the file themselves.</p>
+          <p class="small muted"><b>Copy message</b> and send it on <b>Discord, WhatsApp or Telegram</b>. The link is theirs alone: it's how the server knows them on any PC. In the game they still pick their own name.</p>
           <p class="small muted"><b>First test:</b> have one friend start the game. They appear under <b>Online now</b> on your admin page within a minute.</p>
         </div>
         <div>
           <figure class="mini-shot">
-            <a class="light" href="admin-invite-light.webp"><img src="admin-invite-light.webp" width="670" height="477" loading="lazy" alt="The top of the real admin page: Invite your friends, the router status, a large Download the mod for friends button, and a link to send instead."></a>
-            <a class="dark" href="admin-invite-dark.webp"><img src="admin-invite-dark.webp" width="670" height="477" loading="lazy" alt="The top of the real admin page in dark mode: Invite your friends, the router status, a large Download the mod for friends button, and a link to send instead."></a>
+            <a class="light" href="admin-invite-light.webp"><img src="admin-invite-light.webp" width="670" height="477" loading="lazy" alt="The real admin page, Invite friends: a handle box with @nutmeg_ninja, Make their invite, the message with their personal link to copy, and the list of invites."></a>
+            <a class="dark" href="admin-invite-dark.webp"><img src="admin-invite-dark.webp" width="670" height="477" loading="lazy" alt="The real admin page in dark mode, Invite friends: a handle box, Make their invite, the message with their personal link to copy, and the list of invites."></a>
             <figcaption class="small muted">Click or tap to enlarge.</figcaption>
           </figure>
           <p class="small muted"><b>Playing on the same PC?</b> If the installer found PES 2021 on it, the admin page has a <b>The server computer</b> card: close the game and click <b>Install mod</b>.</p>
@@ -583,7 +581,6 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
         <thead><tr><th scope="col">What you see</th><th scope="col">What to do</th></tr></thead>
         <tbody>
           <tr><td>The window says "The server can't start: port … is already in use"</td><td>Another server is already running on this computer: close its window, then paste the line again.</td></tr>
-          <tr><td>Windows says "Windows protected your PC"</td><td>That happens if you downloaded the .exe with a browser (the program isn't signed). Click <b>More info → Run anyway</b>, or use the PowerShell line instead.</td></tr>
           <tr><td>The host's screen says "Router ports are closed"</td><td>Turn on UPnP in your router's settings and start the server again, or forward the ports it lists.</td></tr>
           <tr><td>The host's screen warns about "CGNAT"</td><td>Your internet provider shares one public IP between customers, so friends outside your home can't reach you. Use Tailscale (see <a href="#faq-far">playing with friends far away</a>).</td></tr>
           <tr><td>It works on the host's PC, but nobody else can connect</td><td>The host computer's own firewall is blocking the ports. On Ubuntu with ufw: <code>sudo ufw allow 80,443,8080,10000/tcp</code> and <code>sudo ufw allow 3478,7600/udp</code>. On Fedora: <code>sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code>. On a cloud server, also open them in the provider's firewall settings.</td></tr>
@@ -654,21 +651,21 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       <p>Probably: one test between two homes connected fine (the match itself then needed the mod fix above). The server opens the host's router ports automatically; the match itself then needs the two players' PCs to reach each other directly. If they can't ("Failed to connect with opponent"), put everyone on one private network with <a href="https://tailscale.com">Tailscale</a>, a free app for small groups (this workaround is untested too):</p>
       <ul>
         <li>Everyone installs Tailscale and joins the host's network.</li>
-        <li>The host stops the server and starts it again with their Tailscale address (shown in the Tailscale app), then downloads a fresh mod file for friends:</li>
+        <li>The host runs the install line again with their Tailscale address (shown in the Tailscale app); the server restarts with it. Friends then open their invite links again for a fresh mod:</li>
       </ul>
-      <div class="cmd"><span class="label">Windows PowerShell: replace 100.x.y.z with the host's Tailscale address</span><pre id="c-ts-win">$env:PUBLIC_IP="100.<wbr>x.<wbr>y.<wbr>z"; irm https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>ps1 | iex</pre><button class="copy" data-copy="c-ts-win" type="button">Copy</button></div>
-      <div class="cmd"><span class="label">Linux, Steam Deck, Mac</span><pre id="c-ts">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>sh | PUBLIC_IP=100.<wbr>x.<wbr>y.<wbr>z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
+      <div class="cmd"><span class="label">Linux or Steam Deck: replace 100.x.y.z with the host's Tailscale address</span><pre id="c-ts">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>MohamedAliRashad/<wbr>pes2021-private-server/<wbr>main/<wbr>run.<wbr>sh | PUBLIC_IP=100.<wbr>x.<wbr>y.<wbr>z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
       <p>The server now has a built-in relay for exactly this case, on by default: when the two PCs can't reach each other, the match runs through the host's server instead (it needs a few more router ports, which the server opens with UPnP). So far it has only been tested on one PC, so Tailscale stays the safe fallback.</p>
     </details>
     <h3 class="faqh" id="faq-hosts">For hosts</h3>
     <details class="q" id="faq-host">
       <summary>How do I see the password again, stop or update the server?</summary>
       <ul>
-        <li><b>The admin page:</b> on the server's own PC it opens without a password (<code>http://localhost:8080/admin</code>, or <code>http://localhost/admin</code> on Windows). Other devices on your Wi-Fi or Tailscale use the address and password shown in the server's window. Away from home, turn on <b>Admin page from the internet</b> on its Network card: it then opens at <code>https://&lt;your internet address&gt;:8080/admin</code>, encrypted, with the password. The browser warns once, because the certificate is the server's own; the Network card shows its fingerprint.</li>
-        <li><b>Started with the one line (your PC):</b> the address and password are in the server's window. <b>Ctrl+C</b> or closing the window stops it (and closes the router ports it opened). Paste the same line to start it again: it updates itself first, and players, results and friends' mod files are kept. The admin page also tells you when a newer version is out.</li>
-        <li>Remove everything: first click <b>Uninstall</b> on the admin page's server-computer card (if you used it). Then delete the server's folder: <code>%LOCALAPPDATA%\PES2021 Server</code> on Windows, <code>~/.local/share/pes2021-server</code> on Linux. This deletes players, results and the server's identity, so old mod files stop working.</li>
+        <li><b>The admin page:</b> on the server's own PC it opens without a password: <b>PES 2021 Server</b> in your apps menu (it also starts a stopped server), <code>pes2021-server open</code>, or <code>http://localhost:8080/admin</code>. Other devices on your Wi-Fi or Tailscale use the address and password on its <b>Server</b> page. Away from home, turn on <b>Admin page from the internet</b> on the Network card.</li>
+        <li><b>Update, restart, stop:</b> admin page → <b>Server</b> → <b>The server program</b>. When a newer version is out a banner says so: <b>Update now</b>, or <b>Update when nobody's playing</b>. The server restarts in a few seconds; players, results and friends' mods are kept. <b>Start when I log in</b> switches the background start on or off.</li>
+        <li>If something is broken, run the install line again: it repairs the setup and updates the program.</li>
+        <li>Remove everything: click <b>Uninstall</b> on the admin page's server-computer card (if you used it), stop the server, run <code>systemctl --user disable pes2021-server</code>, then delete <code>~/.local/share/pes2021-server</code>, <code>~/.config/systemd/user/pes2021-server.service</code>, <code>~/.local/share/applications/pes2021-server.desktop</code> and <code>~/.local/bin/pes2021-server</code>. This deletes players, results and the server's identity, so old mod files stop working.</li>
       </ul>
-      <p><b>Who can join?</b> Anyone who has your mod file or your server's address. While your router ports are open, that address is public, so share it only with friends. There's no ban yet: <b>Kick</b> disconnects someone, but they can reconnect; stopping the server closes the ports.</p>
+      <p><b>Who can join?</b> With <b>Only invited friends can join</b> on (Invite friends), only friends you invited. Otherwise anyone who has your server's mod or address; while your router ports are open, that address is public. <b>Revoke</b> on an invite locks that person out.</p>
     </details>
     <details class="q" id="faq-update">
       <summary>After I update the server, do friends need a new file?</summary>

@@ -97,6 +97,34 @@ Each invite has a `link`, `/mod/dinput8.dll?invite=<code>` on this server's web 
 only (whoever has the link or the file plays as them). A friend who already played gets their old account moved
 onto the invite the first time they sign in with it, if you made the invite with their `pid`.
 
+## The host program on Linux: install, update, restart
+
+`run.sh` downloads the program to `~/.local/share/pes2021-server/` and runs `pes2021-server install`
+(`pesserver/hostctl.py`):
+
+- a systemd user service, `~/.config/systemd/user/pes2021-server.service` (`PES_SERVICE=1`; exit code 75 means
+  "restart me"), enabled unless `--no-autostart`;
+- `~/.local/share/applications/pes2021-server.desktop` ("PES 2021 Server": `pes2021-server open` starts the
+  server if needed and opens the admin page) and `~/.local/bin/pes2021-server`;
+- then it starts the service and opens `http://localhost:8080/admin`. `--here` runs it in the terminal instead.
+
+The admin page (Server → The server program) uses the admin API:
+
+```bash
+curl -s -H "Authorization: Bearer $T" $A/program                                 # version, update state, autostart, log
+curl -s -H "Authorization: Bearer $T" -X POST $A/program/update -d '{"when": "now"}'   # or "idle", "cancel"
+curl -s -H "Authorization: Bearer $T" -X POST $A/program/restart -d '{}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/program/stop -d '{}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/program/autostart -d '{"on": true}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/program/background -d '{}'      # a server in a terminal -> the service
+```
+
+An update downloads the release's `pes2021-server-linux-x64` (or `-arm64`) next to the program, checks it against
+the release's `SHA256SUMS`, test-runs it (`pes2021-server selfcheck`), swaps it in and restarts (as a service:
+exit 75 and systemd starts it again; in a terminal: in place). "idle" waits until no match is running.
+`PESSERVER_RELEASE_URL` points it at another copy of a release (tests). Run from source, these report why they
+can't work.
+
 ## Code layout
 
 | Path | What |
@@ -116,6 +144,7 @@ onto the invite the first time they sign in with it, if you made the invite with
 | `pesserver/peswords.py` | the host's word filter: whole words or phrases in `<data>/blocked_words.txt` (one a line) are refused in player names, room names and profile texts |
 | `pesserver/pesinvite.py` | invites: one mod per friend with a handle and a secret code (sent on the mod's id line); invites only, revoke = ban, unique player names |
 | `pesserver/announce.py` | news, messages to one player (their Information list), restart warning, lobby welcome notes |
+| `pesserver/hostctl.py` | the Linux host program: `install` (systemd user service, apps-menu entry), `open`, `selfcheck`; update from the admin page (checksum, self-check, swap, restart), restart, stop, start when I log in |
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |
 | `pesserver/liveupdate.py`, `cpkread.py` | the host's Live Update: the newest CPK in `<data>/liveupdate/` is offered to every game (CMD_GET_DLC_FILELIST) and served at `/liveupdate/<name>`; build one with `notes/re/functions/tools/mklivedata.py` |
