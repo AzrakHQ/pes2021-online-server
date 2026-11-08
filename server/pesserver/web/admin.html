@@ -1768,8 +1768,8 @@ async function loadTeams() {
   if (TEAMS && last) render(last);
 }
 const teamName = id => !id ? "" : (TEAMS && TEAMS.names[String(id)]) || "Team " + id;
-const DEFAULT_TEAMS = [8, 9, 45, 14, 50, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13];      // the server's own default (pestourney.TEAMS)
-const tn = {edit: null, teams: new Set(DEFAULT_TEAMS), extra: [], init: false};
+const defaultTeams = () => new Set((TEAMS && TEAMS.default) || []);      // the server's own default (pestourney.TEAMS)
+const tn = {edit: null, teams: defaultTeams(), extra: [], init: false};
 const dtLocal = t => { const d = new Date(t * 1000); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
 const fromLocal = v => { const t = v ? new Date(v).getTime() : NaN; return isNaN(t) ? null : Math.floor(t / 1000); };   // "YYYY-MM-DDTHH:MM" is local time
 function tnRegions() {
@@ -1789,7 +1789,7 @@ function paintTnTeams() {
   text("tn-tcount", `(${tn.teams.size} chosen)`);
 }
 function tnReset(focus) {
-  tn.edit = null; tn.teams = new Set(DEFAULT_TEAMS); tn.extra = [];
+  tn.edit = null; tn.teams = defaultTeams(); tn.extra = [];
   const t0 = Math.floor(Date.now() / 60000) * 60;
   $("tn-name").value = ""; $("tn-info").value = ""; $("tn-min").value = "10";
   $("tn-start").value = dtLocal(t0); $("tn-end").value = dtLocal(t0 + 7 * 86400);
@@ -1912,7 +1912,7 @@ $("wform").onsubmit = async e => {
   try { const w = await api("/admin/api/words", {method: "POST", body: JSON.stringify({words})}); wDirty = false; wShown = null;
     if (last) { last.server.words = w; renderWords(last.server); }
     toast(w.words.length ? `Saved: ${plural(w.words.length, "word")} blocked. Names already in use don't change.` : "Saved: nothing is blocked."); }
-  catch (err) { if (err.status === 401) return signedOut(); toast(err.status === 400 ? "That's too many words (2,000 at most)." : "Couldn't save. Try again.", true); }
+  catch (err) { if (err.status === 401) return signedOut(); toast(err.status === 400 && err.message ? err.message.charAt(0).toUpperCase() + err.message.slice(1) + "." : "Couldn't save. Try again.", true); }
   finally { $("w-save").disabled = false; }
 };
 

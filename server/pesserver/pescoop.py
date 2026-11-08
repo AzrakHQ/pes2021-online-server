@@ -234,6 +234,8 @@ def _user_pids(items):
 @cmd("CMD_FOLLOW_USER")
 def follow_user(svc, sess, req):
     pid = _pid(sess)
+    if not isinstance(pid, int):
+        return {"result": NOERR}
     add = [t for t in _user_pids(req.get("follow_user_id_list")) if t != pid]
     drop = _user_pids(req.get("unfollow_user_id_list"))
     db = pescmds._db(svc)
@@ -255,7 +257,7 @@ def follow_user(svc, sess, req):
 def lock_follow_user(svc, sess, req):
     """{target_pid, is_lock YES/NO}: shown as is_locked in the list (what locking does in the game is not known)."""
     pid, t = _pid(sess), req.get("target_pid")
-    if isinstance(t, int):
+    if isinstance(pid, int) and isinstance(t, int):
         db = pescmds._db(svc)
         with svc.accounts.lock, db:
             _setup(db)

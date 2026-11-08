@@ -31,8 +31,12 @@ def enabled():
     return os.environ.get("REPLAYS", "1") != "0"
 
 
+def folder(svc):
+    return os.path.join(getattr(svc, "data_dir", "") or ".", "replays")
+
+
 def _dir(svc):
-    d = os.path.join(getattr(svc, "data_dir", "") or ".", "replays")
+    d = folder(svc)
     os.makedirs(d, exist_ok=True)
     return d
 

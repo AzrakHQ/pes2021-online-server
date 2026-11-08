@@ -123,7 +123,7 @@ def _tourneys(svc):
         c["team_names"] = {str(t): team_name(t) for t in c["teams"]}
         c["matches"] = played.get(c["compe_id"], 0)
         c["outline"] = pestourney.outline(c)
-        c["minutes"] = int((c.get("rules") or {}).get("match_minutes") or pestourney.MATCH_MINUTES)
+        c["minutes"] = pestourney.regulation(c)["match_time"]
         c["auto"] = c["compe_id"] in auto              # the monthly Friends Cup the server made itself
         for r in c["table"]:
             r["team"] = team_name(r["team_id"])
@@ -326,7 +326,7 @@ def server(svc):
                   sent=len({ip for ip, n in _SENT.get(liveupdate.folder(svc), set()) if n == info["name"]}))
     from . import pesreplay
     rp = {"on": pesreplay.enabled(), "keep": pesreplay.KEEP,
-          "folder": _safe(lambda: os.path.join(getattr(svc, "data_dir", "") or ".", "replays"), None)}
+          "folder": _safe(lambda: pesreplay.folder(svc), None)}
     return {"relay": relay, "liveupdate": lu, "replays": rp, "words": _safe(lambda: words(svc), None)}
 
 
@@ -335,13 +335,9 @@ WORDS_HEAD = ("# Words and phrases players can't use in their name, room names o
               "# Case doesn't matter; a word only matches whole words. Edited on the admin page.\n")
 
 
-def _words_path(svc):
-    return os.path.join(getattr(svc, "data_dir", "") or ".", "blocked_words.txt")
-
-
 def words(svc):
     from . import peswords
-    return {"path": _words_path(svc), "words": peswords.words(svc)}
+    return {"path": peswords.file_path(svc), "words": peswords.words(svc)}
 
 
 def set_words(svc, lst):
@@ -358,7 +354,7 @@ def set_words(svc, lst):
             clean.append(w)
     if len(clean) > 2000:
         raise ValueError("too many words (2000 at most)")
-    path = _words_path(svc)
+    path = peswords.file_path(svc)
     head = ""
     try:
         with open(path, encoding="utf-8", errors="replace") as f:
@@ -372,6 +368,7 @@ def set_words(svc, lst):
     with open(tmp, "w", encoding="utf-8") as f:
         f.write((head or WORDS_HEAD) + "".join(w + "\n" for w in clean))
     os.replace(tmp, path)
+    peswords._cache.pop(path, None)               # the new file can carry the old one's mtime (coarse timestamps)
     log.info("word filter: %d words", len(clean))
     return words(svc)
 

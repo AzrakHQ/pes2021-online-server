@@ -18,8 +18,12 @@ def _norm(t):
     return re.sub(r"\s+", " ", t)
 
 
+def file_path(svc):
+    return os.path.join(getattr(svc, "data_dir", "") or ".", "blocked_words.txt")
+
+
 def words(svc):
-    path = os.path.join(getattr(svc, "data_dir", "") or ".", "blocked_words.txt")
+    path = file_path(svc)
     try:
         m = os.path.getmtime(path)
     except OSError:

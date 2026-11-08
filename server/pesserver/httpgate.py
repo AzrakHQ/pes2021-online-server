@@ -652,8 +652,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
                 log.exception("tourney feed line")
         return status, out, ctype
     if route == "/admin/api/teams" and method == "GET":
-        from . import adminextra                    # team names for the tournament form (the game's own list)
-        return "200 OK", json.dumps(adminextra.teams()).encode(), "application/json"
+        from . import adminextra, pestourney        # team names for the tournament form (the game's own list)
+        return "200 OK", json.dumps({**adminextra.teams(), "default": pestourney.TEAMS}).encode(), "application/json"
     if route == "/admin/api/words" and method == "POST":
         # {words: [..]}: replace the word filter (<data>/blocked_words.txt)
         from . import adminextra
