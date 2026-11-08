@@ -158,6 +158,8 @@ def test_match_rules_in_compe_info(svc):
     cup = pestourney.competitions(svc)[0]
     info = pescmds._dispatch(svc, Sess(1), "CMD_GET_PESLEAGUE_COMPE_INFO", {"compe_id": cup["compe_id"]})
     assert unb(info["compe_regulation"]) == {"match_time": 10, "is_equalization": "NO"}
+    text = pescmds._dispatch(svc, Sess(1), "CMD_GET_PESLEAGUE_COMPE_OVERVIEW_INFO", {"compe_id": cup["compe_id"]})
+    assert "10-minute" in text["overview_info"] and unb(info["compe_data"])["is_exist_overview_info"] == "YES"
     st, _, _ = pestourney.admin_api(svc, "/admin/api/tourneys/save", "POST", json.dumps(
         {"compe_id": cup["compe_id"], "match_minutes": 15}).encode())
     assert st == "200 OK"

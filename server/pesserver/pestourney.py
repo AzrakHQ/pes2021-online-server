@@ -149,11 +149,30 @@ def compe_info(svc, sess, req):
     if c is None:
         return pesreplay.peslg_compe_info(svc, sess, req)
     f = _fields(svc, c, _pid(sess, req))
+    f["is_exist_overview_info"] = "YES"          # "Competition Outline" in the details: GET_…_OVERVIEW_INFO
     # the fields must also be inside compe_data, or the game takes the default competition type (live 2026-11-06)
     out = {"result": NOERR, **f, "eula_url": "", "entry_compe": f["is_entry"],
            "compe_data": _pack({**f, "eula_url": "", "entry_compe": f["is_entry"]})}
     out["compe_regulation"] = _pack(regulation(c))
     return out
+
+
+@cmd("CMD_GET_PESLEAGUE_COMPE_OVERVIEW_INFO")
+def compe_overview(svc, sess, req):
+    """The host's own text about the competition (rules, prizes, dates), set with the admin API (info)."""
+    c = get(svc, req.get("compe_id"))
+    return {"result": NOERR, "overview_info": outline(c) if c else ""}
+
+
+def outline(c):
+    """The host's text, or one made from the competition's rules."""
+    if c.get("info"):
+        return c["info"]
+    minutes = int((c.get("rules") or {}).get("match_minutes") or MATCH_MINUTES)
+    end = time.strftime("%d %B %Y, %H:%M", time.localtime(c["end"]))
+    return (f"{c['name']}: play as many {minutes}-minute matches against your friends as you like before {end}.\n"
+            "A win gives 3 points, a draw 1. The table is ordered by points, then goal difference, then goals "
+            "scored.\nTeams play at their real strength. Leaving a match early counts as a 0-3 loss.")
 
 
 @cmd("CMD_GET_PESLEAGUE_COMPE_TEAM_LIST")
