@@ -148,3 +148,19 @@ def test_players_named_before_handles_get_one(tmp_path):
     b = _copy(s, 2)
     assert _name(s, b, "Omar 10") == "ERR_ALREADYEXISTS"
     assert sqlite3.connect(path).execute("SELECT handle FROM pes_players WHERE username='old'").fetchone()[0] == "omar_10"
+
+
+def test_move_drops_what_the_new_copy_left_behind(svc):
+    """The new copy's nameless account goes through pescmds.purge_player, like the admin's Delete: a player who
+    later gets the same pid (SQLite reuses the highest rowid) must not inherit its rows."""
+    from pesserver import pescoop
+    old, other = _copy(svc, 1), _copy(svc, 2)
+    _name(svc, old, "Mohamed Rashad"); _name(svc, other, "Sami")
+    new = _copy(svc, 9)                                                # nameless, but it has a pid
+    pescmds._dispatch(svc, new, "CMD_FOLLOW_USER", {"follow_user_id_list": [other.pes_pid]})
+    assert pescoop.follows(svc, new.pes_pid, other.pes_pid)
+    _name(svc, new, "mohamed rashad")
+    gone = new.pes_pid
+    pesnames.move(svc, old.pes_pid, new.pes_username)
+    later = _copy(svc, 10)
+    assert later.pes_pid == gone and not pescoop.follows(svc, later.pes_pid, other.pes_pid)

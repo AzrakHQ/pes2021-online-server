@@ -486,7 +486,9 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             gamesetup.set_auto(on)
             events.feed(service, "The server keeps the mod up to date in PES 2021 on this computer" if on else
                         "The server no longer puts the mod into PES 2021 on this computer by itself", "info")
-        return "200 OK", json.dumps({"on": gamesetup.AUTO["on"], "running": gamesetup.game_running()}).encode(), "application/json"
+        running = await asyncio.to_thread(gamesetup.game_running)    # reads every process's command line
+        return "200 OK", json.dumps({"on": gamesetup.AUTO["on"], "available": gamesetup.AUTO["started"],
+                                     "running": running}).encode(), "application/json"
     if route in ("/admin/api/games/install", "/admin/api/games/remove") and method == "POST":
         from . import gamesetup
         gid = str(json.loads(body or b"{}").get("id", ""))
@@ -594,36 +596,21 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             pid = int(json.loads(body or b"{}").get("pid"))
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"pid"}', "application/json"
-        from . import announce, pescmds
-        name = pescmds.delete_player(service, pid)
+        from . import pescmds
+        name = pescmds.purge_player(service, pid)       # the player and every module's rows for them
         if name is None:
             return "404 Not Found", b'{"error":"That player is already gone."}', "application/json"
         sess = service.online.get(pid)
         if sess is not None:
             sess.kicked = True          # closing it below is not an early exit (no forfeit, no courtesy mark)
-        announce.forget(service, pid)
-        from . import pescoop, pesmanner, adminextra
-        pesmanner.forget(service, pid)
-        pescoop.forget(service, pid)
-        adminextra.forget(service, pid)
-        from . import pesavatar, pesblock, pesprofile, pesresults
-        pesresults.forget(service, pid)
-        pesavatar.forget(service, pid)
-        pesprofile.forget(service, pid)
-        from . import pesnames
-        pesnames.forget(service, pid)
-        pesblock.forget(service, pid)
-        from . import pesdivisions, pesmatchday, pestourney
-        pesdivisions.forget(service, pid)
-        pesmatchday.forget(service, pid)
-        pestourney.forget(service, pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)
         events.feed(service, f"{name} was deleted by the admin", "warn")
         return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/program" or route.startswith("/admin/api/program/"):
         from . import hostctl                       # update, restart, stop, start when I log in (hostctl.py)
-        status, res = hostctl.admin_api(service, route, method, body)
+        # off the event loop: it runs systemctl (up to 15 s each) and the page asks every few seconds
+        status, res = await asyncio.to_thread(hostctl.admin_api, service, route, method, body)
         if method == "POST" and status.startswith("200"):
             what = {"/admin/api/program/update": "asked for a server update", "/admin/api/program/restart": "restarted the server",
                     "/admin/api/program/stop": "stopped the server", "/admin/api/program/background": "moved the server to the background"}

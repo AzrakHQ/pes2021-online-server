@@ -127,6 +127,17 @@ def test_a_waiting_update_can_be_cancelled(svc, release, monkeypatch):
     assert not os.path.exists(str(release.prog) + ".new")
 
 
+def test_update_now_anyway_skips_the_wait(svc, release, monkeypatch):
+    events._st(svc)["live"][9] = {"phase": "1ST", "home": 1, "away": 2}      # the match goes on
+    monkeypatch.setattr(hostctl, "IDLE_POLL", 5)
+    hostctl.update(svc, "idle")
+    for _ in range(100000):
+        if hostctl.STATE["update"] == "waiting":
+            break
+    hostctl.update(svc, "now"); _wait()
+    assert release.ended == ["restart"] and release.prog.read_text() == NEW_PROGRAM
+
+
 def test_autostart_writes_the_unit_and_enables_it(svc, tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "cfg"))
     calls = []

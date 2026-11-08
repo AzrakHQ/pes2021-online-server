@@ -178,6 +178,21 @@ def delete_player(svc, pid):
     return r[0] or f"Player {pid}"
 
 
+def purge_player(svc, pid):
+    """delete_player() and everything other modules keep about that pid (the admin's Delete, and the new
+    copy's own account that pesnames.move() replaces). Without it a later player who gets the same pid
+    (SQLite reuses the highest rowid) would inherit those rows. Returns the old name, or None."""
+    name = delete_player(svc, pid)
+    if name is None:
+        return None
+    from . import (adminextra, announce, pesavatar, pesblock, pescoop, pesdivisions, pesmanner, pesmatchday,
+                   pesnames, pesprofile, pesresults, pestourney)
+    for m in (announce, pesmanner, pescoop, adminextra, pesresults, pesavatar, pesprofile, pesnames, pesblock,
+              pesdivisions, pesmatchday, pestourney):
+        m.forget(svc, pid)
+    return name
+
+
 @cmd("CMD_GET_CHALLENGECODE")
 def get_challengecode(svc, sess, req):
     code = os.urandom(8).hex()

@@ -59,8 +59,10 @@ def _setup(db):
 
 def _db(svc):
     db = pescmds._db(svc)
-    with svc.accounts.lock, db:
-        _setup(db)
+    if not getattr(svc, "_pes_names_schema", False):     # once per database, like pescmds._db
+        with svc.accounts.lock, db:
+            _setup(db)
+        svc._pes_names_schema = True
     return db
 
 
@@ -87,8 +89,12 @@ def claim(svc, sess, username, wanted, pid, owner):
     ip = getattr(sess, "peer_ip", None) or ""
     db = _db(svc)
     with svc.accounts.lock, db:
+        seen = db.execute("SELECT 1 FROM pes_name_claims WHERE username=? AND wanted=? AND pid=?",
+                          (username, wanted, pid)).fetchone()
         db.execute("INSERT OR REPLACE INTO pes_name_claims (username, wanted, pid, ip, t) VALUES (?,?,?,?,?)",
                    (username, wanted, pid, ip, time.time()))
+    if seen:                                           # the same copy trying the same name again: one note is enough
+        return
     events.feed(svc, f"A new copy of the mod{f' ({ip})' if ip else ''} asked for the name {wanted}, which {owner} has. "
                      f"If it's {owner} on a new PC or game folder, open {owner} on Players and move them there.", "warn")
 
@@ -105,7 +111,8 @@ def move(svc, pid, copy):
     That copy's own, nameless account goes; pid keeps its name, rating and results."""
     from . import events
     db = _db(svc)
-    with svc.accounts.lock, db:
+
+    def look():
         c = db.execute("SELECT 1 FROM pes_name_claims WHERE username=? AND pid=?", (copy, pid)).fetchone()
         old = db.execute("SELECT name, username FROM pes_players WHERE pid=?", (pid,)).fetchone()
         new = db.execute("SELECT pid, name, steamid FROM pes_players WHERE username=?", (copy,)).fetchone()
@@ -113,8 +120,16 @@ def move(svc, pid, copy):
             raise LookupError("That request is gone.")
         if new and new[1]:
             raise ValueError(f"That copy already plays as {new[1]}.")
-        if new:
-            db.execute("DELETE FROM pes_players WHERE pid=?", (new[0],))
+        return old, new
+
+    with svc.accounts.lock:
+        old, new = look()
+    if new:                                            # the copy's own nameless account, and anything kept for it
+        pescmds.purge_player(svc, new[0])
+    with svc.accounts.lock, db:
+        old, gone = look()                             # (again: the lock was let go for the purge)
+        if gone:
+            raise ValueError("That copy signed in again meanwhile. Try again.")
         db.execute("UPDATE pes_players SET username=?, steamid=COALESCE(?, steamid) WHERE pid=?",
                    (copy, new[2] if new else None, pid))
         db.execute("DELETE FROM pes_name_claims WHERE username=? OR pid=?", (copy, pid))

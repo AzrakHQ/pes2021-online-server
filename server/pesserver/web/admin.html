@@ -2120,7 +2120,8 @@ function skipped(g) { try { return localStorage.getItem("pes-pc-skip:" + g.path)
 function doneOption(g) { try { return localStorage.getItem("pes-optdone:" + g.path) === "1"; } catch (e) { return false; } }
 function pcNeeds() { return lastGames.filter(g => !skipped(g) && !(g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g))))).length; }
 function paintAuto(au) {
-  put("pc-auto", `<div class="switch"><span class="lbl" id="am-l">Keep the mod up to date here by itself</span><span class="small ${au.on ? "ok" : "muted"}">${au.on ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${au.on}" aria-labelledby="am-l" class="needs-server" data-automod="${au.on ? 0 : 1}" data-key="automod"></button></div>` +
+  if (au.available === false) return put("pc-auto", "");      // this server doesn't run the automatic pass (AUTO_MOD=0, serve)
+  put("pc-auto",`<div class="switch"><span class="lbl" id="am-l">Keep the mod up to date here by itself</span><span class="small ${au.on ? "ok" : "muted"}">${au.on ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${au.on}" aria-labelledby="am-l" class="needs-server" data-automod="${au.on ? 0 : 1}" data-key="automod"></button></div>` +
     `<p class="small muted" style="margin:6px 0 12px">${au.on ? "Every minute while PES 2021 is closed, each copy on this computer without the mod gets it, and this server's mod is replaced when there's a newer one. Copies with another server's mod or another mod are left alone, and so is one you remove the mod from below." + (au.running ? " <b>PES 2021 is running now</b>, so it waits." : "") : "Off: use the buttons below to put the mod in or take it out."}</p>`);
 }
 document.addEventListener("click", async e => {

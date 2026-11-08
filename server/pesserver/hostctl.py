@@ -27,7 +27,7 @@ APP_ID = "pes2021-server"
 RESTART_EXIT = 75                 # the service's "restart me" exit code
 IDLE_POLL = 10                    # seconds between "is a match still on?" checks while an update waits
 STATE = {"update": "idle", "error": "", "progress": 0, "target": "", "when": "", "since": 0.0}
-_CTL = {"loop": None, "stop": None, "after": None, "cancel": threading.Event(), "thread": None}
+_CTL = {"loop": None, "stop": None, "after": None, "cancel": threading.Event(), "wake": threading.Event(), "thread": None}
 
 
 # ---- where things are -------------------------------------------------------------------------------------
@@ -270,10 +270,10 @@ def _expected_sha(name):
     raise RuntimeError("the release has no checksum for this program")
 
 
-def download(cancel=None):
+def download(cancel=None, want=None):
     """The newest program next to this one (<program>.new), checked and test-run. Returns (path, version)."""
     prog, name = program(), asset()
-    want = latest_version()
+    want = want or latest_version()
     sha = _expected_sha(name)
     new = prog + ".new"
     h = hashlib.sha256()
@@ -305,7 +305,8 @@ def download(cancel=None):
 def busy(svc):
     """Is a match being played (or about to start)?"""
     from . import events
-    return any(m.get("phase") != "Full time" for m in events._st(svc)["live"].values())
+    # a copy: the update thread asks while the server's own loop adds and ends matches
+    return any(m.get("phase") != "Full time" for m in list(events._st(svc)["live"].values()))
 
 
 def _swap(new, version):
@@ -322,31 +323,35 @@ def update(svc, when="now"):
     """Start an update in the background ("now" or "idle"); "cancel" stops a waiting or running one."""
     from . import events
     if when == "cancel":
-        _CTL["cancel"].set()
+        _CTL["cancel"].set(); _CTL["wake"].set()
         return STATE
     ok, why = manageable()
     if not ok:
         raise RuntimeError(why)
     if STATE["update"] in ("downloading", "waiting", "restarting"):
         STATE["when"] = when
+        if when == "now":
+            _CTL["wake"].set()                  # "Update now anyway" while it waits for a match to end
         return STATE
     _CTL["cancel"] = cancel = threading.Event()
+    _CTL["wake"] = wake = threading.Event()
     STATE.update(update="downloading", error="", progress=0, when=when, since=time.time(), target="")
 
     def work():
         try:
-            new, version = download(cancel)
-            STATE["target"] = version
-            if version == current():
-                os.remove(new)
-                STATE.update(update="idle", error="")
+            want = latest_version()
+            if want == current():                       # nothing to download
+                STATE.update(update="idle", error="", target=want)
                 events.feed(svc, "The server is already the newest version", "info")
                 return
+            new, version = download(cancel, want)
+            STATE["target"] = version
             if STATE["when"] == "idle" and busy(svc):
                 STATE["update"] = "waiting"
                 events.feed(svc, f"The update to {version} waits until nobody is playing", "info")
-                while busy(svc):
-                    if cancel.wait(IDLE_POLL):
+                while STATE["when"] == "idle" and busy(svc):
+                    wake.wait(IDLE_POLL); wake.clear()
+                    if cancel.is_set():
                         raise InterruptedError
             if cancel.is_set():
                 raise InterruptedError
@@ -480,13 +485,24 @@ def _strip(t):
     return re.sub(r"\x1b\[[0-9;]*m", "", t)
 
 
+def _unit_data():
+    """The data folder the installed service runs with (install --data DIR), or None."""
+    import re
+    try:
+        with open(unit_path()) as f:
+            m = re.search(r'^ExecStart=.* --data "([^"]*)"', f.read(), re.M)
+    except OSError:
+        return None
+    return m.group(1) if m else None
+
+
 def cmd_console(args):
     """`pes2021-server` in a terminal: start the background server if needed and show its screen live.
     Ctrl+C closes the view; the server keeps running."""
-    data = args.data
     if not (os.path.exists(unit_path()) and systemd_ok()):
         os.execve(program() or sys.executable, ([program()] if program() else [sys.executable, "-m", "pesserver"]) +
-                  ["host", "--data", data], clean_env())      # not installed: run in this window, as before
+                  ["host", "--data", args.data], clean_env())      # not installed: run in this window, as before
+    data = _unit_data() or args.data                # the service's screen is in the folder it runs with
     if _systemctl("is-active", UNIT_NAME)[1].splitlines()[:1] != ["active"]:
         if _answering():
             sys.exit("   A PES 2021 server is already running in another window (not in the background).")

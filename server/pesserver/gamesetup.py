@@ -25,7 +25,7 @@ LINE = '"dinput8"="native,builtin"'
 
 LOCAL = None           # [(dir, prefix or None)] found on this computer (searched on first use)
 log = logging.getLogger("pesserver.gamesetup")
-AUTO = {"path": None, "on": True, "skip": [], "last": {}, "found_at": 0.0}
+AUTO = {"path": None, "on": True, "skip": [], "last": {}, "found_at": 0.0, "started": False}
 AUTO_EVERY = 60        # seconds between passes
 RESCAN_EVERY = 600     # look for newly installed copies
 
@@ -110,11 +110,15 @@ def find_local_games():
 
 
 def use_local_games():
+    """Look for copies again. Copies already listed keep their place (the admin page's ids are positions),
+    new ones go at the end."""
     global LOCAL
     try:
-        LOCAL = find_local_games()
+        found = find_local_games()
     except Exception:  # noqa: BLE001  (never stop the server over this)
-        LOCAL = []
+        found = []
+    now, before = dict(found), [d for d, _ in (LOCAL or [])]
+    LOCAL = [(d, now[d]) for d in before if d in now] + [(d, p) for d, p in found if d not in before]
 
 
 def _games():
@@ -354,11 +358,13 @@ def auto_start(svc, dll_bytes_fn):
         time.sleep(5)
         while True:
             try:
-                auto_pass(dll_bytes_fn(), feed)
+                if AUTO["on"]:                      # (reading and packing the mod costs a few MB each pass)
+                    auto_pass(dll_bytes_fn(), feed)
             except Exception:  # noqa: BLE001  (never stop the server over this)
                 log.exception("automatic mod pass")
             time.sleep(AUTO_EVERY)
 
     t = threading.Thread(target=loop, name="auto-mod", daemon=True)
     t.start()
+    AUTO["started"] = True                          # the admin page shows the switch only when this runs
     return t
