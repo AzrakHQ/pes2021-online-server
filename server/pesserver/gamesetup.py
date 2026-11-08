@@ -9,8 +9,13 @@ Linux, tells Wine to load it for PES2021.exe only:
 in the prefix's user.reg, the same per-program setting Proton uses for its own overrides. That
 replaces the Steam launch option. Wine rewrites user.reg when the game exits, so the game must be
 closed while installing. A dinput8.dll that isn't ours (another mod) is never overwritten.
+
+Automatic (auto_start): every minute, while PES 2021 isn't running, every copy found on this computer gets the
+mod if it has none, and this server's mod is replaced when the server hands out a different file (a new mod
+version, new addresses). A copy with another server's mod or someone else's dinput8.dll is left alone, and so
+is a copy the host removed the mod from on the admin page. The admin page can turn it off (auto.json).
 """
-import os, re, sys, time
+import json, logging, os, re, sys, threading, time
 
 from . import identity
 
@@ -19,6 +24,10 @@ LINE = '"dinput8"="native,builtin"'
 
 
 LOCAL = None           # [(dir, prefix or None)] found on this computer (searched on first use)
+log = logging.getLogger("pesserver.gamesetup")
+AUTO = {"path": None, "on": True, "skip": [], "last": {}, "found_at": 0.0}
+AUTO_EVERY = 60        # seconds between passes
+RESCAN_EVERY = 600     # look for newly installed copies
 
 
 def _steam_roots():
@@ -202,6 +211,7 @@ def install(gid, dll_bytes):
     os.replace(tmp, path)
     if g["prefix"]:
         _set_override(os.path.join(g["prefix"], "user.reg"), True)
+    _skip(g["dir"], False)
     return status()
 
 
@@ -209,9 +219,132 @@ def remove(gid):
     g = next((g for g in _games() if g["id"] == gid), None)
     if not g:
         raise LookupError("no such game")
+    _skip(g["dir"], True)                         # the host took it out: the automatic pass leaves it alone
     path = os.path.join(g["dir"], "dinput8.dll")
     if _dll_state(path) in ("ours", "other-server"):
         os.remove(path)
     if g["prefix"] and _override_set(os.path.join(g["prefix"], "user.reg")):
         _set_override(os.path.join(g["prefix"], "user.reg"), False)
     return status()
+
+
+# ---- automatic: keep the mod in this computer's copies up to date ---------------------------------------------
+def _auto_load(data_dir):
+    AUTO["path"] = os.path.join(data_dir, "auto.json") if data_dir else None
+    try:
+        with open(AUTO["path"]) as f:
+            saved = json.load(f)
+        AUTO["on"], AUTO["skip"] = bool(saved.get("on", True)), list(saved.get("skip") or [])
+    except (OSError, ValueError, TypeError):
+        pass
+
+
+def _auto_save():
+    if not AUTO["path"]:
+        return
+    try:
+        with open(AUTO["path"] + ".tmp", "w") as f:
+            json.dump({"on": AUTO["on"], "skip": AUTO["skip"]}, f)
+        os.replace(AUTO["path"] + ".tmp", AUTO["path"])
+    except OSError as e:
+        log.info("auto.json not saved: %s", e)
+
+
+def _skip(d, on):
+    key = os.path.normcase(os.path.realpath(d))
+    if on and key not in AUTO["skip"]:
+        AUTO["skip"].append(key)
+    elif not on and key in AUTO["skip"]:
+        AUTO["skip"].remove(key)
+    else:
+        return
+    _auto_save()
+
+
+def set_auto(on):
+    AUTO["on"] = bool(on)
+    _auto_save()
+    return AUTO["on"]
+
+
+def game_running():
+    """Is PES 2021 running on this computer (under Wine/Proton, or natively on Windows)?"""
+    if sys.platform == "win32":
+        try:
+            import subprocess
+            out = subprocess.run(["tasklist", "/FI", "IMAGENAME eq PES2021.exe"], capture_output=True, text=True, timeout=10).stdout
+            return "PES2021.exe" in out
+        except Exception:  # noqa: BLE001
+            return True                            # can't tell: don't touch anything
+    try:
+        pids = [p for p in os.listdir("/proc") if p.isdigit()]
+    except OSError:
+        return True
+    for p in pids:
+        try:
+            with open(f"/proc/{p}/cmdline", "rb") as f:
+                if b"pes2021.exe" in f.read().lower():
+                    return True
+        except OSError:
+            continue
+    return False
+
+
+def auto_pass(dll_bytes, feed=None):
+    """One pass. Returns what it did: [(game dir, "installed" | "updated")]."""
+    if not AUTO["on"] or dll_bytes is None:
+        return []
+    if time.time() - AUTO["found_at"] > RESCAN_EVERY:
+        use_local_games()
+        AUTO["found_at"] = time.time()
+    done = []
+    games = [g for g in _games() if os.path.normcase(os.path.realpath(g["dir"])) not in AUTO["skip"]]
+    if not games or game_running():
+        return done
+    for g in games:
+        path = os.path.join(g["dir"], "dinput8.dll")
+        state = _dll_state(path)
+        if state == "ours":
+            try:
+                with open(path, "rb") as f:
+                    if f.read() == dll_bytes and (not g["prefix"] or _override_set(os.path.join(g["prefix"], "user.reg"))):
+                        continue
+            except OSError:
+                continue
+        elif state != "none":
+            continue                               # another server's mod, or another mod: leave it alone
+        try:
+            install(g["id"], dll_bytes)
+        except Exception as e:  # noqa: BLE001  (a read-only folder, a busy file: try again next pass)
+            if AUTO["last"].get(g["dir"]) != str(e):
+                log.warning("couldn't put the mod in %s: %s", g["dir"], e)
+                AUTO["last"][g["dir"]] = str(e)
+            continue
+        what = "installed" if state == "none" else "updated"
+        done.append((g["dir"], what))
+        log.info("mod %s in %s", what, g["dir"])
+        if feed:
+            feed(g["dir"], what)
+    return done
+
+
+def auto_start(svc, dll_bytes_fn):
+    """Background thread: auto_pass now and every AUTO_EVERY seconds. dll_bytes_fn() gives the file to put in."""
+    _auto_load(getattr(svc, "data_dir", None))
+    from . import events, httpgate
+
+    def feed(d, what):
+        events.feed(svc, f"The mod was {what} in PES 2021 on this computer ({httpgate.copy_name(d)})", "info")
+
+    def loop():
+        time.sleep(5)
+        while True:
+            try:
+                auto_pass(dll_bytes_fn(), feed)
+            except Exception:  # noqa: BLE001  (never stop the server over this)
+                log.exception("automatic mod pass")
+            time.sleep(AUTO_EVERY)
+
+    t = threading.Thread(target=loop, name="auto-mod", daemon=True)
+    t.start()
+    return t

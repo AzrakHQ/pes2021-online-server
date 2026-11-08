@@ -56,7 +56,8 @@ async def take_player_id(reader, sess):
             line = head if b"\n" in head else head + await reader.readuntil(b"\n")
         except (asyncio.LimitOverrunError, asyncio.IncompleteReadError):
             raise ProtocolError("bad player id line") from None
-        # mod 0.6.0 (hello version 4) adds " inv=<32 hex>": its invite code (pesinvite.py)
+        # mod 0.6.0 (hello version 4) adds " inv=<32 hex>" when the copy was made with an invite (invites are gone;
+        # pesnames.from_invite moves such a player to the install id)
         m = re.fullmatch(rb"PESID2 ([0-9a-f]{32})((?: [a-z0-9]{1,16}){0,8})(?: inv=([0-9a-f]{32}))?\n", line) \
             if len(line) <= ID2_MAX else None
     else:

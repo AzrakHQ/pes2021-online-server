@@ -619,5 +619,5 @@ def cmd_open(args):
 
 def cmd_selfcheck():
     """`pes2021-server selfcheck`: the updater test-runs a new download with this before swapping it in."""
-    from . import VERSION, httpgate, service, gate, pescmds, pesinvite  # noqa: F401  (the bundle is complete)
+    from . import VERSION, httpgate, service, gate, pescmds, pesnames  # noqa: F401  (the bundle is complete)
     print(f"pes2021-server ok {VERSION}", flush=True)

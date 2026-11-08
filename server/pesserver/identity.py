@@ -68,7 +68,7 @@ def hello(nonce, version=1):
     """Proof that this address is this server. The mod asks for the newest version it knows (v=N) and
     gets min(N, ours): 2 = this server reads the player-id line at the start of each gate connection
     (gate.py); 3 = it also pairs players by the mod's same-math switch (PESID2 line); 4 = it reads the
-    invite code on that line (pesinvite.py). Mods older than
+    invite code on that line (made by the removed invites; pesnames.from_invite). Mods older than
     0.3.0 ask for nothing and get version 1, which they check byte for byte."""
     if not re.fullmatch(r"[0-9a-fA-F]{8,64}", nonce or ""):
         raise ValueError("bad nonce")

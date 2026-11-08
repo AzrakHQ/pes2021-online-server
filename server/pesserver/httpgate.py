@@ -36,10 +36,10 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 if ctype.startswith("text/html"):       # the friends' page shares an origin with the admin page
                     extra = (b"Content-Security-Policy: " + page_csp(out.decode()).encode() + b"\r\n"
                              b"X-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
-            elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll", "/mod/invite"):
+            elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
                 status, out, ctype, extra = _mod(service, route, headers, writer, path)
                 if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
-                    note_download(service, (writer.get_extra_info("peername") or ("",))[0], _invite_of(service, path))
+                    note_download(service, (writer.get_extra_info("peername") or ("",))[0])
             elif method in ("GET", "HEAD") and route.startswith("/r/"):
                 from . import pesreplay                     # match replays: /r/<match_id>/<N>.enc
                 parts = route.split("/")
@@ -75,8 +75,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 out = json.dumps({"id": server_id(), "key": k[:8] + " " + k[8:16],
                                   "mod_sha256": mod_sha256(mod_url(service, headers, writer)), "online": len(service.online),
                                   "queued": len(pesmatch._state(service)["queue"]),
-                                  "rooms": len(service.mm.rooms),
-                                  "invites_only": _invites_only(service)}).encode(); ctype = "application/json"
+                                  "rooms": len(service.mm.rooms)}).encode(); ctype = "application/json"
             elif path.rstrip("/") == "/ca.crt":
                 # The private CA players must trust (NTL GateInfo.php runs over HTTPS with OS validation).
                 ca = os.path.join(os.environ.get("PESSERVER_CERTS", "/data/certs"), "ca.crt")
@@ -477,6 +476,17 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
     if route == "/admin/api/games":
         from . import gamesetup
         return "200 OK", json.dumps(gamesetup.status()).encode(), "application/json"
+    if route == "/admin/api/games/auto":
+        from . import gamesetup                     # keep the mod up to date in this computer's copies
+        if method == "POST":
+            try:
+                on = bool(json.loads(body or b"{}").get("on"))
+            except (ValueError, AttributeError):
+                return "400 Bad Request", b'{"error":"on"}', "application/json"
+            gamesetup.set_auto(on)
+            events.feed(service, "The server keeps the mod up to date in PES 2021 on this computer" if on else
+                        "The server no longer puts the mod into PES 2021 on this computer by itself", "info")
+        return "200 OK", json.dumps({"on": gamesetup.AUTO["on"], "running": gamesetup.game_running()}).encode(), "application/json"
     if route in ("/admin/api/games/install", "/admin/api/games/remove") and method == "POST":
         from . import gamesetup
         gid = str(json.loads(body or b"{}").get("id", ""))
@@ -551,9 +561,22 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         p = events.player_detail(service, pid)
         if p is None:
             return "404 Not Found", b'{"error":"That player is gone."}', "application/json"
-        from . import adminextra
+        from . import adminextra, pesnames
         p.update(adminextra.player(service, pid))
+        p["blocked"], p["claims"] = pesnames.is_blocked(service, pid), pesnames.claims_for(service, pid)
         return "200 OK", json.dumps(p).encode(), "application/json"
+    if route in ("/admin/api/players/block", "/admin/api/players/move") and method == "POST":
+        from . import pesnames                      # Block a player's copy; move a player to their new copy
+        try:
+            req = json.loads(body or b"{}")
+            pid = int(req.get("pid"))
+            res = pesnames.set_blocked(service, pid, bool(req.get("on"))) if route.endswith("/block") \
+                else pesnames.move(service, pid, str(req.get("copy") or ""))
+        except LookupError as e:
+            return "404 Not Found", json.dumps({"error": str(e).strip("'")}).encode(), "application/json"
+        except (ValueError, TypeError, AttributeError) as e:
+            return "400 Bad Request", json.dumps({"error": str(e) or "bad request"}).encode(), "application/json"
+        return "200 OK", json.dumps(res).encode(), "application/json"
     if route == "/admin/api/player/courtesy" and method == "POST":
         # {pid}: clear the courtesy record (early exits the host knows weren't the player's fault)
         try:
@@ -587,8 +610,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         pesresults.forget(service, pid)
         pesavatar.forget(service, pid)
         pesprofile.forget(service, pid)
-        from . import pesinvite
-        pesinvite.forget(service, pid)
+        from . import pesnames
+        pesnames.forget(service, pid)
         pesblock.forget(service, pid)
         from . import pesdivisions, pesmatchday, pestourney
         pesdivisions.forget(service, pid)
@@ -609,17 +632,6 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             elif route == "/admin/api/program/autostart":
                 events.feed(service, "The server now starts when you log in" if res.get("autostart") else
                             "The server no longer starts by itself", "info")
-        return status, json.dumps(res).encode(), "application/json"
-    if route.startswith("/admin/api/invites"):
-        from . import pesinvite                     # invites: one mod per friend, with a handle (pesinvite.py)
-        status, res = pesinvite.admin_api(service, route, method, body, mod_url(service, headers, None))
-        if method == "POST" and status.startswith("200") and route not in ("/admin/api/invites/settings", "/admin/api/invites/suggest"):
-            what = {"/admin/api/invites/new": "made an invite for", "/admin/api/invites/rename": "renamed an invite to",
-                    "/admin/api/invites/revoke": "revoked the invite of", "/admin/api/invites/delete": "deleted an invite"}
-            verb = what.get(route, "changed an invite")
-            if route == "/admin/api/invites/revoke" and res.get("revoked") is None:
-                verb = "let back in"
-            events.feed(service, f"The admin {verb}" + (f" {pesinvite.at(res['handle'])}" if res.get("handle") else ""), "info")
         return status, json.dumps(res).encode(), "application/json"
     if route.startswith("/admin/api/tourneys"):
         from . import pestourney                    # Online Tournament competitions (list, save, end, delete)
@@ -725,21 +737,9 @@ def _mod(service, route, headers, writer, path=""):
             return "200 OK", identity.hello(nonce, int(v) if v.isdigit() else 1).encode(), "text/plain; charset=utf-8", b""
         except ValueError:
             return "400 Bad Request", b"bad nonce", "text/plain", b""
-    if route == "/mod/invite":                  # the friends' page with ?invite=<code>: whose link this is
-        inv = _invite_of(service, path)            # /mod/invite?invite=<code>
-        if inv is None or inv["revoked"] is not None:
-            return "404 Not Found", b'{"error":"gone"}', "application/json", b""
-        return "200 OK", json.dumps({"handle": inv["handle"], "joined": inv["pid"] is not None,
-                                     "mod_sha256": mod_sha256(mod_url(service, headers, writer), inv["code"])}).encode(), \
-            "application/json", b""
     if not os.path.isfile(MOD_DLL):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
-    code = parse_qs(urlsplit(path).query).get("invite", [""])[0]
-    inv = _invite_of(service, path)
-    if code and (inv is None or inv["revoked"] is not None):
-        return "404 Not Found", "This invite link doesn't work any more. Ask your host for a new one.".encode(), \
-            "text/plain; charset=utf-8", b""
-    return "200 OK", mod_bytes(mod_url(service, headers, writer), inv["code"] if inv else None), "application/octet-stream", \
+    return "200 OK", mod_bytes(mod_url(service, headers, writer)), "application/octet-stream", \
         b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
 
 
@@ -769,26 +769,17 @@ def _tailscale(addr):
 _DOWNLOADS = {}
 
 
-def _invite_of(service, path):
-    """The invite named by ?invite=<code> in a mod download, or None."""
-    from urllib.parse import parse_qs, urlsplit
-    from . import pesinvite
-    code = parse_qs(urlsplit(path).query).get("invite", [""])[0]
-    return pesinvite.by_code(service, code) if code else None
-
-
-def note_download(service, peer, invite=None):
+def note_download(service, peer):
     """An activity line when someone downloads the mod (once per address per 10 minutes), so the host
     sees that a friend got the file. Says where from, not who: downloads need no sign-in."""
     import ipaddress, time as _time
     from . import events
     now = _time.time()
-    key = (peer, invite["id"] if invite else None)
-    if now - _DOWNLOADS.get(key, 0) < 600:
+    if now - _DOWNLOADS.get(peer, 0) < 600:
         return
     if len(_DOWNLOADS) > 500:
         _DOWNLOADS.clear()
-    _DOWNLOADS[key] = now
+    _DOWNLOADS[peer] = now
     try:
         ip = ipaddress.ip_address(peer.split("%")[0])
         ip = (ip.ipv4_mapped or ip) if ip.version == 6 else ip
@@ -804,9 +795,7 @@ def note_download(service, peer, invite=None):
         where = f" on your home network ({ip})"
     else:
         where = f" from the internet ({ip})"
-    from .pesinvite import at
-    events.feed(service, f"{at(invite['handle'])}'s mod was downloaded{where}" if invite
-                else f"Someone{where} downloaded the mod", "web")
+    events.feed(service, f"Someone{where} downloaded the mod", "web")
 
 
 def mod_url(service, headers, writer):
@@ -827,34 +816,23 @@ def mod_url(service, headers, writer):
 _SHA = {}
 
 
-def _invites_only(service):
-    from . import pesinvite
-    try:
-        return pesinvite.invites_only(service)
-    except Exception:  # noqa: BLE001  (status must answer even if the database is busy)
-        return False
-
-
-def mod_sha256(url="", invite=None):
-    """SHA-256 of the exact file /mod/dinput8.dll hands out (same server, same addresses, same invite), or None."""
+def mod_sha256(url=""):
+    """SHA-256 of the exact file /mod/dinput8.dll hands out (same server, same addresses), or None."""
     import hashlib
     from . import netsetup
     if not os.path.isfile(MOD_DLL):
         return None
-    k = (url, tuple(netsetup.game_addrs()), os.path.getmtime(MOD_DLL), invite)
+    k = (url, tuple(netsetup.game_addrs()), os.path.getmtime(MOD_DLL))
     if k not in _SHA:
-        if len(_SHA) > 64 or not any(x[:3] == k[:3] for x in _SHA):
-            _SHA.clear()
-        _SHA[k] = hashlib.sha256(mod_bytes(url, invite)).hexdigest()
+        _SHA.clear()
+        _SHA[k] = hashlib.sha256(mod_bytes(url)).hexdigest()
     return _SHA[k]
 
 
-def mod_bytes(url="", invite=None):
-    """The mod DLL with this server's identity and addresses written in (and a friend's invite code)."""
+def mod_bytes(url=""):
+    """The mod DLL with this server's identity and addresses written in."""
     from . import identity, netsetup
     settings = identity.mod_settings(os.environ.get("SERVER_NAME", "PES 2021 server"), url, netsetup.game_addrs())
-    if invite:
-        settings += f"invite={invite}\n"
     return identity.pack_mod(open(MOD_DLL, "rb").read(), settings)
 
 

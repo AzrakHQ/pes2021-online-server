@@ -60,3 +60,52 @@ def test_never_overwrites_another_mod(host):
     assert (tmp / "games" / "1" / "dinput8.dll").read_bytes() == b"MZ some ASI loader"
     with pytest.raises(LookupError):
         gamesetup.install("9", dll)
+
+
+@pytest.fixture
+def auto(host, monkeypatch):
+    tmp, dll = host
+    monkeypatch.setattr(gamesetup, "game_running", lambda: False)
+    monkeypatch.setattr(gamesetup, "use_local_games", lambda: None)      # keep the test's two copies
+    monkeypatch.setitem(gamesetup.AUTO, "found_at", 1e18)
+    monkeypatch.setitem(gamesetup.AUTO, "on", True)
+    monkeypatch.setitem(gamesetup.AUTO, "skip", [])
+    gamesetup._auto_load(str(tmp))
+    return tmp, dll
+
+
+def test_auto_puts_the_mod_in_and_keeps_it_current(auto):
+    tmp, dll = auto
+    seen = []
+    done = gamesetup.auto_pass(dll, lambda d, w: seen.append((d, w)))
+    assert sorted(w for _, w in done) == ["installed", "installed"] and len(seen) == 2
+    assert all(g["mod"] == "ours" for g in gamesetup.status())
+    assert gamesetup.auto_pass(dll) == []                                 # nothing changed: nothing to do
+    newer = identity.pack_mod(dll, identity.mod_settings("srv", "", ["192.168.1.6"]))
+    assert sorted(w for _, w in gamesetup.auto_pass(newer)) == ["updated", "updated"]
+    assert (tmp / "games" / "1" / "dinput8.dll").read_bytes() == newer
+
+
+def test_auto_leaves_other_mods_and_removed_copies_alone(auto):
+    tmp, dll = auto
+    (tmp / "games" / "1" / "dinput8.dll").write_bytes(b"MZ someone else's mod")
+    gamesetup.install("2", dll)
+    gamesetup.remove("2")                                                  # the host took it out
+    assert gamesetup.auto_pass(dll) == []
+    assert (tmp / "games" / "1" / "dinput8.dll").read_bytes() == b"MZ someone else's mod"
+    assert not (tmp / "games" / "2" / "dinput8.dll").exists()
+    gamesetup.install("2", dll)                                            # put back by hand: automatic again
+    newer = identity.pack_mod(dll, identity.mod_settings("srv", "", ["10.0.0.9"]))
+    assert [w for _, w in gamesetup.auto_pass(newer)] == ["updated"]
+
+
+def test_auto_waits_while_the_game_runs_and_can_be_off(auto, monkeypatch):
+    tmp, dll = auto
+    monkeypatch.setattr(gamesetup, "game_running", lambda: True)
+    assert gamesetup.auto_pass(dll) == []
+    monkeypatch.setattr(gamesetup, "game_running", lambda: False)
+    gamesetup.set_auto(False)
+    assert gamesetup.auto_pass(dll) == [] and not (tmp / "games" / "1" / "dinput8.dll").exists()
+    gamesetup.AUTO["on"] = True
+    gamesetup._auto_load(str(tmp))
+    assert gamesetup.AUTO["on"] is False                                   # the choice is saved

@@ -276,11 +276,14 @@ def snapshot(svc):
     players = []
     try:
         pescmds._db(svc)                  # adds the rating columns to older databases
-        rows = db.execute("SELECT pid, name, username, created, last_login, rating, win_streak FROM pes_players"
-                          " ORDER BY last_login DESC").fetchall()
+        from . import pesnames
+        pesnames._db(svc)                 # ... and the blocked column
+        # a copy that hasn't picked a name yet (or whose name was taken) is not a player on the page yet
+        rows = db.execute("SELECT pid, name, username, created, last_login, rating, win_streak, blocked FROM pes_players"
+                          " WHERE name IS NOT NULL ORDER BY last_login DESC").fetchall()
     except Exception:  # noqa: BLE001
         rows = []
-    for pid, name, username, created, last, rating, streak in rows:
+    for pid, name, username, created, last, rating, streak, blocked in rows:
         w = d = l = gf = ga = 0
         form, run, running = [], 0, True          # newest first while reading
         for hp, ap, hs, as_ in db.execute("SELECT home_pid, away_pid, home_score, away_score FROM pes_matches"
@@ -296,6 +299,7 @@ def snapshot(svc):
             running = running and res == "W"
             run += running
         players.append({"pid": pid, "name": name or f"Player {pid}", "created": created, "last_login": last,
+                        "blocked": bool(blocked),
                         "online": pid in svc.online, "played": w + d + l, "won": w, "drawn": d, "lost": l,
                         "gf": gf, "ga": ga, "rating": rating, "streak": streak,
                         "form": form[::-1], "run": run})

@@ -12,6 +12,7 @@ Add-ons (env):
   COOP=1                 cooptest.py: Online Co-op 1 vs 1 test handlers
   LIVEDATA=1             livedata.py: test Live Update from www/, switched by ctl.json"""
 import os, sys
+os.environ.setdefault("AUTO_MOD", "0")   # the test server must never put its own mod into the host's game copies
 sys.argv = ["pesserver", "host"] + (["--data", os.environ["TEST_DATA"]] if os.environ.get("TEST_DATA") else [])
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 if os.environ.get("LOBBYTEST") == "1":

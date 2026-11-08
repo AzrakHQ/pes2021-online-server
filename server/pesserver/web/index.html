@@ -32,8 +32,7 @@
 
   <div class="card">
     <h2>1. Get the mod (once)</h2>
-    <p id="hi" hidden><b id="hi-name"></b> <span id="hi-text"></span></p>
-    <a class="dl" id="dl" href="/mod/dinput8.dll" download="dinput8.dll">Download the mod</a>
+    <a class="dl" href="/mod/dinput8.dll" download="dinput8.dll">Download the mod</a>
     <p>One small file, <code>dinput8.dll</code>, made for this server. It changes nothing outside the game folder (it writes its own small settings and log file there) and nothing in the game's own files, needs no administrator rights, and keeps working after the server restarts.</p>
   </div>
 
@@ -49,7 +48,7 @@
   <div class="card">
     <h2>3. Play</h2>
     <ol>
-      <li>Start PES 2021 (version 1.01.00). The first time, pick your region, accept the terms and choose a name.</li>
+      <li>Start PES 2021 (version 1.01.00). The first time, pick your region, accept the terms and choose a name. Names are unique on this server: if yours is taken, the game says so and you pick another (got a new PC? tell your host, who can move your old player to it).</li>
       <li><b>eFootball</b> → <b>Quick Match</b> → choose a team → <b>Go to Matchmaking</b>.</li>
       <li>When two players are searching, the server pairs them. Both press <b>Kick Off</b>.</li>
     </ol>
@@ -65,21 +64,11 @@
   </div>
 </main>
 <script>
-  const $ = id => document.getElementById(id);
-  const code = (new URLSearchParams(location.search).get("invite") || "").toLowerCase();
-  const say = (name, text, hideDl) => { $("hi").hidden = false; $("hi-name").textContent = name; $("hi-text").textContent = text; if (hideDl) $("dl").hidden = true; };
   fetch("/status").then(r => r.json()).then(s => {
-    $("online").textContent = s.online + " online · " + s.queued + " searching";
-    if (s.key) $("skey").textContent = s.key;
-    if (s.mod_sha256 && !code) $("ssha").textContent = s.mod_sha256;
-    if (s.invites_only && !code) say("This server is invite-only.", "Ask your host for your own invite link: it opens this page with your personal download.", true);
-  }).catch(() => { $("online").textContent = "online"; });
-  if (code) fetch("/mod/invite?invite=" + encodeURIComponent(code)).then(r => r.ok ? r.json() : Promise.reject(r.status)).then(i => {
-    document.title = "PES 2021 Server · invite for @" + i.handle;
-    say("Hi @" + i.handle + "!", "Your host invited you. This copy of the mod is made for you: it's how the server knows you, on any PC, so keep it to yourself. In the game you still pick your own name.");
-    $("dl").href = "/mod/dinput8.dll?invite=" + encodeURIComponent(code); $("dl").textContent = "Download your mod";
-    if (i.mod_sha256) $("ssha").textContent = i.mod_sha256;
-  }).catch(() => say("This invite link doesn't work any more.", "Ask your host for a new one.", true));
+    document.getElementById("online").textContent = s.online + " online · " + s.queued + " searching";
+    if (s.key) document.getElementById("skey").textContent = s.key;
+    if (s.mod_sha256) document.getElementById("ssha").textContent = s.mod_sha256;
+  }).catch(() => { document.getElementById("online").textContent = "online"; });
 </script>
 </body>
 </html>

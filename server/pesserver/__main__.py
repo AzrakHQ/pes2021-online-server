@@ -107,6 +107,10 @@ async def run(a):
                      [os.environ.get("PESSERVER_PUBLIC_ADDR", "")])
     show_banner()
     identity.start_publisher()
+    if a.cmd == "host" and os.environ.get("AUTO_MOD", "1") != "0":
+        from . import gamesetup                 # keep the mod up to date in PES 2021 on this computer
+        gamesetup.auto_start(svc, lambda: httpgate.mod_bytes(httpgate.mod_url(svc, {}, None))
+                             if os.path.isfile(httpgate.MOD_DLL) else None)
     from . import events, updates
     from . import hostctl
     how = "update it on the admin page (Server)" if hostctl.manageable()[0] else \
