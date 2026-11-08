@@ -48,6 +48,9 @@ also sets the Wine option for you, so no launch option is needed.
    ```
 3. Start the game → **eFootball → Quick Match → Go to Matchmaking**. When two players are searching,
    they get matched.
+4. For a league among friends: **eFootball → Online Tournament → Friends Cup** (a new one every month).
+   Pick a team, press Start Match, and the table in **Competition Menu → Rankings** keeps the points
+   (win 3, draw 1).
 
 The mod needs no administrator rights and changes nothing outside the game folder (it writes its own small settings and log file there) or in the game's own files. **Undo:**
 delete the file.

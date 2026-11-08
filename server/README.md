@@ -50,6 +50,28 @@ Environment variables:
 | `ADMIN_PASSWORD` | fixed admin password (default: random, saved in `<data>/admin_password`) |
 | `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
 
+## Online Tournament competitions
+
+Each month the server makes a "Friends Cup" (eFootball → Online Tournament) unless another competition
+is running. Hosts can make their own with the admin API (signed in; on the host's own PC no password is needed):
+
+```bash
+A=http://127.0.0.1:8080/admin/api
+T=$(curl -s -X POST -H 'x-pes-local: 1' -d '{"local": true}' $A/login | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
+# (from another PC: -d '{"password": "<the admin password>"}' instead)
+curl -s -H "Authorization: Bearer $T" $A/tourneys                       # every competition with its table
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/save -d '{"name": "Saturday Cup",
+  "start": "2026-11-14 18:00", "end": "2026-11-14 23:00", "match_minutes": 6, "teams": [45, 50, 8, 7],
+  "info": "Knock-out night: most points by 23:00 wins."}'                 # new (or change one: add "compe_id")
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/end -d '{"compe_id": 101}'      # end it now
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/delete -d '{"compe_id": 101}'   # remove it and its table
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/monthly -d '{"on": false}'      # no monthly Friends Cup
+```
+
+`teams` are the game's team ids (national teams 1–14 are Europe, 45 Brazil, 50 Argentina; `notes/re/functions/tools/pesdb.py team <id>`
+names any id). `match_minutes` is 5 to 30 (default 10). `info` is shown in the game under Competition Details → Competition
+Outline. When a competition ends, each player sees their final position the next time they open Online Tournament.
+
 ## Code layout
 
 | Path | What |
