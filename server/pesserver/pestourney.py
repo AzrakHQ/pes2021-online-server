@@ -39,6 +39,7 @@ def _setup(db):
     if "rules" not in {r[1] for r in db.execute("PRAGMA table_info(pes_tourney)")}:
         db.execute("ALTER TABLE pes_tourney ADD COLUMN rules TEXT NOT NULL DEFAULT '{}'")
     db.execute("CREATE TABLE IF NOT EXISTS pes_tourney_cfg (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    db.execute("CREATE TABLE IF NOT EXISTS pes_tourney_seen (pid INTEGER, compe_id INTEGER, PRIMARY KEY (pid, compe_id))")
     db.execute("""CREATE TABLE IF NOT EXISTS pes_tourney_match (compe_id INTEGER, match_id TEXT, pid INTEGER,
                   opp INTEGER, my_team INTEGER, opp_team INTEGER, my_goals INTEGER, opp_goals INTEGER,
                   result TEXT, t REAL, PRIMARY KEY (compe_id, match_id, pid))""")
@@ -133,9 +134,11 @@ def _pid(sess, req):
 def compe_list(svc, sess, req):
     pid = _pid(sess, req)
     now = time.time()
+    past = str(req.get("is_end") or "").upper() == "YES"          # the past-competitions list
     items = [{**_fields(svc, c, pid), "banner_file_info": _pack({}), "list_banner_file_info": _pack({})}
-             for c in competitions(svc) if c["end"] > now]
-    items.append({**pesreplay._compe(), "banner_file_info": _pack({}), "list_banner_file_info": _pack({})})
+             for c in competitions(svc) if (c["end"] <= now) == past]
+    if not past:
+        items.append({**pesreplay._compe(), "banner_file_info": _pack({}), "list_banner_file_info": _pack({})})
     return {"result": NOERR, "compe_list": [_pack(x) for x in items], "list_num": len(items),
             "list_max": len(items), "is_end": "YES"}
 
@@ -486,3 +489,63 @@ def admin_api(svc, route, method, body):
     except ValueError as e:
         return bad("400 Bad Request", str(e))
     return bad("404 Not Found", "unknown")
+
+
+# ---- the end of a competition: the results notice ------------------------------------------------------------
+def _unseen(svc, pid):
+    """Ended competitions the player took part in and has not seen the final result of, newest first."""
+    now = time.time()
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        rows = db.execute("SELECT t.compe_id FROM pes_tourney t JOIN pes_tourney_entry e ON e.compe_id=t.compe_id "
+                          "WHERE e.pid=? AND t.end_date<=? AND NOT EXISTS (SELECT 1 FROM pes_tourney_seen s "
+                          "WHERE s.pid=e.pid AND s.compe_id=t.compe_id) ORDER BY t.end_date DESC", (pid, now)).fetchall()
+    return [r[0] for r in rows]
+
+
+@cmd("CMD_GET_PESLEAGUE_MAINMENU_INFO")
+def peslg_mainmenu(svc, sess, req):
+    """new_result YES takes the game to the results notice of a competition that ended since the player last
+    looked (flow PesLgProcGetMainMenuInfo -> 01_result)."""
+    pid = _pid(sess, req)
+    return {"result": NOERR, "division": "D1", "new_result": "YES" if pid is not None and _unseen(svc, pid) else "NO"}
+
+
+def _result_entry(svc, c, pid):
+    rows = standings(svc, c["compe_id"])
+    me = next((r for r in rows if r[1] == pid), None)
+    name = me[2] if me else ""
+    # layout from the parser 0x141c11b00 (2026-11-08)
+    return _pack({"compe_id": c["compe_id"], "compe_db_id": c["compe_id"], "compe_name": c["name"],
+                  "banner_file_info": _pack({"filename": "", "hash_str": ""}), "start_date": c["start"],
+                  "end_date": c["end"], "player_rank": me[0] if me else 0, "entry_user_num": len(rows),
+                  "clan_name": "", "clan_owner_pid": pid or 0, "clan_owner_name": _pname(name, pid),
+                  "is_participation_get": "NO", "update_division": 0, "before_division": 0, "is_confirm": "YES",
+                  "is_get_reward": "NO"})
+
+
+@cmd("CMD_GET_PESLEAGUE_COMPE_RESULT_LIST")
+def compe_result_list(svc, sess, req):
+    """is_unconfirm_list YES: the new final results (each is then marked seen); otherwise every ended competition
+    the player took part in (or just compe_id)."""
+    pid = _pid(sess, req)
+    if pid is None:
+        return {"result": NOERR, "result_list": [], "result_list_num": 0}
+    by_id = {c["compe_id"]: c for c in competitions(svc)}
+    if str(req.get("is_unconfirm_list") or "").upper() == "YES":
+        ids = _unseen(svc, pid)
+        db = _db(svc)
+        with svc.accounts.lock, db:
+            db.executemany("INSERT OR IGNORE INTO pes_tourney_seen (pid, compe_id) VALUES (?,?)", [(pid, i) for i in ids])
+    else:
+        now = time.time()
+        ids = [cid for cid, c in by_id.items() if c["end"] <= now and entry(svc, cid, pid) is not None]
+        try:
+            want = int(req.get("compe_id") or 0)
+        except (TypeError, ValueError):
+            want = 0
+        if want:
+            ids = [i for i in ids if i == want]
+    out = [_result_entry(svc, by_id[i], pid) for i in ids if i in by_id]
+    return {"result": NOERR, "result_list": out, "result_list_num": len(out)}

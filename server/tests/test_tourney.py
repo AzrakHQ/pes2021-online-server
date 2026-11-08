@@ -133,6 +133,8 @@ def test_admin_api_create_end_delete_and_monthly_cup(svc):
     names = [unb(x)["compe_name"] for x in
              pescmds._dispatch(svc, Sess(1), "CMD_GET_PESLEAGUE_COMPE_LIST", {"mode": "PESLEAGUE"})["compe_list"]]
     assert names == ["Saturday Cup", "Match Replays"]
+    past = pescmds._dispatch(svc, Sess(1), "CMD_GET_PESLEAGUE_COMPE_LIST", {"mode": "PESLEAGUE", "is_end": "YES"})
+    assert [unb(x)["compe_name"] for x in past["compe_list"]] == [auto["name"]]
     # deleting everything: the monthly cup stays away this month, and can be switched off
     for c in pestourney.competitions(svc):
         pestourney.admin_api(svc, "/admin/api/tourneys/delete", "POST", json.dumps({"compe_id": c["compe_id"]}).encode())
@@ -163,3 +165,30 @@ def test_match_rules_in_compe_info(svc):
     assert unb(info["compe_regulation"]) == {"match_time": 15, "is_equalization": "NO"}
     assert pestourney.admin_api(svc, "/admin/api/tourneys/save", "POST", json.dumps(
         {"compe_id": cup["compe_id"], "match_minutes": 3}).encode())[0] == "400 Bad Request"
+
+
+def test_results_notice_after_the_end(svc):
+    async def go():
+        _players(svc, 1, 2)
+        a, b = Sess(1), Sess(2)
+        svc.online.update({1: a, 2: b})
+        cup = _enter(svc, a, 9)
+        _enter(svc, b, 13)
+        for s in (a, b):
+            pescmds._dispatch(svc, s, "CMD_START_MATCHING", {"matching_type": "PES_LEAGUE"})
+        (rid, room), = pesmatch._state(svc)["rooms"].items()
+        room.update(goals={(500, "AWAY")}, phase={1: "END", 2: "END"}, match_id="m3")
+        pesmatch._verdict(svc, rid, room)
+        assert pescmds._dispatch(svc, a, "CMD_GET_PESLEAGUE_MAINMENU_INFO", {"mode": "PESLEAGUE"})["new_result"] == "NO"
+        pestourney.end_now(svc, cup["compe_id"])
+        assert pescmds._dispatch(svc, a, "CMD_GET_PESLEAGUE_MAINMENU_INFO", {"mode": "PESLEAGUE"})["new_result"] == "YES"
+        r = pescmds._dispatch(svc, a, "CMD_GET_PESLEAGUE_COMPE_RESULT_LIST", {"compe_id": 0, "is_unconfirm_list": "YES"})
+        e = unb(r["result_list"][0])
+        assert (r["result_list_num"], e["compe_id"], e["player_rank"], e["entry_user_num"]) == (1, cup["compe_id"], 2, 2)
+        assert pescmds.validate("CMD_GET_PESLEAGUE_COMPE_RESULT_LIST", r)
+        # seen once: no new notice, but the past result stays listed
+        assert pescmds._dispatch(svc, a, "CMD_GET_PESLEAGUE_MAINMENU_INFO", {"mode": "PESLEAGUE"})["new_result"] == "NO"
+        assert pescmds._dispatch(svc, a, "CMD_GET_PESLEAGUE_COMPE_RESULT_LIST", {"is_unconfirm_list": "YES"})["result_list_num"] == 0
+        assert pescmds._dispatch(svc, a, "CMD_GET_PESLEAGUE_COMPE_RESULT_LIST", {"is_unconfirm_list": "NO"})["result_list_num"] == 1
+        assert pescmds._dispatch(svc, b, "CMD_GET_PESLEAGUE_MAINMENU_INFO", {"mode": "PESLEAGUE"})["new_result"] == "YES"
+    asyncio.run(go())
