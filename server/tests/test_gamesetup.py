@@ -109,3 +109,12 @@ def test_auto_waits_while_the_game_runs_and_can_be_off(auto, monkeypatch):
     gamesetup.AUTO["on"] = True
     gamesetup._auto_load(str(tmp))
     assert gamesetup.AUTO["on"] is False                                   # the choice is saved
+
+
+def test_only_the_game_itself_counts_as_running():
+    assert gamesetup._is_game(b"Z:\\home\\me\\game\\files\\PES2021.exe\0")
+    assert gamesetup._is_game(b"/home/me/game/files/PES2021.exe\0-arg\0")
+    assert not gamesetup._is_game(b"/bin/bash\0-c\0grep PES2021.exe log\0")
+    assert gamesetup._is_game(b"python3\0/usr/proton\0waitforexitandrun\0/g/PES2021.exe\0")      # starting up
+    assert gamesetup._is_game(b"c:\\windows\\system32\\steam.exe\0/g/PES2021.exe\0")
+    assert not gamesetup._is_game(b"tail\0-f\0/g/PES2021.exe.log\0")

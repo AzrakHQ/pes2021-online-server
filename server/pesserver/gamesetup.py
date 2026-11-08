@@ -283,11 +283,25 @@ def game_running():
     for p in pids:
         try:
             with open(f"/proc/{p}/cmdline", "rb") as f:
-                if b"pes2021.exe" in f.read().lower():
+                if _is_game(f.read()):
                     return True
         except OSError:
             continue
     return False
+
+
+def _is_game(cmdline):
+    """The game's own process: its program (first argument) is PES2021.exe, e.g. Wine's
+    "Z:\\...\\PES2021.exe". Not a terminal command or a log viewer that merely mentions the file."""
+    args = [a for a in cmdline.split(b"\0") if a]
+    names = [a.replace(b"\\", b"/").lower().rsplit(b"/", 1)[-1] for a in args]
+    if not names:
+        return False
+    if names[0] == b"pes2021.exe":
+        return True
+    # starting up: Proton's "proton waitforexitandrun …/PES2021.exe", Wine's "steam.exe …/PES2021.exe"
+    launcher = b"waitforexitandrun" in args or names[0] in (b"steam.exe", b"wine", b"wine64", b"wine64-preloader")
+    return launcher and b"pes2021.exe" in names[1:]
 
 
 def auto_pass(dll_bytes, feed=None):
