@@ -15,54 +15,116 @@
   <img alt="Players: Windows, Linux or Steam Deck" src="https://img.shields.io/badge/players-Windows%20%C2%B7%20Linux%20%C2%B7%20Steam%20Deck-3ccf8e?style=flat&labelColor=0d1014&color=3ccf8e">
 </p>
 
-**What works:** Quick Match, Online Co-op (one player per side), Online Divisions, Matchday, Friendly Match Lobby,
-a Friends Cup every month, and match replays.
+## What works
 
-## Get started
+- **Quick Match**: matchmaking with your friends and full matches, both halves, fouls, cards and half-time.
+- **Online Co-op**: Casual Match, one player per side with CPU teammates.
+- **Online Divisions**: ten divisions, ten-match seasons, promotion and relegation, rating changes and rankings.
+- **Matchday**: one standing event; pick Home or Away and every match adds points for your side.
+- **Friendly Match Lobby**: make a room (with a password if you like), your friend picks it, and you stay in the room for a rematch.
+- **Friends Cup**: a new tournament every month, with its own table under Rankings.
+- **Match replays**: every online match is recorded; watch the newest 20 from Online Tournament → Match Replays.
+- **Profiles and stats**: your avatar, favourite team and comment, Last 20 results, and a ranking of everyone on your server.
+- **Fair play**: leaving a match early counts as a 3–0 loss, and anyone can block an opponent so they're never matched again.
+- **Admin page** for the host: who's online, live matches, results, replays, blocking players and one-click updates.
 
-<p align="center"><picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/walkthrough-dark.webp">
-  <img src="docs/walkthrough-light.webp" alt="From install to play: run one line, the admin page opens, copy the invite, send it to your friends, they download the mod, then everyone plays." width="88%">
-</picture></p>
+## How to use
 
-### 1. Host: install the server
+### 1. Install the server
 
-On a Linux PC or Steam Deck that stays on while you play, run this in a terminal:
+On a Linux PC or Steam Deck that stays on while you play:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/AzrakHQ/pes2021-online-server/main/run.sh | sh
 ```
 
-The server installs itself (no sudo), runs in the background, starts when you log in, and opens its **admin page**.
-Everything else happens there: inviting friends, players, results, updates. To open it again, use
-**PES 2021 Server** in your apps menu.
+<p align="center"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/step1-dark.webp">
+  <img src="docs/step1-light.webp" alt="The install line runs in a terminal, the server starts in the background, and its admin page opens." width="88%">
+</picture></p>
 
-### 2. Host: invite your friends
+### 2. Invite your friends
 
-Admin page → **Invite friends** → **Copy message**, then paste it to your friends. The link has their file and the
-steps.
+Admin page → **Invite friends** → **Copy message**, and send it to your friends.
 
-### 3. Friends: drop in one file and play
+<p align="center"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/step2-dark.webp">
+  <img src="docs/step2-light.webp" alt="On the admin page's Invite friends card, Copy message turns into Copied; the invite is pasted into a chat." width="88%">
+</picture></p>
 
-Friends can play on Windows, Linux or Steam Deck.
+### 3. Add the mod (each friend)
 
-1. Put `dinput8.dll` in the game folder (Steam: right-click **PES 2021** → **Manage** → **Browse local files**).
-2. **Linux / Steam Deck only:** PES 2021 → **Properties** → **Launch options**, paste
-   `WINEDLLOVERRIDES="dinput8=n,b" %command%`
-3. Start the game → **eFootball** → **Quick Match**. The first time, the game asks for your player name.
+Open the link, press **Download the mod**, and put `dinput8.dll` next to `PES2021.exe`.
+On Linux or Steam Deck, also set the game's launch options to `WINEDLLOVERRIDES="dinput8=n,b" %command%`.
 
-The mod changes nothing outside the game folder. To undo, delete the file.
+<p align="center"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/step3-dark.webp">
+  <img src="docs/step3-light.webp" alt="The friend's page with Download the mod; dinput8.dll lands in the game folder next to PES2021.exe." width="88%">
+</picture></p>
 
-## Problems?
+### 4. Play
 
-| Problem | Fix |
-|---|---|
-| A friend can't connect | The host's server must be on. The mod writes what it tried to `pes2021-online.log` in the game folder. |
-| "Router ports are closed" on the host | Turn on **UPnP** in the router and start the server again, or forward the ports it lists. |
-| The match ends right after kick-off | Both players download the mod again from the invite link, and the host updates the server (admin page → **Server** → **Update now**). |
-| Something else | Running the install line again repairs the server; players and results are kept. |
+**eFootball** → **Quick Match**. The first time, the game asks for your player name.
 
----
+<p align="center"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/step4-dark.webp">
+  <img src="docs/step4-light.webp" alt="Matchmaking pairs karim and dani, then the match kicks off in the stadium." width="88%">
+</picture></p>
 
-[How PES 2021's online mode works](https://azrakhq.github.io/pes2021-online-server/) ·
-[Hosting tips and developers](server/README.md) · Fan preservation project, not affiliated with Konami.
+## FAQ
+
+<details><summary><b>Is it free? Do I need an account?</b></summary>
+
+Free and open source (MIT). No accounts: each copy of the mod is one player, and the game asks for a name the first time.
+</details>
+
+<details><summary><b>Can friends outside my home join?</b></summary>
+
+Yes. The server opens your router's ports by itself (UPnP). If it says "Router ports are closed", turn on **UPnP** in
+your router settings and start the server again, or forward the ports it lists.
+</details>
+
+<details><summary><b>A friend can't connect</b></summary>
+
+The host's server has to be running. The mod writes what it tried to `pes2021-online.log` in the game folder.
+</details>
+
+<details><summary><b>The match ends right after kick-off</b></summary>
+
+Both players download the mod again from the invite link, and the host updates the server
+(admin page → **Server** → **Update now**).
+</details>
+
+<details><summary><b>How do I update the server?</b></summary>
+
+The admin page tells you when a new version is out: press **Update now**. Players and results are kept.
+</details>
+
+<details><summary><b>Does the mod change my game?</b></summary>
+
+No. It changes nothing outside the game folder and nothing in the game's own files. To undo, delete `dinput8.dll`.
+</details>
+
+<details><summary><b>Something else is broken</b></summary>
+
+Run the install line again: it repairs the server and keeps players and results.
+</details>
+
+<details><summary><b>What doesn't work yet?</b></summary>
+
+myClub, events and official rankings, and Online Co-op with two or three people on a side.
+</details>
+
+<br>
+
+<p align="center">
+  <a href="https://azrakhq.github.io/pes2021-online-server/"><b>How it works</b></a>
+  &nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="server/README.md#hosting-tips"><b>Hosting tips</b></a>
+  &nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="server/README.md"><b>For developers</b></a>
+  &nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="LICENSE"><b>MIT license</b></a>
+</p>
+
+<p align="center"><sub>A fan preservation project by <a href="https://github.com/AzrakHQ">Azrak</a>. Not affiliated with Konami.</sub></p>
