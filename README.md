@@ -10,32 +10,33 @@ Konami shut down the PES 2021 servers. Host your own and play online with your f
 **What works:** Quick Match, Online Co-op (one player per side), Online Divisions, Matchday, Friendly Match Lobby,
 a Friends Cup every month, and match replays.
 
-**You need:** PES 2021 on Steam (v1.01.00). The host needs a Linux PC or Steam Deck that stays on while you play.
-Friends can play on Windows, Linux or Steam Deck.
+## Get started
 
-<picture>
+<p align="center"><picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/walkthrough-dark.webp">
-  <img src="docs/walkthrough-light.webp" alt="From install to play: run one line, the admin page opens, copy the invite, send it to your friends, they download the mod, then everyone plays." width="100%">
-</picture>
+  <img src="docs/walkthrough-light.webp" alt="From install to play: run one line, the admin page opens, copy the invite, send it to your friends, they download the mod, then everyone plays." width="88%">
+</picture></p>
 
-## 1. Host: install the server
+### 1. Host: install the server
 
-In a terminal:
+On a Linux PC or Steam Deck that stays on while you play, run this in a terminal:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh
+curl -fsSL https://raw.githubusercontent.com/AzrakHQ/pes2021-online-server/main/run.sh | sh
 ```
 
 The server installs itself (no sudo), runs in the background, starts when you log in, and opens its **admin page**.
 Everything else happens there: inviting friends, players, results, updates. To open it again, use
 **PES 2021 Server** in your apps menu.
 
-## 2. Host: invite your friends
+### 2. Host: invite your friends
 
 Admin page → **Invite friends** → **Copy message**, then paste it to your friends. The link has their file and the
 steps.
 
-## 3. Friends: drop in one file and play
+### 3. Friends: drop in one file and play
+
+Friends can play on Windows, Linux or Steam Deck.
 
 1. Put `dinput8.dll` in the game folder (Steam: right-click **PES 2021** → **Manage** → **Browse local files**).
 2. **Linux / Steam Deck only:** PES 2021 → **Properties** → **Launch options**, paste
@@ -55,5 +56,5 @@ The mod changes nothing outside the game folder. To undo, delete the file.
 
 ---
 
-[How PES 2021's online mode works](https://mohamedalirashad.github.io/pes2021-private-server/) ·
+[How PES 2021's online mode works](https://azrakhq.github.io/pes2021-online-server/) ·
 [Hosting tips and developers](server/README.md) · Fan preservation project, not affiliated with Konami.
