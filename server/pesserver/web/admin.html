@@ -435,6 +435,7 @@
   #rs-pill { font-variant-numeric:tabular-nums; }
   @media (max-width: 960px) { #status, #reach, #remote-pill, #attn-pill, #rs-pill { display:none !important; } #mchip { display:inline-flex; } header.top { flex-wrap:nowrap; } .mbrand { white-space:nowrap; } }
   @media (pointer: coarse) { .pname { padding:10px 0; margin:-10px 0; } header.top .pill { min-height:32px; } }
+  @media (max-width: 480px) { #upd { display:none; } }   /* phones: the bar can't wrap; staleness has its own note */
   .h2h-bal { font-weight:700; } .h2h-bal.up { color:var(--accent); } .h2h-bal.down { color:var(--live); }
   .net { display:grid; gap:8px; font-size:14px; }
   .net details { font-size:13px; color:var(--muted); }
@@ -449,6 +450,7 @@
   .game .what { font-size:13px; color:var(--muted); }
   .what code { display:inline-block; max-width:100%; white-space:normal; overflow-wrap:anywhere; }
   .pc-intro { font-size:14px; margin:0 0 4px; }
+  .note-list { margin:8px 0 0; padding-left:18px; font-size:13px; color:var(--muted); display:grid; gap:4px; }
   .game .st { font-size:14px; margin-top:2px; }
   .game .st .pill { margin-bottom:2px; }
   .game .act { justify-self:end; padding-top:2px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
@@ -629,7 +631,6 @@
     <!-- OVERVIEW -->
     <section class="view" id="v-overview" aria-labelledby="t-overview">
       <h1 id="t-overview" tabindex="-1">Overview</h1>
-      <p class="lead" id="ov-lead">What's happening on your server right now.</p>
       <ul class="attn" id="attn" aria-label="Needs attention" hidden></ul>
       <section class="card" id="c-start" aria-labelledby="h-start" hidden><div class="card-h"><h2 id="h-start" tabindex="-1">Get started</h2></div><ol class="steps" id="steps"></ol></section>
       <div id="tiles"><div class="tiles" aria-hidden="true"><div class="tile"><div class="skel"></div></div><div class="tile"><div class="skel"></div></div><div class="tile"><div class="skel"></div></div><div class="tile"><div class="skel"></div></div></div></div>
@@ -639,7 +640,7 @@
           <section class="card" id="c-ovonline" aria-labelledby="h-ovonline"><div class="card-h"><h2 id="h-ovonline">Online now</h2><span class="grow"></span><a href="#players">Manage players →</a></div><div id="ov-online"><div class="skel"></div></div></section>
       </div>
       <div id="ov-charts">
-      <div class="toolbar"><span class="small muted" id="range-l">Charts cover the last</span><div class="seg" role="group" aria-labelledby="range-l"><button type="button" data-range="7" aria-pressed="false">7 days</button><button type="button" data-range="14" aria-pressed="true">14 days</button><button type="button" data-range="30" aria-pressed="false">30 days</button></div></div>
+      <div class="toolbar"><div class="seg" role="group" aria-label="Chart range"><button type="button" data-range="7" aria-pressed="false">7 days</button><button type="button" data-range="14" aria-pressed="true">14 days</button><button type="button" data-range="30" aria-pressed="false">30 days</button></div></div>
       <div class="grid-ov row-gap eq">
         <section class="card" aria-labelledby="h-chart"><div class="card-h"><h2 id="h-chart">Matches per day</h2></div>
           <div id="chart-days"><div class="skel"></div><div class="skel short"></div></div></section>
@@ -664,7 +665,6 @@
     <!-- PLAYERS -->
     <section class="view" id="v-players" aria-labelledby="t-players" hidden>
       <h1 id="t-players" tabindex="-1">Players</h1>
-      <p class="lead">Everyone who has joined your server, ranked like a league table: 3 points a win, 1 a draw, then goal difference.</p>
       <section class="card" aria-labelledby="h-players">
         <h2 id="h-players" class="sr" tabindex="-1">Player list</h2>
         <div class="toolbar">
@@ -673,7 +673,7 @@
           <span class="grow"></span><span class="count" id="p-count" aria-live="polite"></span>
         </div>
         <div id="plist"><div class="skel"></div><div class="skel short"></div></div>
-        <details class="keycheck tnotes" id="p-note"><summary>How the table works</summary><p class="note"><b>Points per game</b> ranks only friends with 5+ matches, so nobody is behind just for playing less; ties go to goal difference per game. Select a name for their matches, head-to-head record and the Delete option. <span class="hide-lg">Rating is the game's own matchmaking number (it pairs players of similar skill); it doesn't change the table order.</span></p><p class="note">Kick disconnects someone now; they can reconnect and see your reason. There's no ban yet: anyone with the mod file can join.</p><p class="note"><b>Courtesy B or C</b> next to a name is the game's fair-play rating: it drops when someone quits, idles or closes the game during matches (a kick or the other player leaving doesn't count). The game warns them itself; you can clear it in their panel.</p><p class="note"><b>Leaving early loses the match:</b> whoever quits, idles or drops out after kick-off loses, and the other player wins 3–0 (or by their lead if bigger). Results show it as a forfeit.</p></details>
+        <details class="keycheck tnotes" id="p-note"><summary>How the table works</summary><ul class="note-list"><li>3 points a win, 1 a draw, then goal difference.</li><li><b>Points per game</b> counts only friends with 5+ matches.</li><li><b>Rating</b> is the game's matchmaking number; it doesn't change the order.</li><li>Leaving a match early loses it 0–3 (a <b>forfeit</b>).</li><li><b>Courtesy B/C</b>: the game's fair-play grade, lowered by quitting matches.</li></ul></details>
       </section>
       <section class="card" id="c-div" aria-labelledby="h-div" hidden><div class="card-h"><h2 id="h-div" tabindex="-1">Online Divisions</h2></div><div id="divs"></div></section>
     </section>
@@ -681,7 +681,6 @@
     <!-- MATCHES -->
     <section class="view" id="v-matches" aria-labelledby="t-matches" hidden>
       <h1 id="t-matches" tabindex="-1">Matches</h1>
-      <p class="lead">Live matches and every finished result.</p>
       <div id="m-tiles"></div>
       <section class="card" aria-labelledby="h-live"><h2 id="h-live" tabindex="-1">Live and starting</h2><div id="live"><div class="skel"></div></div></section>
       <section class="card" aria-labelledby="h-results">
@@ -696,17 +695,15 @@
     <!-- TOURNAMENTS -->
     <section class="view" id="v-tourneys" aria-labelledby="t-tourneys" hidden>
       <h1 id="t-tourneys" tabindex="-1">Tournaments</h1>
-      <p class="lead">Competitions in the game's own Online Tournament menu. Friends enter with a team; every match two entrants play there counts: 3 points a win, 1 a draw.</p>
       <div id="tn-list"><div class="skel"></div></div>
       <div class="grid2 row-gap">
         <section class="card msgf" aria-labelledby="h-tnform"><h2 id="h-tnform" tabindex="-1">New tournament</h2>
           <form id="tnform" novalidate>
             <label for="tn-name">Name</label><input id="tn-name" maxlength="60" autocomplete="off" placeholder="e.g. Saturday Cup">
             <div class="tn-dates"><div><label for="tn-start">Starts</label><input type="datetime-local" id="tn-start"></div><div><label for="tn-end">Ends</label><input type="datetime-local" id="tn-end"></div></div>
-            <p class="small muted" id="tn-when" style="margin:6px 0 0">Your time. Matches only count if the two friends were paired between these times.</p>
             <label for="tn-min">Match length</label><select id="tn-min"><option value="5">5 minutes</option><option value="6">6 minutes</option><option value="8">8 minutes</option><option value="10" selected>10 minutes</option><option value="12">12 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option></select>
             <fieldset class="tn-teams" id="tn-teams-f"><legend>Teams friends can enter with <span class="small muted" id="tn-tcount"></span></legend><div id="tn-teams"><div class="skel"></div></div></fieldset>
-            <label for="tn-info">Competition Outline <span class="small muted" style="font-weight:400">(optional)</span></label><textarea id="tn-info" maxlength="2000" placeholder="Friends read this under Competition Details. Leave it empty and the server writes one from the dates and rules." aria-describedby="tn-err"></textarea>
+            <label for="tn-info">Competition Outline <span class="small muted" style="font-weight:400">(optional)</span></label><textarea id="tn-info" maxlength="2000" placeholder="Shown under Competition Details in the game. Empty: written from the dates and rules." aria-describedby="tn-err"></textarea>
             <div id="tn-err" class="small" aria-live="polite"></div>
             <div class="row"><button class="primary needs-server" type="submit" id="tn-save">Create tournament</button><button type="button" id="tn-cancel" hidden>Cancel editing</button></div>
           </form>
@@ -714,11 +711,10 @@
         <div class="stack">
         <section class="card" aria-labelledby="h-tnhow"><h2 id="h-tnhow">How friends play it</h2>
           <ol class="steps-plain">
-            <li><b>eFootball → Online Tournament</b>, pick the competition and enter with a team.</li>
-            <li>In the competition's menu, choose <b>Match</b>. The server pairs two friends who entered the same competition and are searching at the same time.</li>
-            <li>The table is in the competition's <b>Rankings</b>. When it ends, each friend sees their final place the next time they open Online Tournament.</li>
+            <li><b>eFootball → Online Tournament</b>: pick it and enter with a team.</li>
+            <li><b>Match</b>: plays a friend in the same competition.</li>
+            <li><b>Rankings</b>: the table.</li>
           </ol>
-          <p class="note">Leaving a match early loses it 0–3. Teams play at their real strength. Matches also count in your server's league table and ratings.</p>
         </section>
         <section class="card" aria-labelledby="h-tnmon"><h2 id="h-tnmon">Monthly Friends Cup</h2><div class="net" id="tn-monthly"></div></section>
         </div>
@@ -728,7 +724,6 @@
     <!-- ACTIVITY -->
     <section class="view" id="v-activity" aria-labelledby="t-activity" hidden>
       <h1 id="t-activity" tabindex="-1">Activity</h1>
-      <p class="lead">Everything that happened on the server, newest first. Kept across restarts.</p>
       <section class="card" aria-labelledby="h-feed">
         <h2 id="h-feed" class="sr" tabindex="-1">Activity log</h2>
         <div class="toolbar"><input type="search" id="f-q" placeholder="Search activity" aria-label="Search activity" autocomplete="off"><div class="chips" role="group" aria-label="Show" id="f-filter"></div></div>
@@ -739,11 +734,9 @@
     <!-- MESSAGES -->
     <section class="view" id="v-messages" aria-labelledby="t-messages" hidden>
       <h1 id="t-messages" tabindex="-1">Messages</h1>
-      <p class="lead">Talk to your players through the game itself: everyone at once, one player, or a warning before maintenance.</p>
       <div class="grid2">
         <div class="stack">
         <section class="card msgf" aria-labelledby="h-msg"><h2 id="h-msg" tabindex="-1">To everyone</h2>
-          <p class="small muted" style="margin:-6px 0 10px">Shows as a pop-up in the main menu, in Online Information when they sign in, and once in a box before Quick Match.</p>
           <div id="msgnow"></div>
           <div class="tpl"><span class="small muted" id="tpl-l">Start from:</span><div class="chips" role="group" aria-labelledby="tpl-l">
             <button type="button" data-tpl="maint">Maintenance</button><button type="button" data-tpl="restart">Quick restart</button><button type="button" data-tpl="update">New version</button><button type="button" data-tpl="cup">Tournament</button><button type="button" data-tpl="welcome">Welcome</button></div></div>
@@ -763,14 +756,14 @@
             <label for="rs-min">Warn players that the server goes down</label>
             <div class="row" style="margin-top:4px"><select id="rs-min"><option value="5">in 5 minutes</option><option value="10">in 10 minutes</option><option value="15" selected>in 15 minutes</option><option value="30">in 30 minutes</option><option value="60">in 1 hour</option><option value="120">in 2 hours</option><option value="240">in 4 hours</option></select>
               <button type="submit" class="needs-server" id="rs-set">Warn players</button><button type="button" class="needs-server" id="rs-cancel" hidden>Cancel warning</button></div>
-            <p class="note">Anyone who starts matchmaking gets the game's own warning: "maintenance work starting at [time]… Are you sure you want to start a match now?" Pair it with a message to everyone that says how long it lasts.</p>
+            <p class="note">Players who start a match get the game's maintenance warning.</p>
           </form>
         </section>
         </div>
         <div class="stack">
         <section class="card msgf" aria-labelledby="h-dm"><h2 id="h-dm" tabindex="-1">To one player</h2>
-          <p class="small muted" style="margin:-6px 0 4px">It pops up the next time they sign in or open an online mode, then stays in their Online Information list (their last 5 messages). The game can't show it sooner. This card shows when they've opened it.</p>
-          <p class="empty" id="dm-none" hidden>Nobody has joined yet, so there's no one to message. <a href="#invite">Invite friends</a></p>
+          <p class="small muted" style="margin:-6px 0 4px">Shows the next time they sign in.</p>
+          <p class="empty" id="dm-none" hidden>Nobody to message yet. <a href="#invite">Invite friends</a></p>
           <form id="dmform">
             <label for="dm-to">Player</label><select id="dm-to" class="needs-server"></select>
             <label for="dm-title">Title</label><input id="dm-title" maxlength="60" autocomplete="off" placeholder="e.g. Your match tonight">
@@ -788,7 +781,6 @@
     <!-- INVITE -->
     <section class="view" id="v-invite" aria-labelledby="t-invite" hidden>
       <h1 id="t-invite" tabindex="-1">Invite friends</h1>
-      <p class="lead">Send your friends one link. It opens a page with the mod (already set up for your server) and the steps; each friend picks their own name in the game.</p>
       <div class="grid2">
         <div class="stack">
         <section class="card" aria-labelledby="h-send"><h2 id="h-send" tabindex="-1">Send this to your friends</h2>
@@ -799,13 +791,11 @@
         </div>
         <section class="card friend" aria-labelledby="h-friend"><h2 id="h-friend">What your friend does</h2>
           <ol>
-            <li>Opens the link on the PC they play on and presses <b>Download the mod</b>.</li>
-            <li>In Steam, right-click <b>PES 2021</b> → Manage → <b>Browse local files</b>, and puts the file next to <code>PES2021.exe</code>.
-              <div class="small muted" style="margin-top:6px"><b>Steam Deck / Linux:</b> also set PES 2021 → Properties → Launch options to:<span class="linkrow"><code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code><button type="button" class="small" data-copytext="WINEDLLOVERRIDES=&quot;dinput8=n,b&quot; %command%" data-copied="Launch option copied">Copy</button></span></div></li>
-            <li>Starts the game → <b>eFootball → Quick Match → Go to Matchmaking</b>. The first time, they pick a region and a player name. Names are unique here: a name someone already has (apart from capitals, spaces and _) is refused, and they pick another.
-              <div class="small muted" style="margin-top:6px">Online Divisions, Matchday, Online Tournament (your server's own competitions), the Friendly Match Lobby (rooms where friends pick who they play) and Online Co-op work too. Two friends are paired when they search in the same mode. Recent matches can be watched again under Online Tournament → Match Replays.</div></li>
+            <li>Opens the link and presses <b>Download the mod</b>.</li>
+            <li>Puts the file next to <code>PES2021.exe</code> (Steam: <b>PES 2021 → Manage → Browse local files</b>).
+              <div class="small muted" style="margin-top:6px"><b>Steam Deck / Linux</b> launch option:<span class="linkrow"><code>WINEDLLOVERRIDES="dinput8=n,b" %command%</code><button type="button" class="small" data-copytext="WINEDLLOVERRIDES=&quot;dinput8=n,b&quot; %command%" data-copied="Launch option copied">Copy</button></span></div></li>
+            <li>Starts the game → <b>eFootball → Quick Match</b> and picks a player name.</li>
           </ol>
-          <p class="small muted" style="margin:8px 0 0">Each copy of the mod is one player. <b>New PC or game folder?</b> Their name shows as taken; you get a note, and on their panel (Players) <b>Move</b> puts their old player on the new copy. To stop playing on your server, they just delete the file.</p>
         </section>
       </div>
     </section>
@@ -813,7 +803,6 @@
     <!-- SERVER -->
     <section class="view" id="v-server" aria-labelledby="t-server" hidden>
       <h1 id="t-server" tabindex="-1">Server</h1>
-      <p class="lead">Network, the match relay, the Live Update, the word filter, admin access, this computer's game and the start command.</p>
       <div class="grid2 eq row-gap">
         <section class="card" aria-labelledby="h-status"><h2 id="h-status" tabindex="-1">Status</h2><dl class="kv" id="srv-status"></dl></section>
         <section class="card" aria-labelledby="h-net"><h2 id="h-net" tabindex="-1">Network</h2><div class="net" id="net"><div class="skel"></div></div></section>
@@ -824,15 +813,13 @@
       </div>
       <section class="card" aria-labelledby="h-lu"><h2 id="h-lu" tabindex="-1">Live Update</h2><div class="net" id="lu"></div></section>
       <section class="card msgf" aria-labelledby="h-words"><h2 id="h-words" tabindex="-1">Word filter</h2>
-        <p class="small muted" style="margin:-6px 0 4px">Words and phrases friends can't use in their player name, room names or profile texts. The game says "Includes unusable letters or phrases" and lets them type something else. Names already in use stay as they are.</p>
-        <form id="wform"><label for="w-list">One word or phrase a line</label><textarea id="w-list" spellcheck="false" placeholder="Nothing is blocked." aria-describedby="w-note"></textarea>
-          <div class="small muted" id="w-note" style="margin-top:6px">Whole words only: “hell” doesn't block “hello”. Capitals don't matter, and spaced-out letters (b a d) are caught too.</div>
+        <p class="small muted" style="margin:-6px 0 4px">Not allowed in player names, room names and profiles.</p>
+        <form id="wform"><label for="w-list">One word or phrase a line</label><textarea id="w-list" spellcheck="false" placeholder="Nothing is blocked."></textarea>
           <div class="row"><button class="primary needs-server" type="submit" id="w-save">Save words</button><button type="button" id="w-undo" hidden>Undo changes</button><span class="small muted" id="w-state" aria-live="polite"></span></div></form>
         <div id="w-path"></div>
       </section>
       <section class="card" id="thispc" aria-labelledby="pc-h">
         <h2 id="pc-h" tabindex="-1">PES 2021 on this computer</h2>
-        <p class="small muted" style="margin:-6px 0 8px">Want to play on the server computer too? Set up its copy of PES 2021 here.</p>
         <div id="pc-auto"></div>
         <div id="games"><div class="skel"></div></div>
         <span class="sr" id="pc-live" aria-live="polite"></span>
@@ -899,6 +886,7 @@ const FAQ_FAR = "https://mohamedalirashad.github.io/pes2021-private-server/#faq-
 const runCmd = () => platform === "win32" ? RUN_PS : RUN_SH;
 const inMin = s => s < 3600 ? Math.max(1, Math.ceil(s / 60)) + " min" : dur(s);
 const midCut = (t, n) => t.length > n ? t.slice(0, Math.floor(n * .35)) + "…" + t.slice(-Math.floor(n * .6)) : t;
+const tilde = p => String(p || "").replace(/^\/home\/[^/]+/, "~");
 const copyRow = (t, what, shownText, cls) => `<div class="linkrow${cls ? " " + cls : ""}"><code title="${esc(t)}">${esc(shownText || t)}</code><button type="button" class="small" data-copytext="${esc(t)}" data-copied="${what} copied">Copy</button></div>`;
 const isTs = a => /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(a || "") || String(a || "").toLowerCase().startsWith("fd7a:115c:a1e0:");
 const restartHint = () => `start the server again (was its window closed?): <code>${esc(runCmd())}</code>.`;
@@ -1108,14 +1096,11 @@ function barChart(id, bars, summary, desc) {
   const max = Math.max(0, ...bars.map(b => b.v));
   if (!max) return put(id, `<div class="chart-empty">${esc(summary)}</div>`);
   const {top, step} = niceScale(max), grid = []; for (let g = 0; g <= top; g += step) grid.push(g);
-  const hover = matchMedia("(hover: hover)").matches, days = bars.some(b => b.day);
-  const hint = hover ? "Point at a bar for its numbers" + (days ? "; click it to list that day's matches." : ".") : "Tap a bar for its numbers" + (days ? "; tap it again to list that day's matches." : ".");
   const html = `<div class="chart" tabindex="0" role="group" data-key="chart-${id}" aria-label="${esc(desc)} Use the left and right arrow keys to read each bar${bars.some(b => b.day) ? ", Enter to list that day's matches" : ""}.">` +
-    `<div class="readout" data-hint="${esc(hint)}">${esc(hint)}</div><div class="plot" aria-hidden="true">` +
+    `<div class="readout" data-hint=""></div><div class="plot" aria-hidden="true">` +
     grid.map(g => `<div class="gl${g ? "" : " base"}" style="top:${100 - g / top * 100}%"><span>${g}</span></div>`).join("") +
     `<div class="bars">` + bars.map((b, i) => `<div class="c${b.v ? "" : " zero"} ${b.cls || ""}" data-i="${i}" data-v="${b.v}"${b.day ? ` data-day="${b.day}"` : ""} data-tip="${esc(b.tip)}"><i style="height:${b.v / top * 100}%"></i></div>`).join("") +
-    `</div></div><div class="xl" aria-hidden="true">` + bars.map(b => `<span>${esc(b.x)}</span>`).join("") + `</div><span class="sr" aria-live="polite"></span></div>` +
-    `<p class="chart-sum">${summary}</p>`;
+    `</div></div><div class="xl" aria-hidden="true">` + bars.map(b => `<span>${esc(b.x)}</span>`).join("") + `</div><span class="sr" aria-live="polite"></span></div>`;
   put(id, html);
 }
 function showTip(chart, c) {
@@ -1254,7 +1239,7 @@ function renderMsg(a) {
   put("msg-hist", hist.length ? `<details class="keycheck" data-key="hist" style="margin-top:16px"><summary>Earlier messages (${hist.length})</summary>` + hist.map((h, i) => `<div class="dmrow"><span class="grow"><b>${esc(h.title)}</b><br><span class="small muted">${esc(dShort.format(new Date(h.date * 1000)))} – ${esc(dShort.format(new Date(h.until * 1000)))}${h.seen ? ` · seen before Quick Match by ${plural(h.seen, "player")}` : ""}</span></span><button type="button" class="small" data-reuse="${i}">Use again</button></div>`).join("") + `</details>` : "");
   put("dm-list", pend.length ? `<h3 class="day" style="margin-top:16px">Not opened yet</h3>` + pend.map(m => `<div class="dmrow"><span class="grow"><b>${esc(names.get(m.pid) || "Player " + m.pid)}</b> · “${esc(m.title)}”${m.kind === "kick" ? ' <span class="pill neutral tag">kick note</span>' : ""}<br><span class="small muted">sent ${esc(m.sent ? ago(m.sent, Date.now() / 1000) : "earlier")}</span></span><button type="button" class="small danger needs-server" data-untell="${m.pid}" data-mid="${m.id}" data-title="${esc(m.title)}" data-name="${esc(names.get(m.pid) || "this player")}" data-key="untell-${m.pid}-${m.id}">Take back</button></div>`).join("") : "");
   put("msgnow", a.news ? `<div class="preview"><div class="ph"><span class="pill tag"><span class="dot"></span>Showing now</span><span>since ${esc(fmt.format(new Date(a.news.date * 1000)))}${a.news.seen ? ` · seen before Quick Match by ${plural(a.news.seen, "player")}` : ""}</span></div><div class="pb"><b>${esc(a.news.title)}</b>${esc(a.news.body)}</div></div>`
-    : `<p class="empty" style="margin-bottom:4px">No message is showing in the game right now.</p>`);
+    : `<p class="empty" style="margin-bottom:4px">No message showing.</p>`);
   $("msg-clear").hidden = !a.news; $("msg-edit").hidden = !a.news; text("msg-send", a.news ? "Replace message" : "Show in the game");
   const left = a.restart ? a.restart - Date.now() / 1000 : 0;
   text("rsnow", a.restart ? (left > 0 ? `Warning players about a restart at ${hm.format(new Date(a.restart * 1000))}, in ${inMin(left)} (their own clock shows their local time).`
@@ -1292,7 +1277,7 @@ function render(d) {
   const rsAt = d.announce && d.announce.restart, rsLeft = rsAt ? rsAt - Date.now() / 1000 : 0;
   $("rs-pill").hidden = !rsAt; $("rs-pill").className = "pill " + (down ? "neutral" : "warn");
   if (rsAt) { put("rs-pill", `${I.warn} ${rsLeft > 0 ? `Restart at ${hm.format(new Date(rsAt * 1000))}${down ? " (last known)" : ` · in ${inMin(rsLeft)}`}` : "Restart time has passed"}`); $("rs-pill").title = "Players are being warned. Change or cancel it in Messages."; }
-  put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} Server on · ${srvIssues} to fix` : rsAt && rsLeft > 0 ? `${I.warn} Restart in ${inMin(rsLeft)}` : `<span class="dot"></span>Server on`);
+  put("mchip", down ? `<span class="dot"></span>Not answering` : srvIssues ? `${I.warn} ${srvIssues} to fix` : rsAt && rsLeft > 0 ? `${I.warn} Restart in ${inMin(rsLeft)}` : `<span class="dot"></span>Server on`);
   if (!down && !srvIssues && rsAt) { mc.className = "pill warn"; mc.href = "#messages/h-rs"; }
   if (!(rsAt && !srvIssues && !down)) mc.href = srvIssues ? "#overview" : "#server";
   badge("nb-players", d.online.length, `${d.online.length} online now`);
@@ -1335,8 +1320,8 @@ function liveHtml(d, now, compact) {
       <div class="score${m.kickoff ? "" : " vs"}">${m.kickoff ? `<span aria-hidden="true">${m.home_score} – ${m.away_score}</span><span class="sr"> ${m.home_score} to ${m.away_score} </span>` : `<span aria-hidden="true">vs</span><span class="sr"> versus </span>`}</div>
       <div class="side-n away" title="${esc(m.away_name)}">${pname(m.away_name, m.away, `lv-${m.away}${compact ? "c" : ""}`)}</div>
       <div class="phase">${phaseLabel(m)}</div>
-    </li>`).join("") + `</ul>` + fin + roomsHtml(d, compact) : (fin ? fin : (d.rooms || []).length ? "" : d.searching === 1 ? `<p class="empty">One friend is looking for a match. Another friend needs to search in the same mode too.</p>`
-    : `<p class="empty">No one is playing${compact ? "" : " right now"}. A match starts when two friends search in the same mode at the same time, or from a Friendly Match Lobby room.</p>`) + roomsHtml(d, compact);
+    </li>`).join("") + `</ul>` + fin + roomsHtml(d, compact) : (fin ? fin : (d.rooms || []).length ? "" : d.searching === 1 ? `<p class="empty">One friend is searching for a match.</p>`
+    : `<p class="empty">No one is playing.</p>`) + roomsHtml(d, compact);
 }
 
 const svg = p => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -1361,6 +1346,18 @@ function indexNames(players) {
 }
 let linkN = 0;
 const linkNames = (t, self) => nameRe ? esc(t).replace(nameRe, n => nameIdx.get(n) === self ? n : pname(n, nameIdx.get(n), "fd-" + nameIdx.get(n) + "-" + (linkN++ % 1000)).replace(nm(n), n)) : nm(t);
+// sign-in/sign-out lines: keep only the newest for each player until something else happens to them
+function squashPresence(items) {
+  const presence = f => (f.kind === "login" || f.kind === "logout") && !/^New player/.test(f.text);
+  const who = f => (f.text.match(/^(.+?) (came online|went offline)$/) || [])[1];
+  const seen = new Set();
+  return items.filter(f => {
+    if (!presence(f)) { seen.clear(); return true; }
+    const w = who(f); if (!w) return true;
+    if (seen.has(w)) return false;
+    seen.add(w); return true;
+  });
+}
 function feedHtml(items, grouped, self) {
   const tl = t => { const d = new Date(t * 1000); if (grouped || d.toDateString() === new Date().toDateString()) return hm.format(d);
     return (dayLabel(t) === "Yesterday" ? "Yesterday" : dShort.format(d)) + ", " + hm.format(d); };
@@ -1401,10 +1398,10 @@ function renderOverview(d, r, pn, playing, ready) {
   const fresh = !d.players.length && !d.played_total, starting = !d.played_total;
   // needs attention (the network problem is step 2 of "Get started" while that card shows)
   const attn = [];
-  if (!r.ok && !starting) attn.push(`<li><span>${I.warn} <b>Friends outside your home can't join yet.</b> ${s.cgnat ? "Your internet provider shares one address between homes (CGNAT)." : "Your router hasn't opened the ports."}</span><a href="#server/h-net">Fix it ${I.right}</a></li>`);
+  if (!r.ok && !starting) attn.push(`<li><span>${I.warn} <b>Only friends on your Wi-Fi can join.</b></span><a href="#server/h-net">Fix it ${I.right}</a></li>`);
   let hintOff = false; try { hintOff = localStorage.getItem("pes-pc-hint") === "off"; } catch (e) {}
   const info = [];
-  if (pn && lastGames.length && !hintOff && !starting && !pcError) info.push(`<li class="info"><span><b>Optional:</b> play on the server computer too. Its PES 2021 isn't set up for your server yet.</span><a href="#server/pc-h">Set it up ${I.right}</a><button type="button" class="linkbtn" data-hidepc="1" style="color:var(--muted)">Hide</button></li>`);
+  if (pn && lastGames.length && !hintOff && !starting && !pcError) info.push(`<li class="info"><span>Play on this computer too?</span><a href="#server/pc-h">Set it up ${I.right}</a><button type="button" class="linkbtn" data-hidepc="1" style="color:var(--muted)">Hide</button></li>`);
   if (s.update) attn.push(`<li><span>${I.warn} <b>A newer server version is out</b> (${esc(s.update)}).</span><a href="#server/h-cmd">How to update ${I.right}</a></li>`);
   if (d.announce && d.announce.restart) attn.push(`<li><span>${I.warn} Players are being warned about a restart at <b>${hm.format(new Date(d.announce.restart * 1000))}</b>.</span><a href="#messages">Change ${I.right}</a></li>`);
   if (!down) {
@@ -1439,7 +1436,6 @@ function renderOverview(d, r, pn, playing, ready) {
   $("attn").hidden = !attn.length;
   put("attn", (ui.attnAll ? attn : attn.slice(0, 3)).join("") + (attn.length > 3 ? `<li class="info more"><button type="button" class="linkbtn" data-attnmore="1" data-key="attnmore" aria-expanded="${!!ui.attnAll}">${ui.attnAll ? "Show fewer" : `Show ${attn.length - 3} more`}</button></li>` : ""));
   $("ov-info").hidden = !info.length || down; put("ov-info", info.join(""));
-  text("ov-lead", starting ? "A few steps and your friends are playing." : "What's happening on your server right now.");
 
   // get started, until the first match
   const joined = d.players.length, dl = d.feed.some(f => f.kind === "web");
@@ -1448,16 +1444,16 @@ function renderOverview(d, r, pn, playing, ready) {
     let k = 0;
     const st = (done, todo, title, desc, acts) => `<li class="${done ? "done" : todo ? "todo" : ""}"><span class="n" aria-hidden="true">${++k, done ? "✓" : todo ? "!" : k}</span><div><b>${title}${done ? '<span class="sr"> (done)</span>' : todo ? '<span class="sr"> (needs attention)</span>' : ""}</b><div class="d">${desc}</div>${acts ? `<div class="acts">${acts}</div>` : ""}</div></li>`;
     put("steps", (down ? st(false, true, "Your server isn't answering", "Is the server computer on, with the server's window open? This page keeps trying.")
-                       : st(true, false, "Your server is running", "Keep its window open while you play.")) +
+                       : st(true, false, "Your server is running", "")) +
       (down ? st(false, false, "Friends can reach it", "Checked again when the server answers.")
             : st(r.ok && !r.neutral, !r.ok, r.ok ? (r.neutral ? "Friends can reach it on " + esc(r.short.replace(/^Friends use /, "")) : "Friends can reach it from anywhere") : "Friends outside your home can't reach it yet",
-         r.ok ? (r.neutral && /Home network/.test(r.short) ? `Friends on your Wi-Fi can join. For friends elsewhere, <a href="${FAQ_FAR}">use Tailscale</a>.` : "The mod you send already knows the address.")
-              : `${s.cgnat ? "Your internet provider shares one address between homes (CGNAT). " : "Your router hasn't opened the ports. "}<a href="#server/h-net">See how to fix it</a>, or invite friends on your Wi-Fi for now.`)) +
+         r.ok ? (r.neutral && /Home network/.test(r.short) ? `Friends elsewhere: <a href="${FAQ_FAR}">use Tailscale</a>` : "")
+              : `<a href="#server/h-net">Fix it</a>, or invite friends on your Wi-Fi for now.`)) +
       (!joined && s.has_mod === false ? st(false, true, "Get the mod first", "This copy of the server was built without the mod, so there's nothing to send yet. Start the official server and the mod comes with it.", `<a href="#server/h-cmd">Show the start command</a>`) :
       st(joined > 0, false, joined ? `${joined === 1 ? "1 friend has" : joined + " friends have"} joined` : dl ? "Someone downloaded the mod" : "Send friends the mod",
-         joined ? andList(d.players.slice(0, 4).map(p => nm(p.name))) + (joined > 4 ? ` and ${joined - 4} more` : "") + "." : dl ? "They appear here as soon as they start PES 2021 and open Quick Match." : "One file, sent once. They appear here within seconds of starting PES 2021.",
+         joined ? andList(d.players.slice(0, 4).map(p => nm(p.name))) + (joined > 4 ? ` and ${joined - 4} more` : "") + "." : dl ? "They appear here when they open Quick Match." : "",
          joined ? "" : `<a class="dl" style="padding:7px 14px;font-size:14px" href="#invite">Invite friends</a>`)) +
-      st(false, false, "Play the first match", "A match starts when two friends choose Quick Match at the same time. Results, charts and the league table fill in from there."));
+      st(false, false, "Play the first match", "Two friends open Quick Match at the same time."));
   }
 
   // tiles (hidden on a brand-new server: they'd all be zero)
@@ -1484,12 +1480,11 @@ function renderOverview(d, r, pn, playing, ready) {
   $("c-ovlive").hidden = $("c-ovonline").hidden = $("ov-now").hidden = fresh; $("c-ovtop").hidden = $("c-ovhl").hidden = starting;
   if (!starting) put("ov-hl", highlights(d));
   const tdy = (d.stats ? d.stats.history : []).filter(h => dayKey(new Date(h[0] * 1000)) === dayKey(new Date()));
-  const lr = d.results[0] && dayKey(new Date(d.results[0].ended * 1000)) === dayKey(new Date()) ? d.results[0] : null;
-  put("ov-live", liveHtml(d, now, true) + (tdy.length ? `<p class="note" style="border-top:1px solid var(--line);padding-top:10px;margin-top:12px">Today so far: ${plural(tdy.length, "match", "matches")} · ${plural(tdy.reduce((a, h) => a + h[1], 0), "goal")}${lr ? ` · last: ${esc(lr.home_name)} ${lr.home_score}–${lr.away_score} ${esc(lr.away_name)}, ${esc(ago(lr.ended, now))}` : ""}</p>` : ""));
+  put("ov-live", liveHtml(d, now, true) + (tdy.length ? `<p class="note" style="border-top:1px solid var(--line);padding-top:10px;margin-top:12px">Today: ${plural(tdy.length, "match", "matches")} · ${plural(tdy.reduce((a, h) => a + h[1], 0), "goal")}</p>` : ""));
   put("ov-online", d.online.length ? `<ul class="list-plain mini">` + d.online.slice(0, 8).map(p => `<li>${avatar({name: p.name, online: true})}<span class="grow">${pname(p.name, p.pid, "ovo-" + p.pid)}${courtTag(d.players.find(x => x.pid === p.pid) || {})}<br><span class="small muted">${statusOf(d, p)}${p.searching_since && !opponent(d, p.name) && !pending(d, p.name) ? ` for ${inMin(now - p.searching_since)}` : ""} · online ${dur(now - p.since)}</span></span>` +
       `<span class="acts"><button type="button" class="small needs-server" data-dm="${p.pid}" data-key="ovdm-${p.pid}" aria-label="Message ${esc(p.name)}">Message</button><button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="ovkick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button></span></li>`).join("") + `</ul>` +
       (d.online.length > 8 ? `<p class="note"><a href="#players">${d.online.length - 8} more online</a></p>` : "")
-    : `<p class="empty">Nobody is online right now.</p>`);
+    : `<p class="empty">Nobody online.</p>`);
   const rk = ranked(d).slice(0, 5);
   put("ov-rank", rankSeg("or"));
   put("ov-top", !rk.length && ui.rank === "ppg" && d.players.some(p => p.played) ? `<p class="empty">Nobody has played ${MINP} matches yet. <button type="button" class="linkbtn" data-rank="pts">Rank by points</button></p>` : rk.length ? `<ol class="list-plain mini">` + rk.map((p, i) => `<li><span class="rank">${i + 1}</span>${avatar(p)}<span class="grow">${pname(p.name, p.pid, "ovt-" + p.pid)}${p.online ? '<span class="sr"> (online)</span>' : ""}<br><span class="small muted">${p.won}W ${p.drawn}D ${p.lost}L · GD ${signed(gd(p))}${p.online ? " · online" : ""}</span></span><span class="r">${ui.rank === "ppg" ? `<b style="color:var(--fg)">${ppg(p).toFixed(2)}</b> a game` : `<b style="color:var(--fg)">${pts(p)}</b> pts`}</span></li>`).join("") + `</ol>`
@@ -1497,10 +1492,10 @@ function renderOverview(d, r, pn, playing, ready) {
   const a = d.announce || {}, pend = (a.personal || []).length, rsLeft = a.restart ? a.restart - Date.now() / 1000 : 0;
   $("c-ovmsg").hidden = fresh;
   put("ov-msg", `<div class="ovmsg">` +
-    `<div class="row${a.news ? " on" : ""}">${ICON.msg.replace("<svg ", '<svg class="i" ')}<span>${a.news ? `<b>“${esc(a.news.title)}”</b> is showing to everyone<br><span class="small muted">since ${esc(when(a.news.date, now))}${a.news.seen ? ` · seen by ${plural(a.news.seen, "player")}` : " · nobody has seen it yet"}</span>` : `<span class="muted">No message is showing to everyone.</span>`}</span></div>` +
+    `<div class="row${a.news ? " on" : ""}">${ICON.msg.replace("<svg ", '<svg class="i" ')}<span>${a.news ? `<b>“${esc(a.news.title)}”</b> is showing to everyone<br><span class="small muted">since ${esc(when(a.news.date, now))}${a.news.seen ? ` · seen by ${plural(a.news.seen, "player")}` : " · nobody has seen it yet"}</span>` : `<span class="muted">No message showing.</span>`}</span></div>` +
     (a.restart ? `<div class="row warn">${I.warn}<span>${rsLeft > 0 ? `Restart warning for <b>${hm.format(new Date(a.restart * 1000))}</b>, in ${inMin(rsLeft)}` : `The restart time (${hm.format(new Date(a.restart * 1000))}) has passed`}</span></div>` : "") +
     (pend ? `<div class="row">${ICON.msg.replace("<svg ", '<svg class="i" ')}<span>${plural(pend, "message")} to one player not opened yet</span></div>` : "") + `</div>`);
-  put("ov-feed", d.feed.length ? feedHtml(d.feed.slice(0, 7), false) : `<p class="empty">Sign-ins, goals and results will appear here.</p>`);
+  put("ov-feed", d.feed.length ? feedHtml(squashPresence(d.feed.slice(0, 60)).slice(0, 7), false) : `<p class="empty">No activity yet.</p>`);
 }
 
 const courtTag = p => p.courtesy && p.courtesy.grade !== "A" ? ` <span class="pill ${p.courtesy.grade === "C" ? "warn" : "neutral"} tag" title="Courtesy rating ${p.courtesy.grade}: left ${p.courtesy.quits} of their last ${p.courtesy.matches} matches early">Courtesy ${p.courtesy.grade}</span>` : "";
@@ -1514,7 +1509,7 @@ function renderDivisions(d) {
   put("divs", `<div class="tablewrap"><table class="divt"><caption class="sr">Online Divisions, top division first</caption><thead><tr><th scope="col">Player</th><th scope="col" class="num">Division</th><th scope="col">This season</th><th scope="col" class="hide-sm">Record</th></tr></thead><tbody>` +
     dv.map(p => { const x = p.division; return `<tr><td class="name"><span class="who">${avatar(p)}${pname(p.name, p.pid, "dv-" + p.pid)}</span></td><td class="num"><b>D${x.div}</b></td>` +
       `<td><b>${x.points}</b> pts · ${x.played} of ${x.of} played<br><span class="small">${outlook(x)}</span></td><td class="hide-sm small muted">${ordinal(x.season)} season · ${x.wins}W ${x.draws}D ${x.losses}L overall</td></tr>`; }).join("") +
-    `</tbody></table></div><p class="note">D10 is where everyone starts and D1 is the top. A season is 10 matches: 3 points a win, 1 a draw. These matches also count in the league table above.${d.players.length > dv.length ? ` ${plural(d.players.length - dv.length, "friend hasn't", "friends haven't")} played Online Divisions yet.` : ""}</p>`);
+    `</tbody></table></div>${d.players.length > dv.length ? `<p class="note">${plural(d.players.length - dv.length, "friend hasn't", "friends haven't")} played Online Divisions yet.</p>` : ""}`);
 }
 function renderPlayers(d) {
   const now = d.now, rk = ranked(d), rankOf = new Map(rk.map((p, i) => [p.pid, i + 1]));
@@ -1522,7 +1517,7 @@ function renderPlayers(d) {
   const none = !d.players.length;
   renderDivisions(d);
   $("p-filter").closest(".toolbar").hidden = none; $("p-note").hidden = none;
-  if (none) return put("plist", `<p class="empty">Nobody has joined yet. <a href="#invite">Invite friends</a>: they appear here within seconds of signing in.</p>`);
+  if (none) return put("plist", `<p class="empty">Nobody has joined yet. <a href="#invite">Invite friends</a></p>`);
   const counts = {all: d.players.length, online: d.players.filter(p => p.online).length, idle: d.players.filter(p => !p.played).length};
   put("p-filter", [["all", "All"], ["online", "Online"], ["idle", "Not played yet"]].filter(([k]) => k === "all" || counts[k] || ui.pf === k).map(([k, l]) =>
     `<button type="button" data-pf="${k}" data-key="pf-${k}" aria-pressed="${ui.pf === k}">${l} <span class="n">${counts[k]}</span></button>`).join(""));
@@ -1626,16 +1621,16 @@ function renderMatches(d, playing, ready, fromLoad) {
     return /disconnect|network|comm/i.test(r.reason || "") ? "A connection dropped" : "It ended early";
   };
   const forfeitWhy = r => { const n = r.left_pid === r.home_pid ? r.home_name : r.left_pid === r.away_pid ? r.away_name : null;
-    return n ? `${esc(n)} left early, so they lose: a forfeit` : "Decided as a forfeit"; };
+    return n ? `${esc(n)} left early` : "Forfeit"; };
   const tm = id => id && TEAMS ? `<span class="team-n">${esc(teamName(id))}</span>` : "";
-  put("results", none ? `<p class="empty">Finished matches will be listed here.</p>` : !total ? `<p class="empty">No results${ui.re ? " that ended early" : ""}${ui.rm ? " in " + esc(ui.rm) : ""}${q ? ` with "${esc(ui.rq)}"` : ""}${ui.rr !== "all" ? " in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
+  put("results", none ? `<p class="empty">No results yet.</p>` : !total ? `<p class="empty">No results${ui.re ? " that ended early" : ""}${ui.rm ? " in " + esc(ui.rm) : ""}${q ? ` with "${esc(ui.rq)}"` : ""}${ui.rr !== "all" ? " in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
     `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col class="hm"><col class="s"><col class="aw"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th></tr></thead><tbody>` +
     shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
       const early = r.reason || r.voided, score = `${r.home_name} ${r.home_score ?? "?"}–${r.away_score ?? "?"} ${r.away_name}`;
       return `<tr${early ? ' class="has-note"' : ""}><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}${ui.rm ? "" : modeTag(r.mode || "Quick Match")}</td>
         <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}${tm(r.home_team)}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.voided ? `<span class="pill neutral tag">not counted</span>` : r.reason === "FORFEIT" ? `<span class="pill warn tag">forfeit</span>` : r.reason ? `<span class="pill warn tag">ended early</span>` : ""}</td>
         <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}${tm(r.away_team)}</td></tr>` +
-        (early ? `<tr class="note-r"><td class="pad"></td><td colspan="3"><span class="small ${r.voided ? "muted" : ""}">${r.reason === "FORFEIT" ? forfeitWhy(r) + ". " : r.reason ? why(r) + ". " : ""}${r.voided ? "Not in the table." : r.reason === "FORFEIT" ? "Counts with this score." : "Counts as it stood."}</span> <button type="button" class="small needs-server" data-count="${r.id}" data-counted="${r.voided ? 1 : 0}" data-score="${esc(score)}" data-key="cnt-${r.id}">${r.voided ? "Count it again" : "Don't count it"}</button></td></tr>` : ""); }).join("") +
+        (early ? `<tr class="note-r"><td class="pad"></td><td colspan="3"><span class="small ${r.voided ? "muted" : ""}">${r.reason === "FORFEIT" ? forfeitWhy(r) + ". " : r.reason ? why(r) + ". " : ""}${r.voided ? "Not in the table." : ""}</span> <button type="button" class="small needs-server" data-count="${r.id}" data-counted="${r.voided ? 1 : 0}" data-score="${esc(score)}" data-key="cnt-${r.id}">${r.voided ? "Count it again" : "Don't count it"}</button></td></tr>` : ""); }).join("") +
     `</tbody></table></div>` +
     (total > shownRs.length ? `<button type="button" class="more linkbtn" data-key="more-results" data-more="results">Show ${Math.min(25, total - shownRs.length)} more</button>` : ""));
 }
@@ -1654,10 +1649,11 @@ function feedSide(d) {
 function renderFeed(d) {
   feedSide(d);
   const q = ui.fq.toLowerCase(), match = f => !q || f.text.toLowerCase().includes(q);
+  const pick = (k, fn) => { const l = d.feed.filter(f => fn(f) && match(f)); return k === "all" ? squashPresence(l) : l; };   // "All": one sign-in line per run
   $("f-q").closest(".toolbar").hidden = !d.feed.length;
-  put("f-filter", FKINDS.map(([k, l, fn]) => `<button type="button" data-ff="${k}" data-key="ff-${k}" aria-pressed="${ui.ff === k}">${l} <span class="n">${d.feed.filter(f => fn(f) && match(f)).length}</span></button>`).join(""));
-  const fn = (FKINDS.find(x => x[0] === ui.ff) || FKINDS[0])[2], items = d.feed.filter(f => fn(f) && match(f));
-  put("feed", !d.feed.length ? `<p class="empty">Sign-ins, goals and results will appear here.</p>` : !items.length ? `<p class="empty">Nothing matches. <button type="button" class="linkbtn" data-clear="feed">Show all activity</button></p>` :
+  put("f-filter", FKINDS.map(([k, l, fn]) => `<button type="button" data-ff="${k}" data-key="ff-${k}" aria-pressed="${ui.ff === k}">${l} <span class="n">${pick(k, fn).length}</span></button>`).join(""));
+  const fk = FKINDS.find(x => x[0] === ui.ff) || FKINDS[0], items = pick(fk[0], fk[2]);
+  put("feed", !d.feed.length ? `<p class="empty">No activity yet.</p>` : !items.length ? `<p class="empty">Nothing matches. <button type="button" class="linkbtn" data-clear="feed">Show all activity</button></p>` :
     feedHtml(items.slice(0, ui.fN), true) + (items.length > ui.fN ? `<button type="button" class="more linkbtn" data-key="more-feed" data-more="feed">Show older activity</button>` : ""));
 }
 
@@ -1711,20 +1707,16 @@ async function loadPlayer() {
       rows.map(x => `<tr><td class="name">${pname(x.name, x.pid, "h2h-" + x.pid)}</td><td class="num">${x.p}</td><td class="num">${x.w}</td><td class="num">${x.d}</td><td class="num">${x.l}</td><td class="num">${x.gf}:${x.ga}</td><td class="num h2h-bal ${x.gf > x.ga ? "up" : x.gf < x.ga ? "down" : ""}">${signed(x.gf - x.ga)}</td></tr>`).join("") + `</tbody></table></div>` : "") +
     `<h3>Matches</h3>` + (all.length ? `<ul class="list-plain mini">` + list.map(m => `<li><span class="form"><span class="${m.res}" aria-label="${({W: "Won", D: "Drew", L: "Lost"})[m.res]}">${m.res}</span></span><span class="grow">${m.mine}–${m.theirs} vs ${nm(m.opp)}${modeTag(m.r.mode || "Quick Match")}${m.r.voided ? ' <span class="pill neutral tag">not counted</span>' : m.r.reason === "FORFEIT" ? ' <span class="pill neutral tag">forfeit</span>' : m.r.reason ? ' <span class="pill neutral tag">ended early</span>' : ""}</span><span class="r"><time datetime="${iso(m.r.ended)}">${esc(when(m.r.ended, now))}</time></span></li>`).join("") + `</ul>` +
       (all.length > 10 && !sheetAll ? `<button type="button" class="more linkbtn" data-sheetall="1">Show all ${all.length} matches</button>` : "") : `<p class="empty">No finished matches yet.</p>`) +
-    (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(p.feed.slice(0, 12), true, pid) : "");
-  $("sh-f").innerHTML = `<button type="button" class="primary needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="danger needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") +
-      `<span class="small muted" style="flex:1;min-width:10em">${p.online ? "Kick disconnects them now; they can come back." : "The message pops up when they next sign in or open an online mode."}</span>`;
+    (p.feed.length ? `<h3>Recent activity</h3>` + feedHtml(squashPresence(p.feed.slice(0, 60)).slice(0, 12), true, pid) : "");
+  $("sh-f").innerHTML = `<button type="button" class="primary needs-server" data-dm="${pid}">Message</button>` + (p.online ? `<button type="button" class="danger needs-server" data-kick="${pid}" data-name="${esc(p.name)}" data-vs="${esc(last ? opponent(last, p.name) : "")}">Kick</button>` : "") ;
   if ((p.claims || []).length) $("sh-b").insertAdjacentHTML("beforeend", `<h3>A new copy asked for this name</h3>` + p.claims.map(c =>
-    `<div class="dmrow"><span class="grow small">${c.ip ? `From ${esc(where(c.ip).toLowerCase() === "internet" ? c.ip : where(c.ip) + " (" + c.ip + ")")}, ` : ""}${esc(ago(c.t, Date.now() / 1000))}: someone with a copy of the mod that isn't ${esc(p.name)}'s asked for “${esc(c.wanted)}”. <span class="muted">If it's ${esc(p.name)} on a new PC or game folder, move them there: name, rating and results come along, and the old copy stops being theirs.</span></span>` +
+    `<div class="dmrow"><span class="grow small">${c.ip ? `From ${esc(where(c.ip).toLowerCase() === "internet" ? c.ip : where(c.ip) + " (" + c.ip + ")")}, ` : ""}${esc(ago(c.t, Date.now() / 1000))}: a new copy of the mod asked for “${esc(c.wanted)}”.</span>` +
     `<button type="button" class="needs-server" data-move="${pid}" data-copy="${esc(c.copy)}" data-name="${esc(p.name)}">Move ${esc(p.name)} there</button></div>`).join(""));
-  $("sh-b").insertAdjacentHTML("beforeend", `<h3>${p.blocked ? "Blocked" : "Block"}</h3><div class="dmrow"><span class="grow small muted">${p.blocked
-      ? `${esc(p.name)}'s copy of the mod can't sign in (the game says their account is suspended).`
-      : `Stops ${esc(p.name)}'s copy of the mod from signing in; the game tells them their account is suspended. You can undo it.`}</span>` +
-    `<button type="button" class="${p.blocked ? "" : "danger "}needs-server" data-block="${pid}" data-on="${p.blocked ? "" : 1}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">${p.blocked ? "Unblock" : "Block"}</button></div>`);
-  $("sh-b").insertAdjacentHTML("beforeend", `<h3>Remove this player</h3><div class="dmrow"><span class="grow small muted">Deletes their name, rating and table row; past results stay. If they play again, the game asks them for a name like on their first visit.</span><button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button></div>`);
+  $("sh-b").insertAdjacentHTML("beforeend", `<h3>Manage</h3><div class="dmrow">${p.blocked ? `<span class="grow small warn">${I.warn} Blocked: their copy of the mod can't sign in.</span>` : `<span class="grow"></span>`}` +
+    `<button type="button" class="${p.blocked ? "" : "danger "}needs-server" data-block="${pid}" data-on="${p.blocked ? "" : 1}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">${p.blocked ? "Unblock" : "Block"}</button>` +
+    `<button type="button" class="danger needs-server" data-del="${pid}" data-name="${esc(p.name)}" data-online="${p.online ? 1 : ""}">Delete player</button></div>`);
 }
-const MODS = {current: "Up to date", "no-coop": "Older (0.4): Quick Match works, but Online Co-op won't connect. Send them the mod again.",
-  old: "Old: they can't be paired with friends on the current mod. Send them the mod again."};
+const MODS = {current: "Up to date", "no-coop": "Older: no Online Co-op", old: "Old: can't be paired with friends on the current mod"};
 function modesHtml(p, now) {
   const rows = [], names = pids => andList(pids.map(x => pname(pidName(last || {}, x), x, "cb-" + x)));
   const o = last && last.online.find(x => x.pid === p.pid);
@@ -1741,10 +1733,10 @@ function modesHtml(p, now) {
   if ((p.tourneys || []).length) rows.push(["Tournaments", p.tourneys.map(t => `<span style="display:block"><b>${esc(t.name)}</b>: ${ordinal(t.rank)} of ${t.of}, ${plural(t.points, "point")} (${t.win}W ${t.draw}D ${t.lose}L)${t.team ? ` with ${esc(t.team)}` : ""}${t.state === "ended" ? ' <span class="small muted">ended</span>' : ""}</span>`).join("") +
     `<button type="button" class="small" style="margin-top:6px" data-goto="#tourneys">Tournaments</button>`]);
   const cl = p.coop_level;
-  if (cl) rows.push(["Online Co-op", `Level ${cl.level} · ${plural(cl.points, "point")} from ${plural(cl.matches, "co-op match", "co-op matches")}<span class="small muted" style="display:block">${plural(cl.next, "point")} to the next level (30 a win, 20 a draw, 10 a loss)</span>`]);
-  if ((p.match_blocks || []).length) rows.push(["Blocks", `Never paired with ${names(p.match_blocks)} (their own Match Block List in the game)`]);
+  if (cl) rows.push(["Online Co-op", `Level ${cl.level} · ${plural(cl.points, "point")} from ${plural(cl.matches, "co-op match", "co-op matches")}<span class="small muted" style="display:block">${plural(cl.next, "point")} to the next level</span>`]);
+  if ((p.match_blocks || []).length) rows.push(["Blocks", `Never paired with ${names(p.match_blocks)}`]);
   if ((p.match_blocked_by || []).length) rows.push(["Blocked by", `${names(p.match_blocked_by)}, so they're never paired`]);
-  if ((p.coop_blocks || []).length) rows.push(["Co-op blocks", `Won't be paired in Online Co-op with ${names(p.coop_blocks)} (their own block list)`]);
+  if ((p.coop_blocks || []).length) rows.push(["Co-op blocks", `Not paired in Online Co-op with ${names(p.coop_blocks)}`]);
   if ((p.coop_blocked_by || []).length) rows.push(["Co-op blocked by", `${names(p.coop_blocked_by)} (in Online Co-op only)`]);
   const pr = p.profile;
   if (pr && (pr.team || pr.player || pr.intro)) rows.push(["Profile", [pr.team ? `Favourite team: ${esc(pr.team)}` : "", pr.player ? `favourite player: ${esc(pr.player)}` : ""].filter(Boolean).join(" · ").replace(/^f/, "F") +
@@ -1826,10 +1818,10 @@ function tnCard(c, now) {
   const table = c.table.length ? `<div class="tablewrap"><table><caption class="sr">${esc(c.name)}: table</caption><thead><tr>${th("#", "", "num")}${th("Player")}${th("Team", "", "team hide-sm")}${th("P", "Played", "num")}${th("W", "Won", "num hide-sm")}${th("D", "Drawn", "num hide-sm")}${th("L", "Lost", "num hide-sm")}${th("Goals", "", "num hide-sm")}${th("Pts", "Points", "num")}</tr></thead><tbody>` +
       c.table.map(r => `<tr${r.rank === 1 && ended && r.points ? ' class="win1"' : ""}><td class="num muted">${r.rank}</td><td class="name">${pname(r.name, r.pid, `tn-${id}-${r.pid}`)}<small class="show-sm">${r.team ? esc(r.team) + " · " : ""}${r.win}W ${r.draw}D ${r.lose}L</small></td><td class="team hide-sm">${esc(r.team || "–")}</td>` +
         `<td class="num">${r.win + r.draw + r.lose}</td><td class="num hide-sm">${r.win}</td><td class="num hide-sm">${r.draw}</td><td class="num hide-sm">${r.lose}</td><td class="num hide-sm">${r.goals_for}:${r.goals_against}</td><td class="num"><b>${r.points}</b></td></tr>`).join("") + `</tbody></table></div>`
-    : `<p class="empty">${ended ? "Nobody played in it." : `Nobody has entered yet. Friends enter in the game: eFootball → Online Tournament → ${esc(c.name)}.`}</p>`;
+    : `<p class="empty">${ended ? "Nobody played in it." : "Nobody has entered yet."}</p>`;
   const top = c.table[0], won = ended && top && top.points ? `<p class="small">${ICON.trophy.replace("<svg ", '<svg class="i" ')} Won by <b>${pname(top.name, top.pid, `tnw-${id}`)}</b> with ${plural(top.points, "point")}.</p>` : "";
   return `<section class="card tn" aria-labelledby="tn-h-${id}"><div class="card-h"><h2 id="tn-h-${id}" tabindex="-1">${esc(c.name)}</h2>${tnState(c, now)}</div>` +
-    `<p class="small muted meta">${esc(fmt.format(new Date(c.start * 1000)))} – ${esc(fmt.format(new Date(c.end * 1000)))} · ${c.minutes}-minute matches · ${plural(c.matches, "match", "matches")} played · ${plural(teams.length, "team")}: ${tlist}${c.auto ? " · started by the server for this month" : ""}</p>` +
+    `<p class="small muted meta">${esc(fmt.format(new Date(c.start * 1000)))} – ${esc(fmt.format(new Date(c.end * 1000)))} · ${c.minutes}-minute matches · ${plural(c.matches, "match", "matches")} played · ${plural(teams.length, "team")}: ${tlist}${c.auto ? " · monthly" : ""}</p>` +
     won + table +
     `<details class="keycheck" data-key="tno-${id}"><summary>What friends read in the game</summary><div class="pb">${esc(c.outline)}</div></details>` +
     `<div class="acts" style="margin-top:12px">${!ended ? `<button type="button" class="small needs-server" data-tntell="${id}" data-key="tnt-tell-${id}">Tell everyone</button>` : ""}<button type="button" class="small needs-server" data-tnedit="${id}" data-key="tnt-edit-${id}">${ended ? "Run it again" : "Change"}</button>` +
@@ -1840,11 +1832,11 @@ function renderTourneys(d) {
   if (!TEAMS) loadTeams();
   if (!tn.init && TEAMS) { tn.init = true; tnReset(false); }
   const cur = ts.filter(c => c.state !== "ended").sort((a, b) => a.start - b.start), past = ts.filter(c => c.state === "ended");
-  put("tn-list", (cur.length ? cur.map(c => tnCard(c, now)).join("") : `<section class="card tn"><p class="empty">No tournament is running or planned.${d.monthly_cup === false ? " Make one below, or turn the monthly Friends Cup back on." : " Make one below."}</p></section>`) +
+  put("tn-list", (cur.length ? cur.map(c => tnCard(c, now)).join("") : `<section class="card tn"><p class="empty">No tournament running or planned.</p></section>`) +
     (past.length ? `<details class="keycheck tn" data-key="tnpast" style="margin-bottom:16px"><summary>Past tournaments (${past.length})</summary><div style="margin-top:12px">${past.map(c => tnCard(c, now)).join("")}</div></details>` : ""));
   const on = d.monthly_cup !== false;
   put("tn-monthly", `<div class="switch"><span class="lbl" id="mc-l">A Friends Cup every month</span><span class="small ${on ? "ok" : "muted"}">${on ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${on}" aria-labelledby="mc-l" class="needs-server" data-monthly="${on ? 0 : 1}" data-key="monthly"></button></div>` +
-    `<div class="small muted">${on ? "When none of yours is running or planned, the server starts a Friends Cup for the month (16 national teams, 10-minute matches), so friends always have one to play." : "Off: only the tournaments you make here are played."}</div>`);
+    (on ? `<div class="small muted">Starts when none of yours is on.</div>` : ""));
   if (TEAMS && !shown["tn-teams"]) paintTnTeams();
 }
 const tnOf = id => ((last && last.tourneys) || []).find(c => c.compe_id === +id);
@@ -1892,11 +1884,11 @@ function tnTell(c) {
 function renderReplays(d) {
   const rp = d.replays || [], cfg = d.server.replays || {on: true, keep: 20}, now = d.now;
   put("rp", (!cfg.on ? `<p class="empty">Recording is off: the server was started with <code>REPLAYS=0</code>.</p>`
-    : !rp.length ? `<p class="empty">Every online match is recorded, so friends can watch it again. None yet.</p>`
+    : !rp.length ? `<p class="empty">No replays yet.</p>`
     : `<ul class="list-plain mini">` + rp.slice(0, 8).map(r => `<li><span class="grow">${pname(r.home_name || "?", r.home, `rp-${r.match_id}-h`)} ${r.recording || r.home_score == null ? "vs" : `${r.home_score}–${r.away_score}`} ${pname(r.away_name || "?", r.away, `rp-${r.match_id}-a`)}${r.recording ? ' <span class="pill live tag"><span class="dot"></span>recording</span>' : ""}` +
         `${r.home_team || r.away_team ? `<br><span class="small muted">${esc(r.home_team || "?")} vs ${esc(r.away_team || "?")}</span>` : ""}</span><span class="r">${r.t ? `<time datetime="${iso(r.t)}">${esc(when(r.t, now))}</time>` : ""}</span></li>`).join("") + `</ul>` +
       (rp.length > 8 ? `<p class="note">and ${plural(rp.length - 8, "older replay")}</p>` : "")) +
-    (cfg.on ? `<p class="note">Friends watch them in the game: <b>eFootball → Online Tournament → Match Replays</b>, any team, then <b>Match List</b> and Spectate Match. The newest ${cfg.keep} are kept.</p>` : ""));
+    (cfg.on ? `<p class="note">In the game: <b>Online Tournament → Match Replays → Match List</b> · newest ${cfg.keep} kept</p>` : ""));
 }
 
 // ---- word filter ------------------------------------------------------------------------------------
@@ -1906,7 +1898,7 @@ function renderWords(s) {
   if (!w) return;
   const v = w.words.join("\n");
   if (!wDirty && wShown !== v) { $("w-list").value = v; wShown = v; }
-  put("w-path", `<div class="small muted" style="margin-top:12px">Kept in this file; you can edit it there too (changes apply at once):</div>` + copyRow(w.path, "File path", null, "wrap"));
+  put("w-path", `<div style="margin-top:12px">${copyRow(w.path, "File path", tilde(w.path), "wrap")}</div>`);
   text("w-state", wDirty ? "Not saved yet" : w.words.length ? plural(w.words.length, "word") + " blocked" : "Nothing blocked");
   $("w-undo").hidden = !wDirty;
 }
@@ -1943,7 +1935,7 @@ function updateButtons(compact) {
   const err = st === "error" ? `<div class="small warn">${I.warn} The update didn't work: ${esc(u.error)}</div>` : "";
   return err + `<div class="row"><button type="button" class="primary needs-server" data-pupd="now">${st === "error" ? "Try again" : "Update now"}</button>` +
     `<button type="button" class="needs-server" data-pupd="idle">Update when nobody's playing</button></div>` +
-    (compact ? "" : `<p class="small muted" style="margin:6px 0 0">${prog.busy ? "A match is being played right now: “Update now” would cut it off. " : ""}The server restarts in a few seconds; friends in the menus reconnect, and players, results and friends' mods are kept.</p>`);
+    (compact || !prog.busy ? "" : `<p class="small warn" style="margin:6px 0 0">A match is on: “Update now” cuts it off.</p>`);
 }
 function paintUpdateBanner() {
   const s = last.server, upd = $("update");
@@ -1956,18 +1948,17 @@ function renderProgram() {
   if (!prog) return;
   const p = prog, s = last ? last.server : {}, auto = p.autostart;
   const ver = `<dl class="kv"><dt>Version</dt><dd>${esc(p.version)}${p.update_available ? ` · <b>${esc(p.latest)}</b> is out` : p.can_update && p.checked ? ` <span class="small muted">· the newest (checked ${esc(ago(p.checked, Date.now() / 1000))})</span>` : ""}</dd>` +
-    (dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", null, "wrap")}<span class="small muted">Players, results and the detailed log (server.log).</span></dd>` : "") + `</dl>`;
+    (dataDir ? `<dt>Data folder</dt><dd>${copyRow(dataDir, "Folder path", tilde(dataDir), "wrap")}</dd>` : "") + `</dl>`;
   const upd = !p.can_update ? `<p class="small muted">${esc(p.why_not)}</p>`
     : p.update_available || p.update.update !== "idle" ? updateButtons(false)
     : `<div class="row"><button type="button" class="small needs-server" data-pupd="now">Check for a new version and update</button></div>`;
   const where = p.in_service ? `<p class="small muted" style="margin:14px 0 0">Runs in the background (no window).</p>`
-    : p.systemd && p.program ? `<p class="small" style="margin:14px 0 0"><b>It runs in a terminal window</b>, so closing that window stops it.</p><div class="row"><button type="button" class="small needs-server" data-pbg="1">Move to the background</button></div>`
+    : p.systemd && p.program ? `<p class="small" style="margin:14px 0 0">Runs in a terminal window: closing it stops the server.</p><div class="row"><button type="button" class="small needs-server" data-pbg="1">Move to the background</button></div>`
     : "";
   const sw = auto == null ? "" : `<div class="switch" style="margin-top:12px"><span class="lbl" id="pa-l">Start when I log in</span><span class="small ${auto ? "ok" : "muted"}">${auto ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${auto}" aria-labelledby="pa-l" class="needs-server" data-pauto="${auto ? 0 : 1}" data-key="pauto"></button></div>`;
-  const ctl = `<div class="row" style="margin-top:12px">${p.program ? `<button type="button" class="small needs-server" data-prestart="1">Restart</button>` : ""}<button type="button" class="small danger needs-server" data-pstop="1">Stop the server</button></div>` +
-    `<p class="small muted" style="margin:6px 0 0">To start it again later: <b>PES 2021 Server</b> in your apps menu, or <code>pes2021-server open</code>.</p>`;
+  const ctl = `<div class="row" style="margin-top:12px">${p.program ? `<button type="button" class="small needs-server" data-prestart="1">Restart</button>` : ""}<button type="button" class="small danger needs-server" data-pstop="1">Stop the server</button></div>`;
   const logs = p.log.length ? `<details class="keycheck" data-key="plog"><summary>Recent log</summary><pre class="plog">${esc(p.log.join("\n"))}</pre></details>` : "";
-  const repair = `<details class="keycheck" id="install-cmd" data-key="pinst"><summary>Install or repair from a terminal</summary>${copyRow(runCmd(), "Install command")}<span class="small muted">Downloads the newest version, sets the server up to run in the background and opens this page. Players, results and friends' mods are kept.</span></details>`;
+  const repair = `<details class="keycheck" id="install-cmd" data-key="pinst"><summary>Install or repair from a terminal</summary>${copyRow(runCmd(), "Install command")}</details>`;
   put("cmds", ver + upd + where + sw + ctl + logs + repair);
 }
 async function progCall(path, body, done) {
@@ -1997,54 +1988,52 @@ function renderInvite(d) {
     : `<p class="inv-msg">${esc(invMsg(link))}</p>` +
       `<div class="row inv-row"><button type="button" class="primary" data-copytext="${esc(invMsg(link))}" data-copied="Invite message copied">Copy message</button>` +
       `<button type="button" data-copytext="${esc(link)}" data-copied="Link copied">Copy link only</button></div>` +
-      `<p class="small muted" style="margin:8px 0 0">Paste it into WhatsApp, Discord or Telegram${d.server.link_home_only ? " (this link works on your Wi-Fi only)" : ""}. Anyone with the link can join; <b>Block</b> on a player's panel stops one copy of the mod.</p>`);
+      "");
   const dls = d.feed.filter(f => f.kind === "web").length;
   put("joins", (ps.length ? `<ul class="list-plain mini">` + ps.slice(0, 8).map(p => `<li>${avatar(p)}<span class="grow">${pname(p.name, p.pid, "jn-" + p.pid)}${p.blocked ? ` <span class="pill tag warn">blocked</span>` : ""}</span><span class="r">joined ${esc(ago(p.created, now))}</span></li>`).join("") + `</ul>` +
       (ps.length > 8 ? `<p class="note"><a href="#players">All ${ps.length} players</a></p>` : "")
-    : `<p class="empty">Nobody yet. Friends appear here within seconds of opening Quick Match with the mod.</p>`) +
-    (dls ? `<p class="note">The mod was downloaded ${plural(dls, "time")} in the activity log's history.</p>` : ""));
+    : `<p class="empty">Nobody yet.</p>`) +
+    (dls ? `<p class="note">Mod downloaded ${plural(dls, "time")}</p>` : ""));
 }
 function renderServer(d, s) {
   const kv = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;
   put("srv-status", kv("Version", esc(s.version || "?") + (s.update ? ` <span class="pill warn tag">${esc(s.update)} is out</span>` : "")) +
     kv("Running for", dur(d.uptime)) + kv("Players", `${d.players.length} registered, ${d.online.length} online`) +
     kv("Address for friends", `<code class="url">${esc(s.main)}</code>`) +
-    kv("Match relay", !s.relay ? "–" : s.relay.on ? `On${s.relay.in_use ? ` · ${plural(s.relay.in_use, "game")} using it now` : ""}<span class="small muted" style="display:block">Carries a match through this server when two friends' games can't connect directly.</span>`
-      : s.relay.enabled ? `<span class="warn">Didn't start</span><span class="small muted" style="display:block">Matches between friends whose games can't connect directly may fail. The reason is in server.log.</span>` : "Off") + kv("Server key", `<code>${esc(s.key || "?")}</code><span class="small muted" style="display:block">Only for troubleshooting: when a friend can't connect, their mod's log shows this key if it reached this server.</span>`));
+    kv("Match relay", !s.relay ? "–" : s.relay.on ? `On${s.relay.in_use ? ` · ${plural(s.relay.in_use, "game")} using it now` : ""}`
+      : s.relay.enabled ? `<span class="warn">Didn't start</span> <span class="small muted">(see server.log)</span>` : "Off") + kv("Server key", `<code title="For troubleshooting: a friend's mod log shows this key when it reached this server">${esc(s.key || "?")}</code>`));
   put("net", netHtml(s));
   put("lu", luHtml(s.liveupdate));
   renderWords(s);
-  put("access", remoteHtml(s) + `<div style="margin-top:6px">${location.protocol === "https:" ? "Opened over the internet, encrypted." : s.same_pc ? "Opened on the server's computer." : "On your home network the admin page isn't encrypted: only open it on your own Wi-Fi or Tailscale."}</div>` +
-    `<div>Signed in here${untilText ? ` until ${esc(untilText)}` : ""}. <button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
+  put("access", remoteHtml(s) + (location.protocol === "https:" || s.same_pc ? "" : `<div class="small muted" style="margin-top:6px">Not encrypted here: use it only on your own Wi-Fi or Tailscale.</div>`) +
+    `<div style="margin-top:8px"><button class="linkbtn needs-server" id="logout-all" type="button">Sign out on all devices</button></div>`);
   loadProgram(false);
   renderProgram();
 }
 
 function luHtml(lu) {
   if (!lu) return "";
-  const folder = lu.folder ? copyRow(lu.folder, "Folder path", null, "wrap") : "";
+  const folder = lu.folder ? copyRow(lu.folder, "Folder path", tilde(lu.folder), "wrap") : "";
   if (lu.name) return `<div class="ok">${I.ok} Offering <b>${esc(lu.name)}</b> (version ${esc(lu.version)}, ${Math.max(1, Math.round(lu.size / 1048576))} MB)${lu.since ? ` since ${esc(dShort.format(new Date(lu.since * 1000)))}` : ""}</div>` +
-    `<div class="small muted">Every friend's game downloads it the next time it goes online, so everyone plays with the same player data. ${lu.sent ? `${plural(lu.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it since the server started."}</div>` +
-    `<div class="small">To stop offering it, remove the file from this folder (games keep what they downloaded):</div>${folder}`;
-  return `<div>Not offering one.</div><div class="small muted">Two friends can only play each other when their games have the same player data. If some use a different roster or patch, put one roster update (a <code>.cpk</code> file) in this folder and every game downloads it when it goes online. The newest file wins.</div>${folder}`;
+    `<div class="small muted">${lu.sent ? `${plural(lu.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it yet."} Remove the file to stop.</div>${folder}`;
+  return `<div>Not offering one.</div><div class="small muted">Put a roster update (<code>.cpk</code>) here and every game downloads it, so everyone has the same player data.</div>${folder}`;
 }
 function remoteHtml(s) {
   const fp = (s.admin_fp || "").split(":").slice(0, 8).join(":");
   const sw = on => `<div class="switch"><span class="lbl" id="ra-l">Admin page from the internet</span><span class="small ${on ? "ok" : "muted"}">${on ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${on}" aria-labelledby="ra-l" class="needs-server" data-remote="${on ? 0 : 1}"></button></div>`;
   if (s.remote_admin) return sw(true) + `
-    <div class="small muted">Open <b>${esc(s.remote_url || "https://<your internet address>:8080/admin")}</b> anywhere and sign in with the password. The browser warns once because the certificate is this server's own: continue if its SHA-256 fingerprint starts with <code>${esc(fp)}</code>.${s.cgnat || (!s.ports_open.length && !s.pinned) ? " It works once your server can be reached from outside your home (router ports open)." : ""}</div>`;
-  return sw(false) + `
-    <div class="small muted">Turn it on to open this page from anywhere, encrypted (HTTPS) and with the password. Home network and Tailscale work without it.</div>`;
+    ${s.remote_url ? copyRow(s.remote_url, "Address") : "<div>https://&lt;your internet address&gt;:8080/admin</div>"}<div class="small muted">The browser warns once: continue if the certificate's SHA-256 starts with <code>${esc(fp)}</code>.${s.cgnat || (!s.ports_open.length && !s.pinned) ? " Needs router ports open." : ""}</div>`;
+  return sw(false);
 }
 function netHtml(s) {
   const out = [`<dl class="kv"><dt>Home network</dt><dd>${esc(s.lan)}</dd>${s.wan ? `<dt>Internet</dt><dd>${esc(s.wan)}${s.cgnat ? " (shared: CGNAT)" : ""}</dd>` : ""}${s.pinned ? `<dt>Friends use</dt><dd>${esc(s.pinned)}</dd>` : ""}</dl>`];
-  if (s.cgnat && !(s.pinned && isTs(s.pinned))) out.push(`<div><b class="warn">${I.warn} Friends outside your home can't reach this server.</b> Your internet provider doesn't give you a public address (this is called CGNAT). <a href="${FAQ_FAR}">Use Tailscale (free) to fix it.</a></div>`);
+  if (s.cgnat && !(s.pinned && isTs(s.pinned))) out.push(`<div><b class="warn">${I.warn} Friends outside your home can't connect.</b> Your internet provider shares one address (CGNAT). <a href="${FAQ_FAR}">Use Tailscale (free)</a></div>`);
   else if (s.pinned) out.push(`<div>Friends' mod uses your ${isTs(s.pinned) ? "Tailscale" : "fixed"} address <b>${esc(s.pinned)}</b>.${isTs(s.pinned) ? " Friends must join your Tailscale network." : ""}${where(s.pinned) === "Internet" ? ` Make sure ${esc(s.ports || "TCP 8080, 10000 + UDP 3478, 7600")} reach this computer (forwarded by your router).` : ""}</div>`);
-  else if (s.ports_open.length) out.push(`<div class="ok">${I.ok} Router ports open (UPnP)</div><div class="small muted">While they're open, your server's address is public: anyone who has it can download the mod and join. Share it only with friends.</div><div class="small muted">Friends in your home: if the link doesn't open for them, use <code>${esc(s.lan_url || "http://" + s.lan)}</code>.</div>`);
-  else if (s.wan) out.push(`<div><b class="warn">${I.warn} Friends outside your home can't connect yet.</b> Your router needs to open some ports: turn on "UPnP" in its settings (or ask whoever set it up), then <a href="#server/install-cmd">start the server again</a>. Can't change router settings? <a href="${FAQ_FAR}">Use Tailscale (free)</a> instead.</div>
-    <details><summary>Details for manual port forwarding</summary>The router didn't open the ports${s.upnp_error ? " (" + esc(s.upnp_error) + ")" : ""}. Forward ${esc(s.ports || "TCP 8080, 10000 + UDP 3478, 7600")} to ${esc(s.lan)}.</details>`);
+  else if (s.ports_open.length) out.push(`<div class="ok">${I.ok} Router ports open (UPnP)</div><div class="small muted">Anyone with your address can join. At home: <code>${esc(s.lan_url || "http://" + s.lan)}</code></div>`);
+  else if (s.wan) out.push(`<div><b class="warn">${I.warn} Friends outside your home can't connect.</b> Turn on UPnP in your router, then <a href="#server/install-cmd">restart the server</a>, or <a href="${FAQ_FAR}">use Tailscale (free)</a>.</div>
+    <details><summary>Forward ports by hand</summary>Forward ${esc(s.ports || "TCP 8080, 10000 + UDP 3478, 7600")} to ${esc(s.lan)}${s.upnp_error ? ` <span class="muted">(UPnP: ${esc(s.upnp_error)})</span>` : ""}.</details>`);
   if (s.pinned && s.wan && !isTs(s.pinned) && /^[\d.]+$/.test(s.pinned) && s.pinned !== s.wan) out.push(`<div class="small muted">Your fixed address (${esc(s.pinned)}) is different from this network's internet address (${esc(s.wan)}). If friends can't connect, check PUBLIC_IP.</div>`);
-  if (!s.wan && !s.pinned && !s.ports_open.length && !s.cgnat) out.push(`<div class="muted">Friends on your Wi-Fi can connect. Want friends elsewhere? <a href="${FAQ_FAR}">Use Tailscale</a>.</div>`);
+  if (!s.wan && !s.pinned && !s.ports_open.length && !s.cgnat) out.push(`<div class="muted">Wi-Fi only. Friends elsewhere: <a href="${FAQ_FAR}">use Tailscale</a></div>`);
   return out.join("");
 }
 
@@ -2067,33 +2056,31 @@ function gameRow(g) {
   const name = g.label || label(g.path);
   let st, btn = "", info = "";
   const b = (cls, act, txt) => `<button type="button" class="${cls}" data-game="${esc(g.id)}" data-act="${act}" data-key="game-${esc(g.id)}-${act}" aria-label="${txt}: ${esc(name)}">${txt}</button>`;
-  const what = `<div class="what">Copies <code>dinput8.dll</code> into the game folder and tells PES to load it (keeps a backup of your settings).</div>`;
-  const whatFinish = `<div class="what">The mod is in place. This tells PES to load it (a small settings change; a backup is kept).</div>`;
   const steam = /\/steamapps\//.test(g.path);
   const failed = rowMsg[g.id] && rowMsg[g.id].error;
   if (g.mod === "foreign") {
-    st = `<span class="pill warn tag">Another mod's file</span><div class="what">Another mod's <code>dinput8.dll</code> is in this folder. Move it out of the folder shown above, then click Check again.</div>`;
+    st = `<span class="pill warn tag">Another mod's file</span><div class="what">Move the other <code>dinput8.dll</code> out of this folder, then Check again.</div>`;
     btn = `<button type="button" data-reload="${esc(g.id)}" data-key="game-${esc(g.id)}" aria-label="Check again: ${esc(name)}">Check again</button>`;
   } else if (g.mod === "none") {
-    st = `<span class="pill neutral tag">Not installed</span>${g.prefix ? what : `<div class="what">Copies <code>dinput8.dll</code> into the game folder. After installing, you'll paste one ${steam ? "Steam launch option" : "launcher setting"}; this card shows it.</div>`}`; btn = b("primary", "install", "Install mod");
+    st = `<span class="pill neutral tag">Not installed</span>`; btn = b("primary", "install", "Install mod");
   } else if (g.mod === "other-server") {
-    st = `<span class="pill neutral tag">Uses another server</span><div class="what">The mod here points to a different server. This replaces it with this server's mod. Friends on the other server aren't affected.</div>`; btn = b("", "switch", "Use this server instead");
+    st = `<span class="pill neutral tag">Uses another server</span>`; btn = b("", "switch", "Use this server instead");
   } else if (g.override === false) {
-    st = `<span class="pill warn tag">One step left</span>${whatFinish}`; btn = b("primary", "install", "Finish setup");
+    st = `<span class="pill warn tag">One step left</span>`; btn = b("primary", "install", "Finish setup");
   } else if (g.override === null) {
     const opt = steam ? `WINEDLLOVERRIDES="dinput8=n,b" %command%` : `WINEDLLOVERRIDES=dinput8=n,b`;
     const copyBtn = `<button type="button" class="small" data-copytext="${esc(opt)}" data-copied="Launch option copied" data-key="lo-copy-${esc(g.id)}" aria-label="Copy launch option for ${esc(name)}">Copy</button>`;
     if (doneOption(g)) {
-      st = `<span class="pill tag">${I.ok} Ready to play</span><div class="what">You added the launch option. <button type="button" class="linkbtn" data-optundo="${esc(g.path)}" data-key="lo-undo-${esc(g.id)}" aria-label="Undo: ${esc(name)} launch option not added">Undo</button> <span class="muted">(saved in this browser)</span></div>`;
+      st = `<span class="pill tag">${I.ok} Ready to play</span><div class="what"><button type="button" class="linkbtn" data-optundo="${esc(g.path)}" data-key="lo-undo-${esc(g.id)}" aria-label="Undo: ${esc(name)} launch option not added">Launch option not added yet?</button></div>`;
       btn = b("danger", "remove", "Uninstall");
     } else {
       st = steam
-        ? `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, add this Steam launch option. In Steam: PES 2021 → Properties → Launch options, paste <code>${esc(opt)}</code> ${copyBtn}</div>`
+        ? `<span class="pill warn tag">One step left</span><div class="what">Add in Steam → PES 2021 → Properties → Launch options: <code>${esc(opt)}</code> ${copyBtn}</div>`
         : `<span class="pill warn tag">One step left</span><div class="what">Mod installed. To finish, ${/\/(lutris|heroic)\//i.test(g.path)
           ? `in ${/\/lutris\//i.test(g.path) ? "Lutris open Configure → System options → Environment variables" : "Heroic open Settings → Advanced → Environment variables"} and add a variable named <code>WINEDLLOVERRIDES</code> with the value <code>dinput8=n,b</code> <button type="button" class="small" data-copytext="dinput8=n,b" data-copied="Value copied" data-key="lo-copy-${esc(g.id)}" aria-label="Copy the value for ${esc(name)}">Copy value</button>`
           : `start PES 2021 with this environment variable set (put it before the command you use to start it): <code>${esc(opt)}</code> ${copyBtn}`}</div>`;
       btn = `<button type="button" class="primary" data-optdone="${esc(g.path)}" data-key="lo-done-${esc(g.id)}" aria-label="I've added it: launch option for ${esc(name)}">I've added it</button>`;
-      st += `<div class="what">The server can't see launch options, so click "I've added it" once it's in. Changed your mind? ${b("linkbtn", "remove", "Uninstall")}</div>`;
+      st += `<div class="what">${b("linkbtn", "remove", "Uninstall")}</div>`;
     }
   } else {
     st = `<span class="pill tag">${I.ok} Ready to play</span>`; btn = b("danger", "remove", "Uninstall");
@@ -2122,7 +2109,7 @@ function pcNeeds() { return lastGames.filter(g => !skipped(g) && !(g.mod === "ou
 function paintAuto(au) {
   if (au.available === false) return put("pc-auto", "");      // this server doesn't run the automatic pass (AUTO_MOD=0, serve)
   put("pc-auto",`<div class="switch"><span class="lbl" id="am-l">Keep the mod up to date here by itself</span><span class="small ${au.on ? "ok" : "muted"}">${au.on ? "On" : "Off"}</span><button type="button" role="switch" aria-checked="${au.on}" aria-labelledby="am-l" class="needs-server" data-automod="${au.on ? 0 : 1}" data-key="automod"></button></div>` +
-    `<p class="small muted" style="margin:6px 0 12px">${au.on ? "Every minute while PES 2021 is closed, each copy on this computer without the mod gets it, and this server's mod is replaced when there's a newer one. Copies with another server's mod or another mod are left alone, and so is one you remove the mod from below." + (au.running ? " <b>PES 2021 is running now</b>, so it waits." : "") : "Off: use the buttons below to put the mod in or take it out."}</p>`);
+    (au.on && au.running ? `<p class="small muted" style="margin:6px 0 12px">Waiting: PES 2021 is running.</p>` : `<div style="height:12px"></div>`));
 }
 document.addEventListener("click", async e => {
   const am = e.target.closest("[data-automod]");
@@ -2145,7 +2132,7 @@ async function loadGames(force, focusMsg, focusKey) {
     if (!g || rowMsg[id].state !== stateOf(g) || Date.now() > rowMsg[id].until) delete rowMsg[id];
   }
   if (last) render(last);
-  if (!gs.length) return put("games", `<p class="empty">No PES 2021 found on this computer. That's fine: it's only needed if you want to play on the server computer too. Install PES 2021 (Steam, Heroic or Lutris), then start the server again so it looks for it.</p>`);
+  if (!gs.length) return put("games", `<p class="empty">No PES 2021 on this computer.</p>`);
   const okNow = g => g.mod === "ours" && (g.override === true || (g.override === null && doneOption(g)));
   const need = gs.filter(g => !okNow(g) && !skipped(g)).length, okCnt = gs.filter(okNow).length;
   const actionable = gs.filter(g => g.mod === "none" || g.mod === "other-server" || (g.mod === "ours" && g.override === false)).length;
@@ -2182,8 +2169,7 @@ async function loadGames(force, focusMsg, focusKey) {
     : moreTodo.length ? `<div class="games">${shownTodo.map(gameRow).join("")}</div>${more}` : `<div class="games">${gs.map(gameRow).join("")}</div>`;
   let html = need === 0 && !Object.keys(rowMsg).length && !gs.some(g => justMarked.has(g.path))
     ? `<details class="pcready${okCnt ? "" : " none-ready"}" data-key="pc-all"><summary>${okCnt === gs.length ? `${I.ok} PES 2021 on this computer is ready to play (${plural(gs.length, "copy", "copies")})` : `${okCnt ? `PES 2021 on this computer: ${okCnt} ready, ${gs.length - okCnt} skipped` : "PES 2021 on this computer: skipped (set it up any time)"}`}</summary>${rows}</details>`
-    : `<p class="pc-intro">${need === 0 ? "PES 2021 on this computer is set up for your server. Just start the game."
-        : `${gs.length > 1 ? (need === gs.length ? `All ${need} copies need setup` : `${need} of ${gs.length} copies ${need === 1 ? "needs" : "need"} setup`) : (gs[0].mod === "ours" ? "One step left" : "Not set up yet")}${actionable ? `: close PES 2021, then use the button ${actionable === 1 && need === 1 ? "next to it" : "on each copy below"}.` : need === 1 ? ". Follow the step below." : `. Follow the step under each copy${moreTodo.length ? ", including the ones folded below" : ""}.`}`}</p>${rows}`;
+    : (need && actionable ? `<p class="pc-intro">Close PES 2021 before setting it up.</p>` : "") + rows;
   if (pcError) html = html.replace(/<p class="pc-intro">[\s\S]*?<\/p>/, "");   // its "use the button" advice doesn't apply
   put("games", (pcError ? `<div class="banner remote" style="margin:0 0 8px">${I.warn} <b>Installing isn't possible with this copy of the server:</b> it was built without the mod. <a href="#server/h-cmd">Start the official server</a> to set up PES 2021 here and to give friends the mod.</div>` : "") + html, force);
   if (pcError) $("games").querySelectorAll('[data-act="install"], [data-act="switch"]').forEach(b => b.setAttribute("aria-disabled", "true"));
@@ -2473,15 +2459,15 @@ function meter(prefix, personal) {
     clearTimeout(t0);
     if ($(prefix + "-prev")) put(prefix + "-prev", t || b ? `<div class="preview"><div class="ph">Preview</div><div class="pb"><b>${esc(t) || '<span class="muted">Title</span>'}</b>${esc(b) || '<span class="muted">Message</span>'}</div></div>` : "");
     m.classList.toggle("empty", !t && !b);
-    if (!t && !b) { text(f, "Up to 60 characters for the title and 600 for the message."); $(f).className = "small muted"; m.firstChild.style.width = "0"; m.classList.remove("full"); return; }
+    if (!t && !b) { text(f, ""); $(f).className = "small muted"; m.firstChild.style.width = "0"; m.classList.remove("full"); return; }
     if (!t || !b) { text(f, !t ? "Add a title too." : "Add the message too."); $(f).className = "small muted"; return; }
     text(f, "Checking it fits the game's message box…"); $(f).className = "small muted";
     const n = ++n0;
     t0 = setTimeout(async () => {
-      let pct; try { pct = (await api("/admin/api/message", {method: "POST", body: JSON.stringify({check: true, title: t, body: b, personal})})).pct; } catch (e) { if (n === n0) text(f, `Title ${t.length}/60 · message ${b.length}/600. The fit is checked when the server answers.`); return; }
+      let pct; try { pct = (await api("/admin/api/message", {method: "POST", body: JSON.stringify({check: true, title: t, body: b, personal})})).pct; } catch (e) { if (n === n0) text(f, `Title ${t.length}/60 · message ${b.length}/600`); return; }
       if (n !== n0) return;
       m.firstChild.style.width = Math.min(100, pct) + "%"; m.classList.toggle("full", pct > 100);
-      text(f, pct > 100 ? `Too long for the game's message box (${pct}%). Shorten it; non-Latin letters take more room.` : `Uses ${pct}% of the game's message box · title ${t.length}/60.`);
+      text(f, pct > 100 ? `Too long for the game's message box (${pct}%)` : `Uses ${pct}% of the game's message box · title ${t.length}/60`);
       $(f).className = "small " + (pct > 100 ? "err" : "muted");
     }, 350);
   };
