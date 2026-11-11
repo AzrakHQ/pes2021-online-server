@@ -1,6 +1,9 @@
 # Play PES 2021 Online Again
 
-<p align="center"><img src="docs/hero.svg" alt="Host your own PES 2021 server with one command; friends get one file; the match runs player to player" width="100%"></p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/hero-dark.webp">
+  <img src="docs/hero-light.webp" alt="PES 2021 private server: back online. Host your own server with one command; your friends add one file. A live match card shows karim 1–0 dani." width="100%">
+</picture>
 
 Konami shut down the PES 2021 servers. Host your own and play online with your friends again. Free, no accounts.
 
@@ -9,6 +12,11 @@ a Friends Cup every month, and match replays.
 
 **You need:** PES 2021 on Steam (v1.01.00). The host needs a Linux PC or Steam Deck that stays on while you play.
 Friends can play on Windows, Linux or Steam Deck.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/walkthrough-dark.webp">
+  <img src="docs/walkthrough-light.webp" alt="From install to play: run one line, the admin page opens, copy the invite, send it to your friends, they download the mod, then everyone plays." width="100%">
+</picture>
 
 ## 1. Host: install the server
 
