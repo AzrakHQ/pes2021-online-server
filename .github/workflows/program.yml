@@ -28,7 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update -q && sudo apt-get install -y -q gcc-mingw-w64-x86-64 && sh server/mod/build.sh dinput8.dll
+      # Ubuntu's own archive, not the runner's Azure mirror (it stopped resolving on 2026-11-11 for hours)
+      - run: echo http://archive.ubuntu.com/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt && sudo apt-get update -q && sudo apt-get install -y -q gcc-mingw-w64-x86-64 && sh server/mod/build.sh dinput8.dll
       - name: Math check program and its Linux reference (server/mod/musl-math/README.md)
         run: |
           cd server/mod && mkdir -p ../../mathcheck ref
