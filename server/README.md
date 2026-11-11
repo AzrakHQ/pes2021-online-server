@@ -1,7 +1,24 @@
 # pesserver: server internals
 
-Player and host instructions are in the [main README](../README.md). This page covers running the
+Player and host instructions are in the [main README](../README.md). This page covers hosting tips, running the
 server from source, building the program, and how the code is laid out.
+
+## Hosting tips
+
+- In a terminal: `pes2021-server` shows the server's live screen, `pes2021-server stop` stops it,
+  `pes2021-server open` opens the admin page.
+- Running the install line again repairs the setup and updates the server; players and results are kept.
+  Options (after `sh -s --`): `--here` runs it in the terminal, `--no-autostart` doesn't start it at log-in,
+  `--data DIR` keeps players and results somewhere else.
+- PES 2021 on the host's own PC gets the mod by itself and keeps it up to date (see below).
+- To play on another server, replace `dinput8.dll` with that server's file, or hold **Shift** while the game starts
+  and paste its address.
+- "Failed to connect with opponent": the two PCs can't reach each other directly. Everyone installs
+  [Tailscale](https://tailscale.com), and the host runs the install line again with its Tailscale IP:
+  `curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | PUBLIC_IP=100.x.y.z sh`
+- Set up earlier with a join line? Undo it once, then use the file: Windows
+  `irm https://mohamedalirashad.github.io/pes2021-private-server/leave.ps1 | iex`, Linux
+  `curl -fsSL https://mohamedalirashad.github.io/pes2021-private-server/leave.sh | bash`.
 
 ## Run from source
 
