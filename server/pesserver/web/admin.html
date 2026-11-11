@@ -1920,9 +1920,18 @@ const progActive = () => prog && ["downloading", "waiting", "restarting"].includ
 async function loadProgram(force) {
   if (progBusy || (!force && Date.now() - progAt < (progActive() ? 2000 : 30000))) return;
   progBusy = true;
-  try { prog = await api("/admin/api/program"); progAt = Date.now(); renderProgram(); if (last && last.server.update) paintUpdateBanner(); }
+  try { prog = await api("/admin/api/program"); progAt = Date.now(); renderProgram(); if (last && last.server.update) paintUpdateBanner(); updOutcome(); }
   catch (err) { if (err.status === 401) return signedOut(); }
   finally { progBusy = false; }
+}
+// after "Update now": say how it ended when it ends without a restart (nothing newer, or an error)
+let updAsked = false;
+function updOutcome() {
+  if (!updAsked || !prog) return;
+  const u = prog.update;
+  if (u.update === "idle" && u.target === prog.version) { updAsked = false; toast("Already the newest version."); refreshNow(); }
+  else if (u.update === "error") { updAsked = false; toast("The update didn't work: " + u.error, true); }
+  else if (u.update === "restarting" || u.update === "waiting") updAsked = false;
 }
 function updateButtons(compact) {
   const u = prog.update, st = u.update;
@@ -1968,7 +1977,10 @@ document.addEventListener("click", async e => {
   const pu = e.target.closest("[data-pupd]");
   if (pu) { const w = pu.dataset.pupd;
     if (w === "now" && prog && prog.busy && await ask({title: "Update now?", body: "A match is being played right now. The server restarts in a few seconds and that match is cut off.", ok: "Update now", danger: true}) === null) return;
-    return progCall("/admin/api/program/update", {when: w}, w === "cancel" ? "Update cancelled." : w === "idle" ? "The server updates as soon as nobody is playing." : "Updating: the server restarts in a moment."); }
+    updAsked = w !== "cancel";
+    const ok = await progCall("/admin/api/program/update", {when: w}, w === "cancel" ? "Update cancelled." : "Checking for the new version…");
+    if (ok) { updOutcome(); setTimeout(() => loadProgram(true), 1500); } else updAsked = false;
+    return; }
   if (e.target.closest("[data-prestart]")) { if (await ask({title: "Restart the server?", body: "It's back in a few seconds. Friends in a match are cut off; friends in the menus reconnect.", ok: "Restart"}) === null) return;
     return progCall("/admin/api/program/restart", {}, "Restarting…"); }
   if (e.target.closest("[data-pstop]")) { if (await ask({title: "Stop the server?", body: "Friends can't play until you start it again (PES 2021 Server in your apps menu). This page stops working too.", ok: "Stop it", danger: true}) === null) return;

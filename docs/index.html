@@ -330,7 +330,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
       </div>
       <p class="roles"><a href="#host">I'm hosting →</a><a href="#join">A friend sent me a file →</a><a href="protocol.html">The technical write-up →</a></p>
       <a class="pill-status" href="#status"><i aria-hidden="true"></i>Early access: proven on Linux · testers wanted for Windows, Steam Deck and two separate PCs</a>
-      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one PC to host</b>: Windows, Linux or Steam Deck, no extra software.</p>
+      <p class="needs">You need: <b>PES 2021 for PC on Steam</b> (v1.01.00) for every player, and <b>one Linux PC or Steam Deck to host</b>, no extra software. Friends can play on Windows, Linux or Steam Deck.</p>
     </div>
     <svg class="hero-art" viewBox="0 0 520 400" role="img" aria-labelledby="art-t">
       <title id="art-t">Two players connect to your server for login and matchmaking; the match itself runs directly between the two players.</title>
@@ -389,7 +389,7 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Starting the game from the Steam client: our tests launched the game directly under Proton</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Steam Deck: same as Linux, not yet tried on a Deck</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Two separate PCs: connected between two homes once (Windows and Linux); that match ended at kick-off because the two games computed differently, fixed in mod 0.4.0 but not yet confirmed in a match</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Hosting from Windows, a Mac or a Steam Deck</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Hosting from a Steam Deck</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>The built-in relay for players whose routers block a direct connection: a match has kicked off and been played through it, but only between two copies on one PC so far</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></svg><span>Goals: a goal has reached the server from both games (logged on 4 Nov), but no test match has yet been played to full time with a goal in it</span></li>
         
@@ -674,11 +674,11 @@ footer a { color: var(--muted); display: inline-block; padding: 3px 0; }
     </details>
     <details class="q" id="faq-thispc">
       <summary>How does the admin page install the mod on the server computer?</summary>
-      <p>The server looks for PES 2021 in your Steam libraries and in <code>~/Games</code> (on Windows, where Steam says it is), and on Linux for the game's Proton prefix (its own Windows drive), where it changes only <code>user.reg</code>, with a backup. <b>Install mod</b> puts your server's <code>dinput8.dll</code> next to <code>PES2021.exe</code> and, on Linux, sets Wine to load it for PES 2021 only, so you don't need the launch option (start PES 2021 once before the server, so its Wine prefix exists; otherwise use the launch option). Close the game first. It never replaces another mod's <code>dinput8.dll</code>, keeps a backup of Wine's settings, and <b>Uninstall</b> removes the mod and that Wine setting (the backup <code>user.reg.pes2021-backup</code> and the mod's small <code>.ini</code>/<code>.log</code> files stay).</p>
+      <p>The server looks for PES 2021 in your Steam libraries and in <code>~/Games</code>, and for the game's Proton prefix (its own Windows drive), where it changes only <code>user.reg</code>, with a backup. <b>Install mod</b> puts your server's <code>dinput8.dll</code> next to <code>PES2021.exe</code> and, on Linux, sets Wine to load it for PES 2021 only, so you don't need the launch option (start PES 2021 once before the server, so its Wine prefix exists; otherwise use the launch option). Close the game first. It never replaces another mod's <code>dinput8.dll</code>, keeps a backup of Wine's settings, and <b>Uninstall</b> removes the mod and that Wine setting (the backup <code>user.reg.pes2021-backup</code> and the mod's small <code>.ini</code>/<code>.log</code> files stay).</p>
     </details>
     <details class="q" id="faq-winhost">
       <summary>Can I host from Windows or a Mac?</summary>
-      <p>Yes: use the <a href="#host">one line in step 1</a>. Windows asks once whether to let the server through its firewall: click <b>Allow</b>. On a Mac it needs Apple silicon. Both are new and need testers. Playing on the same PC that hosts works too: install the mod from the admin page's server-computer card.</p>
+      <p>No: the server runs on Linux or a Steam Deck. Friends who join can play on Windows too. Playing on the PC that hosts works: install the mod from the admin page's server-computer card.</p>
     </details>
     <details class="q">
       <summary>Will our accounts and results survive a restart?</summary>

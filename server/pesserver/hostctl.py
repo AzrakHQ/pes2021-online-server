@@ -338,10 +338,12 @@ def update(svc, when="now"):
     STATE.update(update="downloading", error="", progress=0, when=when, since=time.time(), target="")
 
     def work():
+        from . import updates
         try:
             want = latest_version()
-            if want == current():                       # nothing to download
-                STATE.update(update="idle", error="", target=want)
+            if not updates.newer(want, current()):      # nothing newer published (yet): say so, drop the notice
+                STATE.update(update="idle", error="", target=current())
+                updates.settle()
                 events.feed(svc, "The server is already the newest version", "info")
                 return
             new, version = download(cancel, want)
