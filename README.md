@@ -3,7 +3,17 @@
   <img src="docs/hero-light.webp" alt="PES 2021 private server: back online. Host your own server with one command; your friends add one file. A live match card shows karim 1–0 dani." width="100%">
 </picture>
 
-<p align="center">Konami shut down the PES 2021 servers. Host your own and play online with your friends again. Free, no accounts.</p>
+<h1 align="center">PES 2021 Online Server</h1>
+
+<p align="center">Konami shut down PES 2021's online servers. This brings them back: free, open source, no accounts.</p>
+
+<p align="center">
+  <a href="https://github.com/AzrakHQ/pes2021-online-server/actions/workflows/program.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/AzrakHQ/pes2021-online-server/program.yml?branch=main&label=build&style=flat&labelColor=0d1014&color=3ccf8e"></a>
+  <a href="https://github.com/AzrakHQ/pes2021-online-server/releases/tag/program"><img alt="Latest server" src="https://img.shields.io/github/release-date/AzrakHQ/pes2021-online-server?label=latest%20server&style=flat&labelColor=0d1014&color=3ccf8e"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/AzrakHQ/pes2021-online-server?style=flat&labelColor=0d1014&color=3ccf8e"></a>
+  <img alt="Host: Linux or Steam Deck" src="https://img.shields.io/badge/host-Linux%20%C2%B7%20Steam%20Deck-3ccf8e?style=flat&labelColor=0d1014&color=3ccf8e">
+  <img alt="Players: Windows, Linux or Steam Deck" src="https://img.shields.io/badge/players-Windows%20%C2%B7%20Linux%20%C2%B7%20Steam%20Deck-3ccf8e?style=flat&labelColor=0d1014&color=3ccf8e">
+</p>
 
 **What works:** Quick Match, Online Co-op (one player per side), Online Divisions, Matchday, Friendly Match Lobby,
 a Friends Cup every month, and match replays.
