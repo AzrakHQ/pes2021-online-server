@@ -38,8 +38,8 @@ address for every client). Without root on Linux, ports 80 and 443 are skipped: 
 `python3 -m pesserver serve ...` is the bare development mode (`tools/pes.py restart`).
 
 **The program:** `packaging/build.sh <name>` (PyInstaller) builds one file in `dist/`;
-`packaging/smoke.py dist/<name>` checks it. `.github/workflows/program.yml` does both for every
-platform and publishes the release that `run.sh` and `run.ps1` download.
+`packaging/smoke.py dist/<name>` checks it. `.github/workflows/program.yml` does both for Linux
+(x64, arm64) and publishes the release that `run.sh` downloads. Hosts run Linux only.
 
 | Port | Service | Module |
 |---|---|---|

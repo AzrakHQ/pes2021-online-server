@@ -1,5 +1,6 @@
-# Tests the server, builds it as one program for Linux, Windows and macOS and publishes it as the
-# repository's latest release, which run.sh / run.ps1 download:
+# Tests the server, builds it as one program for Linux (x64, arm64) and publishes it as the
+# repository's latest release, which run.sh downloads (hosts run Linux only; the Windows job below
+# checks the players' mod, not the server):
 #   https://github.com/<owner>/pes2021-private-server/releases/latest/download/pes2021-server-<platform>
 name: program
 on:
@@ -68,8 +69,6 @@ jobs:
         include:          # Linux builds on the oldest supported Ubuntu, so they run on older distros too
           - { os: ubuntu-22.04, file: pes2021-server-linux-x64 }
           - { os: ubuntu-22.04-arm, file: pes2021-server-linux-arm64 }
-          - { os: windows-latest, file: pes2021-server-windows-x64 }
-          - { os: macos-latest, file: pes2021-server-macos-arm64 }
     runs-on: ${{ matrix.os }}
     defaults:
       run: { shell: bash }
@@ -115,5 +114,5 @@ jobs:
           v="$(cat version.txt)"
           gh release delete program -R "$REPO" --yes --cleanup-tag 2>/dev/null || true
           gh release create program -R "$REPO" --target "$GITHUB_SHA" --latest --title "PES 2021 server $v" \
-            --notes "The server as one program. Start it with the line on the website (it always downloads this newest version), or download the file for your computer and run it. Windows: pes2021-server-windows-x64.exe." \
+            --notes "The server as one program. Start it with the line on the website (it always downloads this newest version), or download the file for your computer and run it. Linux and Steam Deck." \
             pes2021-server-* version.txt SHA256SUMS

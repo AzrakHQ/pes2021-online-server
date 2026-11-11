@@ -15,16 +15,11 @@ REL="https://github.com/MohamedAliRashad/pes2021-private-server/releases/latest/
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)                PLATFORM=linux-x64 ;;
   Linux-aarch64|Linux-arm64)   PLATFORM=linux-arm64 ;;
-  Darwin-arm64)                PLATFORM=macos-arm64 ;;
   *) echo "There's no ready-made server program for this computer ($(uname -sm))."
      echo "You can run it from source instead: https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server"
      exit 1 ;;
 esac
-if [ "$(uname -s)" = Darwin ]; then
-  DIR="$HOME/Library/Application Support/PES2021 Server"
-else
-  DIR="${XDG_DATA_HOME:-$HOME/.local/share}/pes2021-server"
-fi
+DIR="${XDG_DATA_HOME:-$HOME/.local/share}/pes2021-server"
 mkdir -p "$DIR"
 BIN="$DIR/pes2021-server"
 VERFILE="$DIR/program-version.txt"

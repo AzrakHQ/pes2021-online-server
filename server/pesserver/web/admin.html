@@ -881,9 +881,8 @@ const I = {ok: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M
   warn: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l6.5 11.5h-13zM8 6.5v3M8 11.8v.2"/></svg>',
   right: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>'};
 const RUN_SH = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh";
-const RUN_PS = "irm https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.ps1 | iex";
 const FAQ_FAR = "https://mohamedalirashad.github.io/pes2021-private-server/#faq-far";
-const runCmd = () => platform === "win32" ? RUN_PS : RUN_SH;
+const runCmd = () => RUN_SH;
 const inMin = s => s < 3600 ? Math.max(1, Math.ceil(s / 60)) + " min" : dur(s);
 const midCut = (t, n) => t.length > n ? t.slice(0, Math.floor(n * .35)) + "…" + t.slice(-Math.floor(n * .6)) : t;
 const tilde = p => String(p || "").replace(/^\/home\/[^/]+/, "~");
@@ -1055,7 +1054,7 @@ function setDown(on) {
   const downHtml = (lastOkAt ? `<b>Last heard from the server at ${hm.format(new Date(lastOkAt))}.</b> Is that computer on? If it is, start the server again (was its window closed?)`
     : `<b>The server isn't answering yet.</b> If this lasts, start the server again (was its window closed?)`) +
     (matchMedia("(max-width: 760px)").matches ? `. <details><summary>Show the start command</summary>${copyRow(runCmd(), "Start command")}</details>`
-      : `${platform === "win32" ? " in PowerShell" : " in a terminal"}:` + copyRow(runCmd(), "Start command")) + `<span class="small muted">This page keeps trying and updates by itself.</span>`;
+      : " in a terminal:" + copyRow(runCmd(), "Start command")) + `<span class="small muted">This page keeps trying and updates by itself.</span>`;
   $("down").hidden = false; requestAnimationFrame(() => { $("down").innerHTML = downHtml; });
   if (last) render(last);
 }
