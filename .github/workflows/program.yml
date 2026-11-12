@@ -6,7 +6,7 @@ name: program
 on:
   push:
     branches: [main]
-    paths: ["server/**", ".github/workflows/program.yml"]
+    paths: ["server/**", "!server/**/*.md", ".github/workflows/program.yml"]   # docs-only edits build no release
   pull_request:
   workflow_dispatch:
 permissions:

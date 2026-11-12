@@ -1,7 +1,7 @@
 # pesserver: server internals
 
-Player and host instructions are in the [main README](../README.md). This page covers hosting tips, running the
-server from source, building the program, and how the code is laid out.
+Player and host instructions are in the [main README](../README.md). This page covers hosting tips, troubleshooting, running
+the server from source, building the program, and how the code is laid out.
 
 ## Hosting tips
 
@@ -19,6 +19,55 @@ server from source, building the program, and how the code is laid out.
 - Set up earlier with a join line? Undo it once, then use the file: Windows
   `irm https://azrakhq.github.io/pes2021-online-server/leave.ps1 | iex`, Linux
   `curl -fsSL https://azrakhq.github.io/pes2021-online-server/leave.sh | bash`.
+
+## Troubleshooting
+
+For a friend's problem, `pes2021-online.log` in their game folder usually says why. Still stuck?
+[Open an issue](https://github.com/AzrakHQ/pes2021-online-server/issues) with that log and the host's `server.log`
+(in the server's data folder).
+
+### Players
+
+| What you see | What to do |
+|---|---|
+| "Unable to connect to the server" | The host's server has to be running. If the log says *not found*, it's off or unreachable; if it says *bad proof*, ask the host for a fresh file. |
+| The browser or antivirus warns about the file | Every `.dll` download gets this warning: choose **Keep**. Compare its SHA-256 with the one on your host's page (`Get-FileHash .\dinput8.dll` on Windows, `sha256sum dinput8.dll` on Linux). |
+| No `pes2021-online.log` appears | The mod didn't load. It must sit next to `PES2021.exe`, named exactly `dinput8.dll` (not `dinput8 (1).dll`); look in `%TEMP%` too. On Linux or Steam Deck, check the launch option `WINEDLLOVERRIDES="dinput8=n,b" %command%`. |
+| The match ends right after kick-off | Both players download the mod again, and the host updates the server. |
+| "Failed to connect with opponent" | The two PCs can't reach each other: see [Friends far away](#friends-far-away). |
+| Matchmaking searches forever | Two players must search in Quick Match at the same time. |
+| Windows Firewall asks about PES 2021 | Click **Allow**: matches run directly between the two PCs. |
+| A "no operation" message ends the match | The game's own rule: nobody touched the controller for about 50 seconds. |
+
+### Hosts
+
+| What you see | What to do |
+|---|---|
+| "Router ports are closed" | Turn on **UPnP** in your router's settings and start the server again, or forward the ports it lists. |
+| A warning about CGNAT | Your provider shares one public address between customers, so friends outside can't reach you: see [Friends far away](#friends-far-away). |
+| It works here, but nobody else can connect | This computer's firewall blocks the ports. Ubuntu: `sudo ufw allow 80,443,8080,10000/tcp` and `sudo ufw allow 3478,7600/udp`. Fedora: `sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp && sudo firewall-cmd --reload` |
+| "Port … is already in use" | Another server already runs on this computer: stop it, then paste the install line again. |
+| Something else is broken | Paste the install line again: it repairs the server and keeps players and results. |
+
+### Friends far away
+
+The server opens your router's ports itself, and when two players' PCs can't reach each other it relays the match
+through the host (still being tested between two homes). If friends still get "Failed to connect with opponent", or
+the admin page warns about CGNAT, put everyone on one private network with [Tailscale](https://tailscale.com) (free):
+everyone joins the host's network, the host runs the install line again with its Tailscale address, and friends
+download the mod again.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/AzrakHQ/pes2021-online-server/main/run.sh | PUBLIC_IP=100.x.y.z sh
+```
+
+### Trusting a mod file
+
+Only use a file from a host you trust, sent to you directly. It can only connect to that host's server: the server
+proves it holds the secret key matching the file before the mod connects. GitHub builds the mod from `server/mod`,
+the build is byte-for-byte reproducible, and a server's copy differs only in a 2 KB settings area (its key and
+addresses). Every server shows the file's SHA-256 at `http://<server>/status`. The server stores each player's name,
+Steam ID and results, and sees their IP address; during a match the two players' PCs connect directly.
 
 ## Run from source
 
