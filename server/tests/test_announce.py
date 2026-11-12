@@ -101,10 +101,10 @@ def test_admin_routes(tmp_path):
             item = msgpack.unpackb(call(svc, "CMD_GET_PRIVATEINFOTITLELIST", pid=4)["announce_info_list"][0])
             body = call(svc, "CMD_GET_INFOBODY", pid=4, announce_id=item["announce_id"], is_private="YES")
             assert msgpack.unpackb(body["announce_info"])["body"] == "The host disconnected you from this server."
-            code, out = await _http(port, "POST", "/admin/api/players/message", b'{"pid": 4, "title": "Hi", "body": "Game at 9"}', auth)
+            code, out = await _http(port, "POST", "/admin/api/message/player", b'{"pid": 4, "title": "Hi", "body": "Game at 9"}', auth)
             assert code == 200
             assert call(svc, "CMD_GET_PRIVATEINFOTITLELIST", pid=4)["annnounce_info_list_num"] == 2
-            assert (await _http(port, "POST", "/admin/api/players/message", b'{"pid": 4, "title": ""}', auth))[0] == 400
+            assert (await _http(port, "POST", "/admin/api/message/player", b'{"pid": 4, "title": ""}', auth))[0] == 400
             assert (await _http(port, "POST", "/admin/api/message", b'{"clear": true}', auth))[0] == 200
             assert (await _http(port, "POST", "/admin/api/restart", b'{"minutes": 0}', auth))[0] == 200
             assert announce.snapshot(svc)["news"] is None and announce.snapshot(svc)["restart"] is None

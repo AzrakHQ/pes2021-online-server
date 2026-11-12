@@ -140,7 +140,7 @@ def move(svc, pid, copy):
             if hasattr(sess, "close"):
                 sess.close()
     log.info("player %s moved to copy %s…", pid, copy[:10])
-    events.feed(svc, f"{old[0]} now plays from their new copy of the mod", "info")
+    events.feed(svc, f"{old[0]} now plays from their new copy of the mod", "info", [pid])
     return {"pid": pid, "name": old[0]}
 
 
@@ -157,7 +157,7 @@ def set_blocked(svc, pid, on):
         sess.kicked = True
         if hasattr(sess, "close"):
             sess.close()
-    events.feed(svc, f"The admin blocked {r[0] or 'Player %d' % pid}" if on else f"The admin unblocked {r[0] or 'Player %d' % pid}", "info")
+    events.feed(svc, f"The admin blocked {r[0] or 'Player %d' % pid}" if on else f"The admin unblocked {r[0] or 'Player %d' % pid}", "info", [pid])
     return {"pid": pid, "blocked": bool(on)}
 
 

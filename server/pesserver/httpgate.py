@@ -31,10 +31,15 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 status = "200 OK"
                 extra = b""
                 cache, keep = b"no-store", False
+                send_file = None                    # a big file sent piece by piece instead of from memory
                 if route == "/admin" or route.startswith("/admin/api/"):
                     peer = (writer.get_extra_info("peername") or ("",))[0]
                     secure = writer.get_extra_info("ssl_object") is not None
-                    status, out, ctype = await _admin(service, method, route, headers, body, peer, secure)
+                    status, out, ctype = await _admin(service, method, route, headers, body, peer, secure, path)
+                    extra_dl = b""
+                    if isinstance(out, tuple):          # ("file", path, size): a backup download, sent in pieces
+                        send_file, out = out[1:], b""
+                        extra_dl = b'Content-Disposition: attachment; filename="%s"\r\n' % os.path.basename(send_file[0]).encode()
                     cache, out, extra_enc = _admin_cache(route, method, status, out, ctype, headers)
                     if cache == b"not-modified":
                         status, out, cache = "304 Not Modified", b"", b"no-cache"
@@ -44,7 +49,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
                     extra = (b"X-Frame-Options: DENY\r\nContent-Security-Policy: " + admin_csp().encode() + b"\r\n"
                              b"Referrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n"
                              b"Cross-Origin-Resource-Policy: same-origin\r\n"
-                             b"Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()\r\n" + extra_enc)
+                             b"Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()\r\n" + extra_enc + extra_dl)
                 elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
                                                  "/leave.ps1", "/install-ca-proton.py", "/banner"):
                     out, ctype = _web(service, route, headers, writer)
@@ -75,8 +80,11 @@ def make_handler(service, stun_host, stun_port, gate_port):
                     if f is None:
                         status, out, ctype = "404 Not Found", b"not found", "text/plain"
                     else:
-                        with open(f, "rb") as fh:
-                            out = fh.read()
+                        try:                            # (hundreds of MB: never read whole, never on the loop)
+                            send_file, out = (f, os.path.getsize(f)), b""
+                        except OSError:
+                            status, out, ctype = "404 Not Found", b"not found", "text/plain"
+                    if send_file:
                         ctype = "application/octet-stream"
                         log.info("Live Update %s sent to %s", os.path.basename(f), (writer.get_extra_info("peername") or ("",))[0])
                         if method == "GET":
@@ -143,10 +151,12 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 else:
                     out = b"ok"; ctype = "text/plain"
                 writer.write(b"HTTP/1.1 " + status.encode() + b"\r\nCache-Control: " + cache + b"\r\nContent-Type: " + ctype.encode() +
-                             b"\r\nContent-Length: " + str(len(out)).encode() + b"\r\n" + extra
+                             b"\r\nContent-Length: " + str(send_file[1] if send_file else len(out)).encode() + b"\r\n" + extra
                              + (b"Connection: keep-alive\r\nKeep-Alive: timeout=%d\r\n\r\n" % KEEP_IDLE if keep else b"Connection: close\r\n\r\n")
                              + (b"" if method == "HEAD" else out))
                 await writer.drain()
+                if send_file and method != "HEAD":
+                    await _send_file(writer, *send_file)
                 served += 1
                 if not keep:
                     return
@@ -157,6 +167,20 @@ def make_handler(service, stun_host, stun_port, gate_port):
         finally:
             writer.close()
     return on_conn
+
+
+async def _send_file(writer, path, size, piece=1 << 18):
+    """Send exactly `size` bytes of a file without holding it in memory or stopping the server while the disk
+    reads: other players' games keep being answered during a long download."""
+    left = size
+    with open(path, "rb") as fh:
+        while left > 0:
+            data = await asyncio.to_thread(fh.read, min(piece, left))
+            if not data:
+                raise ConnectionError("file got shorter while it was being sent")
+            writer.write(data)
+            await writer.drain()                        # wait for a slow download instead of buffering it all
+            left -= len(data)
 
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
@@ -282,11 +306,22 @@ def from_internet(peer):
     return ip is None or ip.is_global
 
 
-def same_pc(peer):
-    """The browser runs on the server's own computer (loopback, or this machine's own address)."""
+PROXY_HEADERS = ("forwarded", "x-forwarded-for", "x-forwarded-host", "x-forwarded-proto", "x-real-ip", "via",
+                 "tailscale-user-login", "cf-connecting-ip")
+
+
+def proxied(headers):
+    """The request came through a proxy (tailscale serve, a tunnel, nginx): the connection is from this
+    computer, the person may be anywhere."""
+    return any(h in headers for h in PROXY_HEADERS)
+
+
+def same_pc(peer, headers=None):
+    """The browser runs on the server's own computer (loopback, or this machine's own address), and the
+    request didn't come through a proxy running here."""
     from . import netsetup
     ip = _peer_ip(peer)
-    return bool(ip) and (ip.is_loopback or str(ip) == (netsetup.STATE.get("lan") or ""))
+    return bool(ip) and (ip.is_loopback or str(ip) == (netsetup.STATE.get("lan") or "")) and not proxied(headers or {})
 
 
 ADMIN_POLLS = ("/admin/api/state", "/admin/api/games", "/admin/api/games/auto", "/admin/api/program")
@@ -355,7 +390,7 @@ ADMIN_BLOCKED = b"""<!doctype html><meta charset=utf-8><meta name=viewport conte
 <title>PES 2021 Admin</title><body style="font:16px/1.6 system-ui,sans-serif;max-width:560px;margin:60px auto;padding:0 16px">
 <h1>Admin page: home network only</h1><p>For safety, the admin page only opens from the server's own network
 (and Tailscale). Open it from a device on the same Wi-Fi as the server, using the address the server printed.</p>
-<p>To open it from anywhere, the host turns on <b>Admin page from the internet</b> on the admin page (Network card).</p>
+<p>To open it from anywhere, the host turns on <b>Admin page from the internet</b> on the admin page (Server, Admin access).</p>
 </body>"""
 
 
@@ -401,14 +436,14 @@ def _https_page(headers):
             "Your browser will warn that it can't check the certificate (it's the server's own): continue to the site.</p></body>").encode()
 
 
-async def _admin(service, method, route, headers, body, peer="", secure=False):
+async def _admin(service, method, route, headers, body, peer="", secure=False, path=""):
     """Admin page (/admin) and its JSON API. The server's own PC signs in without a password; other devices
     use the password; from the internet only when switched on, and only over HTTPS."""
     import hmac, time as _time
     from . import events, netsetup
     if route == "/admin/api/info":            # public: lets the sign-in page warn before a password is typed
         return "200 OK", json.dumps({"remote": REMOTE["on"], "internet": from_internet(peer), "host_ok": bool(host_ok(headers)),
-                                     "same_pc": same_pc(peer) and bool(host_ok(headers)),
+                                     "same_pc": same_pc(peer, headers) and bool(host_ok(headers)),
                                      "lan": (netsetup.STATE.get("lan") or "") if admin_allowed(peer) else "",
                                      "admin_url": netsetup.web_url(netsetup.STATE.get("lan") or "") + "/admin" if admin_allowed(peer) else "",
                                      "password_replaced": bool(netsetup.PASSWORD_IGNORED)}).encode(), "application/json"
@@ -446,7 +481,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             req = {}
         # The host's own PC: no password. host_ok (checked above) stops DNS rebinding; the custom header
         # can't be sent cross-site without a CORS preflight we never answer, so websites can't even try.
-        if req.get("local") and same_pc(peer) and headers.get("x-pes-local") == "1":
+        if req.get("local") and same_pc(peer, headers) and headers.get("x-pes-local") == "1":
             token = _sessions(service).new(True)
             return "200 OK", json.dumps({"token": token, "expires": _sessions(service).expires(token)}).encode(), "application/json"
         pw = getattr(service, "admin_password", None)
@@ -484,18 +519,18 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         main = netsetup.web_url(addrs[-1] if reachable else addrs[0])   # a link that works for someone
         from . import VERSION, updates
         snap["server"] = {"main": main, "version": VERSION, "update": updates.STATE["latest"],
-                          "platform": sys.platform, "ports": netsetup.port_list(),
+                          "ports": netsetup.port_list(),
                           "data_dir": getattr(service, "data_dir", ""), "lan_url": netsetup.web_url(st["lan"] or ""), "lan": st["lan"], "wan": st["wan"],
                           "pinned": os.environ.get("PESSERVER_PUBLIC_ADDR"), "ports_open": st["mapped"],
                           "cgnat": st["cgnat"], "upnp_error": st["upnp_error"],
                           "remote_admin": REMOTE["on"], "remote_url": f"https://{st['wan']}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}/admin" if st["wan"] else "",
-                          "admin_fp": _admin_fp(service), "same_pc": same_pc(peer), "local_url": netsetup.local_admin_url(),
-                          "link_home_only": not reachable,
-                          "sessions": len([1 for v in _sessions(service).s.values() if v > now]),
+                          "admin_fp": _admin_fp(service), "same_pc": same_pc(peer, headers),
                           "key": (lambda k: k[:8] + " " + k[8:16])(__import__("pesserver.identity", fromlist=["x"]).public_hex()),
-                          "mod_sha256": mod_sha256(mod_url(service, headers, None)), "has_mod": os.path.isfile(MOD_DLL)}
-        from . import announce, adminextra
+                          "has_mod": os.path.isfile(MOD_DLL)}
+        from . import announce, adminextra, pesbackup, pesdiscord
         snap["announce"] = announce.snapshot(service)
+        snap["server"]["discord"] = pesdiscord.status(service)
+        snap["server"]["backups"] = {"folder": pesbackup.folder(service), "list": pesbackup.listing(service)[:12]}
         adminextra.augment(service, snap)
         snap["server"].update(adminextra.server(service))
         snap["modes"] = [r[0] for r in service.accounts.db.execute(
@@ -527,7 +562,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"Write a title and a message."}', "application/json"
         return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
-    if route in ("/admin/api/message/player", "/admin/api/players/message") and method == "POST":
+    if route == "/admin/api/message/player" and method == "POST":
         from . import announce
         try:
             req = json.loads(body or b"{}")
@@ -540,7 +575,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         if req.get("cancel"):
             mid = req.get("id")
             if announce.untell(service, pid, int(mid) if isinstance(mid, (int, str)) and str(mid).isdigit() else None):
-                events.feed(service, f"The message to {name} was taken back", "msg")
+                events.feed(service, f"The message to {name} was taken back", "msg", [pid])
             return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
         try:
             announce.tell(service, pid, req.get("title"), req.get("body"), kind="note")
@@ -548,7 +583,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             return "400 Bad Request", b'{"error":"too long"}', "application/json"
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"Write a title and a message."}', "application/json"
-        events.feed(service, f"Message sent to {name}: “{announce.clean(req.get('title'), announce.TITLE_MAX, False)}”", "msg")
+        events.feed(service, f"Message sent to {name}: “{announce.clean(req.get('title'), announce.TITLE_MAX, False)}”", "msg", [pid])
         return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
     if route == "/admin/api/games":
         from . import gamesetup
@@ -568,7 +603,10 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
                                      "running": running}).encode(), "application/json"
     if route in ("/admin/api/games/install", "/admin/api/games/remove") and method == "POST":
         from . import gamesetup
-        gid = str(json.loads(body or b"{}").get("id", ""))
+        try:
+            gid = str(json.loads(body or b"{}").get("id", ""))
+        except (ValueError, AttributeError):
+            return "400 Bad Request", b'{"error":"bad request"}', "application/json"
         try:
             if route.endswith("install"):
                 if not os.path.isfile(MOD_DLL):
@@ -599,7 +637,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         sess = service.online.get(pid)
         if sess is None or not hasattr(sess, "close"):
             return "404 Not Found", b'{"error":"not online"}', "application/json"
-        events.feed(service, f"{events.name_of(service, pid)} was kicked by the admin", "warn")
+        events.feed(service, f"{events.name_of(service, pid)} was kicked by the admin", "warn", [pid])
         # The game shows only "Connection to server lost" (VNBP_0001) whatever error we send, so the
         # reason waits as a one-time box the next time they enter an online mode.
         from . import announce
@@ -612,6 +650,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         except announce.TooLong:                  # a very long non-Latin reason: send the note without it
             announce.tell(service, pid, "You were disconnected", "The host disconnected you from this server.", kind="kick")
         sess.kicked = True              # not an early exit for the courtesy rating
+        from . import pescmds
+        pescmds.show_out(service, pid)  # ... and the game's own reconnect isn't let back in right away
         sess.close()
         return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/results" and method == "POST":
@@ -666,24 +706,100 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
             return "404 Not Found", b'{"error":"That player is gone."}', "application/json"
         from . import adminextra
         adminextra.clear_courtesy(service, pid)
-        events.feed(service, f"The admin cleared {events.name_of(service, pid)}'s courtesy record", "info")
+        events.feed(service, f"The admin cleared {events.name_of(service, pid)}'s courtesy record", "info", [pid])
         return "200 OK", b'{"ok":true}', "application/json"
     if route == "/admin/api/players/delete" and method == "POST":
         try:
             pid = int(json.loads(body or b"{}").get("pid"))
         except (ValueError, TypeError, AttributeError):
             return "400 Bad Request", b'{"error":"pid"}', "application/json"
-        from . import pescmds
+        from . import pescmds, pesundo
+        undo = pesundo.capture(service, pid)            # kept for 30 days: Players, Deleted players, Restore
         name = pescmds.purge_player(service, pid)       # the player and every module's rows for them
         if name is None:
             return "404 Not Found", b'{"error":"That player is already gone."}', "application/json"
         sess = service.online.get(pid)
         if sess is not None:
             sess.kicked = True          # closing it below is not an early exit (no forfeit, no courtesy mark)
+            pescmds.show_out(service, pid)
         if sess is not None and hasattr(sess, "close"):
             sess.close()                # their next login registers them again (name prompt)
         events.feed(service, f"{name} was deleted by the admin", "warn")
-        return "200 OK", b'{"ok":true}', "application/json"
+        return "200 OK", json.dumps({"ok": True, "undo": undo}).encode(), "application/json"
+    if route == "/admin/api/players/restore" and method == "POST":
+        from . import pesundo                       # undo a delete
+        try:
+            name = pesundo.restore(service, int(json.loads(body or b"{}").get("id")))
+        except LookupError as e:
+            return "404 Not Found", json.dumps({"error": str(e).strip("'")}).encode(), "application/json"
+        except (ValueError, TypeError, AttributeError) as e:
+            return "409 Conflict", json.dumps({"error": str(e) if isinstance(e, ValueError) and " " in str(e) else "bad request"}).encode(), "application/json"
+        events.feed(service, f"The admin restored {name}", "info")
+        return "200 OK", json.dumps({"ok": True, "name": name}).encode(), "application/json"
+    if route.startswith("/admin/api/season") and method == "POST":
+        from . import pesseason                     # the league table's seasons
+        try:
+            req = json.loads(body or b"{}")
+            if route == "/admin/api/season/new":
+                done = pesseason.start_new(service, req.get("name"))
+                events.feed(service, f"The admin closed {done['name']} and started a new season", "info")
+                return "200 OK", json.dumps(done).encode(), "application/json"
+            if route == "/admin/api/season/reopen":
+                name = pesseason.reopen(service)
+                if name is None:
+                    return "404 Not Found", b'{"error":"There is no finished season."}', "application/json"
+                events.feed(service, f"The admin reopened {name}: the table counts its matches again", "info")
+                return "200 OK", json.dumps({"name": name}).encode(), "application/json"
+            t = pesseason.table(service, req.get("id"))
+        except (ValueError, TypeError, AttributeError) as e:
+            return "400 Bad Request", json.dumps({"error": str(e) if isinstance(e, ValueError) and " " in str(e) else "bad request"}).encode(), "application/json"
+        if t is None:
+            return "404 Not Found", b'{"error":"That season is gone."}', "application/json"
+        return "200 OK", json.dumps(t).encode(), "application/json"
+    if route == "/admin/api/discord" and method == "POST":
+        from . import pesdiscord                    # notices in the friends' Discord channel
+        try:
+            req = json.loads(body or b"{}")
+            if req.get("test"):
+                err = await asyncio.to_thread(pesdiscord.test, service)
+                return "200 OK", json.dumps({**pesdiscord.status(service), "sent": not err}).encode(), "application/json"
+            was = pesdiscord.status(service)["on"]
+            st = pesdiscord.save(service, req.get("url"), req.get("search"), req.get("results"))
+        except (ValueError, TypeError, AttributeError) as e:
+            return "400 Bad Request", json.dumps({"error": str(e) if isinstance(e, ValueError) and " " in str(e) else "bad request"}).encode(), "application/json"
+        except OSError:
+            return "500 Internal Server Error", b'{"error":"could not write the file"}', "application/json"
+        if st["on"] != was:
+            events.feed(service, "The server now posts in your Discord channel" if st["on"] else "The server no longer posts in Discord", "info")
+        return "200 OK", json.dumps(st).encode(), "application/json"
+    if route.startswith("/admin/api/backups"):
+        from . import pesbackup                     # the database: back up, download, restore
+        if route == "/admin/api/backups/file" and method in ("GET", "HEAD"):
+            from urllib.parse import parse_qs, urlsplit
+            f = pesbackup.file_for(service, parse_qs(urlsplit(path).query).get("name", [""])[0])
+            if f is None:
+                return "404 Not Found", b'{"error":"That backup is gone."}', "application/json"
+            return "200 OK", ("file", f, os.path.getsize(f)), "application/octet-stream"
+        if method != "POST":
+            return "404 Not Found", b'{"error":"unknown"}', "application/json"
+        try:
+            if route == "/admin/api/backups/new":
+                made = await asyncio.to_thread(pesbackup.make, service)
+                events.feed(service, "The admin made a backup", "info")
+                return "200 OK", json.dumps(made).encode(), "application/json"
+            if route == "/admin/api/backups/restore":
+                name = str(json.loads(body or b"{}").get("name") or "")
+                found = pesbackup.restore(service, name)
+                events.feed(service, f"The admin restored the backup {name}", "warn")
+                return "200 OK", json.dumps(found).encode(), "application/json"
+        except LookupError as e:
+            return "404 Not Found", json.dumps({"error": str(e).strip("'")}).encode(), "application/json"
+        except (ValueError, AttributeError) as e:
+            return "400 Bad Request", json.dumps({"error": str(e) if " " in str(e) else "bad request"}).encode(), "application/json"
+        except OSError:
+            log.exception("backup")
+            return "500 Internal Server Error", b'{"error":"Couldn\'t write the backup. Is the disk full?"}', "application/json"
+        return "404 Not Found", b'{"error":"unknown"}', "application/json"
     if route == "/admin/api/program" or route.startswith("/admin/api/program/"):
         from . import hostctl                       # update, restart, stop, start when I log in (hostctl.py)
         # off the event loop: it runs systemctl (up to 15 s each) and the page asks every few seconds

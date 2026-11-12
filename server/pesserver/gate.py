@@ -129,6 +129,11 @@ async def serve(service, codec_factory, host="0.0.0.0", port=10000, idle=300):
                     pesreplay.disconnected(service, sess.pes_pid)
             except Exception:  # noqa: BLE001
                 log.exception("pesreplay.disconnected")
+            try:
+                from . import pesmatch
+                pesmatch.disconnected(service, sess)
+            except Exception:  # noqa: BLE001
+                log.exception("pesmatch.disconnected")
             service.disconnected(sess)
             writer.close()
             log.info("disconnect %s", peer)

@@ -268,7 +268,7 @@ def info_body(svc, sess, req):
     if m:
         if first and m.get("kind", "note") == "note":
             from . import events
-            events.feed(svc, f"{events.name_of(svc, pid)} opened your message “{m['title']}”", "msg")
+            events.feed(svc, f"{events.name_of(svc, pid)} opened your message “{m['title']}”", "msg", [pid])
         return reply
     if not n or aid != n["id"]:
         return {"result": NOERR}

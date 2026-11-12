@@ -137,7 +137,7 @@ class Allocation:
         other = self.server.local_allocation(peer)
         if other is not None:                               # both ends on this server: no router hairpin
             other.from_peer(data, self.advertised)
-        else:
+        elif self.server.may_send(peer[0]):
             self.transport.sendto(data, peer)
 
     def close(self):
@@ -154,9 +154,10 @@ class _RelayProtocol(asyncio.DatagramProtocol):
 
 
 class TurnServer:
-    def __init__(self, secret, realm, relay_ports, advertise, own_ips=()):
-        """advertise(local_ip, peer_ip) -> the relay IP to give that client (same rules as the gate's)."""
-        self.secret, self.realm = secret, realm
+    def __init__(self, secret, realm, relay_ports, advertise, own_ips=(), peer_ok=None):
+        """advertise(local_ip, peer_ip) -> the relay IP to give that client (same rules as the gate's).
+        peer_ok(ip) -> whether the relay may send plain UDP to that address (an online player's); None: any."""
+        self.secret, self.realm, self.peer_ok = secret, realm, peer_ok
         self.relay_ports = list(range(relay_ports[0], relay_ports[1] + 1))
         self.advertise, self.own_ips = advertise, set(own_ips)
         self.allocations = {}                               # relay port -> Allocation
@@ -202,6 +203,19 @@ class TurnServer:
         if a.ticket:
             self.tickets.pop(a.ticket, None)
         a.close()
+
+    def may_send(self, ip):
+        """The relay sends plain UDP only to a player's own address: never to this computer, the router or
+        other devices at home, so the relay can't be used to reach things the internet shouldn't."""
+        if self.peer_ok is None:
+            return True
+        try:
+            a = ipaddress.ip_address(ip)
+        except ValueError:
+            return False
+        if ip in self.own_ips or a.is_loopback or a.is_multicast or a.is_unspecified or a.is_link_local:
+            return False
+        return bool(self.peer_ok(ip))
 
     def local_allocation(self, peer):
         a = self.allocations.get(peer[1])

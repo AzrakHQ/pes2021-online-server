@@ -49,8 +49,8 @@ class StunProtocol(asyncio.DatagramProtocol):
 
     def datagram_received(self, data, addr):
         resp = build_binding_response(data, addr)
-        log.info("UDP %s:%d %dB %s -> %s", addr[0], addr[1], len(data), data.hex(),
-                 f"binding-success {len(resp)}B" if resp else "NO REPLY (not a plain Binding Request)")
+        log.debug("UDP %s:%d %dB %s -> %s", addr[0], addr[1], len(data), data[:32].hex(),
+                  f"binding-success {len(resp)}B" if resp else "no reply (not a plain Binding Request)")
         if resp:
             self.t.sendto(resp, addr)
 
@@ -58,7 +58,7 @@ class StunProtocol(asyncio.DatagramProtocol):
 class RelayLog(asyncio.DatagramProtocol):
     """Placeholder game-relay endpoint: logs whatever the clients send to the address in CMD_GET_GAMERELAY."""
     def datagram_received(self, data, addr):
-        log.info("RELAY UDP %s:%d %dB %s", addr[0], addr[1], len(data), data[:64].hex())
+        log.debug("RELAY UDP %s:%d %dB %s", addr[0], addr[1], len(data), data[:32].hex())
 
 
 async def serve_relay(host="0.0.0.0", port=7600):

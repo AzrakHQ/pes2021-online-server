@@ -116,6 +116,9 @@ async def run(a):
     how = "update it on the admin page (Server)" if hostctl.manageable()[0] else \
         "close this window and start the server again to update"
     updates.start(lambda v: events.feed(svc, f"A newer server version is out ({v}): {how}", "warn"))
+    if a.cmd == "host" and os.environ.get("BACKUPS", "1") != "0":
+        from . import pesbackup                 # a copy of the database a day, in <data>/backups
+        backups = asyncio.create_task(pesbackup.daily(svc))   # (kept in a name: a task nobody holds can vanish)
     if os.environ.get("PES_CONSOLE") == "1" and not hostctl.in_service():
         print("   Keep this window open while you play. Press Ctrl+C to stop the server.\n", flush=True)
     stop = asyncio.Event()

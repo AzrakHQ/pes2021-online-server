@@ -377,12 +377,12 @@ def _tell_old_mod(svc, pid):
     if pid not in told:
         told.add(pid)
         events.feed(svc, f"{events.name_of(svc, pid)} is searching for an Online Co-op match, but their mod can't "
-                         "connect co-op matches. Send them your Invite friends link again for the new mod", "warn")
+                         "connect co-op matches. Send them the mod again", "warn", [pid])
 
 
 def _try_pair(svc):
     q = _queue(svc)
-    ready = [x for x in q if _fixed(x[1])]
+    ready = [x for x in q if _fixed(x[1]) and not pesmatch._away(x[1])]
     for i in range(len(ready)):
         for j in range(i + 1, len(ready)):
             (a, sa, ta), (b, sb, tb) = ready[i], ready[j]

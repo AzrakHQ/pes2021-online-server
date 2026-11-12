@@ -39,7 +39,8 @@ def test_snapshot_totals_history_and_biggest_win(tmp_path):
     assert st["biggest"]["home_name"] == "Bob" and (st["biggest"]["home_score"], st["biggest"]["away_score"]) == (5, 0)   # abandoned 6-0 doesn't count
     ann = next(p for p in snap["players"] if p["name"] == "Ann")
     assert ann["rating"] == 1000 and "streak" in ann
-    assert {"home_pid", "away_pid"} <= set(snap["results"][0])
+    assert "results" not in snap                          # the page asks for results by themselves (results_page)
+    assert {"home_pid", "away_pid"} <= set(events.results_page(svc)[0][0])
 
 
 def test_player_detail(tmp_path):
@@ -48,6 +49,9 @@ def test_player_detail(tmp_path):
     p = events.player_detail(svc, 1)
     assert p["name"] == "Ann" and not p["online"] and len(p["matches"]) == 3
     assert [f["text"] for f in p["feed"]] == ["Ann came online"]
+    events.feed(svc, "Annabel came online", "login")                   # a longer name is someone else
+    events.feed(svc, "Bob 2–1 Cid", "result", [2, 3]); events.feed(svc, "Kick-off: someone vs someone", "match", [1, 2])
+    assert [f["text"] for f in events.player_detail(svc, 1)["feed"]] == ["Kick-off: someone vs someone", "Ann came online"]
     assert events.player_detail(svc, 99) is None
 
 
@@ -65,7 +69,7 @@ def test_results_pages_filters_and_counts(tmp_path):
     rows, total = events.results_page(svc, limit=2)
     assert total == 5 and len(rows) == 2 and rows[0]["id"] > rows[1]["id"]        # newest first, all time
     assert events.results_page(svc, "cid")[1] == 3                                 # one player's matches
-    assert events.results_page(svc, since=now - 7200, until=now - 1000)[1] == 2   # one day's slice
+    assert events.results_page(svc, since=now - 7200, until=now - 2000)[1] == 2   # one day's slice, by kick-off
     assert events.results_page(svc, since=now - 7200)[1] == 4                       # a period
     assert events.results_page(svc, "%")[1] == 0 and events.results_page(svc, "_")[1] == 0   # LIKE wildcards are literal
 
@@ -167,7 +171,7 @@ def test_leaving_a_result_out_of_the_table(tmp_path):
     assert events.set_counted(svc, mid, False)["home_name"] == "Ann"
     assert ann()["won"] == 1 and ann()["gf"] == 3                      # left out of the table and the form
     snap = events.snapshot(svc)
-    assert snap["played_total"] == 5 and next(r for r in snap["results"] if r["id"] == mid)["voided"] == 1   # still listed
+    assert snap["played_total"] == 5 and next(r for r in events.results_page(svc)[0] if r["id"] == mid)["voided"] == 1   # still listed
     assert "left a result out" in snap["feed"][0]["text"]
     assert next(m for m in events.player_detail(svc, 1)["matches"] if m["id"] == mid)["voided"] == 1
     events.set_counted(svc, mid, True)

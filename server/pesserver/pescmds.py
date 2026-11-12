@@ -375,6 +375,31 @@ def set_currentplayer(svc, sess, req):
             "is_select_code_changed": "NO", "subscription_active": "NO", "subscription_expire_date": 0}
 
 
+SHOWN_OUT = 60          # s after a kick, block or delete in which the game's own reconnect is refused
+
+
+def _shown_out(svc):
+    if not hasattr(svc, "pes_shown_out"):
+        svc.pes_shown_out = {}
+    return svc.pes_shown_out
+
+
+def show_out(svc, pid):
+    """The admin disconnected this player: don't let the game quietly reconnect them a second later."""
+    out = _shown_out(svc)
+    for p in [p for p, t in out.items() if time.time() - t > SHOWN_OUT]:
+        del out[p]
+    out[pid] = time.time()
+
+
+def _last_session(mm, pid):
+    """The player's previous connection, when it was already closed (it still holds what the game told us)."""
+    if mm is None:
+        return None
+    return next((s for p, s in mm["queue"] if p == pid), None) \
+        or next((x[1] for x in mm.get("coop_queue", []) if x[0] == pid), None)
+
+
 @cmd("CMD_RECONNECT")
 def reconnect(svc, sess, req):
     # OnlineSystemClientReconnect.cpp (task 0x1411e1e70): after the gate connection drops, the game
@@ -389,15 +414,24 @@ def reconnect(svc, sess, req):
     if r is None or sess is None:
         log.warning("RECONNECT refused: unknown pid %r", req.get("pid"))
         return {"result": "ERR_LOGIN_FAILED"}
-    old = svc.online.get(pid)
+    from . import pesnames
+    if pesnames.is_blocked(svc, pid) or time.time() - _shown_out(svc).get(pid, 0) < SHOWN_OUT:
+        log.warning("RECONNECT refused: pid %s was blocked or kicked by the admin", pid)
+        return {"result": "ERR_LOGIN_FAILED"}
+    mm = getattr(svc, "pes_mm", None)
+    old = svc.online.get(pid) or _last_session(mm, pid)
     sess.pes_username, sess.pes_pid = r[0], pid
-    for attr in ("pes_versions", "pes_sums", "pes_match_req"):
+    for attr in ("pes_versions", "pes_sums", "pes_match_req", "pes_compe", "mod_id", "mod_features"):
         if old is not None and hasattr(old, attr) and not hasattr(sess, attr):
             setattr(sess, attr, getattr(old, attr))
+    sess.pes_reconnected = True                         # (pesmanner: a blip, not the player quitting)
     svc.online[pid] = sess
-    mm = getattr(svc, "pes_mm", None)
     if mm is not None:
         mm["queue"] = [(p, sess if p == pid else s) for p, s in mm["queue"]]
+        if "coop_queue" in mm:
+            mm["coop_queue"][:] = [(p, sess if p == pid else s, t) for p, s, t in mm["coop_queue"]]
+        if mm["watch"].get(pid, (sess,))[0] is not sess:
+            mm["watch"].pop(pid, None)                  # parked on the dead connection: push to the new one
     k = _session_key(sess)
     log.info("RECONNECT pid %s (%s) -> session key %s", pid, r[0], k["key"])
     return {"result": NOERR, **k}

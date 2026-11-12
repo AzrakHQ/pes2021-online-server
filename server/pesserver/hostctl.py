@@ -111,9 +111,50 @@ def autostart():
 
 
 # ---- the service and the apps-menu entry --------------------------------------------------------------------
+KEPT = ("PUBLIC_IP", "UPNP", "TURN", "UPDATE_CHECK", "PESSERVER_NO_IPCHECK", "AUTO_MOD", "REPLAYS")
+# ^ settings given on the command line (UPNP=0 ... | sh) that the background service must keep (server/README.md)
+
+
+def env_path(data):
+    return os.path.join(data, "server.env")
+
+
+def keep_settings(data):
+    """Save the settings this process was started with for the service (<data>/server.env, read by the unit).
+    A setting given now replaces the saved one; the others stay. ADMIN_PASSWORD goes where the server reads its
+    password from, not into a file other programs list."""
+    ok = lambda v: bool(v) and all(c.isalnum() or c in ".:-_" for c in v)
+    kept = {}
+    try:
+        for line in open(env_path(data), encoding="utf-8"):
+            k, _, v = line.strip().partition("=")
+            if k in KEPT and ok(v):
+                kept[k] = v
+    except OSError:
+        pass
+    kept.update({k: os.environ[k].strip() for k in KEPT if ok((os.environ.get(k) or "").strip())})
+    try:
+        os.makedirs(data, exist_ok=True)
+        tmp = env_path(data) + ".tmp"
+        with open(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w", encoding="utf-8") as f:
+            f.write("".join(f"{k}={v}\n" for k, v in sorted(kept.items())))
+        os.replace(tmp, env_path(data))
+        from . import netsetup
+        pw = os.environ.get("ADMIN_PASSWORD") or ""
+        if len(pw) >= 10 and pw not in netsetup.EXAMPLE_PASSWORDS and "\n" not in pw:
+            tmp = os.path.join(data, "admin_password.tmp")
+            with open(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w", encoding="utf-8") as f:
+                f.write(pw + "\n")
+            os.replace(tmp, os.path.join(data, "admin_password"))
+    except OSError as e:
+        log.warning("couldn't save the server's settings for the service: %s", e)
+    return kept
+
+
 def unit_text(prog, data):
     pub = (os.environ.get("PUBLIC_IP") or "").strip()     # e.g. the host's Tailscale address (README, Problems)
     extra = f"\nEnvironment=PUBLIC_IP={pub}" if pub and all(c.isalnum() or c in ".:-" for c in pub) else ""
+    extra += f"\nEnvironmentFile=-{env_path(data)}"       # (after Environment=: a saved setting wins)
     return f"""[Unit]
 Description=PES 2021 private server
 Documentation=https://github.com/{REPO}
@@ -150,6 +191,7 @@ Keywords=pes;efootball;football;server;
 
 def write_unit(prog, data):
     os.makedirs(os.path.dirname(unit_path()), exist_ok=True)
+    keep_settings(data)
     with open(unit_path(), "w") as f:
         f.write(unit_text(prog, data))
     _systemctl("daemon-reload")

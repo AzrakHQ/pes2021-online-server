@@ -175,7 +175,8 @@ def test_admin_api_needs_password_and_tracks_a_match(tmp_path):
     for s_ in (a, b):
         events.observe(svc, s_, "CMD_SEND_GAME_RESULT", {"home_score": 2, "away_score": 1, "abnormalend_reason": "NOERR"})
     snap = events.snapshot(svc)
-    assert len(snap["results"]) == 1 and snap["results"][0]["home_score"] == 2       # saved once
+    saved = events.results_page(svc)[0]
+    assert len(saved) == 1 and saved[0]["home_score"] == 2 and snap["played_total"] == 1       # saved once
     alpha = next(p for p in snap["players"] if p["name"] == "Alpha")
     assert (alpha["played"], alpha["won"]) == (1, 1)
     assert any("Full time: Alpha 2–1 Bravo" in f["text"] for f in snap["feed"])
@@ -193,7 +194,9 @@ def test_admin_api_needs_password_and_tracks_a_match(tmp_path):
             auth = [("Authorization", "Bearer " + token)]
             assert code == 200 and len(token) > 30
             code, out = await _http(port, "GET", "/admin/api/state", headers=auth)
-            assert code == 200 and json.loads(out)["results"][0]["away_name"] == "Bravo"
+            assert code == 200 and json.loads(out)["played_total"] == 1
+            code2, res = await _http(port, "POST", "/admin/api/results", b"{}", auth)
+            assert code2 == 200 and json.loads(res)["rows"][0]["away_name"] == "Bravo"
             assert json.loads(out)["server"]["remote_admin"] is False
             code, _ = await _http(port, "POST", "/admin/api/kick", b'{"pid": 2}', auth)
             assert code == 200 and closed == [2]

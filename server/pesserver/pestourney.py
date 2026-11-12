@@ -206,7 +206,7 @@ def join_compe(svc, sess, req):
     if new:
         log.info("TOURNEY pid %s joined %d with team %d", pid, c["compe_id"], team)
         from . import events
-        events.feed(svc, f"{events.name_of(svc, pid)} entered {c['name']}", "info")
+        events.feed(svc, f"{events.name_of(svc, pid)} entered {c['name']}", "info", [pid])
     return {"result": NOERR}
 
 

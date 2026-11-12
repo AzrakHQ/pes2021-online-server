@@ -61,6 +61,8 @@ def history(svc, pid, kind="ALL"):
                      " FROM pes_matches WHERE (home_pid=? OR away_pid=?)")
                 if "voided" in cols:
                     q += " AND voided=0"
+                if kind == "RANK" and "mode" in cols:    # before the limit: 30 Quick Matches mustn't hide them
+                    q += " AND mode IN (%s)" % ", ".join("'%s'" % m for m, c in CATEGORY.items() if c == "RANK_MATCH")
                 for r in db.execute(q + " ORDER BY id DESC LIMIT ?", (pid, pid, HISTORY)):
                     cat = CATEGORY.get(r[9] or "Quick Match", "PESLEAGUE_LOBBY")
                     if kind == "RANK" and cat != "RANK_MATCH":

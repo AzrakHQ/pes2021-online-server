@@ -108,7 +108,10 @@ async def start(svc, data_dir, lan, wan, extra_ips=()):
         s = _S(); s.local_ip, s.peer_ip = local_ip, peer_ip
         return advertised_addr(svc, s)
 
-    srv = turnrelay.TurnServer(STATE["secret"], REALM, RELAY_PORTS, advertise, own_ips=ips)
+    def player_address(ip):                             # the relay only sends to friends who are online
+        return any(getattr(s, "peer_ip", None) == ip for s in list(svc.online.values()))
+
+    srv = turnrelay.TurnServer(STATE["secret"], REALM, RELAY_PORTS, advertise, own_ips=ips, peer_ok=player_address)
     try:
         await srv.start("0.0.0.0", TLS_PORT, os.path.join(d, "turn.crt"), os.path.join(d, "turn.key"),
                         dtls_port=DTLS_PORT)
@@ -153,7 +156,12 @@ def get_turn_server_list(svc, sess, req):
         pid = int(req.get("pid") or 0)
     except (TypeError, ValueError):
         pid = 0
-    addr = advertised_addr(svc, svc.online.get(pid) if pid else sess)
+    player = svc.online.get(pid) if pid else None
+    asker = req.get("_http") or sess                  # the game asks over HTTP, from the PC it plays on
+    if player is None or getattr(asker, "peer_ip", None) not in (None, getattr(player, "peer_ip", None)):
+        log.warning("TURN list refused: pid %s isn't online from %s", pid, getattr(asker, "peer_ip", "?"))
+        return {"result": NOERR}                      # no relay for strangers: an empty list, like TURN=0
+    addr = advertised_addr(svc, player)
     user, pw = credentials(pid)
     der = STATE["cert_der"]
     log.info("TURN list -> pid %s: %s:%d", pid, addr, TLS_PORT)

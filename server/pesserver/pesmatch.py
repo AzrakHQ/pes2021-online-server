@@ -218,7 +218,7 @@ def send_tamper_data(svc, sess, req):
     pid = _pid(sess)
     log.warning("TAMPER report pid %s: %s", pid, {k: v for k, v in req.items() if not k.startswith("_")})
     if pid is not None:
-        events.feed(svc, f"{events.name_of(svc, pid)}'s game reported edited player data during play", "warn")
+        events.feed(svc, f"{events.name_of(svc, pid)}'s game reported edited player data during play", "warn", [pid])
     return {"result": NOERR}
 
 
@@ -269,15 +269,51 @@ def _note_mismatch(svc, a, b, sa=None, sb=None):
         log.info("MATCH skip %s vs %s: older mod on %s", a, b, old)
         events.feed(svc, f"{events.name_of(svc, a)} and {events.name_of(svc, b)} can't play each other: "
                          f"{events.name_of(svc, old)} has an older mod (or none). Send them the mod again "
-                         "(Download the mod for friends): it keeps both games in sync during the match", "warn")
+                         "(Download the mod for friends): it keeps both games in sync during the match", "warn", [a, b])
         return
     log.info("MATCH skip %s vs %s: different game data", a, b)
     events.feed(svc, f"{events.name_of(svc, a)} and {events.name_of(svc, b)} can't play each other: their games "
-                     "have different player data (patch, live update or edited stats)", "warn")
+                     "have different player data (patch, live update or edited stats)", "warn", [a, b])
 
 
 def _forget_mismatch(st, *pids):
     st["mismatch_told"] = {k for k in st.get("mismatch_told", set()) if not k & set(pids)}
+
+
+GONE_AFTER = 20        # s a searching player's game has to reconnect (CMD_RECONNECT) before they leave the queue
+
+
+def disconnected(svc, sess):
+    """A searching player's connection closed. After a network blip the game reconnects by itself and keeps its
+    place; a game that crashed or was closed never does, so its entry is dropped after GONE_AFTER seconds. It is
+    never paired while it's away (the other friend would be sent to a dead game)."""
+    pid = getattr(sess, "pes_pid", None)
+    if pid is None or svc.online.get(pid) is not sess:
+        return
+    st = _state(svc)
+    if not (any(p == pid for p, _ in st["queue"]) or pid in st["watch"]
+            or any(x[0] == pid for x in st.get("coop_queue", []))):
+        return
+    sess.pes_gone = True
+
+    def drop():
+        if svc.online.get(pid) not in (None, sess):
+            return                                        # back on a new connection: still searching
+        st["queue"] = [(p, s) for p, s in st["queue"] if p != pid]
+        st["watch"].pop(pid, None)
+        if "coop_queue" in st:
+            st["coop_queue"][:] = [x for x in st["coop_queue"] if x[0] != pid]
+        st.get("qsince", {}).pop(pid, None)
+        log.info("MATCH queue -= pid %s (its game went away while searching)", pid)
+    import asyncio
+    try:
+        asyncio.get_running_loop().call_later(GONE_AFTER, drop)
+    except RuntimeError:                                  # no loop (unit tests call this directly)
+        drop()
+
+
+def _away(sess):
+    return getattr(sess, "pes_gone", False)
 
 
 def _next_pair(svc):
@@ -285,6 +321,8 @@ def _next_pair(svc):
     q = _state(svc)["queue"]
     for i in range(len(q)):
         for j in range(i + 1, len(q)):
+            if _away(q[i][1]) or _away(q[j][1]):
+                continue                                  # its connection dropped: wait for it to come back
             if _queue_key(q[i][1]) != _queue_key(q[j][1]):
                 continue                                  # Quick Match vs Online Divisions: different queues
             from . import pesblock
@@ -551,10 +589,14 @@ def _forfeit_row(svc, rid, room, quitter, hs, as_, insert_if_missing=False):
                              "WHERE id=(SELECT MAX(id) FROM pes_matches WHERE room=? AND home_pid=? AND away_pid=? "
                              "AND ended >= ?)", (hs, as_, quitter, rid, home, away, room.get("t", 0)))
             if cur.rowcount == 0 and insert_if_missing:
+                from .adminextra import mode_of_room
+                teams = room.get("teams") or {}
                 db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name,"
-                           " home_score, away_score, reason, left_pid) VALUES (?,?,?,?,?,?,?,?,?,'FORFEIT',?)",
+                           " home_score, away_score, reason, left_pid, mode, home_team, away_team)"
+                           " VALUES (?,?,?,?,?,?,?,?,?,'FORFEIT',?,?,?,?)",
                            (rid, room.get("t", time.time()), time.time(), home, away, events.name_of(svc, home),
-                            events.name_of(svc, away), hs, as_, quitter))
+                            events.name_of(svc, away), hs, as_, quitter, mode_of_room(room),
+                            teams.get(home) or None, teams.get(away) or None))
     except Exception:  # noqa: BLE001 - the forfeit itself already counted
         log.exception("saving the forfeit result")
 
@@ -608,7 +650,7 @@ def forfeit(svc, rid, quitter):
         pass
     log.info("FORFEIT room %s: pid %s left early, pid %s wins (%s)", rid, quitter, winner,
              {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
-    events.feed(svc, f"{events.name_of(svc, quitter)} left the match early: {events.name_of(svc, winner)} wins", "result")
+    events.feed(svc, f"{events.name_of(svc, quitter)} left the match early: {events.name_of(svc, winner)} wins", "result", [quitter, winner])
     return True
 
 
@@ -676,7 +718,7 @@ def _verdict(svc, rid, room):
              {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
     if not room.get("coop"):
         events.feed(svc, "Ratings: " + ", ".join(f"{events.name_of(svc, p)} {old[p][0]} → {new[p][0]}" for p in (home, away)),
-                    "result")
+                    "result", [home, away])
     return room["verdict"]
 
 

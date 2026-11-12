@@ -50,10 +50,19 @@ def _add(svc, pid, left_early, reason=""):
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
-        db.execute("INSERT INTO pes_manner (pid, t, left_early, reason) VALUES (?,?,?,?)",
-                   (pid, time.time(), int(left_early), reason))
+        row = db.execute("INSERT INTO pes_manner (pid, t, left_early, reason) VALUES (?,?,?,?)",
+                         (pid, time.time(), int(left_early), reason)).lastrowid
     if left_early:
         log.info("pid %s left a match early (%s): %s", pid, reason, rating(svc, pid))
+    return row
+
+
+def _take_back(svc, row):
+    if row is None:
+        return
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        db.execute("DELETE FROM pes_manner WHERE id=?", (row,))
 
 
 def rating(svc, pid):
@@ -100,6 +109,11 @@ def _schedule(svc, lv):
         marked = _marked(lv)
         if room is not None:
             room.pop("quit_pending", None)
+        back = lv.get("dropped_pid")
+        if back in marked and getattr(svc.online.get(back), "pes_reconnected", False):
+            marked.discard(back)                 # only the connection to the server blinked: the match goes on
+            _take_back(svc, lv.pop("dropped_row", None))
+            log.info("pid %s reconnected in time: no early exit, no forfeit", back)
         if len(marked) == 1:
             from . import pesmatch
             try:
@@ -132,7 +146,7 @@ def dropped(svc, lv, pid):
         return
     lv["manner_done"] = True
     _marked(lv).add(pid)
-    _add(svc, pid, True, "DISCONNECTED")
+    lv["dropped_pid"], lv["dropped_row"] = pid, _add(svc, pid, True, "DISCONNECTED")
     _schedule(svc, lv)
 
 
