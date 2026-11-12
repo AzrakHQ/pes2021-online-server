@@ -195,10 +195,7 @@ def purge_player(svc, pid):
 
 @cmd("CMD_GET_CHALLENGECODE")
 def get_challengecode(svc, sess, req):
-    code = os.urandom(8).hex()
-    if sess is not None:
-        sess.pes_challenge = code
-    return {"result": NOERR, "challenge_code": code}
+    return {"result": NOERR, "challenge_code": os.urandom(8).hex()}
 
 
 def account_key(sess, username):
@@ -420,6 +417,14 @@ def reconnect(svc, sess, req):
         return {"result": "ERR_LOGIN_FAILED"}
     mm = getattr(svc, "pes_mm", None)
     old = svc.online.get(pid) or _last_session(mm, pid)
+    if r[0].startswith("m:"):
+        # An account of one install (account_key): only that install comes back as it. The mod sends its id at the
+        # start of every connection, this one too; without one, only from where the player was a moment ago.
+        mine = getattr(sess, "mod_id", None)
+        same_place = old is not None and getattr(old, "peer_ip", None) == getattr(sess, "peer_ip", "")
+        if "m:" + mine != r[0] if mine else not same_place:
+            log.warning("RECONNECT refused: pid %s belongs to another install", pid)
+            return {"result": "ERR_LOGIN_FAILED"}
     sess.pes_username, sess.pes_pid = r[0], pid
     for attr in ("pes_versions", "pes_sums", "pes_match_req", "pes_compe", "mod_id", "mod_features"):
         if old is not None and hasattr(old, attr) and not hasattr(sess, attr):
@@ -499,7 +504,18 @@ def dispatch(svc, sess, msgid, req):
     return resp
 
 
+# Commands that put the caller in a queue, a room or a chat: only for a connection that has logged in. (The web
+# API has no connection at all, and port 8080 is open to the internet.)
+NEEDS_PLAYER = frozenset("CMD_" + c for c in (
+    "START_MATCHING WATCH_MATCHING CANCEL_MATCHING START_COOP_MATCHING CANCEL_COOP_MATCHING JOIN_LOBBY LEAVE_LOBBY "
+    "CREATEJOIN_ROOM JOIN_ROOM_NTL LEAVE_ROOM ENTRY_GAME LEAVE_GAME SET_GAMEMEMBER SET_GAMEENV SET_ROOM_OPTION "
+    "REQWATCHL_ROOMLIST SEND_TEXTCHAT").split())
+
+
 def _dispatch(svc, sess, msgid, req):
+    if msgid in NEEDS_PLAYER and getattr(sess, "pes_pid", None) is None:
+        log.warning("%s refused: not logged in", msgid)
+        return {"result": "ERR_LOGIN_FAILED"}
     fn = HANDLERS.get(msgid)
     if fn is None:
         # Minimal reply on purpose: client parsers only overwrite keys that are present, so absent keys

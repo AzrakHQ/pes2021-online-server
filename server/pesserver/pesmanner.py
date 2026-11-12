@@ -25,6 +25,7 @@ The rating is also the co-op "courtesy rating" (pescoop).
 """
 import logging, time
 
+from .accounts import once
 from .pescmds import NOERR, cmd, _db
 
 log = logging.getLogger("pesserver.manner")
@@ -37,11 +38,13 @@ def grade_for(quits):
     return "A" if quits <= 1 else "B" if quits <= 3 else "C"
 
 
+@once
 def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_manner (id INTEGER PRIMARY KEY, pid INTEGER, t REAL,
                   left_early INTEGER, reason TEXT)""")
     db.execute("""CREATE TABLE IF NOT EXISTS pes_manner_state (pid INTEGER PRIMARY KEY, grade TEXT,
                   warned_quits INTEGER DEFAULT 0, still_c_t REAL DEFAULT 0)""")
+    db.execute("CREATE INDEX IF NOT EXISTS pes_manner_pid ON pes_manner(pid, id)")     # a player's last rows
 
 
 def _add(svc, pid, left_early, reason=""):

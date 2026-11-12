@@ -9,12 +9,14 @@ import logging
 
 import msgpack
 
+from .accounts import once
 from .pescmds import NOERR, cmd, _db
 
 log = logging.getLogger("pesserver.block")
 MAX = 400                         # = GET_SERVER_ENV matchrejectpid_max
 
 
+@once
 def _setup(db):
     db.execute("CREATE TABLE IF NOT EXISTS pes_match_reject (pid INTEGER, target INTEGER, UNIQUE (pid, target))")
 

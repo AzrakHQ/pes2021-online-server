@@ -26,7 +26,7 @@ _ADDR_KEYS = ("host_addr", "reflexive_addr", "relayed_addr", "ntl_nat_type", "ad
 
 def _state(svc):
     if not hasattr(svc, "pes_mm"):
-        svc.pes_mm = {"queue": [], "ntl": {}, "watch": {}, "matched": {}, "rooms": {}, "next_room": 1}
+        svc.pes_mm = {"queue": [], "ntl": {}, "watch": {}, "rooms": {}, "next_room": 1}
     return svc.pes_mm
 
 
@@ -119,13 +119,11 @@ def get_lobbylist(svc, sess, req):
 
 @cmd("CMD_JOIN_LOBBY")
 def join_lobby(svc, sess, req):
-    sess.pes_lobby = int(req.get("lobby_id", 1) or 1)
     return {"result": NOERR, "gamerelay_web_url": ""}
 
 
 @cmd("CMD_LEAVE_LOBBY")
 def leave_lobby(svc, sess, req):
-    sess.pes_lobby = None
     return {"result": NOERR}
 
 
@@ -166,8 +164,6 @@ def cancel_matching(svc, sess, req):
 def watch_matching(svc, sess, req):
     st = _state(svc)
     pid = _pid(sess)
-    if pid in st["matched"]:
-        return st["matched"].pop(pid)
     st["watch"][pid] = (sess, int(req.get("rqid", 0) or 0), req.get("_kind", 0x60), req.get("_seq", 1))
     log.info("MATCH watch parked for pid %s", pid)
     return {"_defer": True}
@@ -341,9 +337,7 @@ def _try_pair(svc):
         (a, sa), (b, sb) = st["queue"][i], st["queue"][j]
         st["queue"] = [x for k, x in enumerate(st["queue"]) if k not in (i, j)]
         _forget_mismatch(st, a, b)
-        room = st["next_room"]; st["next_room"] += 1
-        st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time(), "mode": _matching_type(sa),
-                            "compe": _queue_key(sa)[1]}
+        room = new_room(svc, owner=a, members=[a, b], mode=_matching_type(sa), compe=_queue_key(sa)[1])
         log.info("MATCH FOUND room %d: owner %s vs %s", room, a, b)
         for pid in (a, b):
             viewer = sa if pid == a else sb
@@ -387,7 +381,22 @@ def _int(v):
         return 0
 
 
+ROOM_KEEP = 6 * 3600     # s: a match room this old is over (its pushes, forfeit timer and recording have ended)
+
+
+def new_room(svc, **room):
+    """A match between two players, {owner, members, ...}: returns its number. Rooms of long-finished matches go,
+    so the list (searched for every command of anyone who has played) stays short."""
+    st, now = _state(svc), time.time()
+    for rid in [rid for rid, r in st["rooms"].items() if now - r.get("t", now) > ROOM_KEEP]:
+        del st["rooms"][rid]
+    rid = st["next_room"]; st["next_room"] += 1
+    st["rooms"][rid] = {**room, "t": now}
+    return rid
+
+
 def _room_of(svc, pid):
+    """(number, room) of the player's newest match, also after it ended (the verdict is read from it)."""
     for rid, r in sorted(_state(svc)["rooms"].items(), reverse=True):
         if pid in r["members"]:
             return rid, r
@@ -681,9 +690,6 @@ def _verdict(svc, rid, room):
     elif room.get("mode") == "MATCHDAY":
         from . import pesmatchday
         pesmatchday.record(svc, room)
-    elif room.get("mode") == "PES_LEAGUE":
-        from . import pestourney
-        pestourney.record(svc, room)
     log.info("VERDICT room %s %d-%d: %s", rid, score["HOME"], score["AWAY"],
              {p: f"{old[p][0]}->{new[p][0]}" for p in (home, away)})
     if not room.get("coop"):

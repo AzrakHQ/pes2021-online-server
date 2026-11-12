@@ -13,7 +13,7 @@
 Everything here reads; the only writes are the admin's "clear courtesy record", the word list and the cleanup of a
 deleted player.
 """
-import json, logging, os, time
+import json, logging, os
 
 log = logging.getLogger("pesserver.adminextra")
 

@@ -112,6 +112,8 @@ async def serve(service, codec_factory, host="0.0.0.0", port=10000, idle=300):
             log.info("idle timeout %s", peer)
         except (ProtocolError, ConnectionError) as e:
             log.warning("protocol/connection error from %s: %s", peer, e)
+        except EOFError:                             # the client went away in the middle of a frame
+            log.info("connection from %s ended mid-message", peer)
         finally:
             try:
                 from . import events

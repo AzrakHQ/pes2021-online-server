@@ -13,6 +13,7 @@ import logging, time
 
 import msgpack
 
+from .accounts import once
 from .pescmds import NOERR, cmd, _db, _pname, _player
 from . import pesmatch
 
@@ -20,6 +21,7 @@ log = logging.getLogger("pesserver.profile")
 LIMIT = 200
 
 
+@once
 def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_profile (pid INTEGER PRIMARY KEY, team TEXT, player TEXT, intro TEXT,
                   t REAL)""")

@@ -233,18 +233,7 @@ def leave_peslg_mode(svc, sess, req):
     return {"result": NOERR}
 
 
-@cmd("CMD_GET_PESLEAGUE_MAINMENU_INFO")
-def peslg_mainmenu(svc, sess, req):
-    return {"result": NOERR, "division": "D1", "new_result": "NO"}
-
-
-@cmd("CMD_GET_PESLEAGUE_COMPE_LIST")
-def peslg_compe_list(svc, sess, req):
-    c = {**_compe(), "banner_file_info": _pack({}), "list_banner_file_info": _pack({})}
-    return {"result": NOERR, "compe_list": [_pack(c)], "list_num": 1, "list_max": 1, "is_end": "YES"}
-
-
-@cmd("CMD_GET_PESLEAGUE_COMPE_INFO")
+# (pestourney.py answers the competition screens; for the "Match Replays" entry it calls the three below)
 def peslg_compe_info(svc, sess, req):
     c = _compe()
     # the fields must also be inside compe_data, or the game opens the eFootball League 1v1 menu (live)
@@ -252,17 +241,10 @@ def peslg_compe_info(svc, sess, req):
             "compe_data": _pack({**c, "eula_url": "", "entry_compe": "NO"})}
 
 
-@cmd("CMD_GET_PESLEAGUE_COMPE_TEAM_LIST")
 def peslg_team_list(svc, sess, req):
     return {"result": NOERR, "team_list": TEAMS, "team_list_num": len(TEAMS)}
 
 
-@cmd("CMD_JOIN_PESLEAGUE_COMPE")
-def peslg_join(svc, sess, req):
-    return {"result": NOERR}
-
-
-@cmd("CMD_GET_PESLEAGUE_1VS1_MAINMENU_INFO")
 def peslg_1vs1(svc, sess, req):
     now = int(time.time())
     return {"result": NOERR, "compe_end_time": now + 30 * 86400, "draw_count": 0, "lose_count": 0, "match_num": 0,
@@ -275,6 +257,24 @@ def send_watching_result(svc, sess, req):
     return {"result": NOERR}
 
 
+def _finish_interrupted(svc, mid, meta):
+    """A recording the server was restarted in the middle of: give it its end chunk, so it plays to that point
+    and stops (without it the game waits for more) and the admin page no longer lists it as recording."""
+    with _lock:
+        if mid in _live:
+            return meta
+        st = {**meta, "type3": False, "closed": True}
+        _live[mid] = st
+        try:
+            _chunk(svc, mid, b"", final=True)
+        except OSError:
+            return meta
+        finally:
+            _live.pop(mid, None)
+    log.info("recording %s was interrupted by a restart: closed at %d chunks", mid, st["n"])
+    return {k: v for k, v in st.items() if k != "type3"}
+
+
 def recordings(svc):
     """Finished (or still recording) matches, newest first: [(match_id, meta)]."""
     d = _dir(svc)
@@ -282,9 +282,12 @@ def recordings(svc):
     for m in os.listdir(d):
         try:
             with open(os.path.join(d, m, "meta.json")) as f:
-                out.append((m, json.load(f)))
+                meta = json.load(f)
         except (OSError, ValueError):
             continue
+        if not meta.get("closed") and m not in _live and _safe(m):
+            meta = _finish_interrupted(svc, m, meta)
+        out.append((m, meta))
     out.sort(key=lambda x: x[1].get("t0", 0), reverse=True)
     return out
 

@@ -16,7 +16,7 @@ Flow and rules from notes/re/functions/rooms.md, roomcrash.md, roomlist.md and t
   code takes over (a pesmatch room record is registered for GET_MATCHID, the relay check, notices, results);
 - after the match both send LEAVE_GAME; when all have, StateChanged WAITING brings them back to the room.
 """
-import logging, time
+import logging
 
 import msgpack
 
@@ -202,7 +202,21 @@ def _leave(svc, pid, why=""):
         playerlist_push(svc, room, "UPDATE")
         log.info("ROOM %d: owner %s left, %s is the owner now", room["id"], pid, new)
     roomlist_push(svc, room, "UPDATE")
+    _after_match(svc, room)                          # the one who hadn't left the match screen is gone
     return True
+
+
+def _after_match(svc, room):
+    """Everyone still in the room has left the match: the room waits for the next one."""
+    if room["state"] == "WAITING" or not room["left_game"] >= set(room["members"]):
+        return
+    room.update(state="WAITING", entries={}, left_game=set())
+    room["game_no"] += 1
+    for p in room["members"]:
+        _push(svc, p, "CMD_WATCH_ROOMSTATE", {"event": "StateChanged", "state": "WAITING",
+                                              "owner_pid": room["owner"], "password": ""})
+    _later(roomlist_push, svc, room, "UPDATE")
+    log.info("ROOM %d: back in the room after the match", room["id"])
 
 
 @cmd("CMD_CREATEJOIN_ROOM")
@@ -301,7 +315,8 @@ def entry_game(svc, sess, req):
     room["listening"].add(pid)                       # from now on its player list may be updated
     if str(req.get("entry", "")).upper() == "TRUE":
         if pid not in room["entries"]:
-            room["entries"][pid] = {"entryNum": len(room["entries"]) + 1, "side": req.get("side")}
+            taken = [e["entryNum"] for e in room["entries"].values()]     # not len()+1: 1 may have left
+            room["entries"][pid] = {"entryNum": max(taken, default=0) + 1, "side": req.get("side")}
     else:
         room["entries"].pop(pid, None)
 
@@ -325,9 +340,7 @@ def set_gamemember(svc, sess, req):
         return {"result": NOERR}                     # sent on every join/entry change; start only when all entered
     room["state"] = "SETENV"
     room["left_game"] = set()
-    mst = pesmatch._state(svc)
-    mid = mst["next_room"]; mst["next_room"] += 1
-    mst["rooms"][mid] = {"owner": room["owner"], "members": list(room["members"]), "t": time.time(), "lobby_room": room["id"]}
+    mid = pesmatch.new_room(svc, owner=room["owner"], members=list(room["members"]), lobby_room=room["id"])
     log.info("ROOM %d: match %d starts (%s)", room["id"], mid, " vs ".join(map(str, room["members"])))
     for p in room["members"]:
         _push(svc, p, "CMD_WATCH_DECIDE_GAMEENV", {"game_env": pack(room["env"])})
@@ -344,14 +357,7 @@ def leave_game(svc, sess, req):
     if room is None:
         return {"result": NOERR}
     room["left_game"].add(pid)
-    if room["state"] != "WAITING" and room["left_game"] >= set(room["members"]):
-        room.update(state="WAITING", entries={}, left_game=set())
-        room["game_no"] += 1
-        for p in room["members"]:
-            _push(svc, p, "CMD_WATCH_ROOMSTATE", {"event": "StateChanged", "state": "WAITING",
-                                                  "owner_pid": room["owner"], "password": ""})
-        _later(roomlist_push, svc, room, "UPDATE")
-        log.info("ROOM %d: back in the room after the match", room["id"])
+    _after_match(svc, room)
     return {"result": NOERR}
 
 

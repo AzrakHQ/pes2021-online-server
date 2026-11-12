@@ -15,6 +15,7 @@ import logging, time
 
 import msgpack
 
+from .accounts import once
 from .pescmds import NOERR, cmd, _db, _player
 from . import pesmatch
 
@@ -34,6 +35,7 @@ def thresholds(div):
     return 15, 24, 7
 
 
+@once
 def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_division (pid INTEGER PRIMARY KEY, division INTEGER NOT NULL,
                   season INTEGER NOT NULL DEFAULT 1, wins INTEGER DEFAULT 0, draws INTEGER DEFAULT 0,
@@ -71,7 +73,7 @@ def division_info(svc, pid):
                    "enemy_side": "AWAY" if side == "HOME" else "HOME", "enemy_name": name or "",
                    "is_finished_match": "YES", "win_lose": res, "enemy_cpu_level": ""})
             for pts, res, name, team, side, hs, as_ in st["history"][:SEASON]]
-    p = _player(svc, pesmatch._username(svc, pid)) or {"rating": 0}
+    rating = (_db(svc).execute("SELECT rating FROM pes_players WHERE pid=?", (pid,)).fetchone() or (0,))[0]
     # This season's record: the Season Results screen shows it as W/D/L under "Matches 10" (live 2026-11-07).
     season = [h[1] for h in st["history"][:SEASON]]
     best = run = 0
@@ -79,7 +81,7 @@ def division_info(svc, pid):
         run = run + 1 if r == "WIN" else 0
         best = max(best, run)
     rec = {"win_count": season.count("WIN"), "draw_count": season.count("DRAW"), "lose_count": season.count("LOSE"),
-           "win_s_max": best, "rating": float(p.get("rating") or 0)}
+           "win_s_max": best, "rating": float(rating or 0)}
     return {"division": f"D{st['division']}", "demotion_point": down, "promotion_point": up,
             "doublerank_promotion_point": up2, "other_match_num": max(0, SEASON - len(st["history"])),
             "match_record": _pack(rec), "match_history_list": hist}

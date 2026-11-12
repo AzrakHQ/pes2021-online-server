@@ -16,6 +16,7 @@ import logging, random, time
 
 import msgpack
 
+from .accounts import once
 from .pescmds import NOERR, cmd
 from . import pescmds, pesmatch
 from .pesmatch import _compatible, _member, _pid, _state
@@ -57,6 +58,7 @@ def get_is_join_coop_room(svc, sess, req):
 
 
 # ---- profile and block list -------------------------------------------------------------------------
+@once
 def _setup(db):
     db.execute("CREATE TABLE IF NOT EXISTS pes_coop_reject (pid INTEGER, target INTEGER, UNIQUE (pid, target))")
     db.execute("CREATE TABLE IF NOT EXISTS pes_coop_data (pid INTEGER PRIMARY KEY, size INTEGER NOT NULL, data TEXT NOT NULL)")
@@ -414,8 +416,7 @@ def _start(svc, home, away):
     ta = ta if ta != NO_TEAM else pick[0]
     tb = tb if tb != NO_TEAM else pick[1]
     st = _state(svc)
-    room = st["next_room"]; st["next_room"] += 1
-    st["rooms"][room] = {"owner": a, "members": [a, b], "t": time.time(), "coop": True}
+    room = pesmatch.new_room(svc, owner=a, members=[a, b], coop=True)
     pesmatch._forget_mismatch(st, a, b)
     for viewer in (sa, sb):
         body = {"result": NOERR, "matching_state": "FINISH", "group_list_num": 2,

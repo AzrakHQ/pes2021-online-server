@@ -13,8 +13,9 @@ import json, logging, time
 
 import msgpack
 
-from .pescmds import NOERR, cmd, _db, _player
-from . import pesmatch, pesreplay
+from .accounts import once
+from .pescmds import NOERR, cmd, _db
+from . import pesreplay
 
 log = logging.getLogger("pesserver.tourney")
 POINTS = {"WIN": 3, "DRAW": 1, "LOSE": 0}
@@ -27,6 +28,7 @@ def _pack(o):
     return msgpack.packb(o, use_bin_type=True)
 
 
+@once
 def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_tourney (compe_id INTEGER PRIMARY KEY, name TEXT NOT NULL,
                   match_type TEXT NOT NULL, start_date INTEGER NOT NULL, end_date INTEGER NOT NULL,
@@ -288,8 +290,8 @@ def forget(svc, pid):
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
-        db.execute("DELETE FROM pes_tourney_entry WHERE pid=?", (pid,))
-        db.execute("DELETE FROM pes_tourney_match WHERE pid=?", (pid,))
+        for t in ("pes_tourney_entry", "pes_tourney_match", "pes_tourney_seen"):      # seen: the number is reused
+            db.execute(f"DELETE FROM {t} WHERE pid=?", (pid,))
 
 
 def _pname(name, pid):
@@ -449,7 +451,8 @@ def delete(svc, cid):
     db = _db(svc)
     with svc.accounts.lock, db:
         auto = db.execute("SELECT auto FROM pes_tourney WHERE compe_id=?", (c["compe_id"],)).fetchone()[0]
-        for t in ("pes_tourney_match", "pes_tourney_entry", "pes_tourney"):
+        # (seen too: the next competition gets this number, and its final-results notice must still show)
+        for t in ("pes_tourney_match", "pes_tourney_entry", "pes_tourney_seen", "pes_tourney"):
             db.execute(f"DELETE FROM {t} WHERE compe_id=?", (c["compe_id"],))
         if auto:                                  # a deleted monthly cup does not come back the same month
             old = (db.execute("SELECT value FROM pes_tourney_cfg WHERE key='skipped'").fetchone() or ("",))[0]

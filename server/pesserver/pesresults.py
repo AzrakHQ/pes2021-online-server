@@ -13,6 +13,7 @@ import json, logging, time
 
 import msgpack
 
+from .accounts import once
 from .pescmds import NOERR, cmd, _db
 
 log = logging.getLogger("pesserver.results")
@@ -86,6 +87,7 @@ def get_gameresults(svc, sess, req):
 
 
 # ---- play analysis --------------------------------------------------------------------------------------
+@once
 def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_match_analyze (id INTEGER PRIMARY KEY, pid INTEGER, kind TEXT,
                   data TEXT, t REAL)""")

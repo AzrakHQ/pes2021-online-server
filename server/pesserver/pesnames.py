@@ -17,6 +17,7 @@ id the next time that copy signs in.
 """
 import logging, re, time, unicodedata
 
+from .accounts import once
 from . import pescmds
 
 log = logging.getLogger("pesserver.names")
@@ -44,6 +45,7 @@ def key(name):
     return clean(name).replace("_", "")
 
 
+@once
 def _setup(db):
     cols = {r[1] for r in db.execute("PRAGMA table_info(pes_players)")}
     if "blocked" not in cols:

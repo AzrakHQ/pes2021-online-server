@@ -10,7 +10,8 @@ import logging, time
 
 import msgpack
 
-from .pescmds import NOERR, cmd, _db, _player
+from .accounts import once
+from .pescmds import NOERR, cmd, _db
 from . import pesmatch
 
 log = logging.getLogger("pesserver.matchday")
@@ -27,13 +28,12 @@ def _pack(d):
     return msgpack.packb(d, use_bin_type=True, unicode_errors="surrogateescape")
 
 
+@once
 def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_matchday (pid INTEGER, compe_id INTEGER, grp TEXT, team_id INTEGER,
                   points INTEGER DEFAULT 0, matches INTEGER DEFAULT 0, PRIMARY KEY (pid, compe_id))""")
-    try:
+    if "squad" not in {r[1] for r in db.execute("PRAGMA table_info(pes_matchday)")}:
         db.execute("ALTER TABLE pes_matchday ADD COLUMN squad TEXT")      # JSON {gameplan_data, size, members}
-    except Exception:  # noqa: BLE001  (column exists)
-        pass
     db.execute("""CREATE TABLE IF NOT EXISTS pes_matchday_match (pid INTEGER, compe_id INTEGER, match_id TEXT,
                   points INTEGER, fetched INTEGER DEFAULT 0, UNIQUE (pid, compe_id, match_id))""")
 
@@ -63,7 +63,7 @@ def _dates():
             "pickup_member_date": now + 31 * DAY, "end_date": now + 32 * DAY}
 
 
-def _group(grp, name, teams, svc):
+def _group(name, teams):
     return _pack({"team_list": teams, "team_list_num": len(teams), "group_name": name, "group_desc": "",
                   "is_entry_restricted": "NO", "pre_pickup_users_pid_list": []})
 
@@ -72,8 +72,8 @@ def _compe(svc, pid):
     e = _entry(svc, pid)
     users = sum(n for _, n in _totals(svc).values())
     return {"compe_id": COMPE_ID, "base_id": COMPE_ID, "compe_name": NAME, "is_disp_compe_name": "YES",
-            "group_info_a": _group("MATCHDAY_GROUP_A", *SIDES["MATCHDAY_GROUP_A"], svc),
-            "group_info_b": _group("MATCHDAY_GROUP_B", *SIDES["MATCHDAY_GROUP_B"], svc),
+            "group_info_a": _group(*SIDES["MATCHDAY_GROUP_A"]),
+            "group_info_b": _group(*SIDES["MATCHDAY_GROUP_B"]),
             "match_type": "SINGLE_MATCH", "squad_type": "MATCHDAY_SQUAD_SPECIAL", "group_type": "MATCHDAY_GROUP_TYPE_TEAM",
             "rating_rank": "MATCHDAY_RATING_RANK_NONE", **_dates(), "entry_user_num": users, "entry_user_max": 1000,
             "is_end": "NO", "banner_file_info": _pack({"filename": "", "hash_str": ""}),

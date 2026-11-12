@@ -47,9 +47,13 @@ FRAG_KINDS = {0x60: (0x70, 0x71, 0x72), 0x10: (0x20, 0x21, 0x22)}    # single ki
 
 
 def _short(v, limit=600):
-    """Log form of a field: long strings and blobs (e.g. a 64 KB avatar) as their length only."""
-    if isinstance(v, (str, bytes, bytearray)) and len(v) > limit:
-        return f"<{len(v)} {'chars' if isinstance(v, str) else 'bytes'}>"
+    """Log form of a field: long strings and blobs (a 64 KB avatar, a replay upload's list of chunks) as their
+    size only."""
+    if isinstance(v, (str, bytes, bytearray)):
+        return f"<{len(v)} {'chars' if isinstance(v, str) else 'bytes'}>" if len(v) > limit else v
+    if isinstance(v, (list, tuple)):
+        size = sum(len(x) for x in v if isinstance(x, (str, bytes, bytearray)))
+        return f"<{len(v)} items, {size} bytes>" if size > limit else v
     return v
 
 def xor(data: bytes) -> bytes:
@@ -282,14 +286,17 @@ class NclCodec(Codec):
         if got is None:
             return None
         kind, seq, body = got
-        if kind in (0x70, 0x20):
-            obj, comp = await self._read_fragments(reader, kind, seq, body)
-        elif kind in (0x71, 0x72, 0x21, 0x22):
-            raise ProtocolError(f"fragment 0x{kind:04x} without a first fragment")
-        else:
-            _, (obj, comp) = self._decrypt_trying_keys(body, unpack_plain)
-        msgid = str(obj.get("msgid", "?"))
-        rqid = int(obj.get("rqid", 0) or 0)
+        try:
+            if kind in (0x70, 0x20):
+                obj, comp = await self._read_fragments(reader, kind, seq, body)
+            elif kind in (0x71, 0x72, 0x21, 0x22):
+                raise ProtocolError(f"fragment 0x{kind:04x} without a first fragment")
+            else:
+                _, (obj, comp) = self._decrypt_trying_keys(body, unpack_plain)
+            msgid = str(obj.get("msgid", "?"))
+            rqid = int(obj.get("rqid", 0) or 0)
+        except (struct.error, zlib.error, ValueError, TypeError, msgpack.exceptions.UnpackException) as e:
+            raise ProtocolError(f"undecodable message (kind 0x{kind:04x}): {e}") from None     # not a traceback
         log.info("RX kind=0x%04x seq=%d %s %s", kind, seq, msgid,
                  {k: _short(v) for k, v in obj.items() if k not in ("msgid",)})
         record("rx", msgid, obj)

@@ -107,6 +107,7 @@ def restore(svc, name):
     started = getattr(svc, "pes_events", {}).get("started")
     for attr in [a for a in vars(svc) if a.startswith(("pes_", "_pes_")) and a not in ("pes_shown_out", "_pes_discord")]:
         delattr(svc, attr)                    # queues, live matches, the feed, "table is ready" flags: read again
+    getattr(svc.accounts.db, "ready", set()).clear()         # an older backup may lack newer tables and columns
     from . import events
     if started:
         events._st(svc)["started"] = started  # (the server itself didn't restart)

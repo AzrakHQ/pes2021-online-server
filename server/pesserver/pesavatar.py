@@ -12,24 +12,17 @@ So the server stores each upload as sent and hands it back unchanged.
 """
 import base64, binascii, hashlib, logging
 
+from .accounts import once
 from .pescmds import NOERR, cmd, _db
 
 log = logging.getLogger("pesserver.avatar")
 MAX = 0xC000
 
 
+@once
 def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_avatar (pid INTEGER PRIMARY KEY, data TEXT NOT NULL,
                   size INTEGER NOT NULL, md5 TEXT NOT NULL)""")
-
-
-def _pid(sess, req):
-    for v in (getattr(sess, "pes_pid", None), req.get("pid")):
-        try:
-            return int(v)
-        except (TypeError, ValueError):
-            continue
-    return None
 
 
 @cmd("CMD_SET_AVATAR")
