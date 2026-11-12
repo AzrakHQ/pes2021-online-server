@@ -49,7 +49,7 @@ Admin page → **Invite friends** → **Copy message**, and send it to your frie
 
 <p align="center"><picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/step2-dark.webp">
-  <img src="docs/step2-light.webp" alt="On the admin page's Invite friends card, Copy message turns into Copied; the invite is pasted into a chat." width="88%">
+  <img src="docs/step2-light.webp" alt="The admin page with its Invite friends panel open: Copy message turns into Copied; the invite is pasted into a chat." width="88%">
 </picture></p>
 
 ### 3. Add the mod (each friend)
