@@ -247,6 +247,8 @@ def main():
     import signal
 
     def stopped_early(*_):                  # until run() takes the signals over: a stop while still starting up
+        from . import netsetup
+        netsetup._stop.set()                # (don't sit out the wait for the network)
         raise KeyboardInterrupt
     for sig in (signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, stopped_early)
