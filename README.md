@@ -100,6 +100,18 @@ Both players download the mod again from the invite link, and the host updates t
 The admin page tells you when a new version is out: press **Update now**. Players and results are kept.
 </details>
 
+<details><summary><b>Are players and results backed up?</b></summary>
+
+Yes. The server makes a backup every day and keeps the last seven. Admin page → **Server** → **Backups** makes one
+now, downloads one or goes back to one.
+</details>
+
+<details><summary><b>Can it tell my friends when someone wants to play?</b></summary>
+
+Yes, on Discord. Admin page → **Server** → **Discord**: paste a channel's webhook address, and the server posts when
+a friend is looking for a match and when a match ends.
+</details>
+
 <details><summary><b>Does the mod change my game?</b></summary>
 
 No. It changes nothing outside the game folder and nothing in the game's own files. To undo, delete `dinput8.dll`.
