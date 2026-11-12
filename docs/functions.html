@@ -102,7 +102,11 @@ nav.toc a{color:var(--accent);text-decoration:none;display:inline-block;padding:
 .theme{flex:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer}
 code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 @media (max-width:640px){.site .logo span{display:none}.site ul{gap:12px}.site ul a{font-size:14px}}
+.tablewrap{overflow-x:auto;max-width:100%}
+main p,main li,main dd{overflow-wrap:break-word}
 @media (max-width:440px){.site ul li:last-child{display:none}.site ul{gap:10px}}
+@media (max-width:640px){.site ul li.here{display:none}}
+.site ul li.here a{color:var(--ink)}
 @media (max-width:380px){.site .logo{display:none}.site ul{gap:10px}.site ul a{font-size:13px}.site .in{gap:10px}}
 @media (max-width:360px){.site .in{padding:0 12px;gap:8px}.site ul{gap:8px}.site ul a{font-size:12.5px}}
 .cat td.f{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:var(--muted);overflow-wrap:anywhere;max-width:280px}
@@ -119,7 +123,7 @@ code{overflow-wrap:anywhere} .note a, .panel a{color:var(--accent)}
 <a class="skip" href="#main">Skip to content</a>
 <header class="site"><div class="in">
   <a class="logo" href="./" aria-label="PES 2021 Online, main page"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0c4a37"/><polygon points="16,9 22.7,13.9 20.1,21.8 11.9,21.8 9.3,13.9" fill="#fff"/></svg><span>PES 2021 Online</span></a>
-  <nav aria-label="Main" style="margin-left:auto"><ul><li><a href="./#host">Host</a></li><li><a href="./#join">Join</a></li><li><a href="./#help">Help</a></li><li><a href="./#faq">FAQ</a></li><li><a href="./#inside">How it works</a></li><li><a href="https://github.com/AzrakHQ/pes2021-online-server">GitHub</a></li></ul></nav>
+  <nav aria-label="Main" style="margin-left:auto"><ul><li><a href="./#story">Story</a></li><li><a href="./#inside">How it works</a></li><li><a href="protocol.html">Write-up</a></li><li class="here"><a href="functions.html" aria-current="page">Functions</a></li><li><a href="https://github.com/AzrakHQ/pes2021-online-server">GitHub</a></li></ul></nav>
   <button class="theme" id="theme" type="button" aria-label="Dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
 </div></header>
 <main id="main" tabindex="-1">
@@ -261,7 +265,7 @@ CreatePermission / ChannelBind (B) ───────────────
 
 <h3 id="matchsession">The match session task (<code>OnlineModeTaskMatchSession.cpp</code>, on-screen <code>MXNV_00NN</code>)</h3>
 <p>Update fn 0x1411430b0, state at <code>task+0x70</code>, result at <code>+0x74</code> (1 ok, 2 peer gone / revision timeout, 3 multiplay failure, 4 ping out of range, 5 server command error, 6 internal error). Every tick first checks the gate connection; if it's lost, the task fails with MXNV_0002 "DISCONNECT PES SERVER". <span class="tag t-static">STATIC</span></p>
-<div class="tw"><table><thead><tr><th>State</th><th>What it does</th><th>Error if it fails</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>State</th><th>What it does</th><th>Error if it fails</th></tr></thead><tbody>
 <tr><td>1–2</td><td>GET_MATCHID (skipped in direct/LAN online). A reply error is fatal. Then SEND_SYNC_NOTICE.</td><td>MXNV_0003 / 0004 / 0023</td></tr>
 <tr><td>3–4</td><td>Sync barrier: waits for one WATCH_SYNC_NOTICE, at most 10 s. A timeout is <b>not</b> an error.</td><td>MXNV_0024 (reply error)</td></tr>
 <tr><td>5–6</td><td>Only if GET_MATCHID said <code>upload:"YES"</code>: START_SEND_GAME_SEQUENCE_DATA (replay upload)</td><td>MXNV_0005 / 0006</td></tr>
@@ -273,7 +277,7 @@ CreatePermission / ChannelBind (B) ───────────────
 <tr><td>20–21</td><td>Init online multiplay; P2P <b>revision check</b> (60 s)</td><td>MXNV_0015 timeout, 0017 DATAPACK error (any revision/data mismatch; status 3 "revision error" is dead code in 1.01), 0018 other user disconnected, 0019 unknown. <code>is_revision_check:"NO"</code> turns the compare off (0x140fff5b3).</td></tr>
 <tr><td>22</td><td>Ping check against the ping limit</td><td>MXNV_0022 "Ping range over"</td></tr>
 <tr><td>23–26</td><td>Error teardown / finish</td><td></td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 
 <h3 id="notices">Peer notices relayed by the server</h3>
 <p>All three SEND commands carry <code>{pid_list_num, pid_list[int], data STR}</code>; the pushes carry <code>{data}</code>. The client never checks who sent a notice except through what's inside <code>data</code>. <span class="tag t-static">STATIC</span></p>
@@ -288,7 +292,7 @@ CreatePermission / ChannelBind (B) ───────────────
 <ul>
   <li><b>GET_MATCHID</b> reply: <code>match_id</code> (any type, converted to a string) and <code>upload</code>. <code>"YES"</code> (what the server sends since 2026-11-07) makes the client stream its replay (<code>CMD_SEND_GAME_SEQUENCE_DATA {pid, match_id, game_seq_data[{type, fromId, channelId, sequenceNumber, data, data_len}]}</code>), which the server keeps as a replay (pesreplay.py). It's sent twice per match, so both times must return the same id for both players. <span class="tag t-ok">LIVE</span></li>
   <li><b>GET_SERVER_ENV</b> is copied into the game's environment every time; missing keys keep the client defaults. All timeouts are in <b>seconds</b>: <span class="tag t-static">STATIC</span>
-    <div class="tw"><table><thead><tr><th>Key</th><th>Default</th><th>Effect</th></tr></thead><tbody>
+    <div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Key</th><th>Default</th><th>Effect</th></tr></thead><tbody>
     <tr><td><code>match_client_timeout_load_timeout</code></td><td>180</td><td>load-screen limit (× fps frames) → LOAD_TIMEOUT, QVHE1459</td></tr>
     <tr><td><code>match_client_timeout_long_outofplay</code></td><td>120</td><td>ball out of play too long → OUTPLAY_LONG</td></tr>
     <tr><td><code>match_client_timeout_init_not_end</code></td><td>240</td><td>match init not finished → LOAD_TIMEOUT (0 = instant abort, which we hit early on)</td></tr>
@@ -296,7 +300,7 @@ CreatePermission / ChannelBind (B) ───────────────
     <tr><td><code>trigger_keep_alive</code>, <code>matchrejectpid_max</code>, <code>quality_check_wait_sec</code> (3600)</td><td></td><td>keep-alive switch, reject-list size, relay quality re-check</td></tr>
     <tr><td><code>is_revision_check</code> "YES", <code>is_check_myclub_level</code> "YES", <code>max_division</code> "D12"</td><td></td><td>revision check switch; myClub; highest division</td></tr>
     <tr><td><code>teamlobby_game_rating_border_normal/hard</code> (600/700), <code>lobby_ping_good/normal</code>, <code>quick_ping_good/normal</code>, <code>log_update_level</code>, <code>konamiid_api_retry_sec</code>, <code>proto_opt</code></td><td></td><td>team lobby, ping bars, telemetry</td></tr>
-    </tbody></table></div>
+    </tbody></table></div></div>
     Our 180/120/240/180 are the client defaults. Raise <code>long_outofplay</code> / <code>cmd_lack</code> for more pause tolerance.</li>
 </ul>
 
@@ -451,7 +455,7 @@ after: SET_PLAYDATA_MATCH (HTTP), SEND_STATS_DATA, SEND_GAME_RESULT, REQWATCHL_R
 never: a RELOAD push into a game that already holds list entries (uncaught C++ exception, the game exits)</pre></div>
 
 <h3>Command reference (Free lobby)</h3>
-<div class="tw"><table><thead><tr><th>Command</th><th>Request</th><th>Reply / push body</th><th>Server should</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Command</th><th>Request</th><th>Reply / push body</th><th>Server should</th></tr></thead><tbody>
 <tr><td><code>GET_BLOCKLIST</code></td><td>—</td><td><code>count, bklist[blob{name, player_num, max_player_num, block_id}]</code>; empty → "no data"</td><td><b>must implement</b>: one block, e.g. "Friendly Rooms"</td></tr>
 <tr><td><code>JOIN_BLOCK</code> / <code>LEAVE_BLOCK</code></td><td><code>block_id</code> / <code>pid</code></td><td>bare</td><td>track block; leaving unsubscribes</td></tr>
 <tr><td><code>GET_LOBBYINFO</code></td><td><code>lobby_id</code></td><td><code>has_info, title, sentence_info, sentence_intro</code></td><td><code>has_info:"NO"</code>, or a server message of the day</td></tr>
@@ -468,7 +472,7 @@ never: a RELOAD push into a game that already holds list entries (uncaught C++ e
 <tr><td><code>SEND_TEXTCHAT</code> / push <code>WATCH_TEXTCHAT</code></td><td><code>channel</code> (BLOCK/ROOM/TEAM/…/COOP_ROOM), <code>statement, list_flg</code> CHAT_SEND/CHAT_BAN, <code>list_pid</code></td><td><code>channel, from_pid, name, statement</code></td><td>push to the room (or block) members</td></tr>
 <tr><td><code>REQWATCHL_BLOCK_MATCH_LIST</code></td><td><code>pid</code></td><td>list keyed <code>room_id</code> of running matches (home/away pname, team, score, game_phase)</td><td>optional; empty RELOAD</td></tr>
 <tr><td><code>SET/GET_PLATFORM_SESSION</code></td><td><code>pid, data_size, session</code> / <code>pid, room_id</code></td><td><code>data_size, session</code></td><td>store/return; Steam overlay invites probably don't work in our setup</td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <ul>
   <li><b>Follow list</b> (<code>FOLLOW_USER</code>, <code>GET_FOLLOW_LIST</code> → <code>follow_list[blob{user_id{pid, pname}, is_locked, is_clan_member}]</code>, <code>LOCK_FOLLOW_USER</code>) lives with the co-op code: CO-OP Settings → Follow List, and after a co-op match the screen that offers to follow your human team-mates. No path leads from a followed player into a Free room. <span class="tag t-ok">DONE</span> The server stores each player's follow list; the co-op card's follow flag and follower count come from it (unit-tested, not tried in the game yet).</li>
   <li><b>Mode names</b> <span class="tag t-static">STATIC</span>: <code>lobby_type</code> = FREE, MULTI, MYCLUB, PESLEAGUE; <code>JOIN_ONLINE_MODE online_mode</code> = QUICK, RANKMATCH, FREE, MULTI, MYCLUB, PESLEAGUE, MATCHDAY, COOP, EDIT_DATA_LIVE_UPDATE. SET_GAMEENV <code>game_env</code> is a packed blob holding the 9-key settings map. Co-op <code>room_phase</code> uses the game-phase names (DATASYNC…END).</li>
@@ -513,7 +517,7 @@ after:   SEND_GAME_RESULT … + SET_COOP_MATCH_DATA, SET_COOP_PLAYER_GRADE, GET_
 </ul>
 
 <h3>Menus, post-match and party rooms</h3>
-<div class="tw"><table><thead><tr><th>Command</th><th>Reply</th><th>Safe server reply</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Command</th><th>Reply</th><th>Safe server reply</th></tr></thead><tbody>
 <tr><td><code>GET_COOP_MAINMENU_INFO</code></td><td>is_coop_banned, is_season_end, division, pre_season_rank, …</td><td>flags "NO", ranks 0</td></tr>
 <tr><td><code>GET/SET_COOP_QUICKMATCHOPTION</code></td><td>is_vscom, force_alone, cpu_level_min/max</td><td>"NO", "NO", "NORMAL", "NORMAL"; store SET</td></tr>
 <tr><td><code>GET_COOP_PROFILE</code></td><td>user_info{pid, pname} and, beside it, coop_profile_data{coop_level, coop_level_point, follower, coop_manner, online_match, vscom_match, match_data} (checked on the game's parser)</td><td>level 1, the real courtesy rating, zeros</td></tr>
@@ -522,7 +526,7 @@ after:   SEND_GAME_RESULT … + SET_COOP_MATCH_DATA, SET_COOP_PLAYER_GRADE, GET_
 <tr><td><code>SET_COOP_MATCH_DATA</code> / <code>GET_COOP_MATCH_DATA</code></td><td>per-player performance blob <code>{match_stats, grade, match_data_size, match_data}</code></td><td>store; return the last one (or size 0)</td></tr>
 <tr><td><code>SET_COOP_PLAYER_GRADE</code></td><td>players rate team-mates and opponents <code>grade_list[{pid, grade}]</code></td><td>NOERR (could feed coop_manner)</td></tr>
 <tr><td><code>GET_COOP_LEVEL_RESULT</code></td><td>coop_level_user_list[{status, user_id, point, before/after_point, before/after_level, …}]</td><td>one entry per member, unchanged values</td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <p><b>Party rooms</b>: <code>CREATEJOIN_COOP_ROOM {basic_settings{room_name, password, is_com_match, coop_level, coop_manner, …}, match_settings{user_team_id, enemy_team_id, cpu_level}, kind}</code>, <code>GET_COOP_ROOMLIST</code>, <code>JOIN/LEAVE/RETURN_COOP_ROOM</code>, <code>GET/SET_COOP_ROOM_OPTION</code> + push <code>WATCH_COOP_ROOM_OPTION {…, room_phase, countdown…}</code>, member list <code>REQWATCHL_COOP_ROOM_MEMBER</code> (same <a href="#watchlist">list protocol</a>, key <code>player_index</code>), <code>SET_COOP_MATCH_READY</code>, <code>SET_COOP_ROOM_GUEST</code>, <code>SET_COOP_ROOM_TO_MATCHING {to_match_pid_list}</code> → push <code>WATCH_COOP_ROOM_TO_MATCHING_MEMBER {player_index_list}</code>, <code>REQWATCH_ERROR_COOP_ROOM_TO_MATCHING {is_error, error_kind NOERR|NOT_ENOUGH_PLAYER|INCLUDES_RENTAL|RED_CARD|CONTRACT}</code>, push <code>WATCH_BREAKUP_COOP_ROOM</code> when the owner leaves. The room's members then send START_COOP_GROUP_MATCHING, and the server must put them in one group. <span class="tag t-static">STATIC</span> <span class="tag t-inf">INFERRED</span></p>
 
 <h3>Effort</h3>
@@ -593,7 +597,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 </ul>
 
 <h3>Profile, account and store</h3>
-<div class="tw"><table><thead><tr><th>Command</th><th>What it is</th><th>Server should</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Command</th><th>What it is</th><th>Server should</th></tr></thead><tbody>
 <tr><td><code>GET_GP_ACHIEVEMENT</code></td><td>GP balance <code>all_gp</code>, coins <code>pes_point</code>, <code>all_achievement_bit_array</code></td><td>bare NOERR shows 0 GP; only myClub uses them</td></tr>
 <tr><td><code>GET_PLAYER_PARAMETERLIST</code></td><td>server override of player stats (108 values each) for myClub squads, matched by position in the list</td><td>bare NOERR (an empty list changes nothing)</td></tr>
 <tr><td><code>GET_AVATAR_HTTP</code> / <code>SET_AVATAR</code></td><td>profile picture: <code>avatar_data</code> base64, <code>avatar_data_size</code> ≤ 48 KiB, <code>avatar_md5</code> lowercase hex MD5 of the decoded bytes</td><td>the server stores SET_AVATAR (128×128, 3 bytes a pixel: R,G,B,A at 6 bits each, 49152 bytes) and returns it; other players see it, e.g. in matchmaking <span class="tag t-ok">LIVE</span></td></tr>
@@ -601,7 +605,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <tr><td><code>SET_LANGUAGE</code></td><td><code>lang</code>; result ignored</td><td>NOERR; store for localized news</td></tr>
 <tr><td><code>LEAVE_ONLINE_MODE</code>, <code>JOIN/LEAVE_OFFLINE_MODE</code></td><td>presence: <code>online_mode</code> / <code>offline_mode</code> ("EXHIBITION"); results ignored</td><td>NOERR; could drive a presence status</td></tr>
 <tr><td><code>GET_STORE_PRODUCT_LIST</code>, <code>GET_STORE_TRANSACTION_STATE</code>, <code>*_STEAM_STORE*</code> (HTTP)</td><td>myClub coin store; Steam microtransactions</td><td>empty / no pending transaction; reply an error to START_STEAM_STORE</td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <p class="note"><b>Live (2026-11-06):</b> different data → GNCX_0006 "Unable to connect." 2 s after the match start (the sums do block the match); <code>is_revision_check:"NO"</code> → team selection reached. GNCX_0006 is the same param/entry compare as MXNV_0017: the multiplay object reports it one tick before the match task would (<code>gncx_labels.md</code>). <b>Live:</b> with the check off, a match with different player stats stayed in sync past minute 15 (identical minimaps), so a mismatch is unfair rather than fatal. <b>Still unknown:</b>  whether a no-banner news item shows and how <code>priority</code> sorts; the image format for banners, ads and avatars.</p>
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 
@@ -617,14 +621,14 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 (C) NAT traversal (ntl, cobra\NatTraversal\NTL): STUN-format messages with Konami methods/attributes</pre></div>
 
 <h3 id="frags">Frame kinds and fragmentation</h3>
-<div class="tw"><table><thead><tr><th>Kind</th><th>Role</th><th>Body after decryption</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Kind</th><th>Role</th><th>Body after decryption</th></tr></thead><tbody>
 <tr><td><code>0x60</code></td><td>whole message</td><td><code>u32 data_len, u32 original_size, u8 zlib, data</code></td></tr>
 <tr><td><code>0x70</code></td><td><b>first fragment</b></td><td><code>u32 total_len, u32 chunk_len, u32 original_size, u8 zlib, chunk</code></td></tr>
 <tr><td><code>0x71</code></td><td>middle fragment</td><td><code>u32 chunk_len, chunk</code></td></tr>
 <tr><td><code>0x72</code></td><td>last fragment, then inflate and parse</td><td><code>u32 chunk_len, chunk</code></td></tr>
 <tr><td><code>0x10, 0x20–0x22</code></td><td>same four roles, "no crypto" variant; the client never sends them and treats a received 0x10 like 0x60</td><td>same</td></tr>
 <tr><td><code>0x1060, 0x1070–0x1072</code></td><td>same four roles in the AES tier; the kind is <b>not</b> XOR-masked</td><td>same</td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <ul>
   <li>Receive peek 0x141854f10 accepts exactly these kinds. Bit 0x1000 of the raw kind selects the AES parser. <span class="tag t-static">STATIC</span></li>
   <li>Send path 0x1418537d0: a payload goes in one frame if it is ≤ 0x3f7 bytes (AES: 0x3d7). Otherwise the first chunk is 0x3f3 (0x3d3) and later chunks 0x3fc (0x3dc). The client <b>rejects any frame body over 0x410</b> (0x141854a49). <span class="tag t-static">STATIC</span></li>
@@ -720,7 +724,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <ul>
   <li><b>Size</b> (PES2021.exe 1.01.00): 37 MB of code in the <code>.trace</code> section, about <b>118,500 functions</b> (158,720 <code>.pdata</code> entries incl. chained chunks), <b>10,179 C++ classes</b> with RTTI, 9,188 with recorded base classes. A further 380 MB section, <code>.impdata</code>, looks packed or obfuscated and was not examined. Only 68 source-file paths survive, 33 of them online code, so the rest of the game has few debug strings. <span class="tag t-static">STATIC</span></li>
   <li><b>Main areas</b> by class namespace:
-    <div class="tw"><table><thead><tr><th>Area</th><th>Classes</th><th>What it is</th></tr></thead><tbody>
+    <div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Area</th><th>Classes</th><th>What it is</th></tr></thead><tbody>
     <tr><td><code>fox::gr</code>, <code>fox::ph</code>, <code>fox::geo</code>, <code>fox::anim</code>, <code>fox::fx</code>, <code>fox::ncl</code> …</td><td>~2,100</td><td>Fox Engine: graphics, physics, geometry, animation, effects, the server-link codec</td></tr>
     <tr><td><code>menu</code>, <code>menusystem</code>, <code>menuutility</code>, <code>flash</code></td><td>~1,400</td><td>menus and UI (416 classes derive from <code>menusystem::Window</code>)</td></tr>
     <tr><td><code>commandautomake</code>, <code>command</code>, <code>onlinesystem</code>, <code>onlinemode</code>, <code>onlinelogin</code></td><td>~1,750</td><td>server commands and the online system (this page)</td></tr>
@@ -730,7 +734,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
     <tr><td><code>match</code>, <code>match::player</code>, <code>match::ai</code>, <code>match::anime</code>, <code>match::pad</code>, <code>match::camera</code>, <code>matchPlan</code></td><td>~600</td><td>the match engine: player control, AI, animation, controller input, camera, tactics</td></tr>
     <tr><td><code>kps::*</code>, <code>ntl</code></td><td>~250</td><td>player-to-player network stack and NAT traversal (see <a href="#wire">transport layers</a>)</td></tr>
     <tr><td><code>draw</code>, <code>sound</code>, <code>fixdemo</code>, <code>edit</code>, <code>savesystem</code>, <code>tmpdb</code>, <code>livedata</code></td><td>~300</td><td>rendering helpers, sound, cutscenes, Edit mode, saves, the in-memory database, live data</td></tr>
-    </tbody></table></div></li>
+    </tbody></table></div></div></li>
   <li><b>Every server command also has a JSON form:</b> 401 classes derive from <code>fox::ncl::NclJsonMessageBase</code> / <code>NclJsonMessageResult</code>, next to the MessagePack parsers we use. That's the second parser on each reply class. The game accepts MessagePack, so it isn't needed. <span class="tag t-static">STATIC</span></li>
   <li><b>Finding code:</b> <code>notes/re/functions/tools/classmap.py</code> rebuilds the full class list with base classes and vtables from the game exe. The <code>kb.py</code> commands find users of a string, address or struct offset (<code>str</code>, <code>refs</code>, <code>callers</code>, <code>disp</code>), summarise a command (<code>cmd</code>) and dump functions (<code>fn</code>).</li>
 </ul>
@@ -747,7 +751,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 </ul>
 
 <h3>Player.bin: 312 bytes per player (18,452 in the update pack) <span class="tag t-static">STATIC</span></h3>
-<div class="tw"><table><thead><tr><th>Offset</th><th>Field</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Offset</th><th>Field</th></tr></thead><tbody>
 <tr><td><code>+0x00</code> u32</td><td>associated / legend club (e.g. Totti → Roma). <b>Not</b> the current team, which comes from PlayerAssignment.</td></tr>
 <tr><td><code>+0x04</code> u32</td><td>loan parent club (0 = not on loan)</td></tr>
 <tr><td><code>+0x08</code> u32</td><td><b>player id</b> (bits 0–17; Messi = 7511)</td></tr>
@@ -756,7 +760,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <tr><td><code>+0x1c</code></td><td>nationality (bits 9–17), second nationality (bits 0–8), goal celebration, place kicking</td></tr>
 <tr><td><code>+0x20…+0x43</code></td><td>bit fields holding the <b>108 parameters</b> (<code>value = (u32 &gt;&gt; shift &amp; mask) + add</code>)</td></tr>
 <tr><td><code>+0x44</code>, <code>+0x81</code>, <code>+0xbe</code>, <code>+0xfb</code></td><td>names, 61 bytes each, UTF-8: Japanese name, shirt name, second short name, <b>main name</b> ("L. MESSI")</td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <p><b>The 108 parameters</b> (in the order the checksum uses): registered position; 13 position ratings (none / B / A); the 29 abilities (Offensive Awareness, Ball Control, Dribbling, Tight Possession, Low Pass, Lofted Pass, Finishing, Heading, Place Kicking, Curl, Speed, Acceleration, Kicking Power, Jump, Physical Contact, Balance, Stamina, Defensive Awareness, Ball Winning, Aggression, GK Awareness/Catching/Parrying/Reflexes/Reach, weak-foot usage and accuracy, form, injury resistance); height and weight; foot; age; playing style (22 values); 7 COM playing styles; 41 skills; and motion and appearance values. Names come from the game's own UI-order tables (0x142978fd0 abilities, 0x142978f90 positions, 0x142979100 skills, 0x1429790d8 COM styles). The bit map was checked against the game's real unpack code for 150 random players with zero differences. A few names are still uncertain (p43, p48–p50, the motion order). Skill names follow the game's own English labels: 74 = Long Range Drive (PES 2020's "Long Range Curler"), 106 = Long Range Shooting, 99 = Step On Ball Control, 105 = Cross Over Turn, 101 = Rising Shots. <span class="tag t-static">STATIC</span> <span class="tag t-inf">INFERRED</span></p>
 
 <h3>Team.bin and PlayerAssignment.bin <span class="tag t-static">STATIC</span></h3>
@@ -785,11 +789,11 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 
 <h3>Three kinds of downloadable data <span class="tag t-static">STATIC</span></h3>
 <p>All three are ordinary CRI CPK archives, loaded on top of the base data (driver <code>livedata::LiveDataSetFlow</code>, LiveDataSetFlow.cpp, error prefix <b>SGJC</b>, update fn 0x1420ac3f0):</p>
-<div class="tw"><table><thead><tr><th>Kind</th><th>Reply list</th><th>Saved as</th><th>Load priority</th><th>Version file inside</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Kind</th><th>Reply list</th><th>Saved as</th><th>Load priority</th><th>Version file inside</th></tr></thead><tbody>
 <tr><td><b>Live Update</b></td><td><code>dlcfile_list[0]</code></td><td>save slot 0x1b "Live Update"</td><td>5</td><td><code>common/etc/version/version_wu.bin</code></td></tr>
 <tr><td>Variation 0–15</td><td><code>variation_file_list[i]</code></td><td>slots 0x1c–0x2b</td><td>5</td><td><code>version_vd00…15.bin</code></td></tr>
 <tr><td>Extra Update</td><td><code>extra_file_list[0]</code></td><td>file <code>ExtraUpdate.bin</code></td><td>6</td><td><code>version_xu.bin</code></td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 
 <h3>The sequence</h3>
 <ol>
@@ -837,7 +841,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
   <li>Shape: <code>{ "&lt;profile&gt;": { "&lt;group&gt;": { "&lt;key&gt;": value } } }</code>. The profile is <code>"P2P"</code> for normal matches (<code>"CS"</code> for the game relay, <code>"P2P_ADHOC"</code> for direct online). A level profile <code>"P2P_HIGH_LEVEL"</code> / <code>"_LOW_LEVEL"</code> / <code>"_GIVE_UP_QUICKLY_LEVEL"</code> overrides it key by key. Which level Quick Match uses is unknown, so put values in <code>"P2P"</code>. Integers must be JSON integers.</li>
   <li>Groups: <b>Network</b>, NatTraversal, Session, Domain, ProtocolTransmission, ProtocolChannel, MatchCommandBufferingControl (input-delay buffering), Match (load/out-of-play/command-lack timeouts), MultiplayStatistics, OnlineSystem (voice chat, network testers, observe).</li>
 </ul>
-<div class="tw"><table><thead><tr><th>Network key (selection)</th><th>Default</th><th>Meaning</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Network key (selection)</th><th>Default</th><th>Meaning</th></tr></thead><tbody>
 <tr><td><code>NetworkIoConnectionTimeoutUs</code></td><td>15 000 000</td><td>direct-link connect timeout. Two attempts ≈ the 30 s we see before ER_MATCHING_RETRY</td></tr>
 <tr><td><code>ChangeoverPeerReceiveIdleTimeMsThreshold</code></td><td>7500</td><td>silence on a route before failover</td></tr>
 <tr><td><code>ChangeoverToTurnBufferCriticalConditionTimeMsThreshold</code></td><td>10000</td><td>direct link congested this long → TURN</td></tr>
@@ -847,7 +851,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <tr><td><code>TcpFallbackEnable</code> / <code>TimeoutMs</code></td><td>false (true for CS) / 10000</td><td>TCP fallback of the link</td></tr>
 <tr><td><code>MaxPayloadLength</code></td><td>1196</td><td>max UDP payload (leaves room for TURN overhead)</td></tr>
 <tr><td><code>DscpEnable</code> / <code>Dscp</code></td><td>true / 46</td><td>packet priority marking (EF)</td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <p>The other two 15 s timeouts are <code>ProtocolTransmission.ConnectionTimeoutUs</code> and <code>Domain.LinkTimeoutUs</code> (key exchange: <code>Domain.KeyExchangeTimeoutUs</code> 20 s). Lever to test for hard-to-connect pairs: <code>{"P2P":{"Network":{"NetworkIoConnectionTimeoutUs":30000000}}}</code>. Keep <code>proto_opt</code> small so GET_SERVER_ENV stays within one frame. The full key list is in <code>notes/re/functions/nettune.md</code>.</p>
 
 <h3 id="failover">When the game switches between direct and TURN <span class="tag t-static">STATIC</span></h3>
@@ -945,7 +949,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 </ul>
 
 <h3>Replies that give players a clear message <span class="tag t-static">STATIC</span></h3>
-<div class="tw"><table><thead><tr><th>Use</th><th>Reply</th><th>Text the player sees</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Use</th><th>Reply</th><th>Text the player sees</th></tr></thead><tbody>
 <tr><td>Ban</td><td><code>CMD_LOGIN</code> → <code>ERR_INVALID_ACCOUNT</code></td><td>"…we have suspended your account in line with our policy on violations…"</td></tr>
 <tr><td>Server full</td><td><code>CMD_LOGIN</code> → <code>ERR_FREE_TO_PLAY_FULL</code></td><td>"Due to excessive traffic on the server, login is currently restricted. Please try reconnecting again later."</td></tr>
 <tr><td>Maintenance</td><td><code>CMD_LOGIN</code> → <code>ERR_SERVERNOTREADY</code></td><td>"The online service is currently unavailable. The server may be undergoing maintenance…" (includes Konami's website address)</td></tr>
@@ -956,7 +960,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <tr><td>Feature closed</td><td><code>START_MATCHING</code> → <code>ERR_COMMAND_BLOCKED</code></td><td>"This feature is currently unavailable. Please refer to Online Information for further details."</td></tr>
 <tr><td>Edited player data</td><td><code>CHECK_CHEAT</code> → <code>ERR_PARAMCHECK_FAILED</code></td><td>"Invalid player data found." (then the login error "Unable to load content data…", CCWR_0014)</td></tr>
 <tr><td>Room full / in a match / wrong password</td><td><code>JOIN_ROOM_NTL</code> → <code>ERR_ROOMISFULL</code> / <code>ERR_ROOMSTATNOTMATCH</code> / <code>ERR_PASSWDINCORRECT</code></td><td>"Cannot participate due to full quota." / "Could not enter because a match is currently being played." / "Incorrect password."</td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <ul>
   <li><b>Version replies:</b> the three <code>JOIN_ONLINE_MODE → ERR_DIFFERENT_*</code> rows show their text from the command layer, but the login flow then also aborts with the generic login error (line 216 of OnlineLoginTaskConnectMenu2.cpp). For a clean refusal use <code>ERR_MODE_BLOCKED</code> (sweep.md). <span class="tag t-static">STATIC</span></li>
   <li>Avoid: CMD_LOGIN's live-data error row, which points to a Condition Rating help text; and <code>ERR_JOINKICKEDROOM</code>, which only gives the generic text plus a code.</li>
@@ -973,7 +977,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
   <li>Codes reported through other paths and seen in our logs: <code>EYRH763</code> Quick Match search timed out; <code>EYRH1530</code> Quick Match abnormal end GAMERELAY / DEGRADE_SC; <code>QVHE1459</code> GameModeMatchListenerMatch.cpp, loading took longer than <code>load_timeout</code> (LOAD_TIMEOUT); <code>VIXT2253</code> MatchOnline.cpp, no input for about a minute (NO_OPERATION, the AFK rule); <code>OLXH152</code> error on the CHECK_ALIVE_PLAYER watcher; <code>FAMY242</code> the server replied ERR_CHEAT to an in-match command; <code>LZFP101</code> SEND_ALIVE. <span class="tag t-ok">LIVE</span> <span class="tag t-static">STATIC</span></li>
   <li>Meanings come from the message string the code stores next to the report, or from the area sections above. Rows without a meaning have no nearby text.</li>
 </ul>
-<div class="tw"><table><thead><tr><th>Code (line form)</th><th>Code (sub-code form)</th><th>Source file</th><th>Line</th><th>Meaning</th></tr></thead><tbody>
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table><thead><tr><th>Code (line form)</th><th>Code (sub-code form)</th><th>Source file</th><th>Line</th><th>Meaning</th></tr></thead><tbody>
 <tr><td><code>—</code></td><td><code></code></td><td>CommandObjectCmdSendAlive.cpp</td><td></td><td></td></tr>
 <tr><td><code>LZFP106</code></td><td><code>LZFP_0001</code></td><td>CommandObjectCmdSendAlive.cpp</td><td>106</td><td>SEND_ALIVE reported a degraded or lost link</td></tr>
 <tr><td><code>SGJC392</code></td><td><code></code></td><td>LiveDataSetFlow.cpp</td><td>392</td><td>Live update: data pack version too old</td></tr>
@@ -1159,7 +1163,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <tr><td><code>ENLM173</code></td><td><code>ENLM_0001</code></td><td>ProcessOnlineQuickTeamSync.cpp</td><td>173</td><td></td></tr>
 <tr><td><code>—</code></td><td><code></code></td><td>ProcessOnlineRsLottery.cpp</td><td></td><td></td></tr>
 <tr><td><code>BOKS277</code></td><td><code>BOKS_0008</code></td><td>ProcessOnlineRsLottery.cpp</td><td>277</td><td></td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <p class="totop"><a href="#contents">↑ Back to contents</a></p>
 
 <h2 id="catalog">Catalogue of all 433 server commands</h2>
@@ -1171,7 +1175,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
   <label class="sr" for="fs">Status</label><select id="fs"><option value="">Any status</option><option value="handled">ours</option><option value="acked">OK only</option><option value="unseen">unseen</option></select>
   <span class="count" id="cnt" aria-live="polite"></span>
 </div>
-<div class="tw"><table class="cat"><thead><tr><th>Command</th><th>Area</th><th>Via</th><th>Status</th><th>Request fields</th><th>Reply fields</th><th>Notes</th></tr></thead><tbody id="cat">
+<div class="tw"><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrolls sideways"><table class="cat"><thead><tr><th>Command</th><th>Area</th><th>Via</th><th>Status</th><th>Request fields</th><th>Reply fields</th><th>Notes</th></tr></thead><tbody id="cat">
 <tr data-a="Clans" data-s="unseen"><td><code>ACCEPT_CLAN_ENTRY</code></td><td>Clans</td><td>gate</td><td><span class="tag t-unk">unseen</span></td><td class="f">pid, target_pid</td><td class="f"></td><td></td></tr>
 <tr data-a="Lobby &amp; rooms" data-s="unseen"><td><code>ACCEPT_CLAN_INVITE</code></td><td>Lobby &amp; rooms</td><td>gate</td><td><span class="tag t-unk">unseen</span></td><td class="f">pid, target_pid</td><td class="f"></td><td></td></tr>
 <tr data-a="News &amp; info" data-s="acked"><td><code>ADD_FOUL</code></td><td>News &amp; info</td><td>gate</td><td><span class="tag t-inf">OK only</span> ×112</td><td class="f">card_pid, card_side, card_gameplayer_id_info, gameplayer_unique_id, gameplayer_id, card_kind, injury_pid, injury_side, injury_gameplayer_id, injury_data, part, symptom, level, mcount_left, injury_all, injury_one, gtimer</td><td class="f"></td><td>cards + injuries <a href="#gamequeue">→</a></td></tr>
@@ -1605,7 +1609,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 <tr data-a="Match" data-s="acked"><td><code>WATCH_SYSTEM_NOTICE</code></td><td>Match</td><td>gate</td><td><span class="tag t-inf">OK only</span> ×90</td><td class="f"></td><td class="f">data</td><td>push; a stray head entry stalls 30 s <a href="#notices">→</a></td></tr>
 <tr data-a="Social" data-s="unseen"><td><code>WATCH_TEXTCHAT</code></td><td>Social</td><td>gate</td><td><span class="tag t-unk">unseen</span></td><td class="f"></td><td class="f">channel, from_pid, name, statement</td><td>push: chat line <a href="#rooms">→</a></td></tr>
 <tr data-a="Connectivity / relay" data-s="unseen"><td><code>WATCH_TURN_ADDRESS_DATA</code></td><td>Connectivity / relay</td><td>gate</td><td><span class="tag t-unk">unseen</span></td><td class="f"></td><td class="f">address, address_data_size</td><td>push: opponent's relayed address (bytes unchanged) <a href="#turn">→</a></td></tr>
-</tbody></table></div>
+</tbody></table></div></div>
 <script>
 (() => {
   const q = document.getElementById("q"), fa = document.getElementById("fa"), fs = document.getElementById("fs"),
@@ -1645,7 +1649,7 @@ every ≤5 s / 16 KB: SEND_GAME_SEQUENCE_DATA  stores the records
 </main>
 <footer class="site-foot"><div class="in">
   <p style="margin:0;max-width:42em">PES 2021 Online is an independent fan preservation project. No game files are included or distributed: every player needs their own copy of PES 2021. Not affiliated with Konami; PES and eFootball are trademarks of Konami. Code under the <a href="https://github.com/AzrakHQ/pes2021-online-server/blob/main/LICENSE">MIT license</a>.</p>
-  <span><a href="./">Main page</a> · <a href="./#faq">FAQ</a> · <a href="https://github.com/AzrakHQ/pes2021-online-server">GitHub</a> · <a href="https://github.com/AzrakHQ/pes2021-online-server/issues">Report a problem</a></span>
+  <span><a href="./">Main page</a> · <a href="./#story">The story</a> · <a href="https://github.com/AzrakHQ/pes2021-online-server">GitHub</a> · <a href="https://github.com/AzrakHQ/pes2021-online-server/issues">Report a problem</a></span>
 </div></footer>
 <script>
 (function(){

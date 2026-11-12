@@ -3,15 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PES 2021 Online Server: play PES 2021 online again</title>
-<script>try { var t = localStorage.getItem("pes-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
-<meta name="description" content="Konami shut down PES 2021's online servers. Host your own with one command, send friends one small file, and play online again. Free, open source, no accounts.">
-<meta property="og:title" content="PES 2021 is back online">
-<meta property="og:description" content="Host your own PES 2021 server with one command. Friends add one file. Then you play.">
-<meta property="og:type" content="website">
+<title>How PES 2021's online mode came back</title>
+<script>
+  try { var t = localStorage.getItem("pes-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  // this site used to carry the install guide and help: old links to those sections go to their new home on GitHub
+  (function () {
+    var gh = "https://github.com/AzrakHQ/pes2021-online-server", srv = gh + "/blob/main/server/README.md";
+    var moved = { play: gh + "#how-to-use", host: gh + "#how-to-use", share: gh + "#how-to-use", join: gh + "#how-to-use", kickoff: gh + "#how-to-use",
+      status: gh + "#what-works", help: srv + "#troubleshooting", playerhelp: srv + "#troubleshooting", hosthelp: srv + "#troubleshooting",
+      "faq-far": srv + "#friends-far-away", "faq-undo": srv + "#hosting-tips", "faq-switch": srv + "#hosting-tips", "faq-install": srv + "#hosting-tips",
+      "faq-host": srv + "#hosting-tips", "faq-thispc": srv + "#the-mod-in-pes-2021-on-the-servers-own-computer" };
+    var h = location.hash.slice(1);
+    if (moved[h]) location.replace(moved[h]); else if (/^faq/.test(h)) location.replace(gh + "#faq");
+  })();
+</script>
+<meta name="description" content="Konami switched off PES 2021's online servers. This is how a new one was rebuilt from the game itself: what the game sends, what it expects back, and how the server answers.">
+<meta property="og:title" content="How PES 2021's online mode came back">
+<meta property="og:description" content="From 152 unreadable bytes to a full 90-minute online match in 14 hours: how a PES 2021 server was rebuilt from the game itself, and how it works.">
+<meta property="og:type" content="article">
 <meta property="og:url" content="https://azrakhq.github.io/pes2021-online-server/">
 <meta property="og:image" content="https://azrakhq.github.io/pes2021-online-server/og.png">
-<meta property="og:image:alt" content="PES 2021 Online: a private server for eFootball PES 2021. Friends get one small file.">
+<meta property="og:image:alt" content="PES 2021 Online: a private server for eFootball PES 2021.">
 <link rel="canonical" href="https://azrakhq.github.io/pes2021-online-server/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="color-scheme" content="light dark">
@@ -19,8 +31,8 @@
 <style>
 :root {
   --bg: #f6f8f7; --bg2: #ffffff; --fg: #10201a; --muted: #4a5c54; --line: #d8e2dd;
-  --brand: #08734a; --brand-strong: #065c3b; --brand-soft: #e3f4ec; --accent: #3ccf8e; --on-brand: #ffffff;
-  --code-bg: #0b1f18; --code-fg: #e6f5ee; --warn: #8f4500;
+  --brand: #08734a; --brand-strong: #065c3b; --brand-soft: #e3f4ec; --on-brand: #ffffff;
+  --code-bg: #0b1f18; --code-fg: #e6f5ee; --bad: #b3261e; --bad-soft: #fbe9e7;
   --shadow: 0 1px 2px rgba(16,32,26,.06), 0 8px 24px rgba(16,32,26,.06);
   --radius: 16px; --max: 1040px;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -29,14 +41,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0b110e; --bg2: #121a16; --fg: #e8efeb; --muted: #a9b8b0; --line: #2c3a33;
-    --brand: #3ccf8e; --brand-strong: #7fe5b8; --brand-soft: #13281f; --on-brand: #04241a; --code-bg: #04100b; --warn: #f5a524;
-    --shadow: none;
+    --brand: #3ccf8e; --brand-strong: #7fe5b8; --brand-soft: #13281f; --on-brand: #04241a; --code-bg: #04100b;
+    --bad: #ff8a80; --bad-soft: #2a1513; --shadow: none;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0b110e; --bg2: #121a16; --fg: #e8efeb; --muted: #a9b8b0; --line: #2c3a33;
-  --brand: #3ccf8e; --brand-strong: #7fe5b8; --brand-soft: #13281f; --on-brand: #04241a; --code-bg: #04100b; --warn: #f5a524;
-  --shadow: none;
+  --brand: #3ccf8e; --brand-strong: #7fe5b8; --brand-soft: #13281f; --on-brand: #04241a; --code-bg: #04100b;
+  --bad: #ff8a80; --bad-soft: #2a1513; --shadow: none;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 76px; }
@@ -48,16 +60,9 @@ main:focus { outline: none; }
 :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
 .skip { position: absolute; left: -999px; top: 8px; background: var(--bg2); color: var(--fg); padding: 8px 14px; border-radius: 8px; z-index: 99; }
 .skip:focus { left: 8px; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
 code, pre { font-family: var(--mono); }
 :not(pre) > code { background: var(--brand-soft); color: var(--fg); padding: 1px 6px; border-radius: 6px; font-size: .88em; overflow-wrap: anywhere; }
-.muted { color: var(--muted); }
-
-/* light/dark pictures follow the page theme (the toggle too, not only the system setting) */
-.th-dark { display: none !important; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .th-light { display: none !important; } :root:not([data-theme="light"]) .th-dark { display: block !important; } }
-:root[data-theme="dark"] .th-light { display: none !important; } :root[data-theme="dark"] .th-dark { display: block !important; }
 
 /* nav */
 .nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
@@ -71,94 +76,110 @@ code, pre { font-family: var(--mono); }
 .nav .gh svg { width: 22px; height: 22px; display: block; }
 .theme { border: 1px solid var(--line); background: var(--bg2); color: var(--fg); border-radius: 99px; width: 44px; height: 44px; cursor: pointer; display: grid; place-items: center; flex: none; }
 .theme svg { width: 18px; height: 18px; }
-@media (max-width: 700px) { .logo span { display: none; } .nav ul { gap: 14px; } .nav .wrap { gap: 12px; } }
-@media (max-width: 420px) { .nav .gh { display: none; } .nav ul { gap: 11px; } .nav ul a { font-size: 14px; } .nav .wrap { padding: 0 12px; } .theme { width: 40px; height: 40px; } }
+@media (max-width: 760px) { .logo span { display: none; } .nav ul { gap: 14px; } .nav .wrap { gap: 12px; } }
+@media (max-width: 430px) { .nav .gh { display: none; } .nav ul { gap: 11px; } .nav ul a { font-size: 14px; } .nav .wrap { padding: 0 12px; } .theme { width: 40px; height: 40px; } }
+@media (max-width: 390px) { .nav ul { gap: 9px; } .nav ul a { font-size: 13.5px; } .nav .wrap { gap: 8px; } .logo svg { width: 26px; height: 26px; } }
+@media (max-width: 350px) { .logo { display: none; } }
 
 /* hero */
-.hero { padding: 28px 0 8px; text-align: center; }
-.hero-pic { margin: 0 auto; max-width: 1000px; }
-.hero-pic img { width: 100%; height: auto; aspect-ratio: 2 / 1; display: block; border-radius: 18px; border: 1px solid var(--line); background: #070b09; }
-.hero h1 { font-size: clamp(32px, 5vw, 48px); line-height: 1.1; letter-spacing: -.025em; margin: 30px 0 10px; }
-.hero .lead { font-size: clamp(18px, 2.2vw, 21px); color: var(--muted); margin: 0 auto 24px; max-width: 32em; }
-.ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.hero { padding: 64px 0 24px; }
+.hero .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 44px; align-items: center; }
+@media (max-width: 880px) { .hero .grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } .hero { padding-top: 40px; } }
+.kicker { color: var(--brand); font-weight: 700; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; margin: 0 0 12px; }
+.hero h1 { font-size: clamp(34px, 5.2vw, 54px); line-height: 1.06; letter-spacing: -.03em; margin: 0 0 16px; }
+.hero .lead { font-size: clamp(18px, 2.1vw, 20px); color: var(--muted); margin: 0 0 24px; }
+.ctas { display: flex; flex-wrap: wrap; gap: 12px; }
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; border: 2px solid transparent; }
 .btn.primary { background: var(--brand); color: var(--on-brand); }
 .btn.primary:hover { color: var(--on-brand); filter: brightness(1.08); }
 .btn.plain { border-color: var(--line); color: var(--fg); background: var(--bg2); }
 .btn.plain:hover { border-color: var(--brand); color: var(--brand); }
-.needs { margin: 18px auto 0; font-size: 15px; color: var(--muted); }
+.playline { margin: 18px 0 0; font-size: 15px; color: var(--muted); }
+.first { margin: 0; background: var(--code-bg); color: var(--code-fg); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); border: 1px solid var(--line); min-width: 0; }
+.first .cap { font: 700 11px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: #8fe3bd; margin: 0 0 8px; }
+.first pre { margin: 0; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.first .hex { color: #7f978b; }
+.first .open { text-align: center; color: #8fe3bd; font: 700 13px var(--sans); margin: 10px 0; letter-spacing: .04em; }
+.first .k { color: #8fe3bd; } .first .s { color: #ffd78a; }
+.first .foot { margin: 12px 0 0; font-size: 13px; color: #a9c4b7; }
+
+/* numbers */
+.numbers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; list-style: none; padding: 0; margin: 44px 0 0; }
+.numbers li { border-top: 2px solid var(--brand); padding-top: 10px; }
+.numbers b { display: block; font-size: 32px; line-height: 1.1; letter-spacing: -.02em; }
+.numbers span { color: var(--muted); font-size: 15px; }
+@media (max-width: 760px) { .numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 14px; } }
 
 /* sections */
 section { padding: 72px 0; }
 section.alt { background: var(--bg2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 h2 { font-size: clamp(28px, 4vw, 38px); line-height: 1.15; letter-spacing: -.02em; margin: 0 0 10px; text-align: center; }
-.sub { text-align: center; color: var(--muted); font-size: 18px; margin: 0 auto 40px; max-width: 34em; }
-h3 { font-size: 20px; line-height: 1.3; margin: 0 0 6px; letter-spacing: -.01em; }
+.sub { text-align: center; color: var(--muted); font-size: 18px; margin: 0 auto 40px; max-width: 36em; }
+h3 { font-size: 21px; line-height: 1.3; margin: 0 0 6px; letter-spacing: -.01em; }
 
-/* what works */
-.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; list-style: none; padding: 0; margin: 0; }
-.tiles li.wide { grid-column: span 2; }
-@media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .tiles { grid-template-columns: minmax(0, 1fr); } .tiles li.wide { grid-column: auto; } }
-.tiles li { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
-.tiles b { display: block; font-size: 17px; margin-bottom: 2px; }
-.tiles span { color: var(--muted); font-size: 15px; }
-.state { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 18px 0 0; }
-.state div { border-radius: 14px; padding: 14px 16px; font-size: 15px; border: 1px solid var(--line); }
-.state b { display: block; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 2px; }
-.state .ok { background: var(--brand-soft); border-color: transparent; } .state .ok b { color: var(--brand); }
-.state .try b { color: var(--warn); } .state .no b { color: var(--muted); }
-@media (max-width: 800px) { .state { grid-template-columns: 1fr; } }
-.shot { margin: 34px auto 0; max-width: 760px; text-align: center; }
-.shot a { display: block; }
-.shot img { width: 100%; height: auto; aspect-ratio: 1474 / 1434; display: block; border-radius: 14px; border: 1px solid var(--line); box-shadow: var(--shadow); background: var(--bg); }
-.shot figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+/* the story */
+.chapters { list-style: none; padding: 0; margin: 0 0 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.chapters a { display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 99px; background: var(--bg); color: var(--fg); text-decoration: none; font-size: 14px; font-weight: 600; }
+.chapters a:hover { border-color: var(--brand); color: var(--brand); }
+.story { max-width: 820px; margin: 0 auto; position: relative; }
+.story::before { content: ""; position: absolute; left: 15px; top: 10px; bottom: 10px; width: 2px; background: var(--line); }
+.ch { position: relative; padding: 0 0 46px 52px; }
+.ch:last-child { padding-bottom: 0; }
+.ch::before { content: ""; position: absolute; left: 7px; top: 6px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg2); border: 3px solid var(--brand); }
+.ch.big::before { background: var(--brand); }
+.ch .when { font: 700 13px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--brand); }
+.ch h3 { margin: 2px 0 10px; font-size: 23px; }
+.ch p { margin: 0 0 12px; max-width: 42em; }
+.ch .viz { margin: 4px 0 14px; }
+.ch .aside { color: var(--muted); font-size: 16px; }
+@media (max-width: 600px) { .story::before { left: 9px; } .ch { padding-left: 34px; } .ch::before { left: 2px; } .ch h3 { font-size: 21px; } }
+.fun { background: var(--brand-soft); border-radius: 12px; padding: 12px 14px; font-size: 16px; }
+.fun b { color: var(--brand-strong); }
 
-/* steps */
-.steps { display: grid; gap: 56px; counter-reset: step; }
-.step { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 36px; align-items: center; }
-.step-num { width: 34px; height: 34px; border-radius: 50%; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-weight: 800; margin-bottom: 12px; }
-.step p { margin: 0 0 12px; }
-.clip img { width: 100%; height: auto; aspect-ratio: 2 / 1; display: block; border-radius: 14px; border: 1px solid var(--line); background: var(--bg2); box-shadow: var(--shadow); }
-@media (max-width: 860px) { .step { grid-template-columns: minmax(0, 1fr); gap: 16px; } .steps { gap: 44px; } }
-.cmd { position: relative; margin: 0 0 12px; }
-.cmd pre { margin: 0; background: var(--code-bg); color: var(--code-fg); border: 1px solid var(--line); border-radius: 10px; padding: 13px 84px 13px 15px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: break-word; }
-.copy { position: absolute; right: 8px; bottom: 8px; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.1); color: #e6f5ee; border-radius: 8px; padding: 5px 10px; font: 600 13px var(--sans); cursor: pointer; }
-.copy:hover { background: rgba(255,255,255,.2); }
-@media (max-width: 480px) { .cmd pre { padding: 12px 12px 46px; } }
-.hint { font-size: 15px; color: var(--muted); }
-.warnline { font-size: 14px; background: var(--brand-soft); border-radius: 10px; padding: 9px 12px; }
-
-/* help */
-.helpgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
-@media (max-width: 860px) { .helpgrid { grid-template-columns: 1fr; } }
-.helpcard { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 20px 10px; }
-.helpcard h3 { margin: 14px 0 4px; }
-.fix { list-style: none; padding: 0; margin: 0; }
-.fix li { padding: 12px 0; border-bottom: 1px solid var(--line); }
-.fix li:last-child { border-bottom: 0; }
-.fix > li > b { display: block; font-size: 16px; }
-.fix > li > span { display: block; color: var(--muted); font-size: 15px; margin-top: 2px; }
-.stuck { text-align: center; color: var(--muted); font-size: 15px; margin: 22px 0 0; }
-
-/* faq */
-.faq { max-width: 760px; margin: 0 auto; }
-.faqh { margin: 34px 0 2px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--brand); }
-.faqh:first-of-type { margin-top: 0; }
-details.q { border-bottom: 1px solid var(--line); }
-details.q summary { cursor: pointer; font-weight: 700; font-size: 17px; padding: 14px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
-summary::-webkit-details-marker { display: none; }
-details.q summary::after { content: "+"; color: var(--brand); font-size: 22px; line-height: 1; }
-details[open] > summary::after { content: "–"; }
-details.q > :not(summary) { margin: 0 0 14px; color: var(--muted); }
-details.q ul { padding-left: 20px; } details.q li { margin-bottom: 6px; }
-details.q .cmd { color: inherit; }
+/* small visuals */
+.flow { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.flow span { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; flex: 1 1 0; min-width: 0; text-align: center; overflow-wrap: anywhere; }
+.flow span.k { background: var(--brand-soft); border-color: var(--brand); }
+.flow span.x { background: var(--bad-soft); border-color: var(--bad); }
+.flow b { color: var(--brand); flex: none; }
+@media (max-width: 560px) { .flow { flex-direction: column; align-items: stretch; } .flow b { align-self: center; transform: rotate(90deg); } }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+@media (max-width: 640px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.two figure { margin: 0; min-width: 0; }
+.two figcaption { font: 700 12px var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.codebox { background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 11px 13px; font: 13px/1.6 var(--mono); margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.codebox .k { color: #8fe3bd; } .codebox .s { color: #ffd78a; } .codebox .x { color: #ff9b8a; } .codebox .t { color: #7f978b; }
+.codebox .hlline { display: inline-block; margin: 2px -6px 0; padding: 1px 6px; border-radius: 6px; background: rgba(60,207,142,.22); outline: 1px solid rgba(60,207,142,.6); }
+.codebox.wide { white-space: pre; overflow-x: auto; }
+.desks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; }
+.desks li { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14px; color: var(--muted); }
+.desks b { display: block; color: var(--brand); font-size: 15px; }
+@media (max-width: 520px) { .desks { grid-template-columns: minmax(0, 1fr); } .desks b { display: inline; margin-right: 6px; } }
+.layer { border-radius: 10px; padding: 8px 10px; }
+.layer > .t { font-weight: 800; font-size: 13px; color: var(--brand); }
+.layer > .d { font-size: 13px; color: var(--muted); }
+.l4 { border: 2px dashed var(--brand); } .l3 { border: 2px solid var(--brand); background: var(--brand-soft); margin-top: 6px; }
+.l2 { border: 1px solid var(--line); background: var(--bg); margin-top: 6px; } .l2 > .t { color: var(--fg); }
+.l1 { background: var(--code-bg); color: #8fe3bd; font: 12.5px/1.5 var(--mono); padding: 8px 10px; border-radius: 8px; overflow-wrap: anywhere; margin-top: 6px; }
+.oops { list-style: none; padding: 0; display: grid; gap: 6px; }
+.oops li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; background: var(--code-bg); border-radius: 9px; padding: 8px 12px; font: 13px/1.5 var(--mono); }
+.oops span { color: #8fe3bd; } .oops b { color: #ff9b8a; font-weight: 600; }
+.math { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+@media (max-width: 640px) { .math { grid-template-columns: minmax(0, 1fr); } }
+.math > div { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--bg); font-size: 15px; color: var(--muted); }
+.math > div > b { display: block; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+.math .before > b { color: var(--bad); } .math .after > b { color: var(--brand); }
+.math .row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0 10px; padding: 3px 0 5px; border-bottom: 1px solid var(--line); margin-bottom: 6px; font: 13px var(--mono); color: var(--fg); }
+.math .row span:last-child { color: var(--muted); }
+.mods { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; }
+.mods li { padding: 6px 12px; border-radius: 99px; background: var(--brand-soft); font-size: 14px; font-weight: 600; }
+.mods li::before { content: "✓ "; color: var(--brand); }
 
 /* how it works */
 .picture { max-width: 680px; margin: 0 auto 10px; }
 .picture svg { width: 100%; height: auto; display: block; }
 .picture text { font-family: var(--sans); fill: var(--fg); }
-.picture .box { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; }
+.picture .box { fill: var(--bg2); stroke: var(--line); stroke-width: 1.5; }
 .picture .srv { fill: var(--brand-soft); stroke: var(--brand); stroke-width: 2; }
 .picture .t { font-weight: 800; font-size: 16px; } .picture .s { font-size: 12px; fill: var(--muted); }
 .picture .ln { stroke: var(--brand); stroke-width: 2.5; fill: none; }
@@ -166,48 +187,34 @@ details.q .cmd { color: inherit; }
 .picture .rly { stroke: var(--muted); stroke-width: 1.5; fill: none; stroke-dasharray: 2 4; }
 .picture .arrow { fill: var(--brand); }
 .picture .chip { fill: var(--brand); } .picture .chipt { fill: var(--on-brand); font-size: 10px; font-weight: 700; }
-.picture-cap { text-align: center; color: var(--muted); font-size: 15px; max-width: 36em; margin: 0 auto 44px; }
-.parts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-@media (max-width: 860px) { .parts { grid-template-columns: minmax(0, 1fr); } }
-.part { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.part h3 { margin: 0; }
-.part .n { color: var(--brand); font-weight: 800; font-size: 13px; letter-spacing: .1em; }
-.part p { margin: 0; font-size: 16px; }
-.part p.k { color: var(--muted); font-size: 15px; }
-.desks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; list-style: none; padding: 0; margin: 0; counter-reset: d; }
-.desks li { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 13px; color: var(--muted); }
-.desks b { display: block; color: var(--brand); font-size: 15px; }
-@media (max-width: 480px) { .desks { grid-template-columns: minmax(0, 1fr); } .desks b { display: inline; margin-right: 6px; } }
-.layer { border-radius: 10px; padding: 8px 10px; }
-.layer > .t { font-weight: 800; font-size: 13px; color: var(--brand); }
-.l4 { border: 2px dashed var(--brand); } .l3 { border: 2px solid var(--brand); background: var(--brand-soft); margin-top: 6px; }
-.l2 { border: 1px solid var(--line); background: var(--bg2); margin-top: 6px; }
-.l2 > .t { color: var(--fg); }
-.l1 { background: var(--code-bg); color: #8fe3bd; font: 12.5px/1.5 var(--mono); padding: 8px 10px; border-radius: 8px; overflow-wrap: anywhere; margin-top: 6px; }
-.codebox { background: var(--code-bg); color: var(--code-fg); border-radius: 10px; padding: 11px 13px; font: 13px/1.6 var(--mono); margin: 0; white-space: pre; overflow-x: auto; }
-.codebox .k { color: #8fe3bd; } .codebox .s { color: #ffd78a; }
-.codebox .hlline { display: inline-block; margin: 2px -6px 0; padding: 1px 6px; border-radius: 6px; background: rgba(60,207,142,.22); outline: 1px solid rgba(60,207,142,.6); }
-.oops { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.oops li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; background: var(--code-bg); border-radius: 9px; padding: 8px 12px; font: 13px/1.5 var(--mono); }
-.oops span { color: #8fe3bd; } .oops b { color: #ff9b8a; font-weight: 600; }
-.flow { display: flex; align-items: center; gap: 8px; font-size: 14px; }
-.flow span { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; flex: 1 1 0; min-width: 0; text-align: center; }
-.flow span.k { background: var(--brand-soft); border-color: var(--brand); }
-.flow b { color: var(--brand); flex: none; }
-@media (max-width: 480px) { .flow { flex-direction: column; align-items: stretch; } .flow b { align-self: center; transform: rotate(90deg); } }
-.phases { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.phases li { font: 600 12px var(--mono); padding: 4px 8px; border-radius: 7px; background: var(--bg2); border: 1px solid var(--line); }
-.phases li.hl { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
-.timeline { list-style: none; padding: 0; margin: 40px auto 0; max-width: 640px; position: relative; }
-.timeline::before { content: ""; position: absolute; left: 9px; top: 8px; bottom: 8px; width: 2px; background: var(--line); }
-.timeline li { position: relative; padding: 0 0 14px 34px; }
-.timeline li::before { content: ""; position: absolute; left: 3px; top: 7px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg2); border: 3px solid var(--brand); }
-.timeline li.big::before { background: var(--brand); }
-.timeline b { display: block; } .timeline span { color: var(--muted); font-size: 15px; }
-.tl-h { text-align: center; margin: 56px 0 0; }
-.more { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 34px 0 0; }
+.picture-cap { text-align: center; color: var(--muted); font-size: 15px; max-width: 36em; margin: 0 auto 56px; }
+.h3c { text-align: center; margin: 0 0 6px; }
+.subc { text-align: center; color: var(--muted); margin: 0 auto 24px; max-width: 34em; }
+.life { list-style: none; padding: 0; margin: 0 0 60px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; counter-reset: life; }
+.life li { counter-increment: life; background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 10px; font-size: 13.5px; color: var(--muted); }
+.life li::before { content: counter(life); display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--brand); color: var(--on-brand); font: 800 13px var(--sans); margin-bottom: 8px; }
+.life b { display: block; color: var(--fg); font-size: 15px; margin-bottom: 2px; }
+.life code { font-size: 11.5px; }
+@media (max-width: 960px) { .life { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .life { grid-template-columns: minmax(0, 1fr); } .life li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 0 12px; } .life li::before { margin: 0; grid-row: span 2; } .life li > * { grid-column: 2; } }
+.pieces { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .pieces { grid-template-columns: minmax(0, 1fr); } }
+.piece { background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.piece .port { font: 600 12px var(--mono); color: var(--brand); }
+.piece h4 { margin: 0; font-size: 18px; }
+.piece p { margin: 0; color: var(--muted); font-size: 15px; }
+.piece a.more { font-size: 15px; font-weight: 700; text-decoration: none; margin-top: auto; padding-top: 6px; }
 
-/* footer, top button, lightbox */
+/* go deeper */
+.deeper { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 860px) { .deeper { grid-template-columns: minmax(0, 1fr); } }
+.deep { display: flex; flex-direction: column; gap: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; text-decoration: none; color: var(--fg); }
+.deep:hover { border-color: var(--brand); color: var(--fg); }
+.deep b { font-size: 19px; } .deep span { color: var(--muted); font-size: 15px; }
+.deep i { font-style: normal; color: var(--brand); font-weight: 800; margin-top: auto; padding-top: 6px; }
+.playnote { text-align: center; color: var(--muted); font-size: 16px; margin: 36px 0 0; }
+
+/* footer, top button */
 footer { padding: 40px 0 56px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); text-align: center; }
 footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 22px; margin-bottom: 14px; font-size: 15px; font-weight: 700; }
 footer nav a { color: var(--fg); text-decoration: none; padding: 4px 0; } footer nav a:hover { color: var(--brand); }
@@ -216,15 +223,10 @@ footer p { max-width: 46em; margin: 0 auto; } footer p a { color: var(--muted); 
 .totop[hidden] { display: none; }
 .totop:hover { color: var(--on-brand); filter: brightness(1.08); }
 @media (max-width: 600px) { .totop { right: 10px; bottom: 10px; opacity: .9; } footer { padding-bottom: 72px; } }
-dialog.lightbox { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
-dialog.lightbox::backdrop { background: rgba(0,0,0,.8); }
-dialog.lightbox img { display: block; max-width: 96vw; max-height: calc(94vh - 52px); border-radius: 10px; }
-.lb-close { display: block; margin: 0 0 8px auto; border: 0; border-radius: 99px; padding: 8px 14px; font: 700 14px var(--sans); background: #fff; color: #10201a; cursor: pointer; }
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<div class="sr" aria-live="polite" id="live"></div>
 
 <nav class="nav" aria-label="Main">
   <div class="wrap">
@@ -233,10 +235,9 @@ dialog.lightbox img { display: block; max-width: 96vw; max-height: calc(94vh - 5
       <span>PES 2021 Online Server</span>
     </a>
     <ul>
-      <li><a href="#play">Play</a></li>
-      <li><a href="#help">Help</a></li>
-      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#story">The story</a></li>
       <li><a href="#inside">How it works</a></li>
+      <li><a href="#deeper">Go deeper</a></li>
       <li><a class="gh" href="https://github.com/AzrakHQ/pes2021-online-server" aria-label="Source code on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a></li>
     </ul>
     <button class="theme" id="theme" type="button" aria-label="Dark theme" aria-pressed="false"></button>
@@ -245,262 +246,213 @@ dialog.lightbox img { display: block; max-width: 96vw; max-height: calc(94vh - 5
 
 <header class="hero" id="top">
   <div class="wrap">
-    <div class="hero-pic">
-      <img class="th-light" src="hero-light.webp" width="1920" height="960" loading="lazy" alt="PES 2021 private server: back online. Host your own server with one command; your friends add one file. A live match card shows karim 0–0 dani in the first half.">
-      <img class="th-dark" src="hero-dark.webp" width="1920" height="960" loading="lazy" alt="PES 2021 private server: back online. Host your own server with one command; your friends add one file. A live match card shows karim 0–0 dani in the first half.">
+    <div class="grid">
+      <div>
+        <p class="kicker">PES 2021 Online Server · the making-of</p>
+        <h1>How PES 2021's online mode came back</h1>
+        <p class="lead">Konami switched off the servers, and every online mode went dark. This is how a new server was rebuilt from the game itself: what it sends, what it expects back, and how two players end up in a match again.</p>
+        <div class="ctas">
+          <a class="btn primary" href="#story">Read the story</a>
+          <a class="btn plain" href="#inside">How the server works</a>
+        </div>
+        <p class="playline">Just want to play? <a href="https://github.com/AzrakHQ/pes2021-online-server#how-to-use">The four steps are on GitHub.</a></p>
+      </div>
+      <figure class="first" role="img" aria-label="The first message a real copy of the game sent: 152 unreadable bytes, which unwrap to a request for the server list, CMD_GET_SVRLIST.">
+        <p class="cap">What the game sent · first 40 of 152 bytes</p>
+        <pre class="hex">5b ff 2e e4 5b 9f 2e 65 7f 6d 62 e5 27 8e
+58 d0 78 15 1a 9d 0c d0 fc 43 01 03 6a 29
+fe 7d a2 6a ad ef 0d 0e 3e b0 f4 85 …</pre>
+        <p class="open">↓ unwrapped ↓</p>
+        <pre><span class="k">msgid</span>         <span class="s">"CMD_GET_SVRLIST"</span>
+<span class="k">svrtype</span>       <span class="s">"GATE"</span>
+<span class="k">patch_version</span> <span class="s">"1.01.00"</span></pre>
+        <p class="foot">"Please send me the server list." The first message a real copy of the game sent, at 04:28 on 4 November 2026.</p>
+      </figure>
     </div>
-    <h1>PES 2021 Online Server</h1>
-    <p class="lead">Konami shut down PES 2021's online servers. This brings them back: free, open source, no accounts.</p>
-    <div class="ctas">
-      <a class="btn primary" href="#play">Start playing</a>
-      <a class="btn plain" href="#inside">How it works</a>
-    </div>
-    <p class="needs">Every player needs PES 2021 on Steam. One friend hosts on a Linux PC or Steam Deck.</p>
+    <ul class="numbers">
+      <li><b>14 hours</b><span>from the first message to a full 90-minute match</span></li>
+      <li><b>433</b><span>server commands mapped from the game</span></li>
+      <li><b>398</b><span>reply formats read straight out of its code</span></li>
+      <li><b>1 file</b><span>is all a player adds to their game</span></li>
+    </ul>
   </div>
 </header>
 
 <main id="main" tabindex="-1">
 
-<section id="status">
+<section id="story" class="alt">
   <div class="wrap">
-    <h2>What works</h2>
-    <p class="sub">The online modes of PES 2021, on a server you and your friends own.</p>
-    <ul class="tiles">
-      <li class="wide"><b>Quick Match</b><span>Matchmaking with your friends and full matches: both halves, fouls, cards and half-time.</span></li>
-      <li><b>Online Co-op</b><span>Casual Match, one player per side with CPU teammates.</span></li>
-      <li><b>Online Divisions</b><span>Ten divisions, ten-match seasons, promotion and relegation, ratings and rankings.</span></li>
-      <li><b>Matchday</b><span>One standing event: pick Home or Away and every match adds points for your side.</span></li>
-      <li><b>Friendly Match Lobby</b><span>Make a room, with a password if you like. Your friend picks it, and you stay for a rematch.</span></li>
-      <li><b>Friends Cup</b><span>A new tournament every month, with its own table under Rankings.</span></li>
-      <li><b>Match replays</b><span>Every online match is recorded: watch the newest 20 from Online Tournament → Match Replays.</span></li>
-      <li><b>Profiles and stats</b><span>Your avatar, favourite team and comment, Last 20 results, and a ranking of everyone.</span></li>
-      <li><b>Fair play</b><span>Leaving early counts as a 3–0 loss, and anyone can block an opponent for good.</span></li>
-      <li class="wide"><b>Admin page</b><span>For the host: who's online, live matches, results, replays, blocking players and one-click updates.</span></li>
+    <h2>The story</h2>
+    <p class="sub">No manual and no source code: only what the game sends, how its code reads the replies, and a lot of patient answering.</p>
+    <ul class="chapters" aria-label="Chapters">
+      <li><a href="#ch-silence">Silence</a></li><li><a href="#ch-first">152 bytes</a></li><li><a href="#ch-wrongturn">Wrong turn</a></li>
+      <li><a href="#ch-parcel">The parcel</a></li><li><a href="#ch-desks">Three desks</a></li><li><a href="#ch-test">The network test</a></li>
+      <li><a href="#ch-matchmaking">One word</a></li><li><a href="#ch-errors">Error codes</a></li><li><a href="#ch-fulltime">Full time</a></li>
+      <li><a href="#ch-mod">One file</a></li><li><a href="#ch-math">Two homes</a></li><li><a href="#ch-rest">Everything else</a></li>
     </ul>
-    <div class="state">
-      <div class="ok"><b>Proven</b>Full matches on Linux, two copies of the game on one PC.</div>
-      <div class="try"><b>Needs testers</b>Windows players, Steam Deck, two separate homes and the relay. <a href="https://github.com/AzrakHQ/pes2021-online-server/issues/new?template=test-report.md">Report a result</a></div>
-      <div class="no"><b>Not yet</b>myClub, events, official rankings, and 2v2 or 3v3 co-op.</div>
-    </div>
-    <figure class="shot">
-      <a class="th-light" href="admin-light.webp"><img src="admin-light.webp" width="1474" height="1434" loading="lazy" alt="The admin page while friends play: invite card with the mod download, players online, a live match in the second half, the activity feed and the network card."></a>
-      <a class="th-dark" href="admin-dark.webp"><img src="admin-dark.webp" width="1474" height="1434" loading="lazy" alt="The admin page in dark mode while friends play: invite card with the mod download, players online, a live match in the second half, the activity feed and the network card."></a>
-      <figcaption>The host's admin page, with demo players.</figcaption>
-    </figure>
-  </div>
-</section>
 
-<section id="play" class="alt">
-  <div class="wrap">
-    <h2>How to play</h2>
-    <p class="sub">One friend hosts. Everyone else adds one file.</p>
-    <div class="steps">
-      <div class="step" id="host">
-        <div>
-          <div class="step-num" aria-hidden="true">1</div>
-          <h3>Install the server</h3>
-          <p>On a Linux PC or Steam Deck that stays on while you play, open a terminal and paste this line:</p>
-          <div class="cmd"><pre id="c-host">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>AzrakHQ/<wbr>pes2021-online-server/<wbr>main/<wbr>run.<wbr>sh | sh</pre><button class="copy" data-copy="c-host" type="button">Copy</button></div>
-          <p class="hint">Steam Deck: Desktop Mode → Konsole. The server runs in the background and opens your admin page. <a href="#faq-install">What the line does</a></p>
-        </div>
-        <div class="clip">
-          <img class="th-light" src="step1-light.webp" width="1600" height="800" loading="lazy" alt="The install line runs in a terminal, the server starts in the background, and its admin page opens.">
-          <img class="th-dark" src="step1-dark.webp" width="1600" height="800" loading="lazy" alt="The install line runs in a terminal, the server starts in the background, and its admin page opens.">
-        </div>
-      </div>
+    <div class="story">
+      <article class="ch" id="ch-silence">
+        <span class="when">Before</span>
+        <h3>The game was talking to nobody</h3>
+        <div class="viz flow" role="img" aria-label="The game asks for Konami's gate server by name; the name no longer exists."><span>PES 2021: "where is pes21-x64-gate<wbr>.cs.konami.net?"</span><b aria-hidden="true">→</b><span class="x">no such server</span></div>
+        <p>Konami's server names no longer exist, so the game stops at its very first question. The game itself is copy-protected and is never patched. What changes is the answer to that question: the game asks for Konami's servers by name, and gets a different server.</p>
+        <p class="aside">The first version did this with the PC's hosts file. Now a small mod inside the game does it (see "One file").</p>
+      </article>
 
-      <div class="step" id="share">
-        <div>
-          <div class="step-num" aria-hidden="true">2</div>
-          <h3>Invite your friends</h3>
-          <p>Admin page → <b>Invite friends</b> → <b>Copy message</b>, and send it on Discord, WhatsApp or Telegram.</p>
-          <p class="hint">The top of the admin page says if friends outside your home can connect. If it doesn't, see <a href="#hosthelp">Help for hosts</a>.</p>
-        </div>
-        <div class="clip">
-          <img class="th-light" src="step2-light.webp" width="1600" height="800" loading="lazy" alt="On the admin page's Invite friends card, Copy message turns into Copied; the invite is pasted into a chat.">
-          <img class="th-dark" src="step2-dark.webp" width="1600" height="800" loading="lazy" alt="On the admin page's Invite friends card, Copy message turns into Copied; the invite is pasted into a chat.">
-        </div>
-      </div>
+      <article class="ch" id="ch-first">
+        <span class="when">4 Nov · 04:28</span>
+        <h3>152 bytes nobody could read</h3>
+        <p>Pointed at a stand-in server, the game spoke: 152 bytes, scrambled beyond recognition. Before the server could answer anything, those bytes had to make sense.</p>
+      </article>
 
-      <div class="step" id="join">
-        <div>
-          <div class="step-num" aria-hidden="true">3</div>
-          <h3>Add the mod (each friend)</h3>
-          <p>Open the link, press <b>Download the mod</b>, and put <code>dinput8.dll</code> next to <code>PES2021.exe</code>.</p>
-          <p class="hint">Steam → right-click PES 2021 → Manage → Browse local files. On Linux or Steam Deck, also set the game's launch options to:</p>
-          <div class="cmd"><pre id="c-launch">WINEDLLOVERRIDES="dinput8=n,b" %command%</pre><button class="copy" data-copy="c-launch" type="button">Copy</button></div>
-          <p class="warnline">Only use a mod file your host sent you directly.</p>
+      <article class="ch" id="ch-wrongturn">
+        <span class="when">4 Nov · morning</span>
+        <h3>The biggest wrong turn</h3>
+        <div class="viz two">
+          <figure><figcaption>What it looked like</figcaption><pre class="codebox"><span class="k">secret handshake</span>
+answer with a 16-byte key
+<span class="x">… the game crashes</span></pre></figure>
+          <figure><figcaption>What it really was</figcaption><pre class="codebox"><span class="k">msgid</span>  <span class="s">"CMD_GET_SVRLIST"</span>
+"please send the server list"
+… answered, login goes on</pre></figure>
         </div>
-        <div class="clip">
-          <img class="th-light" src="step3-light.webp" width="1600" height="800" loading="lazy" alt="The friend's page with Download the mod; dinput8.dll lands in the game folder next to PES2021.exe.">
-          <img class="th-dark" src="step3-dark.webp" width="1600" height="800" loading="lazy" alt="The friend's page with Download the mod; dinput8.dll lands in the game folder next to PES2021.exe.">
-        </div>
-      </div>
+        <p>The game's code contains a complete "secret handshake" with its own encryption, and the first message looked like one. Hours went into answering it. It was a plain request for the server list; the handshake belongs to a different connection.</p>
+        <p class="aside">The lesson: decode what the game actually sends before trusting what its code <i>could</i> do.</p>
+      </article>
 
-      <div class="step" id="kickoff">
-        <div>
-          <div class="step-num" aria-hidden="true">4</div>
-          <h3>Play</h3>
-          <p><b>eFootball</b> → <b>Quick Match</b> → <b>Go to Matchmaking</b>. The first time, the game asks for your player name.</p>
-          <p class="hint">When two players search, the server pairs them: press <b>Proceed</b>, then both press <b>Kick Off</b>.</p>
+      <article class="ch" id="ch-parcel">
+        <span class="when">4 Nov · 15:10</span>
+        <h3>A crash points the way</h3>
+        <div class="viz layer l4" role="img" aria-label="Four nested layers: scrambled and fingerprinted, locked, squashed, and the message itself.">
+          <div class="t">Scrambled and fingerprinted</div><div class="d">a repeating 4-byte mix, plus a checksum</div>
+          <div class="layer l3"><div class="t">Locked</div><div class="d">Blowfish, with a 56-byte key built into the game</div>
+            <div class="layer l2"><div class="t">Squashed</div><div class="d">compressed, when the message is big</div>
+              <div class="l1">{ msgid: "CMD_GET_SVRLIST", patch_version: "1.01.00" }</div>
+            </div>
+          </div>
         </div>
-        <div class="clip">
-          <img class="th-light" src="step4-light.webp" width="1152" height="576" loading="lazy" alt="Matchmaking pairs karim and dani, then the match kicks off in the stadium.">
-          <img class="th-dark" src="step4-dark.webp" width="1152" height="576" loading="lazy" alt="Matchmaking pairs karim and dani, then the match kicks off in the stadium.">
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+        <p>Wine's debug log showed the game crashing right after it read a reply, inside the function that decodes messages. That function led to the lock: a cipher object exactly the size of a Blowfish context, and a 56-byte key stored in the game. With that key, the 152 bytes turned into readable MessagePack, a compact cousin of JSON.</p>
+        <p class="fun"><b>Fun find:</b> the key's first 16 bytes match a key from <i>Metal Gear Solid V</i>, another Konami game on the same Fox Engine.</p>
+      </article>
 
-<section id="help">
-  <div class="wrap">
-    <h2>Something went wrong?</h2>
-    <p class="sub">Find what you see. For a friend, <code>pes2021-online.log</code> in the game folder usually says why.</p>
-    <div class="helpgrid">
-      <div class="helpcard" id="playerhelp">
-        <h3>For players</h3>
-        <ul class="fix">
-          <li><b>"Unable to connect to the server"</b><span>The host's server has to be running. If the log says <i>not found</i>, it's off or unreachable; if it says <i>bad proof</i>, ask the host for a fresh file.</span></li>
-          <li><b>The browser or antivirus warns about the file</b><span>Every <code>.dll</code> download gets this warning: choose <b>Keep</b>. Compare its SHA-256 with the one on your host's page.</span></li>
-          <li><b>No <code>pes2021-online.log</code> appears</b><span>The mod didn't load. It must sit next to <code>PES2021.exe</code>, named exactly <code>dinput8.dll</code> (not <code>dinput8 (1).dll</code>). On Linux or Steam Deck, check the launch option.</span></li>
-          <li><b>The match ends right after kick-off</b><span>Both players download the mod again, and the host updates the server.</span></li>
-          <li><b>"Failed to connect with opponent"</b><span>The two PCs can't reach each other. See <a href="#faq-far">playing with friends far away</a>.</span></li>
-          <li><b>Matchmaking searches forever</b><span>Two players must search in Quick Match at the same time.</span></li>
-          <li><b>Windows Firewall asks about PES 2021</b><span>Click <b>Allow</b>: matches run directly between the two PCs.</span></li>
-          <li><b>A "no operation" message ends the match</b><span>The game's own rule: nobody touched the controller for about 50 seconds.</span></li>
+      <article class="ch" id="ch-desks">
+        <span class="when">4 Nov · 15:43</span>
+        <h3>Three desks, and a very strict reader</h3>
+        <ol class="viz desks">
+          <li><b>Gate</b>"Here are the servers, 53 web addresses and today's date."</li>
+          <li><b>Account</b>"Who are you?" A new player the first time.</li>
+          <li><b>Menu</b>The online lobby, with a "still here" every 30 s.</li>
+        </ol>
+        <p>Before the menu, the game checks in at three desks, like at an airport, and reads every reply field by field. "Almost right" breaks it:</p>
+        <ul class="viz oops" aria-label="Small mistakes and what the game did">
+          <li><span>JSON instead of MessagePack</span><b>error at login</b></li>
+          <li><span>a number where text belongs</span><b>Terms of Use, forever</b></li>
+          <li><span>a timeout of zero</span><b>every match aborts</b></li>
         </ul>
-      </div>
-      <div class="helpcard" id="hosthelp">
-        <h3>For hosts</h3>
-        <ul class="fix">
-          <li><b>"Router ports are closed"</b><span>Turn on <b>UPnP</b> in your router's settings and start the server again, or forward the ports it lists.</span></li>
-          <li><b>A warning about CGNAT</b><span>Your provider shares one public address between customers, so friends outside can't reach you. Use Tailscale: see <a href="#faq-far">friends far away</a>.</span></li>
-          <li><b>It works here, but nobody else can connect</b><span>This computer's firewall blocks the ports. Ubuntu: <code>sudo ufw allow 80,443,8080,10000/tcp</code> and <code>sudo ufw allow 3478,7600/udp</code>. Fedora: <code>sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp &amp;&amp; sudo firewall-cmd --reload</code></span></li>
-          <li><b>"Port … is already in use"</b><span>Another server already runs on this computer: stop it, then paste the line again.</span></li>
-          <li><b>Something else is broken</b><span>Paste the install line again: it repairs the server and keeps players and results.</span></li>
+        <p>The way through: the game describes its own expectations. Its code lists the fields of almost every reply, so 398 reply formats were read straight from it instead of guessed. At 15:43 the first player was saved.</p>
+      </article>
+
+      <article class="ch" id="ch-test">
+        <span class="when">4 Nov · 15:53</span>
+        <h3>The network test</h3>
+        <div class="viz flow" role="img" aria-label="The network test: an outside-address check, then a secure status page, then the eFootball modes unlock."><span>STUN: "my outside address?"</span><b aria-hidden="true">→</b><span>HTTPS status page, certificate checked</span><b aria-hidden="true">→</b><span class="k">eFootball unlocked</span></div>
+        <p>Before the eFootball modes open, the game asks a server how it looks from the outside (a STUN check), then fetches a status page over HTTPS and checks its certificate the way a browser does. The mod skips that check for the four network-test names only, which already point to your friend's verified server.</p>
+      </article>
+
+      <article class="ch" id="ch-matchmaking">
+        <span class="when">4 Nov · 16:04</span>
+        <h3>One missing word</h3>
+        <div class="viz two">
+          <figure><figcaption>Before: a five-minute timeout</figcaption><pre class="codebox"><span class="k">result</span>  <span class="s">OK</span>
+<span class="k">member</span>  [ you, them ]</pre></figure>
+          <figure><figcaption>After: match found</figcaption><pre class="codebox"><span class="k">result</span>          <span class="s">OK</span>
+<span class="k">member</span>          [ you, them ]
+<span class="hlline"><span class="k">matching_state</span>  <span class="s">"FINISH"</span></span></pre></figure>
+        </div>
+        <p>On Go to Matchmaking the game says "I'm looking" once, then waits in silence. The server has to tap it on the shoulder with exactly the right message: who's home, who's away, and where to find each other. Without <code>matching_state: "FINISH"</code>, the value the game's code checks before moving on, it ignored every match and gave up after five minutes.</p>
+      </article>
+
+      <article class="ch" id="ch-errors">
+        <span class="when">Along the way</span>
+        <h3>Error codes are breadcrumbs</h3>
+        <pre class="viz codebox wide" tabindex="0" aria-label="Worked example: how the error code EYRH763 is made from a file name and a line number"><span class="t">file  </span>  OnlineModeTaskQuickMatching.cpp
+<span class="t">deal  </span>  its characters into 4 piles in turn
+<span class="t">sum   </span>  810    856    771    657
+<span class="t">÷ 26  </span>  r 4    r 24   r 17   r 7
+<span class="t">letter</span>  <span class="s">E      Y      R      H</span>    + line <span class="s">763</span>  =  <span class="s">EYRH763</span></pre>
+        <p>Codes like <code>EYRH763</code> look random. They're a scrambled name of the source file where the error happened, plus its line number. A small decoder matched them against every file name left in the game, so each error pointed straight at the part of the game that was unhappy.</p>
+      </article>
+
+      <article class="ch big" id="ch-fulltime">
+        <span class="when">4 Nov · 18:20 – 18:52</span>
+        <h3>Full time</h3>
+        <pre class="viz codebox wide" tabindex="0" aria-label="Condensed server log of the first complete match"><span class="t">18:19:24</span>  <span class="k">MATCH FOUND</span>   room 5, player 2 hosts player 1
+<span class="t">18:20:52</span>  phase 1ST      <span class="k">kick-off</span>
+<span class="t">18:34:40</span>  phase BREAK1   half-time
+<span class="t">18:36:28</span>  phase 2ND      second half
+<span class="t">18:52:00</span>  phase END      <span class="k">full time</span>
+<span class="t">18:53:04</span>  result         0–0
+<span class="t">18:54:05</span>  <span class="k">MATCH FOUND</span>   room 6, straight into the next one</pre>
+        <p>Fourteen hours after the first 152 bytes, two copies of the game played a complete 90-minute online match through the new server: Arsenal v Arsenal, 0–0, kick-off to full time, then straight into the next pairing.</p>
+      </article>
+
+      <article class="ch" id="ch-mod">
+        <span class="when">5 Nov</span>
+        <h3>From a join line to one file</h3>
+        <div class="viz flow" role="img" aria-label="The mod sends a random challenge; the server signs it with its secret key; the mod checks the signature, then connects."><span>mod: "prove it: 7f3a…"</span><b aria-hidden="true">→</b><span>server signs it with its secret key</span><b aria-hidden="true">→</b><span class="k">signature matches: connect</span></div>
+        <p>The first setup asked every player to paste a line that ran with administrator rights, edited the hosts file and installed a certificate. Now it's one file, <code>dinput8.dll</code>, which PES 2021 loads from its own folder like many PC game mods. It answers "where is Konami?" with your friend's server, and nothing outside the game changes.</p>
+        <p>Home servers restart and addresses change hands, so each server has a permanent identity: a secret key whose public half every copy of its mod carries. The mod only connects to an address that signs a fresh challenge with that key.</p>
+      </article>
+
+      <article class="ch" id="ch-math">
+        <span class="when">6 Nov</span>
+        <h3>Two homes, two answers</h3>
+        <div class="viz math">
+          <div class="before"><b>Before</b>
+            <div class="row"><span>Windows</span><span>Microsoft's sinf, powf…</span></div>
+            <div class="row"><span>Linux · Steam Deck</span><span>Wine's sinf, powf…</span></div>
+            Tiny differences in the last digits, and the two games drift apart.</div>
+          <div class="after"><b>After</b>
+            <div class="row"><span>Windows</span><span>the mod's math</span></div>
+            <div class="row"><span>Linux · Steam Deck</span><span>the mod's math</span></div>
+            The same code on every PC, so the same numbers.</div>
+        </div>
+        <p>The first match between two homes, Windows against Linux, ended 1.6 seconds after kick-off: both games reported they were out of sync. Each PC runs the match simulation itself, and the game takes functions like <code>sinf</code> and <code>powf</code> from the system: Microsoft's on Windows, Wine's under Proton. Both are accurate; they just aren't bit-identical.</p>
+        <p>The mod now hands the game the same math functions on every PC (26 of them from <a href="https://musl.libc.org/">musl</a>, plus a sort), and every release checks on Windows that they give exactly the Linux results. Confirmed between two Linux PCs; a real Windows-against-Linux match is still waiting for testers.</p>
+      </article>
+
+      <article class="ch" id="ch-rest">
+        <span class="when">After that</span>
+        <h3>Mapping everything else</h3>
+        <ul class="viz mods" aria-label="Modes working on the server">
+          <li>Quick Match</li><li>Friendly Match Lobby</li><li>Online Divisions</li><li>Matchday</li><li>Online Co-op</li><li>Friends Cup</li><li>Match replays</li><li>Relay for blocked routers</li>
         </ul>
-      </div>
+        <p>With the basics working, the rest of the game's online code was read end to end: all 433 server commands, what each one expects, and 186 places that report an error. A small toolkit indexes the game's 37 MB of code in about 10 seconds to find them. Each mode above was then built from that map and tested in the real game.</p>
+        <p class="aside">Still to come: myClub, events, and 2v2 or 3v3 co-op. <a href="https://github.com/AzrakHQ/pes2021-online-server/issues/new?template=test-report.md">Testers are welcome.</a></p>
+      </article>
     </div>
-    <p class="stuck">Still stuck? <a href="https://github.com/AzrakHQ/pes2021-online-server/issues">Open an issue</a> with the friend's <code>pes2021-online.log</code> and the host's <code>server.log</code>.</p>
-  </div>
-</section>
-
-<section id="faq" class="alt">
-  <div class="wrap faq">
-    <h2>FAQ</h2>
-    <p class="sub">Tap a question.</p>
-
-    <h3 class="faqh" id="faq-players">Players</h3>
-    <details class="q" id="faq-mod">
-      <summary>Does the mod change my game?</summary>
-      <p>No. The game's files stay exactly as Steam installed them, and nothing outside the game folder changes: no administrator rights, no installer. While the game runs, the mod answers the game's "where are Konami's servers?" with your host's server, after checking it really is that server. To undo, delete <code>dinput8.dll</code> (and the launch option on Linux). <a href="https://github.com/AzrakHQ/pes2021-online-server/tree/main/server/mod">Read the code</a>.</p>
-    </details>
-    <details class="q" id="faq-ban">
-      <summary>Can this get my Steam account banned?</summary>
-      <p>There's no known way it could: Konami's servers are gone, and the mod doesn't touch Steam or the game's copy protection. Like any mod, it's at your own risk.</p>
-    </details>
-    <details class="q" id="faq-version">
-      <summary>Which version of the game do I need?</summary>
-      <p>eFootball PES 2021 (Season Update) for PC on Steam, version 1.01.00, the final update. A normal Steam copy is already on it. Other stores and consoles aren't supported.</p>
-    </details>
-    <details class="q" id="faq-trust">
-      <summary>Should I trust a mod file my friend sends?</summary>
-      <ul>
-        <li>Only from friends you trust, like any program. Get it from your host directly, not from copies passed around.</li>
-        <li>Check it: run <code>Get-FileHash .\dinput8.dll</code> in the game folder on Windows (<code>sha256sum dinput8.dll</code> on Linux) and compare with the SHA-256 on your host's page.</li>
-        <li>It can only connect to your host's server: a server without their secret key is refused.</li>
-        <li>The server stores your player name, Steam ID and match results, and sees your IP address. During a match your opponent's PC connects to yours, as in any peer-to-peer game.</li>
-      </ul>
-    </details>
-    <details class="q" id="faq-build">
-      <summary>Is the mod really built from the public code?</summary>
-      <p>Yes, and you can check: GitHub builds it from <code>server/mod</code>, and the build is byte-for-byte reproducible. A server's copy differs only in a 2 KB settings area holding that server's key and addresses. Every server shows the file's SHA-256 at <code>http://&lt;server&gt;/status</code>.</p>
-    </details>
-    <details class="q" id="faq-switch">
-      <summary>Can I play on more than one server?</summary>
-      <p>Yes: swap in the other host's file. Or hold <b>Shift</b> while the game starts and paste another server's address; only use addresses you got from that host.</p>
-    </details>
-    <details class="q" id="faq-far">
-      <summary>Can I play with friends in other cities or countries?</summary>
-      <p>Yes. The server opens your router's ports itself, and when two players' PCs can't reach each other, it relays the match through the host (still being tested). If friends get "Failed to connect with opponent", put everyone on one private network with <a href="https://tailscale.com">Tailscale</a> (free): everyone joins the host's network, then the host runs the install line again with their Tailscale address and friends download the mod again:</p>
-      <div class="cmd"><pre id="c-ts">curl -fsSL https://<wbr>raw.<wbr>githubusercontent.<wbr>com/<wbr>AzrakHQ/<wbr>pes2021-online-server/<wbr>main/<wbr>run.<wbr>sh | PUBLIC_IP=100.<wbr>x.<wbr>y.<wbr>z sh</pre><button class="copy" data-copy="c-ts" type="button">Copy</button></div>
-      <p>Replace 100.x.y.z with the host's address from the Tailscale app.</p>
-    </details>
-    <details class="q" id="faq-undo">
-      <summary>I set it up with an old "join line". How do I undo that?</summary>
-      <p>That older method changed the hosts file and installed a certificate. These lines remove both, even if the server is gone:</p>
-      <div class="cmd"><pre id="c-leave-w">irm https://<wbr>azrakhq.<wbr>github.<wbr>io/<wbr>pes2021-online-server/<wbr>leave.<wbr>ps1 | iex</pre><button class="copy" data-copy="c-leave-w" type="button">Copy</button></div>
-      <div class="cmd"><pre id="c-leave-l">curl -fsSL https://<wbr>azrakhq.<wbr>github.<wbr>io/<wbr>pes2021-online-server/<wbr>leave.<wbr>sh | bash</pre><button class="copy" data-copy="c-leave-l" type="button">Copy</button></div>
-      <p>The first is for Windows PowerShell, the second for Linux or Steam Deck (close the game first).</p>
-    </details>
-
-    <h3 class="faqh" id="faq-hosts">Hosts</h3>
-    <details class="q" id="faq-install">
-      <summary>What does the install line do?</summary>
-      <ul>
-        <li>Downloads the server from this project's <a href="https://github.com/AzrakHQ/pes2021-online-server/releases/latest">latest release</a>, built by GitHub from the public code. <a href="https://github.com/AzrakHQ/pes2021-online-server/blob/main/run.sh">run.sh</a> is about 50 lines.</li>
-        <li>Sets it up as your own user, no sudo: it runs in the background, starts when you log in, and adds <b>PES 2021 Server</b> to your apps menu.</li>
-        <li>Keeps everything in <code>~/.local/share/pes2021-server</code>.</li>
-        <li>Opens your router's ports (UPnP) while it runs, and closes them when it stops.</li>
-        <li>If PES 2021 is on this computer, it adds the mod for you and keeps it up to date (a switch on the admin page turns this off).</li>
-      </ul>
-    </details>
-    <details class="q" id="faq-host">
-      <summary>How do I open the admin page, update or stop the server?</summary>
-      <ul>
-        <li>On the server's own PC: <b>PES 2021 Server</b> in your apps menu, or <code>http://localhost:8080/admin</code>. Other devices at home use the address and password on its <b>Server</b> page.</li>
-        <li>When a new version is out, the admin page says so: press <b>Update now</b>. Players, results and friends' mods are kept.</li>
-        <li>Restart and stop are on the same page. In a terminal, <code>pes2021-server</code> shows the server's screen and <code>pes2021-server stop</code> stops it.</li>
-      </ul>
-    </details>
-    <details class="q" id="faq-update">
-      <summary>Do friends need a new file after I update or restart?</summary>
-      <p>No: their files keep working, and players and results stay. A friend needs a fresh file only if your internet address changes, which the admin page shows, or to get fixes made to the mod itself.</p>
-    </details>
-    <details class="q" id="faq-thispc">
-      <summary>Can I play on the computer that hosts?</summary>
-      <p>Yes. The admin page has a card for this computer: close the game and click <b>Install mod</b>. On Linux it also sets the Wine option for PES 2021, so no launch option is needed (with a backup of Wine's settings).</p>
-    </details>
-    <details class="q" id="faq-join">
-      <summary>Who can join my server?</summary>
-      <p>Anyone with your server's mod or address, so share it only with friends. <b>Block</b> on a player's panel locks that copy of the mod out.</p>
-    </details>
-    <details class="q" id="faq-winhost">
-      <summary>Can I host from Windows or a Mac?</summary>
-      <p>No: the server runs on Linux or a Steam Deck. Friends can play from Windows, Linux or Steam Deck.</p>
-    </details>
-
-    <h3 class="faqh" id="faq-about">The project</h3>
-    <details class="q">
-      <summary>Does it cost anything?</summary>
-      <p>No. It's free and open source (MIT), with no accounts or paid services. The host just needs a computer that's on while you play.</p>
-    </details>
-    <details class="q">
-      <summary>Is this legal? Is it affiliated with Konami?</summary>
-      <p>It's an independent fan preservation project, not affiliated with Konami, so a game people paid for keeps working online. It reimplements only the server side of the network protocol, contains no Konami code or game assets, and every player uses their own copy of the game. PES and eFootball are trademarks of Konami. (Not legal advice.)</p>
-    </details>
   </div>
 </section>
 
 <section id="inside">
   <div class="wrap">
-    <h2>How it works</h2>
-    <p class="sub">The game was built to talk only to Konami. Here's how it ends up talking to your friend instead.</p>
+    <h2>How the server works</h2>
+    <p class="sub">One program on the host's PC stands in for Konami's servers. The players' games never know the difference.</p>
 
     <figure class="picture">
       <svg viewBox="0 0 400 300" role="img" aria-labelledby="pic-t">
-        <title id="pic-t">Both players' games, each with the mod, connect to your server to sign in and find a match. The match itself runs directly between the two players, or through the server's relay if their routers block a direct link.</title>
+        <title id="pic-t">Both players' games, each with the mod, connect to the server to sign in and find a match. The match itself runs directly between the two players, or through the server's relay if their routers block a direct link.</title>
         <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="arrow" d="M0,0 L10,5 L0,10z"/></marker></defs>
         <rect class="srv" x="105" y="8" width="190" height="84" rx="14"/>
-        <text class="t" x="200" y="38" text-anchor="middle">Your server</text>
+        <text class="t" x="200" y="38" text-anchor="middle">The server</text>
         <text class="s" x="200" y="57" text-anchor="middle">sign-in · matchmaking · results</text>
         <text class="s" x="200" y="73" text-anchor="middle">admin page</text>
         <rect class="box" x="8" y="184" width="144" height="76" rx="14"/>
-        <text class="t" x="80" y="212" text-anchor="middle">You</text>
+        <text class="t" x="80" y="212" text-anchor="middle">Player 1</text>
         <rect class="chip" x="30" y="224" width="100" height="20" rx="10"/><text class="chipt" x="80" y="238" text-anchor="middle">PES 2021 + mod</text>
         <rect class="box" x="248" y="184" width="144" height="76" rx="14"/>
-        <text class="t" x="320" y="212" text-anchor="middle">Your friend</text>
+        <text class="t" x="320" y="212" text-anchor="middle">Player 2</text>
         <rect class="chip" x="270" y="224" width="100" height="20" rx="10"/><text class="chipt" x="320" y="238" text-anchor="middle">PES 2021 + mod</text>
         <path class="ln" d="M70,182 L132,98" marker-end="url(#ar)"/>
         <path class="ln" d="M330,182 L268,98" marker-end="url(#ar)"/>
@@ -511,132 +463,64 @@ dialog.lightbox img { display: block; max-width: 96vw; max-height: calc(94vh - 5
         <text class="t" x="200" y="290" text-anchor="middle" style="font-size:13px">the match: player to player</text>
       </svg>
     </figure>
-    <p class="picture-cap">The mod sends the game to your friend's server instead of Konami's. The server handles signing in and pairing players, and the two games then play the match between themselves.</p>
+    <p class="picture-cap">The server handles everything around a match: signing in, pairing players, saving results. The match itself runs between the two games, which is why the whole server needs only about 50 MB of memory.</p>
 
-    <div class="parts">
-      <article class="part" id="ch-desks">
-        <span class="n">01 · SIGNING IN</span>
-        <h3>Three desks before the menu</h3>
-        <ol class="desks">
-          <li><b>Gate</b>"Here are the servers, and today's date."</li>
-          <li><b>Account</b>"Who are you?" A new player the first time.</li>
-          <li><b>Menu</b>The online lobby. "Still here" every 30 s.</li>
-        </ol>
-        <p class="k">The game asks for Konami's gate by name. The mod answers with your friend's server, and the server plays all three desk clerks.</p>
-      </article>
-
-      <article class="part" id="ch-parcel">
-        <span class="n">02 · EVERY MESSAGE</span>
-        <h3>A sealed parcel</h3>
-        <div class="layer l4" role="img" aria-label="Four nested layers: scrambled and fingerprinted, then locked, then squashed, then the message itself.">
-          <div class="t">Scrambled and fingerprinted</div>
-          <div class="layer l3"><div class="t">Locked with a key built into the game</div>
-            <div class="layer l2"><div class="t">Squashed, when it's big</div>
-              <div class="l1">{ msgid: "CMD_GET_SVRLIST" }</div>
-            </div>
-          </div>
-        </div>
-        <p class="k">The server unwraps and re-wraps all four layers exactly as Konami's did. Fun find: the key starts with the same 16 bytes as one in <i>Metal Gear Solid V</i>.</p>
-      </article>
-
-      <article class="part" id="ch-reader">
-        <span class="n">03 · THE REPLIES</span>
-        <h3>A very strict reader</h3>
-        <ul class="oops" aria-label="Small mistakes and what the game did">
-          <li><span>JSON instead of MessagePack</span><b>error at login</b></li>
-          <li><span>a number where text belongs</span><b>Terms of Use, forever</b></li>
-          <li><span>a timeout of zero</span><b>every match aborts</b></li>
-        </ul>
-        <p class="k">"Almost right" breaks the game. So the server follows the game's own list of what every reply must contain: 398 reply formats, read straight from the game.</p>
-      </article>
-
-      <article class="part" id="ch-matchmaking">
-        <span class="n">04 · MATCHMAKING</span>
-        <h3>One missing word</h3>
-        <pre class="codebox" tabindex="0" aria-label="The match-found message; the matching_state FINISH line is the fix"><span class="k">result</span>          <span class="s">OK</span>
-<span class="k">member</span>          [ you, them ]
-<span class="hlline"><span class="k">matching_state</span>  <span class="s">"FINISH"</span></span></pre>
-        <p class="k">The game says "I'm looking" once, then waits in silence. Without <code>"FINISH"</code> it ignored every match the server found and gave up after five minutes.</p>
-      </article>
-
-      <article class="part" id="ch-p2p">
-        <span class="n">05 · THE MATCH</span>
-        <h3>Player to player</h3>
-        <ul class="phases" aria-label="Match stages each game reports, in order">
-          <li>TEAMSELECT</li><li>GAMELOAD</li><li class="hl">1ST</li><li>BREAK1</li><li class="hl">2ND</li><li>END</li>
-        </ul>
-        <p class="k">The two games play the match between themselves and report each stage, fouls, cards and the final score. That's how the admin page shows live matches, results and tables, with the server using about 50 MB of memory.</p>
-      </article>
-
-      <article class="part" id="ch-errors">
-        <span class="n">06 · ERROR CODES</span>
-        <h3>Hidden breadcrumbs</h3>
-        <div class="flow" role="img" aria-label="Error code EYRH763 decodes to the file OnlineModeTaskQuickMatching.cpp, line 763."><span><code>EYRH763</code></span><b aria-hidden="true">→</b><span class="k">OnlineModeTask<wbr>QuickMatching.cpp, line 763</span></div>
-        <p class="k">Codes like <code>EYRH763</code> are a scrambled source file name plus a line number. Decoding them pointed straight at the part of the game that was unhappy.</p>
-      </article>
-
-      <article class="part" id="ch-mod">
-        <span class="n">07 · THE FILE</span>
-        <h3>One file with an identity</h3>
-        <div class="flow" role="img" aria-label="The mod sends a random challenge; the server signs it with its secret key; the mod checks the signature, then connects."><span>mod: "prove it"</span><b aria-hidden="true">→</b><span>server signs it</span><b aria-hidden="true">→</b><span class="k">match: connect</span></div>
-        <p class="k">Each server has a secret key, and every copy of its mod carries the public half. Before connecting, the mod checks the signature, so nobody else at your friend's old address can pretend to be their server.</p>
-      </article>
-
-      <article class="part" id="ch-test">
-        <span class="n">08 · UNLOCKING EFOOTBALL</span>
-        <h3>The network test</h3>
-        <div class="flow" role="img" aria-label="The network test: an outside-address check, then a secure status page, then the eFootball modes unlock."><span>"my outside address?"</span><b aria-hidden="true">→</b><span>secure status page</span><b aria-hidden="true">→</b><span class="k">eFootball unlocked</span></div>
-        <p class="k">The game checks the status page's certificate like a browser does. The mod skips that check for the four test names only, which already point to your friend's verified server.</p>
-      </article>
-    </div>
-
-    <h3 class="tl-h" id="ch-timeline">From silence to a full match in 14 hours</h3>
-    <p class="sub" style="margin-bottom:0">4 November 2026 (UTC+2)</p>
-    <ol class="timeline">
-      <li><b>04:28 · the game reaches a server that isn't Konami</b><span>152 bytes nobody can read yet.</span></li>
-      <li><b>15:10 · the first message decodes</b><span>"Please send me the server list."</span></li>
-      <li><b>15:53 · the network test passes</b><span>The eFootball modes unlock.</span></li>
-      <li><b>16:04 · two players matched</b><span>First kick-off at 17:22.</span></li>
-      <li class="big"><b>18:20 · a complete 90-minute online match</b><span>Kick-off to full time, then straight into the next pairing.</span></li>
+    <h3 class="h3c">The life of a match</h3>
+    <p class="subc">What happens between pressing Go to Matchmaking and seeing the result in your stats.</p>
+    <ol class="life">
+      <li><b>Sign in</b><span>Gate, account, menu: three connections, one player.</span></li>
+      <li><b>Network test</b><span>STUN, then an HTTPS page: eFootball unlocks.</span></li>
+      <li><b>Search</b><span>"I'm looking", then the game waits in silence.</span></li>
+      <li><b>Paired</b><span>The server pushes <code>"FINISH"</code>: home, away, addresses.</span></li>
+      <li><b>Connect</b><span>Directly, player to player; through the relay if routers block it.</span></li>
+      <li><b>Play</b><span>Both games report each stage: <code>1ST</code>, <code>BREAK1</code>, <code>2ND</code>, <code>END</code>.</span></li>
+      <li><b>Result</b><span>The score lands in stats, divisions, the cup and replays.</span></li>
     </ol>
 
-    <div class="more">
-      <a class="btn primary" href="protocol.html">Technical write-up</a>
-      <a class="btn plain" href="functions.html">How every online function works</a>
+    <h3 class="h3c">Inside the server</h3>
+    <p class="subc">Each part answers one of the game's old Konami addresses, or adds what a host needs.</p>
+    <div class="pieces">
+      <article class="piece"><span class="port">TCP 10000</span><h4>The gate</h4><p>Unwraps and re-wraps every message (scramble, Blowfish, MessagePack) and answers the game's commands. Commands it doesn't need get a plain "OK", and the game falls back to its defaults.</p><a class="more" href="protocol.html#frames">Message format →</a></article>
+      <article class="piece"><span class="port">Matchmaking</span><h4>Pairing and rooms</h4><p>A queue for Quick Match, rooms for the Friendly Match Lobby, and the pushes that tell both games who's home, who's away and where to connect.</p><a class="more" href="protocol.html#mm2">Matchmaking →</a></article>
+      <article class="piece"><span class="port">UDP 3478 · HTTPS</span><h4>The network test</h4><p>A standard STUN answer and the status page the game checks before it unlocks eFootball.</p><a class="more" href="protocol.html#nat">Network test →</a></article>
+      <article class="piece"><span class="port">TURN over TLS · DTLS</span><h4>The relay</h4><p>When two players' routers block a direct link, the game asks for a relay. The server has one built in, and passes the match traffic between the two players itself.</p><a class="more" href="functions.html#net">Connecting players →</a></article>
+      <article class="piece"><span class="port">After the match</span><h4>Results and rankings</h4><p>Scores from both games, counted once: Last 20 results, ratings, Online Divisions, Matchday points, the monthly Friends Cup and recorded replays.</p><a class="more" href="functions.html#results">Results →</a></article>
+      <article class="piece"><span class="port">Identity</span><h4>A key per server</h4><p>A secret key made on the first start. Each copy of the mod carries the public half and connects only to a server that signs its challenge.</p><a class="more" href="https://github.com/AzrakHQ/pes2021-online-server/tree/main/server/mod">The mod's code →</a></article>
+      <article class="piece"><span class="port">Messages</span><h4>Talking to players</h4><p>News in the game's Online Information, a box before Quick Match, the game's own "maintenance soon" warning, and a reason when someone is kicked.</p><a class="more" href="protocol.html#messages">Messages →</a></article>
+      <article class="piece"><span class="port">HTTP 8080</span><h4>The host's side</h4><p>Opens the router's ports by itself (UPnP), spots internet connections that can't take visitors (CGNAT), and runs the admin page with live matches, results and one-click updates.</p><a class="more" href="https://github.com/AzrakHQ/pes2021-online-server/blob/main/server/README.md">Server internals →</a></article>
     </div>
+  </div>
+</section>
+
+<section id="deeper" class="alt">
+  <div class="wrap">
+    <h2>Go deeper</h2>
+    <p class="sub">Every finding, with the places in the game's code that back it up.</p>
+    <div class="deeper">
+      <a class="deep" href="protocol.html"><b>Technical write-up</b><span>The message format, encryption, the login chain, matchmaking, error codes and how each was found.</span><i>Read it →</i></a>
+      <a class="deep" href="functions.html"><b>How every online function works</b><span>Relay, match flow, results, rooms, co-op, menus, and a catalogue of all 433 server commands.</span><i>Read it →</i></a>
+      <a class="deep" href="https://github.com/AzrakHQ/pes2021-online-server"><b>The source code</b><span>The server, the mod and the tools, open source under the MIT license.</span><i>On GitHub →</i></a>
+    </div>
+    <p class="playnote">Want to play? <a href="https://github.com/AzrakHQ/pes2021-online-server#how-to-use">The README has the four steps</a>, and help is in the <a href="https://github.com/AzrakHQ/pes2021-online-server/blob/main/server/README.md#troubleshooting">troubleshooting guide</a>.</p>
   </div>
 </section>
 
 <a class="totop" id="totop" href="#top" aria-label="Back to top" hidden>↑</a>
 </main>
 
-<dialog class="lightbox" id="lightbox" aria-label="Admin page screenshot, full size"><button type="button" class="lb-close" id="lb-close">Close</button><img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt=""></dialog>
-
 <footer>
   <div class="wrap">
     <nav aria-label="Project links">
       <a href="https://github.com/AzrakHQ/pes2021-online-server">GitHub</a>
       <a href="protocol.html">Technical write-up</a>
-      <a href="https://github.com/AzrakHQ/pes2021-online-server/issues">Report a problem</a>
+      <a href="functions.html">Online functions</a>
       <a href="https://github.com/AzrakHQ/pes2021-online-server/blob/main/LICENSE">MIT license</a>
     </nav>
-    <p>A fan preservation project by <a href="https://github.com/AzrakHQ">Azrak</a>, made by Mohamed Ali Rashad. No game files are included: every player needs their own copy of PES 2021 on Steam. Not affiliated with Konami; PES and eFootball are trademarks of Konami. The mod includes <a href="https://github.com/AzrakHQ/pes2021-online-server/blob/main/server/mod/minhook/LICENSE.txt">MinHook</a> (BSD-2-Clause) and Monocypher (CC0/BSD-2-Clause). Thanks to <a href="https://github.com/Nikow5/Pes2021PrivateServer">Nikow5's PES 2021 server work</a> and the MGSV / MGO3 server-emulator community for prior research.</p>
+    <p>A fan preservation project by <a href="https://github.com/AzrakHQ">Azrak</a>, made by Mohamed Ali Rashad. No game files are included: every player needs their own copy of PES 2021 on Steam. Not affiliated with Konami; PES and eFootball are trademarks of Konami. The mod includes <a href="https://github.com/AzrakHQ/pes2021-online-server/blob/main/server/mod/minhook/LICENSE.txt">MinHook</a> (BSD-2-Clause), Monocypher (CC0/BSD-2-Clause) and musl's math functions (MIT). Thanks to <a href="https://github.com/Nikow5/Pes2021PrivateServer">Nikow5's PES 2021 server work</a> and the MGSV / MGO3 server-emulator community for prior research.</p>
   </div>
 </footer>
 
 <script>
-  const live = document.getElementById("live");
-  document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", () => {
-    const el = document.getElementById(b.dataset.copy), text = el.textContent;
-    const done = ok => {
-      b.textContent = ok ? "Copied" : "Press Ctrl+C";
-      live.textContent = ok ? "Copied to clipboard" : "Copy failed: the text is selected, press Ctrl+C";
-      setTimeout(() => { b.textContent = "Copy"; }, 1800);
-    };
-    const select = () => { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
-    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => done(true), () => { select(); done(false); });
-    else { select(); let ok = false; try { ok = document.execCommand("copy"); } catch (e) {} done(ok); }
-  }));
   const root = document.documentElement, btn = document.getElementById("theme");
   const isDark = () => root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
   const sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -646,26 +530,11 @@ dialog.lightbox img { display: block; max-width: 96vw; max-height: calc(94vh - 5
   btn.addEventListener("click", () => { root.dataset.theme = isDark() ? "light" : "dark"; try { localStorage.setItem("pes-theme", root.dataset.theme); } catch (e) {} sync(); });
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", sync);
   const links = [...document.querySelectorAll('.nav ul a[href^="#"]')];
-  const owner = { play: "#play", help: "#help", faq: "#faq", inside: "#inside" };
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { const h = owner[e.target.id] || ""; links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === h)); } }), { rootMargin: "-45% 0px -50% 0px" });
-  ["status", "play", "help", "faq", "inside"].forEach(id => io.observe(document.getElementById(id)));
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id)); }), { rootMargin: "-45% 0px -50% 0px" });
+  ["story", "inside", "deeper"].forEach(id => io.observe(document.getElementById(id)));
   const toTop = document.getElementById("totop");
   addEventListener("scroll", () => { toTop.hidden = scrollY < innerHeight * 1.5; }, {passive: true});
   toTop.addEventListener("click", () => setTimeout(() => document.getElementById("main").focus({preventScroll: true}), 400));
-  const lb = document.getElementById("lightbox");
-  document.querySelectorAll(".shot a").forEach(a => a.addEventListener("click", e => {
-    if (!lb.showModal || innerWidth < 700) { a.target = "_blank"; return; }   // phones: open the image itself (zoomable)
-    e.preventDefault();
-    const img = a.querySelector("img");
-    document.getElementById("lb-img").src = a.getAttribute("href"); document.getElementById("lb-img").alt = img.alt;
-    lb.showModal();
-  }));
-  document.getElementById("lb-close").addEventListener("click", () => lb.close());
-  lb.addEventListener("click", e => { if (e.target === lb) lb.close(); });
-  const detailsOf = t => t && (t.tagName === "DETAILS" ? t : t.closest("details"));
-  const openTarget = () => { const d = detailsOf(document.getElementById(location.hash.slice(1))); if (d) d.open = true; };
-  addEventListener("hashchange", openTarget); openTarget();
-  document.addEventListener("click", e => { const a = e.target.closest('a[href^="#"]'); const d = a && detailsOf(document.getElementById(a.hash.slice(1))); if (d) d.open = true; });
 </script>
 </body>
 </html>

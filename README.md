@@ -108,6 +108,7 @@ No. It changes nothing outside the game folder and nothing in the game's own fil
 <details><summary><b>Something else is broken</b></summary>
 
 Run the install line again: it repairs the server and keeps players and results.
+More fixes: [Troubleshooting](server/README.md#troubleshooting).
 </details>
 
 <details><summary><b>What doesn't work yet?</b></summary>
