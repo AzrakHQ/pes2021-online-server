@@ -8,127 +8,148 @@ log = logging.getLogger("pesserver.http")
 
 def make_handler(service, stun_host, stun_port, gate_port):
     async def on_conn(reader, writer):
+        served = 0                                  # requests answered on this connection
         try:
-            head = await asyncio.wait_for(reader.readuntil(b"\r\n\r\n"), 10)
-            lines = head.decode("latin-1").split("\r\n")
-            method, path, _ = lines[0].split(" ", 2)
-            headers = {k.lower(): v for k, v in (l.split(": ", 1) for l in lines[1:] if ": " in l)}
-            body = b""
-            if int(headers.get("content-length", 0)):
-                body = await reader.readexactly(min(int(headers["content-length"]), 1 << 16))
-            log.info("HTTP %s %s hdr=%s body=%r", method, path,
-                     {k: ("<hidden>" if k == "authorization" else v) for k, v in headers.items()},
-                     b"<hidden>" if path.startswith("/admin") else body[:300])
-            route = path.split("?", 1)[0].rstrip("/").lower()
-            status = "200 OK"
-            extra = b""
-            if route == "/admin" or route.startswith("/admin/api/"):
-                peer = (writer.get_extra_info("peername") or ("",))[0]
-                secure = writer.get_extra_info("ssl_object") is not None
-                status, out, ctype = await _admin(service, method, route, headers, body, peer, secure)
-                extra = (b"X-Frame-Options: DENY\r\nContent-Security-Policy: " + admin_csp().encode() + b"\r\n"
-                         b"Referrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n"
-                         b"Cross-Origin-Resource-Policy: same-origin\r\n"
-                         b"Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()\r\n")
-            elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
-                                             "/leave.ps1", "/install-ca-proton.py", "/banner"):
-                out, ctype = _web(service, route, headers, writer)
-                if ctype.startswith("text/html"):       # the friends' page shares an origin with the admin page
-                    extra = (b"Content-Security-Policy: " + page_csp(out.decode()).encode() + b"\r\n"
-                             b"X-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
-            elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
-                status, out, ctype, extra = _mod(service, route, headers, writer, path)
-                if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
-                    note_download(service, (writer.get_extra_info("peername") or ("",))[0])
-            elif method in ("GET", "HEAD") and route.startswith("/r/"):
-                from . import pesreplay                     # match replays: /r/<match_id>/<N>.enc
-                parts = route.split("/")
-                f = pesreplay.chunk_file(service, parts[2], parts[3]) if len(parts) == 4 else None
+            while True:
                 try:
+                    head = await asyncio.wait_for(reader.readuntil(b"\r\n\r\n"), KEEP_IDLE if served else 10)
+                except (asyncio.IncompleteReadError, asyncio.TimeoutError, ConnectionError):
+                    if served:
+                        return                      # the browser let go of a kept-open admin connection
+                    raise
+                lines = head.decode("latin-1").split("\r\n")
+                method, path, _ = lines[0].split(" ", 2)
+                headers = {k.lower(): v for k, v in (l.split(": ", 1) for l in lines[1:] if ": " in l)}
+                body = b""
+                if int(headers.get("content-length", 0)):
+                    body = await reader.readexactly(min(int(headers["content-length"]), 1 << 16))
+                route = path.split("?", 1)[0].rstrip("/").lower()
+                log.log(logging.DEBUG if method == "GET" and route in ADMIN_POLLS else logging.INFO,
+                        "HTTP %s %s hdr=%s body=%r", method, path,
+                        {k: ("<hidden>" if k == "authorization" else v) for k, v in headers.items()},
+                        b"<hidden>" if path.startswith("/admin") else body[:300])
+                status = "200 OK"
+                extra = b""
+                cache, keep = b"no-store", False
+                if route == "/admin" or route.startswith("/admin/api/"):
+                    peer = (writer.get_extra_info("peername") or ("",))[0]
+                    secure = writer.get_extra_info("ssl_object") is not None
+                    status, out, ctype = await _admin(service, method, route, headers, body, peer, secure)
+                    cache, out, extra_enc = _admin_cache(route, method, status, out, ctype, headers)
+                    if cache == b"not-modified":
+                        status, out, cache = "304 Not Modified", b"", b"no-cache"
+                    keep = (headers.get("connection", "").lower() == "keep-alive" and lines[0].endswith("HTTP/1.1")
+                            and int(headers.get("content-length", 0) or 0) <= 1 << 16 and "transfer-encoding" not in headers
+                            and served < KEEP_MAX)            # (only when the whole request was read: the next starts clean)
+                    extra = (b"X-Frame-Options: DENY\r\nContent-Security-Policy: " + admin_csp().encode() + b"\r\n"
+                             b"Referrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n"
+                             b"Cross-Origin-Resource-Policy: same-origin\r\n"
+                             b"Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()\r\n" + extra_enc)
+                elif method == "GET" and route in ("", "/join", "/leave", "/join.sh", "/join.ps1", "/leave.sh",
+                                                 "/leave.ps1", "/install-ca-proton.py", "/banner"):
+                    out, ctype = _web(service, route, headers, writer)
+                    if ctype.startswith("text/html"):       # the friends' page shares an origin with the admin page
+                        extra = (b"Content-Security-Policy: " + page_csp(out.decode()).encode() + b"\r\n"
+                                 b"X-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
+                        out, enc = gzipped(out, ctype, headers)     # (setup scripts stay plain for curl/PowerShell)
+                        extra += enc
+                elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
+                    status, out, ctype, extra = _mod(service, route, headers, writer, path)
+                    if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
+                        note_download(service, (writer.get_extra_info("peername") or ("",))[0])
+                elif method in ("GET", "HEAD") and route.startswith("/r/"):
+                    from . import pesreplay                     # match replays: /r/<match_id>/<N>.enc
+                    parts = route.split("/")
+                    f = pesreplay.chunk_file(service, parts[2], parts[3]) if len(parts) == 4 else None
+                    try:
+                        if f is None:
+                            raise OSError("no such chunk")
+                        with open(f, "rb") as fh:
+                            out = fh.read()
+                        ctype = "application/octet-stream"
+                    except OSError:                              # (also: pruned between the check and the read)
+                        status, out, ctype = "404 Not Found", b"not found", "text/plain"
+                elif method in ("GET", "HEAD") and route.startswith("/liveupdate/"):
+                    from . import liveupdate
+                    f = liveupdate.file_for(service, route[len("/liveupdate/"):])
                     if f is None:
-                        raise OSError("no such chunk")
-                    with open(f, "rb") as fh:
-                        out = fh.read()
-                    ctype = "application/octet-stream"
-                except OSError:                              # (also: pruned between the check and the read)
-                    status, out, ctype = "404 Not Found", b"not found", "text/plain"
-            elif method in ("GET", "HEAD") and route.startswith("/liveupdate/"):
-                from . import liveupdate
-                f = liveupdate.file_for(service, route[len("/liveupdate/"):])
-                if f is None:
-                    status, out, ctype = "404 Not Found", b"not found", "text/plain"
+                        status, out, ctype = "404 Not Found", b"not found", "text/plain"
+                    else:
+                        with open(f, "rb") as fh:
+                            out = fh.read()
+                        ctype = "application/octet-stream"
+                        log.info("Live Update %s sent to %s", os.path.basename(f), (writer.get_extra_info("peername") or ("",))[0])
+                        if method == "GET":
+                            from . import adminextra
+                            try:
+                                adminextra.note_liveupdate(service, (writer.get_extra_info("peername") or ("",))[0], os.path.basename(f))
+                            except Exception:  # noqa: BLE001
+                                log.exception("noting a Live Update download")
+                elif path.startswith("/status"):
+                    from . import pesmatch
+                    from . import identity
+                    k = identity.public_hex()
+                    out = json.dumps({"id": server_id(), "key": k[:8] + " " + k[8:16],
+                                      "mod_sha256": mod_sha256(mod_url(service, headers, writer)), "online": len(service.online),
+                                      "queued": len(pesmatch._state(service)["queue"]),
+                                      "rooms": len(service.mm.rooms)}).encode(); ctype = "application/json"
+                elif path.rstrip("/") == "/ca.crt":
+                    # The private CA players must trust (NTL GateInfo.php runs over HTTPS with OS validation).
+                    ca = os.path.join(os.environ.get("PESSERVER_CERTS", "/data/certs"), "ca.crt")
+                    try:
+                        out = open(ca, "rb").read(); ctype = "application/x-x509-ca-cert"
+                    except OSError:
+                        out = b"no CA configured"; ctype = "text/plain"
+                elif path.startswith("/admin/push") and os.environ.get("PESSERVER_ADMIN") == "1":  # dev hook
+                    from urllib.parse import parse_qs, urlsplit
+                    from . import pesmatch
+                    q = {k: v[0] for k, v in parse_qs(urlsplit(path).query).items()}
+                    out = json.dumps(pesmatch.admin_push(service, q)).encode(); ctype = "application/json"
+                elif "GateInfo" in path:
+                    # NTL (NAT traversal) gate info: POST https://ntl.service.konami.net/ntl/api/GateInfo.php
+                    # body req={"titleCode":"PES2021","locale":..,"version":..,"apiLevel":..}. Reply is
+                    # "KEY: VALUE" lines (tokenizer 0x1418e9560); STATUS 200 + API_STATUS 0 = OK.
+                    import time as _t
+                    out = ("STATUS: 200\r\nAPI_STATUS: 0\r\nLOG_ACTIVE: 0\r\nSERVER_TIME: %d\r\n"
+                           % int(_t.time())).encode()
+                    ctype = "text/plain"
+                    log.info("NTL GateInfo -> %r", out)
+                elif b"msgid=" in body:
+                    # Client "web API" commands (form-urlencoded, e.g. CMD_AUTH_STEAM to the AUTH_STEAM URL).
+                    # Response parser 0x141e49040 reads msgid/rqid/result via a JSON-style value API.
+                    from urllib.parse import parse_qs
+                    from . import pescmds, pesmatch  # noqa: F401 (registers matchmaking/relay handlers)
+                    form = {k: v[0] for k, v in parse_qs(body.decode("utf-8", "replace")).items()}
+                    msgid = form.get("msgid", "?")
+                    from .protocol import record
+                    record("rx", msgid, {**form, "_via": "http"})
+                    # no gate session here: give handlers that build URLs the addresses of this connection
+                    from types import SimpleNamespace
+                    sock, peer = writer.get_extra_info("sockname") or ("",), writer.get_extra_info("peername") or ("",)
+                    form["_http"] = SimpleNamespace(local_ip=sock[0], peer_ip=peer[0], pes_pid=None)
+                    resp = pescmds.dispatch(service, None, msgid, form)
+                    resp = {"msgid": msgid, "rqid": int(form.get("rqid", 0) or 0), **resp}
+                    import msgpack
+                    ctype = "application/octet-stream"   # raw msgpack map (CmdAuthSteamResult parse 0x141e49160)
+                    out = msgpack.packb(resp, use_bin_type=True, unicode_errors="surrogateescape")
+                    record("tx", msgid, resp)
+                    from .ncl import _short
+                    log.info("HTTP API %s -> %s", msgid, {k: _short(v) for k, v in resp.items()}
+                             if isinstance(resp, dict) else resp)
+                elif path.lower().lstrip("/").startswith(("eula", "u")):
+                    out = (b"<html><body><h3>Local PES 2021 server</h3><p>This is a private, local "
+                           b"preservation server for PES 2021 online play.</p></body></html>")
+                    ctype = "text/html; charset=utf-8"
                 else:
-                    with open(f, "rb") as fh:
-                        out = fh.read()
-                    ctype = "application/octet-stream"
-                    log.info("Live Update %s sent to %s", os.path.basename(f), (writer.get_extra_info("peername") or ("",))[0])
-                    if method == "GET":
-                        from . import adminextra
-                        try:
-                            adminextra.note_liveupdate(service, (writer.get_extra_info("peername") or ("",))[0], os.path.basename(f))
-                        except Exception:  # noqa: BLE001
-                            log.exception("noting a Live Update download")
-            elif path.startswith("/status"):
-                from . import pesmatch
-                from . import identity
-                k = identity.public_hex()
-                out = json.dumps({"id": server_id(), "key": k[:8] + " " + k[8:16],
-                                  "mod_sha256": mod_sha256(mod_url(service, headers, writer)), "online": len(service.online),
-                                  "queued": len(pesmatch._state(service)["queue"]),
-                                  "rooms": len(service.mm.rooms)}).encode(); ctype = "application/json"
-            elif path.rstrip("/") == "/ca.crt":
-                # The private CA players must trust (NTL GateInfo.php runs over HTTPS with OS validation).
-                ca = os.path.join(os.environ.get("PESSERVER_CERTS", "/data/certs"), "ca.crt")
-                try:
-                    out = open(ca, "rb").read(); ctype = "application/x-x509-ca-cert"
-                except OSError:
-                    out = b"no CA configured"; ctype = "text/plain"
-            elif path.startswith("/admin/push") and os.environ.get("PESSERVER_ADMIN") == "1":  # dev hook
-                from urllib.parse import parse_qs, urlsplit
-                from . import pesmatch
-                q = {k: v[0] for k, v in parse_qs(urlsplit(path).query).items()}
-                out = json.dumps(pesmatch.admin_push(service, q)).encode(); ctype = "application/json"
-            elif "GateInfo" in path:
-                # NTL (NAT traversal) gate info: POST https://ntl.service.konami.net/ntl/api/GateInfo.php
-                # body req={"titleCode":"PES2021","locale":..,"version":..,"apiLevel":..}. Reply is
-                # "KEY: VALUE" lines (tokenizer 0x1418e9560); STATUS 200 + API_STATUS 0 = OK.
-                import time as _t
-                out = ("STATUS: 200\r\nAPI_STATUS: 0\r\nLOG_ACTIVE: 0\r\nSERVER_TIME: %d\r\n"
-                       % int(_t.time())).encode()
-                ctype = "text/plain"
-                log.info("NTL GateInfo -> %r", out)
-            elif b"msgid=" in body:
-                # Client "web API" commands (form-urlencoded, e.g. CMD_AUTH_STEAM to the AUTH_STEAM URL).
-                # Response parser 0x141e49040 reads msgid/rqid/result via a JSON-style value API.
-                from urllib.parse import parse_qs
-                from . import pescmds, pesmatch  # noqa: F401 (registers matchmaking/relay handlers)
-                form = {k: v[0] for k, v in parse_qs(body.decode("utf-8", "replace")).items()}
-                msgid = form.get("msgid", "?")
-                from .protocol import record
-                record("rx", msgid, {**form, "_via": "http"})
-                # no gate session here: give handlers that build URLs the addresses of this connection
-                from types import SimpleNamespace
-                sock, peer = writer.get_extra_info("sockname") or ("",), writer.get_extra_info("peername") or ("",)
-                form["_http"] = SimpleNamespace(local_ip=sock[0], peer_ip=peer[0], pes_pid=None)
-                resp = pescmds.dispatch(service, None, msgid, form)
-                resp = {"msgid": msgid, "rqid": int(form.get("rqid", 0) or 0), **resp}
-                import msgpack
-                ctype = "application/octet-stream"   # raw msgpack map (CmdAuthSteamResult parse 0x141e49160)
-                out = msgpack.packb(resp, use_bin_type=True, unicode_errors="surrogateescape")
-                record("tx", msgid, resp)
-                from .ncl import _short
-                log.info("HTTP API %s -> %s", msgid, {k: _short(v) for k, v in resp.items()}
-                         if isinstance(resp, dict) else resp)
-            elif path.lower().lstrip("/").startswith(("eula", "u")):
-                out = (b"<html><body><h3>Local PES 2021 server</h3><p>This is a private, local "
-                       b"preservation server for PES 2021 online play.</p></body></html>")
-                ctype = "text/html; charset=utf-8"
-            else:
-                out = b"ok"; ctype = "text/plain"
-            writer.write(b"HTTP/1.1 " + status.encode() + b"\r\nCache-Control: no-store\r\nContent-Type: " + ctype.encode() +
-                         b"\r\nContent-Length: " + str(len(out)).encode() + b"\r\n" + extra + b"Connection: close\r\n\r\n"
-                         + (b"" if method == "HEAD" else out))
-            await writer.drain()
+                    out = b"ok"; ctype = "text/plain"
+                writer.write(b"HTTP/1.1 " + status.encode() + b"\r\nCache-Control: " + cache + b"\r\nContent-Type: " + ctype.encode() +
+                             b"\r\nContent-Length: " + str(len(out)).encode() + b"\r\n" + extra
+                             + (b"Connection: keep-alive\r\nKeep-Alive: timeout=%d\r\n\r\n" % KEEP_IDLE if keep else b"Connection: close\r\n\r\n")
+                             + (b"" if method == "HEAD" else out))
+                await writer.drain()
+                served += 1
+                if not keep:
+                    return
         except Exception as e:  # noqa
             peer = writer.get_extra_info("peername"); tls = writer.get_extra_info("ssl_object")
             log.info("HTTP%s conn from %s ended without a complete request: %r",
@@ -266,6 +287,62 @@ def same_pc(peer):
     from . import netsetup
     ip = _peer_ip(peer)
     return bool(ip) and (ip.is_loopback or str(ip) == (netsetup.STATE.get("lan") or ""))
+
+
+ADMIN_POLLS = ("/admin/api/state", "/admin/api/games", "/admin/api/games/auto", "/admin/api/program")
+# ^ an open admin page asks these every few seconds: logged at debug so they don't crowd the game's lines out of the log
+KEEP_IDLE = 15          # seconds a browser's admin connection stays open for the next poll (it polls every 3 s)
+KEEP_MAX = 1000         # requests on one connection before it's closed and the browser opens a fresh one
+_GZ = {}                # compressed copies of large unchanging bodies (the admin page): digest -> bytes
+
+
+def _takes_gzip(headers):
+    for part in headers.get("accept-encoding", "").lower().split(","):
+        name, _, q = part.strip().partition(";")
+        if name.strip() in ("gzip", "*"):
+            return q.replace(" ", "") not in ("q=0", "q=0.0", "q=0.00", "q=0.000")
+    return False
+
+
+def gzipped(out, ctype, headers):
+    """(body, extra headers): text and JSON compressed when the client takes it; JSON shrinks about 4x."""
+    import gzip, hashlib
+    if not ctype.startswith(("text/", "application/json")):
+        return out, b""
+    if len(out) < 1024 or not _takes_gzip(headers):
+        return out, b"Vary: Accept-Encoding\r\n"
+    if len(out) > 1 << 16:              # big and the same every time: compress once
+        key = hashlib.blake2b(out, digest_size=16).digest()
+        if key not in _GZ:
+            _GZ.clear(); _GZ[key] = gzip.compress(out, 9, mtime=0)
+        return _GZ[key], b"Content-Encoding: gzip\r\nVary: Accept-Encoding\r\n"
+    return gzip.compress(out, 6, mtime=0), b"Content-Encoding: gzip\r\nVary: Accept-Encoding\r\n"
+
+
+def state_reply(snap, seen):
+    """The page polls this every 3 s and usually nothing changed but the clock: when the state matches the tag
+    the page already has (X-State-Tag), answer {"same": tag} with just the clock instead of the whole state."""
+    import hashlib
+    clock = {k: snap.pop(k) for k in ("now", "uptime") if k in snap}
+    core = json.dumps(snap, separators=(",", ":"))
+    tag = hashlib.blake2b(core.encode(), digest_size=12).hexdigest()
+    if seen == tag:
+        return json.dumps({"same": tag, **clock}).encode()
+    return json.dumps({**snap, **clock, "tag": tag}, separators=(",", ":")).encode()
+
+
+def _admin_cache(route, method, status, out, ctype, headers):
+    """(Cache-Control, body, extra headers) for an admin response. The page is kept by the browser but checked on
+    every load (ETag), so opening it again costs a few bytes; the API is never stored. Both go compressed."""
+    import hashlib
+    if route == "/admin" and method in ("GET", "HEAD") and status.startswith("200"):
+        tag = b'"' + hashlib.blake2b(out, digest_size=12).hexdigest().encode() + b'"'
+        if tag in [t.strip().encode() for t in headers.get("if-none-match", "").split(",")]:
+            return b"not-modified", b"", b"ETag: " + tag + b"\r\nVary: Accept-Encoding\r\n"
+        out, enc = gzipped(out, ctype, headers)
+        return b"no-cache", out, b"ETag: " + tag + b"\r\n" + enc
+    out, enc = gzipped(out, ctype, headers)
+    return b"no-store", out, enc
 
 
 def admin_allowed(peer):
@@ -423,7 +500,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False):
         snap["server"].update(adminextra.server(service))
         snap["modes"] = [r[0] for r in service.accounts.db.execute(
             "SELECT DISTINCT COALESCE(mode, 'Quick Match') FROM pes_matches")]
-        return "200 OK", json.dumps(snap).encode(), "application/json"
+        return "200 OK", state_reply(snap, headers.get("x-state-tag", "")), "application/json"
     if route in ("/admin/api/message", "/admin/api/restart") and method == "POST":
         from . import announce
         try:

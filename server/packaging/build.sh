@@ -6,7 +6,14 @@ set -eu
 cd "$(dirname "$0")/.."
 [ -f mod/dinput8.dll ] || { echo "mod/dinput8.dll is missing: build it with mod/build.sh first"; exit 1; }
 S=":"
-pyinstaller --onefile --console --strip --noconfirm --clean --name "${1:-pes2021-server}" \
+# Parts of Python the server never loads (about 1 MB): Chinese/Japanese/Korean text codecs, decimal,
+# multiprocessing, readline, and the lzma/bz2 archive formats (shutil works without them).
+# tests/test_packaging.py keeps a server import from needing any of them.
+SKIP="_codecs_cn _codecs_hk _codecs_iso2022 _codecs_jp _codecs_kr _codecs_tw _multibytecodec
+      decimal _decimal _pydecimal multiprocessing _multiprocessing readline lzma _lzma bz2 _bz2"
+EXCLUDE=$(for m in $SKIP; do printf -- "--exclude-module %s " "$m"; done)
+# shellcheck disable=SC2086
+pyinstaller --onefile --console --strip --noconfirm --clean --name "${1:-pes2021-server}" $EXCLUDE \
   --paths . --collect-submodules pesserver \
   --add-data "pesserver/web${S}pesserver/web" --add-data "pesserver/schemas.json${S}pesserver" --add-data "pesserver/team_list.json${S}pesserver" \
   --add-data "mod/dinput8.dll${S}mod" --add-data "mod/minhook/LICENSE.txt${S}mod" \

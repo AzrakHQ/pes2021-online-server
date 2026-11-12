@@ -872,7 +872,7 @@ const store = {
   set(v, remember) { try { (remember ? localStorage : sessionStorage).setItem("pes-admin-token", v); } catch (e) {} },
   clear() { try { ["pes-admin", "pes-admin-token", "pes-admin-until"].forEach(k => { localStorage.removeItem(k); sessionStorage.removeItem(k); }); } catch (e) {} },
 };
-let token = store.get(), timer = null, gamesTimer = null, failures = 0, inflight = false, downSince = 0, lastOkAt = 0;
+let token = store.get(), timer = null, gamesTimer = null, updTimer = null, failures = 0, inflight = false, downSince = 0, lastOkAt = 0;
 let last = null, lastGames = [], platform = "", dataDir = "", backUntil = 0, gamesRetry = false, untilText = "";
 const ui = {view: "overview", range: 14, pq: "", pf: "all", sort: "rank", dir: 1, rq: "", rr: "all", rN: 25, ff: "all", fq: "", fN: 50, re: false, rm: "",
             rank: (() => { try { return localStorage.getItem("pes-admin-rank") === "ppg" ? "ppg" : "pts"; } catch (e) { return "pts"; } })()};
@@ -1014,7 +1014,7 @@ function route(focus) {
 addEventListener("hashchange", () => route(true));
 
 function showLogin(msg) {
-  clearInterval(timer); clearInterval(gamesTimer);
+  clearInterval(timer); clearInterval(gamesTimer); timer = gamesTimer = null;
   $("app").hidden = true; $("login").hidden = false; $("err").textContent = ""; $("err").className = msg ? "info" : "";
   requestAnimationFrame(() => { $("err").textContent = msg || ""; });
   $("signin").disabled = false; $("signin").textContent = "Sign in";
@@ -1075,7 +1075,8 @@ async function refresh() {
   inflight = true;
   let d;
   const slow = setTimeout(() => { if (!downSince) { backUntil = 0; text("status-t", "Checking…"); } }, 3000);
-  try { d = await api("/admin/api/state", {timeout: 3000}); }
+  try { d = await api("/admin/api/state", {timeout: 3000, headers: last && last.tag ? {"X-State-Tag": last.tag} : {}});
+        if (d.same) d = d.same === last?.tag ? {...last, now: d.now, uptime: d.uptime} : await api("/admin/api/state", {timeout: 3000}); }
   catch (e) { clearTimeout(slow); inflight = false; if (e.status === 401) return signedOut();
     if (e.name === "TimeoutError" && lastOkAt) failures = Math.max(failures, 1);
     return setDown(true); }
@@ -2623,8 +2624,11 @@ function start(focus) {
   untilText = until ? new Intl.DateTimeFormat([], until * 1000 - Date.now() < 86400000 ? {hour: "numeric", minute: "2-digit"} : {month: "short", day: "numeric"}).format(new Date(until * 1000)) : "";
   route(focus);
   refresh(); loadGames(); loadTeams();
-  timer = setInterval(refresh, 3000); gamesTimer = setInterval(loadGames, 15000); setInterval(paintUpd, 1000);
+  timer = setInterval(() => document.hidden || refresh(), 3000);           // a tab in the background doesn't poll
+  gamesTimer = setInterval(() => document.hidden || loadGames(), 15000);
+  if (!updTimer) updTimer = setInterval(paintUpd, 1000);
 }
+document.addEventListener("visibilitychange", () => { if (!document.hidden && timer) { refresh(); loadGames(); } });
 if (token) start();
 else infoP.then(i => i.same_pc ? localSignIn().catch(() => showLogin()) : showLogin());
 </script>
