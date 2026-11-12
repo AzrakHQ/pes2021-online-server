@@ -26,6 +26,7 @@ log = logging.getLogger("pesserver.liveupdate")
 VERSION_FILE = "common/etc/version/version_wu.bin"
 _CACHE = {}                                   # path -> (mtime, size, entry fields) | (mtime, size, None)
 _LOCK = threading.Lock()                      # one reader at a time (the thread, or a request that came first)
+_LAST = {}                                    # folder -> the last answer (given while the thread is reading a new file)
 CHECK_EVERY = 30                              # s between the thread's looks at the folder
 
 
@@ -47,7 +48,7 @@ def _version(path):
     return digits if re.fullmatch(r"\d{1,6}", digits) and int(digits) > 0 else None
 
 
-def current(svc):
+def current(svc, wait=False):
     """(path, {name, size, hash, dlc_version}) of the update to offer, or None."""
     d = folder(svc)
     files = []
@@ -60,8 +61,14 @@ def current(svc):
                     continue
     except OSError:
         return None
-    with _LOCK:
-        return _newest(files)
+    # The server's own loop never waits for the thread to finish reading a big file: it gets the last answer.
+    if not _LOCK.acquire(blocking=wait):
+        return _LAST.get(d)
+    try:
+        _LAST[d] = _newest(files)
+        return _LAST[d]
+    finally:
+        _LOCK.release()
 
 
 def _newest(files):
@@ -102,7 +109,7 @@ def start(svc):
     def loop():
         while True:
             try:
-                current(svc)
+                current(svc, wait=True)
             except Exception:  # noqa: BLE001
                 log.exception("Live Update check")
             time.sleep(CHECK_EVERY)

@@ -315,8 +315,9 @@ def entry_game(svc, sess, req):
     room["listening"].add(pid)                       # from now on its player list may be updated
     if str(req.get("entry", "")).upper() == "TRUE":
         if pid not in room["entries"]:
-            taken = [e["entryNum"] for e in room["entries"].values()]     # not len()+1: 1 may have left
-            room["entries"][pid] = {"entryNum": max(taken, default=0) + 1, "side": req.get("side")}
+            taken = {e["entryNum"] for e in room["entries"].values()}     # not len()+1: 1 may have left
+            room["entries"][pid] = {"entryNum": next(n for n in range(1, len(taken) + 2) if n not in taken),
+                                    "side": req.get("side")}
     else:
         room["entries"].pop(pid, None)
 

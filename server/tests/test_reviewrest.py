@@ -57,7 +57,7 @@ def test_entry_numbers_are_not_given_twice(svc):
     d(a, "CMD_ENTRY_GAME", {"entry": "TRUE"}); d(b, "CMD_ENTRY_GAME", {"entry": "TRUE"})
     d(a, "CMD_ENTRY_GAME", {"entry": "FALSE"}); d(a, "CMD_ENTRY_GAME", {"entry": "TRUE"})
     nums = [e["entryNum"] for e in pesrooms._st(svc)["rooms"][rid]["entries"].values()]
-    assert sorted(nums) == [2, 3]
+    assert sorted(nums) == [1, 2]                          # the free number again, never above the room's size
 
 
 # ---- the log and the wire ----------------------------------------------------------------------------
@@ -133,10 +133,8 @@ def test_a_reconnect_must_come_from_the_same_install(svc):
     svc.accounts.db.execute("UPDATE pes_players SET username=? WHERE pid=1", ("m:" + mine,))
     rc = lambda **kw: pescmds._dispatch(svc, SimpleNamespace(peer_ip="41.0.0.1", **kw), "CMD_RECONNECT", {"pid": 1})["result"]
     assert rc(mod_id=other) == "ERR_LOGIN_FAILED"         # another install naming this player
-    assert rc() == "ERR_LOGIN_FAILED"                     # no id, and the player wasn't here a moment ago
+    assert rc() == "ERR_LOGIN_FAILED"                     # no id at all (the mod sends it on every connection)
     assert rc(mod_id=mine) == "NOERR"
-    assert rc() == "NOERR"                                # no id, same address as the connection it replaces
-    assert pescmds._dispatch(svc, SimpleNamespace(peer_ip="9.9.9.9"), "CMD_RECONNECT", {"pid": 1})["result"] == "ERR_LOGIN_FAILED"
     assert pescmds._dispatch(svc, SimpleNamespace(peer_ip="9.9.9.9"), "CMD_RECONNECT", {"pid": 2})["result"] == "NOERR"   # (no mod: as before)
 
 

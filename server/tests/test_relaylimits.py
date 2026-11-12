@@ -90,14 +90,8 @@ def test_a_port_held_for_a_client_that_left_goes_to_a_waiting_player(tmp_path, m
         async def allocate(pid, attrs=ALLOC):
             c = await Client.connect(port)
             m = await c.auth_request(tr.ALLOCATE, attrs, *creds(pid))
-            for _ in range(3):                                           # (the game asks again, about once a second)
-                m = m or await c.request(tr.ALLOCATE, attrs)
-                if m[2] == tr.SUCCESS:
-                    return c
-                assert m[3][tr.A_ERROR_CODE][2:4] == b"\x05\x08"         # 508: the freed port isn't ours yet
-                m = None
-                await asyncio.sleep(0.05)
-            raise AssertionError("no port")
+            assert m[2] == tr.SUCCESS, m[3]                              # at the first ask: the game is not made to retry
+            return c
         a, b = await allocate(1), await allocate(2)
         a.w.close()                                                      # 1 leaves: its mobile allocation lingers
         await asyncio.sleep(0.05)
@@ -105,18 +99,62 @@ def test_a_port_held_for_a_client_that_left_goes_to_a_waiting_player(tmp_path, m
         c = await allocate(3)                                            # no free port: 1's goes to player 3
         assert sorted(tr.user_of(x.username) for x in srv.allocations.values()) == ["2", "3"]
 
-        # one player can't hold every port: over the limit, their own left-behind allocation is reused
+        # one player can't hold every port: over the limit their oldest allocation goes, also one whose
+        # connection is still open (after a bad line the game starts TURN over without closing the old one)
         monkeypatch.setattr(tr, "MAX_PER_USER", 1)
-        c2 = await Client.connect(port)
-        m = await c2.auth_request(tr.ALLOCATE, ALLOC, *creds(3))
-        assert m[2] == tr.ERROR and m[3][tr.A_ERROR_CODE][2:4] == b"\x04\x56"     # 486 while the first is in use
-        c.w.close()
-        await asyncio.sleep(0.05)
+        first = next(x for x in srv.allocations.values() if tr.user_of(x.username) == "3")
         d = await allocate(3)
-        assert sorted(tr.user_of(x.username) for x in srv.allocations.values()) == ["2", "3"]
-        for x in (b, c2, d):
+        mine = [x for x in srv.allocations.values() if tr.user_of(x.username) == "3"]
+        assert len(mine) == 1 and mine[0] is not first and len(srv.allocations) == 2
+        m = await c.request(tr.REFRESH, [(tr.A_LIFETIME, b"\0\0\0\x3c")])
+        assert m[2] == tr.ERROR                                          # the old connection has no allocation now
+        for x in (b, c, d):
             x.w.close()
         srv.close()
+    asyncio.run(go())
+
+
+def test_closing_the_relay_closes_its_clients(tmp_path):
+    async def go():
+        srv, port = await _server(tmp_path, (51350, 51351))
+        c = await Client.connect(port)
+        assert (await c.auth_request(tr.ALLOCATE, PLAIN, *creds(1)))[2] == tr.SUCCESS
+        srv.close()
+        assert await asyncio.wait_for(c.r.read(1), 2) == b"" and not srv.allocations
+    asyncio.run(go())
+
+
+def test_the_relay_restarts_for_a_new_address_only_when_nobody_plays_through_it(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from pesserver import netsetup
+    monkeypatch.setattr(turn, "STATE", {"server": None, "dir": None, "secret": None, "cert_der": None, "ips": ()})
+    monkeypatch.setattr(turn, "TLS_PORT", 51360); monkeypatch.setattr(turn, "DTLS_PORT", 51361)
+    monkeypatch.setattr(turn, "RELAY_PORTS", (51362, 51363))
+    monkeypatch.delenv("TURN", raising=False)
+    monkeypatch.setattr(netsetup, "STATE", {**netsetup.STATE, "lan": "127.0.0.1", "wan": None})
+    svc = SimpleNamespace(online={})
+
+    async def go():
+        assert await turn.start(svc, str(tmp_path), "127.0.0.1", None)
+        first = turn.STATE["server"]
+        assert turn.STATE["ips"] == ("127.0.0.1",) and not await turn.readdress(svc, str(tmp_path))   # nothing new
+        c = await Client.connect(51360)
+        user = turn.credentials(1)
+        c.nonce = (await c.request(tr.ALLOCATE, PLAIN))[3][tr.A_NONCE]
+        c.user, c.key = user[0], tr.long_term_key(user[0], turn.REALM, user[1])
+        assert (await c.request(tr.ALLOCATE, PLAIN))[2] == tr.SUCCESS
+        netsetup.STATE["wan"] = "81.2.69.160"                            # the public address was found late
+        task = asyncio.ensure_future(turn.readdress(svc, str(tmp_path), poll=0.05))
+        await asyncio.sleep(0.3)
+        assert turn.STATE["server"] is first and not task.done()         # a match is on it: not now
+        assert not await turn.readdress(svc, str(tmp_path))              # (one wait at a time)
+        c.w.close()
+        assert await asyncio.wait_for(task, 5) is True
+        assert turn.STATE["server"] is not first and turn.STATE["ips"] == ("127.0.0.1", "81.2.69.160")
+        netsetup.STATE["wan"] = None                                     # the address goes away again: no restart
+        second = turn.STATE["server"]
+        assert not await turn.readdress(svc, str(tmp_path)) and turn.STATE["server"] is second
+        turn.stop()
     asyncio.run(go())
 
 

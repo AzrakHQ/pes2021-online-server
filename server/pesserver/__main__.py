@@ -10,7 +10,7 @@
   pesserver stop              stop the background server
   pesserver serve ...         development (tools/pes.py restart)
 """
-import argparse, asyncio, logging, os, sys
+import argparse, asyncio, errno, logging, os, sys
 from . import gate, httpgate, stun
 from .accounts import Accounts
 from .codec_capture import CaptureCodec
@@ -41,6 +41,8 @@ async def run(a):
     from . import certs, netsetup
     data_dir = os.path.dirname(os.path.abspath(a.db))
     os.environ.setdefault("PESSERVER_CERTS", os.path.join(data_dir, "certs"))
+    from . import identity, liveupdate
+    identity.init(data_dir)                 # before anything answers: the mod's hello and file are signed with it
     tls = None
     if a.cmd == "host" or os.path.exists(os.path.join(data_dir, "certs", "server.crt")):
         tls = certs.ensure(os.path.join(data_dir, "certs"))
@@ -53,9 +55,9 @@ async def run(a):
         servers.append(await httpgate.serve(svc, a.host, a.http_port, a.public_ip or "127.0.0.1", a.stun_port, a.gate_port, tls=tls))
         port = f"{a.stun_port} (UDP)"
         st = await stun.serve(a.stun_host or a.host, a.stun_port)
-    except OSError:
-        if a.cmd != "host":
-            raise
+    except OSError as e:
+        if a.cmd != "host" or e.errno not in (errno.EADDRINUSE, errno.EACCES):
+            raise                               # (anything else is a fault: it counts against a new version)
         for s in servers:
             s.close()
         hostctl.trial_uncount()                 # (not a fault of a version that was just installed)
@@ -91,8 +93,6 @@ async def run(a):
     svc.admin_password = netsetup.admin_password(data_dir)
     svc.data_dir = data_dir
     httpgate.load_remote(data_dir)
-    from . import identity, liveupdate
-    identity.init(data_dir)
     liveupdate.start(svc)                   # (a roster update's checksum is ready before the first game asks)
     logging.info("server identity %s", identity.public_hex())
     hostctl.console_open(data_dir)
@@ -103,7 +103,8 @@ async def run(a):
             hostctl.console(netsetup.banner(svc.admin_password, color=True), banner=True)
 
     if a.auto_net:
-        await asyncio.to_thread(netsetup.setup, use_upnp=os.environ.get("UPNP", "1") != "0")
+        await asyncio.to_thread(netsetup.setup, use_upnp=os.environ.get("UPNP", "1") != "0",
+                                wait_for_net=30 if hostctl.in_service() else 0)     # (started at login, before the Wi-Fi)
     else:
         netsetup.STATE["lan"] = netsetup.lan_ip()
     netsetup.STATE["ready"] = True
@@ -137,7 +138,12 @@ async def run(a):
     async def addresses_changed():          # the keeper thread saw a new address (netsetup._keep)
         show_banner()
         await turn.readdress(svc, data_dir, [os.environ.get("PESSERVER_PUBLIC_ADDR", "")])
-    netsetup.ON_CHANGE.append(lambda: loop.call_soon_threadsafe(lambda: asyncio.ensure_future(addresses_changed())))
+    waiting = set()                         # (kept: a task nobody holds can vanish)
+
+    def on_change():
+        t = asyncio.ensure_future(addresses_changed())
+        waiting.add(t); t.add_done_callback(waiting.discard)
+    netsetup.ON_CHANGE.append(lambda: loop.call_soon_threadsafe(on_change))
     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):     # SIGHUP: the terminal window was closed
         loop.add_signal_handler(sig, stop.set)
     try:
@@ -238,10 +244,16 @@ def main():
         logging.basicConfig(level=logging.INFO, handlers=[f, c, w])
     else:
         logging.basicConfig(level=logging.INFO, format=fmt)
+    import signal
+
+    def stopped_early(*_):                  # until run() takes the signals over: a stop while still starting up
+        raise KeyboardInterrupt
+    for sig in (signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, stopped_early)
     try:
         asyncio.run(run(a))
     except KeyboardInterrupt:
-        pass
+        hostctl.trial_uncount()             # (stopped before it was up: not a failed start of a new version)
     hostctl.after_shutdown()                # restart into a new version, or hand over to the background service
 
 

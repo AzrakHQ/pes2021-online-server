@@ -293,14 +293,18 @@ def disconnected(svc, sess):
     sess.pes_gone = True
 
     def drop():
-        if svc.online.get(pid) not in (None, sess):
-            return                                        # back on a new connection: still searching
-        st["queue"] = [(p, s) for p, s in st["queue"] if p != pid]
-        st["watch"].pop(pid, None)
+        # Only what still belongs to this dead connection: a reconnect moved the place to the new connection, and
+        # a new login that searches again has its own entries.
+        mine = any(s is sess for _, s in st["queue"]) or any(x[1] is sess for x in st.get("coop_queue", []))
+        st["queue"] = [(p, s) for p, s in st["queue"] if s is not sess]
+        if st["watch"].get(pid, (None,))[0] is sess:
+            st["watch"].pop(pid, None)
         if "coop_queue" in st:
-            st["coop_queue"][:] = [x for x in st["coop_queue"] if x[0] != pid]
-        st.get("qsince", {}).pop(pid, None)
-        log.info("MATCH queue -= pid %s (its game went away while searching)", pid)
+            st["coop_queue"][:] = [x for x in st["coop_queue"] if x[1] is not sess]
+        if mine:
+            if not any(p == pid for p, _ in st["queue"]) and not any(x[0] == pid for x in st.get("coop_queue", [])):
+                st.get("qsince", {}).pop(pid, None)
+            log.info("MATCH queue -= pid %s (its game went away while searching)", pid)
     import asyncio
     try:
         asyncio.get_running_loop().call_later(GONE_AFTER, drop)

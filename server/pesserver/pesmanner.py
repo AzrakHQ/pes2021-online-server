@@ -116,6 +116,10 @@ def _schedule(svc, lv):
         if back in marked and getattr(svc.online.get(back), "pes_reconnected", False):
             marked.discard(back)                 # only the connection to the server blinked: the match goes on
             _take_back(svc, lv.pop("dropped_row", None))
+            lv.pop("dropped_pid", None)
+            if not marked:                       # the match is watched again: a later real exit still counts
+                lv["manner_done"] = False
+                lv.pop("forfeit_scheduled", None)
             log.info("pid %s reconnected in time: no early exit, no forfeit", back)
         if len(marked) == 1:
             from . import pesmatch

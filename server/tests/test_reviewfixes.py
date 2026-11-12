@@ -42,6 +42,13 @@ def test_relay_credentials_only_for_an_online_player_asking_from_their_own_pc(sv
     assert "pw" in ask(2, "41.236.194.222") and ask(2, "41.236.194.222")["turn_server_list"]
     assert ask(2, "203.0.113.9") == {"result": "NOERR"}        # a stranger naming an online player
     assert ask(7, "203.0.113.9") == {"result": "NOERR"}        # nobody online with that number
+    # just matched: the game asks a second later, and a provider may send that request out from another address
+    rid = pesmatch.new_room(svc, owner=2, members=[2, 7])
+    far = ask(2, "41.236.194.9")
+    assert "pw" in far and far["turn_server_list"][0]["address"] == "81.2.69.160"
+    assert "pw" in ask(7, "197.50.1.1")                        # also when their game connection blinked just then
+    pesmatch._state(svc)["rooms"][rid]["t"] -= turn.MATCH_WINDOW + 1
+    assert ask(2, "41.236.194.9") == {"result": "NOERR"} and "pw" in ask(2, "41.236.194.222")
 
 
 # ---- the admin sign-in -------------------------------------------------------------------------------
@@ -85,8 +92,35 @@ def test_a_player_whose_line_dropped_is_not_paired_until_back(svc, monkeypatch):
     assert not pesmatch._state(svc)["rooms"]
     new = SimpleNamespace(peer_ip="192.168.1.5")
     assert pescmds._dispatch(svc, new, "CMD_RECONNECT", {"pid": 1})["result"] == "NOERR"
-    pesmatch._try_pair(svc)
+    # back: the two are paired now, without anyone having to search again
     assert len(pesmatch._state(svc)["rooms"]) == 1 and pesmatch._state(svc)["queue"] == []
+
+
+def test_the_wait_only_drops_what_belongs_to_the_dead_connection(svc, monkeypatch):
+    monkeypatch.setattr(pesmatch, "_send_later", lambda *a: None)
+    drops = []
+    loop = SimpleNamespace(call_later=lambda secs, fn: drops.append(fn), call_soon=lambda fn: fn())
+    monkeypatch.setattr("asyncio.get_running_loop", lambda: loop)
+    st = pesmatch._state(svc)
+    # the game reconnects in time: its place stays, on the new connection
+    a = _searching(svc, 1)
+    pesmatch.disconnected(svc, a); svc.online.pop(1)
+    new = SimpleNamespace(peer_ip="192.168.1.5")
+    assert pescmds._dispatch(svc, new, "CMD_RECONNECT", {"pid": 1})["result"] == "NOERR"
+    drops.pop()()
+    assert [(p, s is new) for p, s in st["queue"]] == [(1, True)]
+    # the game was closed and started again (a fresh login, not searching yet): the dead entry goes
+    pesmatch.disconnected(svc, new); svc.online.pop(1)
+    svc.online[1] = SimpleNamespace(pes_pid=1, peer_ip="192.168.1.5")
+    assert [s is new for p, s in st["queue"]] == [True]
+    drops.pop()()
+    assert st["queue"] == [] and 1 not in st.get("qsince", {})
+    # ...and when they search again before the wait is over, their new place is left alone
+    again = _searching(svc, 1)
+    pesmatch.disconnected(svc, again); svc.online.pop(1)
+    fresh = _searching(svc, 1)
+    drops.pop()()
+    assert [(p, s is fresh) for p, s in st["queue"]] == [(1, True)] and not pesmatch._away(fresh)
 
 
 def test_reconnect_is_no_way_round_a_block_or_a_kick(svc):
@@ -110,15 +144,28 @@ def test_a_line_that_blinks_mid_match_is_not_a_forfeit(svc):
     pesmatch._state(svc)["rooms"][5] = {"owner": 1, "members": [1, 2], "t": 0}
     for s in (a, b):
         pescmds.dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST", "gtimer": 1})
-    lv = events._st(svc)["live"][5]
+    live = events._st(svc)["live"]
+    lv = live[5]
     events.disconnected(svc, a); svc.online.pop(1)
-    assert pesmanner.rating(svc, 1) != pesmanner.rating(svc, 2) or lv["manner_marked"] == {1}
+    assert lv["manner_marked"] == {1} and live.get(5) is lv          # marked, but the match is still on the page
+    assert db.execute("SELECT COUNT(*) FROM pes_manner WHERE pid=1 AND left_early=1").fetchone()[0] == 1
     new = SimpleNamespace()
     assert pescmds.dispatch(svc, new, "CMD_RECONNECT", {"pid": 1})["result"] == "NOERR"
     assert new.connected_at and 1 in events._st(svc)["present"]      # a later disconnect is seen again
-    lv["forfeit_decide"]()                                           # 15 s later
+    lv["forfeit_decide"](); lv["left_decide"]()                      # 15 s later
     assert "forfeit" not in pesmatch._state(svc)["rooms"][5] and lv["manner_marked"] == set()
     assert db.execute("SELECT COUNT(*) FROM pes_manner WHERE pid=1 AND left_early=1").fetchone()[0] == 0
+    # the same match, still running: same kick-off, nobody noted as having left, no "ended early" line
+    assert live.get(5) is lv and lv["kickoff"] and lv["phase"] != "Pre-match"
+    assert 1 not in events._st(svc).get("leavers", {})
+    assert not any("ended early" in f["text"] for f in events._st(svc)["feed"])
+    # so when the other player really quits later, that one forfeits (and not the one who blinked)
+    events.disconnected(svc, b); svc.online.pop(2)
+    assert lv["manner_marked"] == {2}
+    lv["forfeit_decide"](); lv["left_decide"]()
+    assert pesmatch._state(svc)["rooms"][5].get("forfeit") == 2 and 5 not in live
+    assert any("ended early: P2 disconnected" in f["text"] for f in events._st(svc)["feed"])
+    assert db.execute("SELECT left_early FROM pes_manner WHERE pid=1 ORDER BY id DESC").fetchone() != (1,)
 
 
 def test_a_player_who_really_left_still_forfeits(svc):
@@ -132,8 +179,25 @@ def test_a_player_who_really_left_still_forfeits(svc):
         pescmds.dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST", "gtimer": 1})
     lv = events._st(svc)["live"][5]
     events.disconnected(svc, a); svc.online.pop(1)
-    lv["forfeit_decide"]()
-    assert pesmatch._state(svc)["rooms"][5].get("forfeit") == 1
+    lv["forfeit_decide"](); lv["left_decide"]()
+    assert pesmatch._state(svc)["rooms"][5].get("forfeit") == 1 and 5 not in events._st(svc)["live"]
+    assert 1 in events._st(svc)["leavers"]
+    assert any("ended early: P1 disconnected" in f["text"] for f in events._st(svc)["feed"])
+
+
+def test_a_kicked_player_ends_the_match_at_once(svc):
+    db = svc.accounts.db
+    for pid in (1, 2):
+        db.execute("INSERT INTO pes_players(pid, username, name, created) VALUES(?,?,?,0)", (pid, f"u{pid}", f"P{pid}"))
+    a, b = SimpleNamespace(pes_pid=1, connected_at=1.0, kicked=True), SimpleNamespace(pes_pid=2, connected_at=1.0)
+    svc.online.update({1: a, 2: b})
+    pesmatch._state(svc)["rooms"][5] = {"owner": 1, "members": [1, 2], "t": 0}
+    for s in (a, b):
+        pescmds.dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST", "gtimer": 1})
+    events.disconnected(svc, a)
+    assert 5 not in events._st(svc)["live"] and any("ended early" in f["text"] for f in events._st(svc)["feed"])
+    assert "pes_manner" not in {r[0] for r in db.execute("SELECT name FROM sqlite_master")} \
+        or db.execute("SELECT COUNT(*) FROM pes_manner WHERE pid=1").fetchone()[0] == 0   # the admin's doing: no mark
 
 
 def test_divisions_history_is_not_hidden_by_other_modes(svc):

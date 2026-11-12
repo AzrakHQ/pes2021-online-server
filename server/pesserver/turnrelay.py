@@ -112,6 +112,7 @@ class Allocation:
         self.server, self.conn, self.port, self.transport = server, conn, relay_port, transport
         self.advertised = (advertised_ip, relay_port)       # what this client was told (XOR-RELAYED-ADDRESS)
         self.username, self.key = username, key
+        self.born = time.monotonic()
         self.expires = time.monotonic() + DEFAULT_LIFETIME
         self.permissions = {}                               # peer ip -> expiry
         self.channels = {}                                  # channel number -> ((ip, port), expiry)
@@ -167,6 +168,7 @@ class TurnServer:
         self.advertise, self.own_ips = advertise, set(own_ips)
         self.allocations = {}                               # relay port -> Allocation
         self.conns = {}                                     # client ip -> open TLS connections
+        self.writers = set()                                # their writers (closed with the server)
         self.tickets = {}                                   # mobility ticket -> Allocation
         self.server = None
         self.dtls, self.dtls_port = None, None              # second leg (turndtls.DtlsLeg) and its UDP port
@@ -195,6 +197,8 @@ class TurnServer:
             self.dtls.close()
         for a in list(self.allocations.values()):
             self._free(a)
+        for w in list(self.writers):                        # (a client left connected would keep refreshing
+            w.close()                                       #  an allocation that is gone)
 
     async def _sweep(self):
         while True:
@@ -232,12 +236,17 @@ class TurnServer:
     # -- connections
     def reclaim(self, mine=None):
         """Free the oldest allocation whose client is gone (kept a minute for a client that comes back with its
-        ticket): a waiting player matters more. With `mine`, only among that user's. Returns whether one went."""
-        idle = [a for a in self.allocations.values() if a.conn is None and (mine is None or user_of(a.username) == mine)]
-        if not idle:
+        ticket): a waiting player matters more. With `mine`, among that user's only, and if none of them is idle
+        their oldest goes (the game uses its newest; after a bad line it starts TURN over without closing the old
+        ones). Returns whether one went."""
+        own = [a for a in self.allocations.values() if mine is None or user_of(a.username) == mine]
+        idle = [a for a in own if a.conn is None]
+        if not idle and mine is None:
             return False
-        a = min(idle, key=lambda a: a.expires)
+        a = min(idle, key=lambda a: a.expires) if idle else min(own, key=lambda a: a.born)
         log.info("TURN allocation %d freed early (%s)", a.port, a.username)
+        if a.conn is not None:
+            a.conn.alloc = None
         self._free(a)
         return True
 
@@ -248,6 +257,7 @@ class TurnServer:
             writer.close()
             return
         self.conns[ip] = self.conns.get(ip, 0) + 1
+        self.writers.add(writer)
         conn = _Conn(self, writer)
         quiet = 0
         try:
@@ -275,6 +285,7 @@ class TurnServer:
         finally:
             conn.closed()
             writer.close()
+            self.writers.discard(writer)
             if self.conns.get(ip, 0) > 1:
                 self.conns[ip] -= 1
             else:
@@ -393,28 +404,38 @@ class _Conn:
         if len(transport) < 1 or transport[0] != 17:
             return self._error(ALLOCATE, tid, 442, "Unsupported Transport Protocol", key)
         me = user_of(username)
-        if sum(user_of(a.username) == me for a in self.s.allocations.values()) >= MAX_PER_USER and not self.s.reclaim(me):
-            return self._error(ALLOCATE, tid, 486, "Allocation Quota Reached", key)
+        freed = False
+        if sum(user_of(a.username) == me for a in self.s.allocations.values()) >= MAX_PER_USER:
+            freed = self.s.reclaim(me)
         if len(self.s.allocations) >= len(self.s.relay_ports):
-            self.s.reclaim()                                # (its port is free a moment later: the game asks again)
-        free = [p for p in self.s.relay_ports if p not in self.s.allocations]
-        sock = None
-        for port in free:
-            try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                sock.bind(("0.0.0.0", port))
-                break
-            except OSError:
-                sock.close(); sock = None
-        if sock is None:
+            freed = self.s.reclaim() or freed
+        sock = self._bind()
+        if sock is None and not freed:
             return self._error(ALLOCATE, tid, 508, "Insufficient Capacity", key)
         # create_datagram_endpoint(sock=...) is a coroutine; finish the allocation when it is ready
         self.pending = True
         asyncio.get_running_loop().create_task(self._finish_allocate(tid, get, key, username, sock))
 
+    def _bind(self):
+        """A UDP socket on a free relay port, or None."""
+        for port in [p for p in self.s.relay_ports if p not in self.s.allocations]:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+                sock.bind(("0.0.0.0", port))
+                return sock
+            except OSError:
+                sock.close()
+        return None
+
     async def _finish_allocate(self, tid, get, key, username, sock):
         proto = _RelayProtocol()
         try:
+            if sock is None:                                # a port was just freed: its socket closes on the
+                await asyncio.sleep(0.05)                   # loop's next turn
+                sock = self._bind()
+                if sock is None:
+                    self.pending = False
+                    return self._error(ALLOCATE, tid, 508, "Insufficient Capacity", key)
             transport, _ = await asyncio.get_running_loop().create_datagram_endpoint(lambda: proto, sock=sock)
         except OSError:
             sock.close()

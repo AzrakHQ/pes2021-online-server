@@ -213,14 +213,23 @@ _stop = threading.Event()
 
 
 def _open_ports(gw):
-    """Ask the router for every port; returns the ones it opened ("8080/tcp"). OSError: the router is gone."""
-    got = []
+    """Ask the router for every port; returns the ones it opened ("8080/tcp"). One port that fails, whatever the
+    reason, doesn't cost the others. OSError: the router doesn't answer at all (three tries in a row and nothing
+    opened), so the caller looks for it again later instead of waiting on every port."""
+    got, silent = [], 0
     for port, proto in _ports():
         try:
             gw.add(port, proto)
             got.append(f"{port}/{proto.lower()}")
+            silent = 0
         except UPnPError as e:
             log.warning("UPnP: could not open %s/%s: %s", port, proto, e)
+            silent = 0
+        except OSError as e:
+            log.warning("UPnP: could not open %s/%s: %s", port, proto, e)
+            silent += 1
+            if silent >= 3 and not got:
+                raise
     return got
 
 
@@ -341,14 +350,15 @@ def teardown(deadline=10):
     gw, end = STATE.get("_gw"), time.monotonic() + deadline
     if gw is None:
         return
-    for port, proto in _ports():                        # every port: one that failed at first may have opened later
+    for item in list(STATE["mapped"]):                  # only what this server opened (a renewal keeps the list right)
+        port, proto = item.split("/")
         if time.monotonic() > end:
             log.warning("UPnP: closing the router's ports took too long; the rest stay open until their lease ends")
             return
         try:
-            gw.delete(port, proto)
+            gw.delete(int(port), proto.upper())
         except UPnPError:
-            pass                                        # (it wasn't open)
+            pass                                        # (it was closed already)
         except Exception as e:  # noqa: BLE001
             log.warning("UPnP: the router doesn't answer (%s); its ports stay open until their lease ends", e)
             return

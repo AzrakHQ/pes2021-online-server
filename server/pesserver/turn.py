@@ -104,7 +104,7 @@ async def start(svc, data_dir, lan, wan, extra_ips=()):
     d = os.path.join(data_dir, "turn")
     os.makedirs(d, exist_ok=True)
     ips = [i for i in (lan, wan, *extra_ips, "127.0.0.1") if i and _is_ip(i)]
-    STATE.update(dir=d, secret=_secret(d), cert_der=_cert(d, ips), ips=tuple(sorted(set(ips))))
+    STATE.update(dir=d, secret=_secret(d), cert_der=_cert(d, ips), ips=())
 
     def advertise(local_ip, peer_ip):
         # The relayed address each game is told: the same address it already uses to reach this server.
@@ -124,7 +124,7 @@ async def start(svc, data_dir, lan, wan, extra_ips=()):
         log.error("TURN relay could not listen on tcp/%d or udp/%d: %s", TLS_PORT, DTLS_PORT, e)
         srv.close()
         return False
-    STATE["server"] = srv
+    STATE["server"], STATE["ips"] = srv, tuple(sorted(set(ips)))
     log.info("TURN relay on tls/%d + dtls/%s (relay udp %d-%d)", TLS_PORT, srv.dtls_port or "off", *RELAY_PORTS)
     return True
 
@@ -135,18 +135,32 @@ def stop():
         srv.close()
 
 
-async def readdress(svc, data_dir, extra_ips=()):
+async def readdress(svc, data_dir, extra_ips=(), poll=20):
     """This computer's or the public address changed (netsetup's keeper): the relay's certificate and its own
-    addresses name them, so the relay starts again with the new ones. Returns whether it did."""
+    addresses name them, so the relay starts again with the new ones. Addresses it already knows are kept, so an
+    address that comes and goes costs one restart, and it waits until no match is being relayed (a restart cuts
+    them off). Returns whether it restarted."""
     import asyncio
     from .netsetup import STATE as NET
-    ips = tuple(sorted({i for i in (NET["lan"], NET["wan"], *extra_ips, "127.0.0.1") if i and _is_ip(i)}))
-    if not enabled() or ips == tuple(STATE.get("ips") or ()):
+    if not enabled() or STATE.get("readdressing"):
         return False
-    log.warning("TURN relay: starting again for the new addresses (%s)", ", ".join(ips))
-    stop()
-    await asyncio.sleep(0.5)                            # (the old sockets close on the loop's next turns)
-    return await start(svc, data_dir, NET["lan"], NET["wan"], extra_ips)
+    STATE["readdressing"] = True
+    try:
+        while True:
+            have = set(STATE.get("ips") or ())
+            want = have | {i for i in (NET["lan"], NET["wan"], *extra_ips, "127.0.0.1") if i and _is_ip(i)}
+            if want == have and STATE["server"] is not None:
+                return False
+            srv = STATE["server"]
+            if srv is None or not srv.allocations:
+                break
+            await asyncio.sleep(poll)                   # someone is playing through it: after their match
+        log.warning("TURN relay: starting again for the new addresses (%s)", ", ".join(sorted(want)))
+        stop()
+        await asyncio.sleep(0.5)                        # (the old sockets close on the loop's next turns)
+        return await start(svc, data_dir, None, None, sorted(want))
+    finally:
+        STATE["readdressing"] = False
 
 
 def _is_ip(s):                                          # (a name, e.g. PESSERVER_PUBLIC_ADDR=my.example, is not)
@@ -163,6 +177,15 @@ def credentials(pid, now=None):
     return user, rest_password(STATE["secret"], user)
 
 
+MATCH_WINDOW = 1800      # s after being matched in which a player's game may ask for the relay from any address
+
+
+def _just_matched(svc, pid):
+    from .pesmatch import _state
+    now = time.time()
+    return any(pid in r.get("members", ()) and now - r.get("t", 0) < MATCH_WINDOW for r in _state(svc)["rooms"].values())
+
+
 # ---- commands --------------------------------------------------------------------------------------
 @cmd("CMD_GET_TURN_SERVER_LIST")
 def get_turn_server_list(svc, sess, req):
@@ -177,10 +200,15 @@ def get_turn_server_list(svc, sess, req):
         pid = 0
     player = svc.online.get(pid) if pid else None
     asker = req.get("_http") or sess                  # the game asks over HTTP, from the PC it plays on
-    if player is None or getattr(asker, "peer_ip", None) not in (None, getattr(player, "peer_ip", None)):
-        log.warning("TURN list refused: pid %s isn't online from %s", pid, getattr(asker, "peer_ip", "?"))
+    asker_ip = getattr(asker, "peer_ip", None)
+    same_pc = player is not None and asker_ip in (None, getattr(player, "peer_ip", None))
+    # The game asks a second after it was matched. A player whose provider sends each connection out from another
+    # address (mobile data, two lines), or whose game connection blinked just then, still gets the relay then:
+    # those are the players who need it.
+    if not same_pc and not (pid and _just_matched(svc, pid)):
+        log.warning("TURN list refused: pid %s isn't online from %s and has no match", pid, asker_ip or "?")
         return {"result": NOERR}                      # no relay for strangers: an empty list, like TURN=0
-    addr = advertised_addr(svc, player)
+    addr = advertised_addr(svc, player if same_pc or not asker_ip else asker)
     user, pw = credentials(pid)
     der = STATE["cert_der"]
     log.info("TURN list -> pid %s: %s:%d", pid, addr, TLS_PORT)

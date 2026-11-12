@@ -245,11 +245,35 @@ def disconnected(svc, sess):
         pass
     for rid, lv in list(_st(svc)["live"].items()):
         if pid in (lv["home"], lv["away"]) and lv["phase"] != "Full time":
-            _note_left(svc, lv, pid)
-            if not getattr(sess, "kicked", False):
+            kicked = getattr(sess, "kicked", False)
+            if not kicked:
                 _manner("dropped", svc, lv, pid)
-            feed(svc, f"Match ended early: {name_of(svc, pid)} disconnected", "warn", [lv["home"], lv["away"]])
-            _st(svc)["live"].pop(rid, None)
+            _left_match(svc, rid, lv, pid, wait=bool(lv.get("kickoff")) and not kicked)
+
+
+BLINK = 16      # s a game gets to reconnect before its match counts as ended (just after pesmanner.DECIDE_AFTER)
+
+
+def _left_match(svc, rid, lv, pid, wait):
+    """pid's connection closed during a match. The game reconnects by itself after a blink (the match goes on
+    between the two PCs meanwhile), so the match is only taken as ended when the player isn't back in time."""
+    def gone():
+        lv.pop("left_decide", None)
+        st = _st(svc)
+        if st["live"].get(rid) is not lv:
+            return                                    # it ended some other way meanwhile
+        if wait and getattr(svc.online.get(pid), "pes_reconnected", False):
+            return                                    # back: still the same match
+        _note_left(svc, lv, pid)
+        feed(svc, f"Match ended early: {name_of(svc, pid)} disconnected", "warn", [lv["home"], lv["away"]])
+        st["live"].pop(rid, None)
+    if not wait:
+        return gone()
+    import asyncio
+    try:
+        asyncio.get_running_loop().call_later(BLINK, gone)
+    except RuntimeError:                              # no loop (unit tests call it themselves)
+        lv["left_decide"] = gone
 
 
 def _week(db, now):

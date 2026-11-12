@@ -100,12 +100,46 @@ def test_the_unit_stops_retrying_when_a_port_is_taken(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setattr(hostctl, "_systemctl", lambda *a, timeout=15: (calls.append(a), (0, ""))[1])
     os.makedirs(os.path.dirname(hostctl.unit_path()))
-    open(hostctl.unit_path(), "w").write(unit.replace("RestartPreventExitStatus=78\n", ""))
+    old = "\n".join(l for l in unit.split("\n") if "78" not in l)                 # as an earlier version wrote it
+    edited = old.replace("Environment=PES_SERVICE=1", "Environment=PES_HTTP_PORT=8090\nEnvironment=PES_SERVICE=1")
+    open(hostctl.unit_path(), "w").write(edited)                 # ...and the host changed the port by hand
     assert hostctl.refresh_unit(str(tmp_path)) is False          # not the service: hands off
     monkeypatch.setenv("PES_SERVICE", "1")
-    assert hostctl.refresh_unit(str(tmp_path)) is True and open(hostctl.unit_path()).read() == unit
+    assert hostctl.refresh_unit(str(tmp_path)) is True
+    now = open(hostctl.unit_path()).read()
+    assert "RestartPreventExitStatus=78\n" in now and "Environment=PES_HTTP_PORT=8090\n" in now
+    assert now.replace("PES_HTTP_PORT=8090\nEnvironment=", "") == unit           # nothing else changed
     assert calls == [("daemon-reload",)]
     assert hostctl.refresh_unit(str(tmp_path)) is False and calls == [("daemon-reload",)]
+    open(hostctl.unit_path(), "w").write("[Service]\nExecStart=/my/own/script\n")   # not our file any more
+    assert hostctl.refresh_unit(str(tmp_path)) is False and "78" not in open(hostctl.unit_path()).read()
+
+
+def test_saved_settings_can_be_cleared_and_hand_added_lines_stay(tmp_path, monkeypatch):
+    for k in hostctl.KEPT:
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+    monkeypatch.setenv("PUBLIC_IP", "100.64.0.7"); monkeypatch.setenv("BACKUPS", "0")
+    assert hostctl.keep_settings(str(tmp_path)) == {"PUBLIC_IP": "100.64.0.7", "BACKUPS": "0"}
+    with open(hostctl.env_path(str(tmp_path)), "a") as f:
+        f.write("PES_HTTP_PORT=8090\nnot a setting\n")           # the host's own line
+    monkeypatch.delenv("PUBLIC_IP"); monkeypatch.delenv("BACKUPS")
+    assert hostctl.keep_settings(str(tmp_path)) == {"PUBLIC_IP": "100.64.0.7", "BACKUPS": "0", "PES_HTTP_PORT": "8090"}
+    monkeypatch.setenv("PUBLIC_IP", "")                           # PUBLIC_IP= ... | sh: forget it
+    assert hostctl.keep_settings(str(tmp_path)) == {"BACKUPS": "0", "PES_HTTP_PORT": "8090"}
+    assert open(hostctl.env_path(str(tmp_path))).read() == "BACKUPS=0\nPES_HTTP_PORT=8090\n"
+
+
+def test_a_start_that_was_stopped_before_it_was_up_is_not_a_failed_start(svc, release, monkeypatch):
+    prog = hostctl.program()
+    hostctl.update(svc, "now"); _wait()
+    ran = []
+    monkeypatch.setattr(hostctl.os, "execve", lambda p, argv, env: ran.append(p))
+    for _ in range(5):                                   # Ctrl+C or a logout while it was still starting, five times
+        hostctl.trial_begin(); hostctl.trial_uncount()
+    assert not ran and "selfcheck" in open(prog).read()
+    hostctl.trial_clear()                                # run.sh installs again: an old way back doesn't apply
+    assert not os.path.exists(prog + ".old") and not os.path.exists(prog + ".trying")
 
 
 def test_status_asks_systemd_once_not_on_every_poll(svc, monkeypatch):
@@ -194,6 +228,23 @@ def test_a_router_that_answers_later_gets_its_ports_opened(net, monkeypatch):
     assert net["_gw"] is routers[0] and routers[0].open == [(8080, "TCP"), (3478, "UDP")]
 
 
+def test_one_port_the_router_chokes_on_does_not_cost_the_others(net, monkeypatch):
+    class Flaky(Router):
+        def add(self, port, proto):
+            if port == 8080:
+                raise OSError("connection reset by peer")
+            super().add(port, proto)
+    monkeypatch.setattr(netsetup, "_ports", lambda: [(80, "TCP"), (8080, "TCP"), (10000, "TCP"), (3478, "UDP")])
+    monkeypatch.setattr(netsetup, "lan_ip", lambda: "192.168.1.100")
+    gw = Flaky()
+    monkeypatch.setattr(netsetup, "discover_gateway", lambda: gw)
+    netsetup._look(True)
+    assert net["mapped"] == ["80/tcp", "10000/tcp", "3478/udp"] and net["_gw"] is gw and net["wan"] == "81.2.69.160"
+    gw.dead = True                                       # the router is gone: three tries, not one per port
+    with pytest.raises(OSError):
+        netsetup._open_ports(gw)
+
+
 def test_the_public_address_is_followed(net, monkeypatch):
     monkeypatch.setattr(netsetup, "lan_ip", lambda: "192.168.1.100")
     monkeypatch.setattr(netsetup, "discover_gateway", lambda: None)
@@ -209,9 +260,9 @@ def test_the_public_address_is_followed(net, monkeypatch):
 def test_closing_the_routers_ports_cannot_hold_up_a_stop(net, monkeypatch):
     monkeypatch.setattr(netsetup, "_stop", threading.Event())
     gw = net["_gw"] = Router()
-    net["mapped"] = ["8080/tcp"]                         # (443 failed at first; it may have opened at a renewal)
+    net["mapped"] = ["8080/tcp", "3478/udp"]             # (443 is someone else's: the router refused it)
     netsetup.teardown()
-    assert gw.deleted == [(443, "TCP"), (8080, "TCP"), (3478, "UDP")]
+    assert gw.deleted == [(8080, "TCP"), (3478, "UDP")]  # only what this server opened
     dead = net["_gw"] = Router(dead=True)
     t = time.monotonic()
     netsetup.teardown()
@@ -322,3 +373,9 @@ def test_live_update_names_and_broken_files(svc, tmp_path, monkeypatch):
     open(os.path.join(d, "bad.cpk"), "wb").write(b"CPK ")
     os.utime(odd, (time.time() - 100, time.time() - 100))
     assert liveupdate.current(svc)[0] == odd
+    # while the background thread reads a new file, a request gets the last answer at once (it never waits)
+    with liveupdate._LOCK:
+        open(os.path.join(d, "newer.cpk"), "wb").write(b"y" * 10)
+        t = time.monotonic()
+        assert liveupdate.current(svc)[0] == odd and time.monotonic() - t < 0.5
+    assert liveupdate.current(svc, wait=True)[0].endswith("newer.cpk")

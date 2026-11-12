@@ -122,7 +122,7 @@ def autostart(fresh=False):
 
 
 # ---- the service and the apps-menu entry --------------------------------------------------------------------
-KEPT = ("PUBLIC_IP", "UPNP", "TURN", "UPDATE_CHECK", "PESSERVER_NO_IPCHECK", "AUTO_MOD", "REPLAYS")
+KEPT = ("PUBLIC_IP", "UPNP", "TURN", "UPDATE_CHECK", "PESSERVER_NO_IPCHECK", "AUTO_MOD", "REPLAYS", "BACKUPS")
 # ^ settings given on the command line (UPNP=0 ... | sh) that the background service must keep (server/README.md)
 
 
@@ -132,18 +132,26 @@ def env_path(data):
 
 def keep_settings(data):
     """Save the settings this process was started with for the service (<data>/server.env, read by the unit).
-    A setting given now replaces the saved one; the others stay. ADMIN_PASSWORD goes where the server reads its
-    password from, not into a file other programs list."""
+    A setting given now replaces the saved one, given empty (PUBLIC_IP= ...) it is forgotten; the others stay,
+    also lines the host added to the file by hand. ADMIN_PASSWORD goes where the server reads its password from,
+    not into a file other programs list."""
     ok = lambda v: bool(v) and all(c.isalnum() or c in ".:-_" for c in v)
+    name = lambda k: bool(k) and k.replace("_", "").isalnum() and not k[0].isdigit()
     kept = {}
     try:
         for line in open(env_path(data), encoding="utf-8"):
             k, _, v = line.strip().partition("=")
-            if k in KEPT and ok(v):
+            if name(k) and ok(v):
                 kept[k] = v
     except OSError:
         pass
-    kept.update({k: os.environ[k].strip() for k in KEPT if ok((os.environ.get(k) or "").strip())})
+    for k in KEPT:
+        if k in os.environ:
+            v = os.environ[k].strip()
+            if ok(v):
+                kept[k] = v
+            elif not v:
+                kept.pop(k, None)
     try:
         os.makedirs(data, exist_ok=True)
         tmp = env_path(data) + ".tmp"
@@ -216,13 +224,18 @@ def refresh_unit(data):
     prog = program()
     if not (prog and in_service() and os.path.exists(unit_path())):
         return False
-    want = unit_text(prog, _unit_data() or data)
+    # Only the line that is missing is added, after the line it belongs with: whatever else the host changed in
+    # the file (a port, an extra setting) stays as it is.
+    add = ("# exit code 78 = a port it needs is taken by another program: starting again would fail the same way\n"
+           f"RestartPreventExitStatus={CANT_START_EXIT}\n")
+    anchor = f"RestartForceExitStatus={RESTART_EXIT}\n"
     try:
         with open(unit_path()) as f:
-            if f.read() == want:
-                return False
+            have = f.read()
+        if "RestartPreventExitStatus=" in have or have.count(anchor) != 1:
+            return False
         with open(unit_path() + ".tmp", "w") as f:
-            f.write(want)
+            f.write(have.replace(anchor, anchor + add))
         os.replace(unit_path() + ".tmp", unit_path())
     except OSError:
         return False
@@ -455,8 +468,19 @@ def trial_begin():
     os.execve(prog, [prog] + sys.argv[1:], clean_env())
 
 
+def trial_clear():
+    """A fresh install (run.sh): whatever an earlier update left behind doesn't apply to this program."""
+    prog = program()
+    for ext in (".trying", ".old", ".undone") if prog else ():
+        try:
+            os.remove(prog + ext)
+        except OSError:
+            pass
+
+
 def trial_uncount():
-    """This start failed for a reason that isn't the new version's (a port taken by another program)."""
+    """This start didn't come up for a reason that isn't the new version's: a port taken by another program, or
+    it was stopped (Ctrl+C, a logout) before it was up."""
     prog = program()
     t = _trial(prog) if prog else None
     if t is not None and int(t.get("starts") or 0) > 0:
@@ -780,6 +804,7 @@ def cmd_install(args):
     if not prog:
         sys.exit("   install works for the downloadable program.")
     os.makedirs(data, exist_ok=True)
+    trial_clear()
     write_menu_entry(prog)
     if not systemd_ok():
         print("   This computer has no systemd user session, so the server runs in this window instead.", flush=True)

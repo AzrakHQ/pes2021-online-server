@@ -4,7 +4,7 @@ Field names come from the client's own request/response parsers (strings cluster
 .rdata, e.g. CMD_GET_SVRLIST parser 0x141d48430). Unknown commands get a generic NOERR so the client
 keeps going while we log what it asks for — that log drives which handler to write next.
 """
-import json, logging, os, sqlite3, time
+import asyncio, json, logging, os, sqlite3, time
 
 import msgpack
 
@@ -417,21 +417,20 @@ def reconnect(svc, sess, req):
         return {"result": "ERR_LOGIN_FAILED"}
     mm = getattr(svc, "pes_mm", None)
     old = svc.online.get(pid) or _last_session(mm, pid)
-    if r[0].startswith("m:"):
-        # An account of one install (account_key): only that install comes back as it. The mod sends its id at the
-        # start of every connection, this one too; without one, only from where the player was a moment ago.
-        mine = getattr(sess, "mod_id", None)
-        same_place = old is not None and getattr(old, "peer_ip", None) == getattr(sess, "peer_ip", "")
-        if "m:" + mine != r[0] if mine else not same_place:
-            log.warning("RECONNECT refused: pid %s belongs to another install", pid)
-            return {"result": "ERR_LOGIN_FAILED"}
+    if r[0].startswith("m:") and "m:" + (getattr(sess, "mod_id", None) or "") != r[0]:
+        # An account of one install (account_key): only that install comes back as it. (The mod sends its id at
+        # the start of every connection, this one too.)
+        log.warning("RECONNECT refused: pid %s belongs to another install", pid)
+        return {"result": "ERR_LOGIN_FAILED"}
     sess.pes_username, sess.pes_pid = r[0], pid
     for attr in ("pes_versions", "pes_sums", "pes_match_req", "pes_compe", "mod_id", "mod_features"):
         if old is not None and hasattr(old, attr) and not hasattr(sess, attr):
             setattr(sess, attr, getattr(old, attr))
     sess.pes_reconnected = True                         # (pesmanner: a blip, not the player quitting)
     svc.online[pid] = sess
+    searching = False
     if mm is not None:
+        searching = any(p == pid for p, _ in mm["queue"]) or any(x[0] == pid for x in mm.get("coop_queue", []))
         mm["queue"] = [(p, sess if p == pid else s) for p, s in mm["queue"]]
         if "coop_queue" in mm:
             mm["coop_queue"][:] = [(p, sess if p == pid else s, t) for p, s, t in mm["coop_queue"]]
@@ -439,6 +438,17 @@ def reconnect(svc, sess, req):
             mm["watch"].pop(pid, None)                  # parked on the dead connection: push to the new one
     k = _session_key(sess)
     log.info("RECONNECT pid %s (%s) -> session key %s", pid, r[0], k["key"])
+    if searching:
+        # Someone may have started searching while this player was away (they are never paired with a
+        # connection that is gone): pair them now. After the reply, so the game has its new key first.
+        def pair():
+            from . import pescoop, pesmatch
+            pesmatch._try_pair(svc)
+            pescoop._try_pair(svc)
+        try:
+            asyncio.get_running_loop().call_soon(pair)
+        except RuntimeError:                            # no loop (unit tests call this directly)
+            pair()
     return {"result": NOERR, **k}
 
 
