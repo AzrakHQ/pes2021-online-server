@@ -15,7 +15,7 @@ import hashlib, json, logging, os, platform, shutil, subprocess, sys, threading,
 
 log = logging.getLogger("pesserver.hostctl")
 
-REPO = "MohamedAliRashad/pes2021-private-server"
+REPO = "AzrakHQ/pes2021-online-server"
 REL = f"https://github.com/{REPO}/releases/latest/download"
 
 
@@ -252,7 +252,7 @@ def current():
 
 
 def _get(url, timeout=20):
-    req = urllib.request.Request(url, headers={"User-Agent": "pes2021-private-server"})
+    req = urllib.request.Request(url, headers={"User-Agent": "pes2021-online-server"})
     return urllib.request.urlopen(req, timeout=timeout)
 
 

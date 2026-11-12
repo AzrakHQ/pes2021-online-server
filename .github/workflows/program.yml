@@ -1,7 +1,7 @@
 # Tests the server, builds it as one program for Linux (x64, arm64) and publishes it as the
 # repository's latest release, which run.sh downloads (hosts run Linux only; the Windows job below
 # checks the players' mod, not the server):
-#   https://github.com/<owner>/pes2021-private-server/releases/latest/download/pes2021-server-<platform>
+#   https://github.com/AzrakHQ/pes2021-online-server/releases/latest/download/pes2021-server-<platform>
 name: program
 on:
   push:

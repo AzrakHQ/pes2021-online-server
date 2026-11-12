@@ -1,12 +1,12 @@
 # PES 2021 Online - undo the join line on Windows, without needing the server.
-#   irm https://mohamedalirashad.github.io/pes2021-private-server/leave.ps1 | iex
+#   irm https://azrakhq.github.io/pes2021-online-server/leave.ps1 | iex
 # Removes the hosts-file lines and every "PES2021 Private Server CA" certificate. Asks for admin rights.
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 $me = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
 if (-not $me.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Start-Process powershell -Verb RunAs -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-Command",
-        "irm https://mohamedalirashad.github.io/pes2021-private-server/leave.ps1 | iex")
+        "irm https://azrakhq.github.io/pes2021-online-server/leave.ps1 | iex")
     return
 }
 $HostsFile = "$env:SystemRoot\System32\drivers\etc\hosts"

@@ -1,7 +1,7 @@
 #!/bin/sh
 # PES 2021 server on your own Linux computer (or Steam Deck): no sudo.
 #
-#   curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/AzrakHQ/pes2021-online-server/main/run.sh | sh
 #
 # Run it once. It downloads the newest server program, sets it up to run in the background (a systemd user
 # service that starts when you log in), adds "PES 2021 Server" to your apps menu and opens the admin page.
@@ -10,13 +10,13 @@
 # Options go after "sh -s --":  --here (run in this window instead, Ctrl+C stops it),
 #   --no-autostart (don't start when you log in), --data DIR (where players and results are kept).
 set -eu
-REL="https://github.com/MohamedAliRashad/pes2021-private-server/releases/latest/download"
+REL="https://github.com/AzrakHQ/pes2021-online-server/releases/latest/download"
 
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)                PLATFORM=linux-x64 ;;
   Linux-aarch64|Linux-arm64)   PLATFORM=linux-arm64 ;;
   *) echo "There's no ready-made server program for this computer ($(uname -sm))."
-     echo "You can run it from source instead: https://github.com/MohamedAliRashad/pes2021-private-server/tree/main/server"
+     echo "You can run it from source instead: https://github.com/AzrakHQ/pes2021-online-server/tree/main/server"
      exit 1 ;;
 esac
 DIR="${XDG_DATA_HOME:-$HOME/.local/share}/pes2021-server"

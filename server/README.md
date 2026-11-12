@@ -15,10 +15,10 @@ server from source, building the program, and how the code is laid out.
   and paste its address.
 - "Failed to connect with opponent": the two PCs can't reach each other directly. Everyone installs
   [Tailscale](https://tailscale.com), and the host runs the install line again with its Tailscale IP:
-  `curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | PUBLIC_IP=100.x.y.z sh`
+  `curl -fsSL https://raw.githubusercontent.com/AzrakHQ/pes2021-online-server/main/run.sh | PUBLIC_IP=100.x.y.z sh`
 - Set up earlier with a join line? Undo it once, then use the file: Windows
-  `irm https://mohamedalirashad.github.io/pes2021-private-server/leave.ps1 | iex`, Linux
-  `curl -fsSL https://mohamedalirashad.github.io/pes2021-private-server/leave.sh | bash`.
+  `irm https://azrakhq.github.io/pes2021-online-server/leave.ps1 | iex`, Linux
+  `curl -fsSL https://azrakhq.github.io/pes2021-online-server/leave.sh | bash`.
 
 ## Run from source
 

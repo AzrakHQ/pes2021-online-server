@@ -880,8 +880,8 @@ try { const r = +localStorage.getItem("pes-admin-range"); if ([7, 14, 30].includ
 const I = {ok: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>',
   warn: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l6.5 11.5h-13zM8 6.5v3M8 11.8v.2"/></svg>',
   right: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>'};
-const RUN_SH = "curl -fsSL https://raw.githubusercontent.com/MohamedAliRashad/pes2021-private-server/main/run.sh | sh";
-const FAQ_FAR = "https://mohamedalirashad.github.io/pes2021-private-server/#faq-far";
+const RUN_SH = "curl -fsSL https://raw.githubusercontent.com/AzrakHQ/pes2021-online-server/main/run.sh | sh";
+const FAQ_FAR = "https://azrakhq.github.io/pes2021-online-server/#faq-far";
 const runCmd = () => RUN_SH;
 const inMin = s => s < 3600 ? Math.max(1, Math.ceil(s / 60)) + " min" : dur(s);
 const midCut = (t, n) => t.length > n ? t.slice(0, Math.floor(n * .35)) + "…" + t.slice(-Math.floor(n * .6)) : t;
