@@ -40,6 +40,5 @@ elif [ -z "$latest" ]; then
   [ -x "$BIN" ] || { echo "Can't reach GitHub to download the server. Check the internet connection and run the line again."; exit 1; }
   echo "Couldn't check for a newer version (offline?); starting the version you have ($have)."
 fi
-if [ "${1:-}" = "--here" ]; then shift; exec "$BIN" "$@"; fi
-if [ "$(uname -s)" = Linux ]; then exec "$BIN" install "$@"; fi
-exec "$BIN" "$@"
+if [ "${1:-}" = "--here" ]; then shift; exec "$BIN" host "$@"; fi   # in this terminal, even when the service is installed
+exec "$BIN" install "$@"

@@ -100,7 +100,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
                     out = json.dumps({"id": server_id(), "key": k[:8] + " " + k[8:16],
                                       "mod_sha256": mod_sha256(mod_url(service, headers, writer)), "online": len(service.online),
                                       "queued": len(pesmatch._state(service)["queue"]),
-                                      "rooms": len(service.mm.rooms)}).encode(); ctype = "application/json"
+                                      "rooms": len(pesmatch._state(service)["rooms"])}).encode(); ctype = "application/json"
                 elif path.rstrip("/") == "/ca.crt":
                     # The private CA players must trust (NTL GateInfo.php runs over HTTPS with OS validation).
                     ca = os.path.join(os.environ.get("PESSERVER_CERTS", "/data/certs"), "ca.crt")
@@ -108,11 +108,6 @@ def make_handler(service, stun_host, stun_port, gate_port):
                         out = open(ca, "rb").read(); ctype = "application/x-x509-ca-cert"
                     except OSError:
                         out = b"no CA configured"; ctype = "text/plain"
-                elif path.startswith("/admin/push") and os.environ.get("PESSERVER_ADMIN") == "1":  # dev hook
-                    from urllib.parse import parse_qs, urlsplit
-                    from . import pesmatch
-                    q = {k: v[0] for k, v in parse_qs(urlsplit(path).query).items()}
-                    out = json.dumps(pesmatch.admin_push(service, q)).encode(); ctype = "application/json"
                 elif "GateInfo" in path:
                     # NTL (NAT traversal) gate info: POST https://ntl.service.konami.net/ntl/api/GateInfo.php
                     # body req={"titleCode":"PES2021","locale":..,"version":..,"apiLevel":..}. Reply is

@@ -113,8 +113,13 @@ Environment variables:
 | `UPNP` | `0` = don't open router ports |
 | `TURN` | `0` = don't run the built-in relay for players who can't connect directly (on by default: TLS 5349 + DTLS UDP 5350 + relay UDP 49160–49179, opened with UPnP; needs pyOpenSSL) |
 | `UPDATE_CHECK` | `0` = don't ask GitHub whether a newer server is out |
+| `BACKUPS` | `0` = don't make the daily backup of the database in `<data>/backups/` |
 | `ADMIN_PASSWORD` | fixed admin password (default: random, saved in `<data>/admin_password`) |
 | `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
+
+Given on the install line (`curl … | UPNP=0 sh`), `PUBLIC_IP`, `UPNP`, `TURN`, `UPDATE_CHECK`, `AUTO_MOD`, `REPLAYS`
+and `PESSERVER_NO_IPCHECK` are saved in `<data>/server.env` and the background service keeps using them; a later
+run changes only the ones it names. `ADMIN_PASSWORD` is saved as `<data>/admin_password`.
 
 ## Online Tournament competitions
 
@@ -222,14 +227,18 @@ can't work.
 | `pesserver/identity.py` | the server's Ed25519 identity, signed notes and hellos for the mod, writing settings into the mod DLL |
 | `pesserver/gamesetup.py` | PES 2021 on the server's own computer: finds the copies, keeps the mod in them up to date by itself (and the admin page's buttons) |
 | `pesserver/certs.py`, `updates.py` | the server's CA and TLS certificate; the "newer version is out" check |
-| `pesserver/__main__.py` | command line: `host` (the program), `serve` (development), `adduser` |
+| `pesserver/__main__.py` | command line: `host` (the program), `serve` (development) |
 | `mod/` | the mod (`dinput8.dll`): MinHook hooks, Monocypher signatures, same-math functions from musl (`mod/musl-math/`, checked by `mod/test/mathcheck.c`), built by `mod/build.sh` (MinGW) |
 | `packaging/` | PyInstaller build script, entry point and smoke test for the program |
 | `pesserver/events.py` | live activity for the admin page: online players, match phases and scores, saved results |
 | `pesserver/web/` | player page, `join.ps1` / `join.sh` (served with the server address filled in), Proton CA installer |
 | `pesserver/schemas.json` | response schemas of ~400 commands, extracted from the client (`notes/re/extract_schemas.py`) |
 | `pesserver/service.py`, `gate.py` | session handling and dispatch |
-| `pesserver/accounts.py`, `matchmaking.py`, `devclient.py` | SQLite accounts, generic queue, JSON dev client (used by `tests/`) |
+| `pesserver/accounts.py` | the SQLite database connection and its write lock |
+| `pesserver/pesseason.py` | seasons of the admin page's league table: start a new one (the final table is kept), reopen the last |
+| `pesserver/pesundo.py` | undo for the admin's Delete player: everything about the player is saved for 30 days and can be put back |
+| `pesserver/pesbackup.py` | backups of the database in `<data>/backups/`: one a day (7 kept), on demand, download and restore from the admin page |
+| `pesserver/pesdiscord.py` | optional notices in a Discord channel (a friend is searching, final scores) through a webhook the host pastes on the admin page; kept in `<data>/discord.json` |
 
 Unhandled commands are logged as `UNHANDLED CMD_…` and answered with a bare `{result: NOERR}`, so
 the client keeps its own defaults. Implementing a new command means adding an

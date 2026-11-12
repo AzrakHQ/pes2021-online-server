@@ -26,7 +26,7 @@
 - **Match replays**: every online match is recorded; watch the newest 20 from Online Tournament → Match Replays.
 - **Profiles and stats**: your avatar, favourite team and comment, Last 20 results, and a ranking of everyone on your server.
 - **Fair play**: leaving a match early counts as a 3–0 loss, and anyone can block an opponent so they're never matched again.
-- **Admin page** for the host: who's online, live matches, results, replays, blocking players and one-click updates.
+- **Admin page** for the host: who's online, live matches, results, a league table with seasons, replays, blocking players, backups, Discord notices and one-click updates.
 
 ## How to use
 

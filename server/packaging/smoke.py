@@ -10,9 +10,7 @@ env = dict(os.environ, UPNP="0", PUBLIC_IP="127.0.0.1", UPDATE_CHECK="0", PESSER
            PES_GATE_PORT="11000", PES_HTTP_PORT="18080", PES_HTTPS_PORT="18443", PES_JOIN_PORT="18081",
            PES_STUN_PORT="13478", PESSERVER_RELAY_PORT="17600", PESSERVER_BOOK="",
            TURN_TLS_PORT="15349", TURN_DTLS_PORT="15350", TURN_MIN_PORT="15360", TURN_MAX_PORT="15361")
-flags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
-p = subprocess.Popen([exe, "--data", data], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                     creationflags=flags)
+p = subprocess.Popen([exe, "--data", data], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
 
 def get(url, ctx=None):
@@ -58,10 +56,7 @@ try:
     print("smoke test passed: http, https (game and admin certificates) on the same port, admin page, mod download, "
           "TURN relay with its DTLS leg")
 finally:
-    if sys.platform == "win32":
-        p.send_signal(signal.CTRL_BREAK_EVENT)
-    else:
-        p.send_signal(signal.SIGINT)
+    p.send_signal(signal.SIGINT)
     try:
         out = p.communicate(timeout=20)[0].decode(errors="replace")
     except subprocess.TimeoutExpired:

@@ -30,7 +30,7 @@ def build_binding_response(request: bytes, addr):
 
 
 def parse_xor_mapped(resp: bytes):
-    """Client-side helper (used by tests / devclient)."""
+    """Client-side helper (used by tests)."""
     mtype, mlen, cookie = struct.unpack("!HHI", resp[:8])
     i = 20
     while i + 4 <= 20 + mlen:

@@ -9,16 +9,14 @@
   pesserver                   installed: the background server's screen, live (console); else host
   pesserver stop              stop the background server
   pesserver serve ...         development (tools/pes.py restart)
-  pesserver adduser NAME PW   add an account by hand
 """
 import argparse, asyncio, logging, os, sys
 from . import gate, httpgate, stun
-from .accounts import Accounts, AccountError
-from .protocol import JsonCodec
+from .accounts import Accounts
 from .codec_capture import CaptureCodec
 from .ncl import NclCodec
 
-CODECS = {'ncl': NclCodec, 'json': JsonCodec, 'capture': CaptureCodec}
+CODECS = {'ncl': NclCodec, 'capture': CaptureCodec}
 from .service import Service
 
 log = logging.getLogger("pesserver")
@@ -26,10 +24,6 @@ log = logging.getLogger("pesserver")
 
 def default_data_dir():
     """Where the downloadable program keeps players, results, certificates and the server identity."""
-    if sys.platform == "win32":
-        return os.path.join(os.environ.get("LOCALAPPDATA") or os.path.expanduser("~"), "PES2021 Server")
-    if sys.platform == "darwin":
-        return os.path.expanduser("~/Library/Application Support/PES2021 Server")
     return os.path.join(os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "pes2021-server")
 
 
@@ -43,7 +37,7 @@ async def _optional(what, port, coro):
 
 
 async def run(a):
-    svc = Service(Accounts(a.db), public_ip=a.public_ip, allow_register=not a.no_register)
+    svc = Service(Accounts(a.db), public_ip=a.public_ip)
     from . import certs, netsetup
     data_dir = os.path.dirname(os.path.abspath(a.db))
     tls = None
@@ -125,14 +119,8 @@ async def run(a):
     import signal
     loop = asyncio.get_running_loop()
     hostctl.attach(loop, stop)              # the admin page can restart, update or stop the server
-    for name in ("SIGTERM", "SIGINT", "SIGHUP", "SIGBREAK"):   # SIGHUP: window closed; SIGBREAK: Windows Ctrl+Break
-        sig = getattr(signal, name, None)
-        if sig is None:
-            continue
-        try:
-            loop.add_signal_handler(sig, stop.set)
-        except (NotImplementedError, RuntimeError):            # Windows event loop: plain handler
-            signal.signal(sig, lambda *_: loop.call_soon_threadsafe(stop.set))
+    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):     # SIGHUP: the terminal window was closed
+        loop.add_signal_handler(sig, stop.set)
     try:
         await stop.wait()
     finally:
@@ -151,7 +139,7 @@ def _host_setup(a):
     """The downloadable program: settings for this computer."""
     os.makedirs(a.data, exist_ok=True)
     a.db = os.path.join(a.data, "pesserver.db")
-    a.host, a.codec, a.no_register, a.stun_host = "0.0.0.0", "ncl", False, None
+    a.host, a.codec, a.stun_host = "0.0.0.0", "ncl", None
     a.public_ip = os.environ.get("PUBLIC_IP") or None
     a.auto_net = not a.public_ip
     env = os.environ
@@ -163,12 +151,6 @@ def _host_setup(a):
         env["PESSERVER_PUBLIC_ADDR"] = a.public_ip
     from . import gamesetup
     gamesetup.use_local_games()
-    if sys.platform == "win32":
-        os.system("")                     # turn on colours in the Windows console
-        try:
-            os.system("title PES 2021 Server")
-        except Exception:  # noqa: BLE001
-            pass
     for stream in (sys.stdout, sys.stderr):
         try:
             stream.reconfigure(errors="replace")
@@ -182,7 +164,7 @@ def main():
     sub = p.add_subparsers(dest="cmd")
     s = sub.add_parser("serve")
     s.add_argument("--host", default="127.0.0.1")
-    s.add_argument("--public-ip"); s.add_argument("--no-register", action="store_true")
+    s.add_argument("--public-ip")
     s.add_argument("--codec", choices=sorted(CODECS), default="ncl")
     s.add_argument("--gate-port", type=int, default=10000)
     s.add_argument("--http-port", type=int, default=8080)
@@ -197,7 +179,6 @@ def main():
     for flag, port in (("--gate-port", 10000), ("--http-port", 8080), ("--https-port", 443), ("--join-port", 80),
                        ("--stun-port", 3478)):
         h.add_argument(flag, type=int, default=int(os.environ.get("PES_" + flag[2:].upper().replace("-", "_"), port)))
-    u = sub.add_parser("adduser"); u.add_argument("name"); u.add_argument("password"); u.add_argument("--steam-id")
     i = sub.add_parser("install", help="Linux: run the server in the background, add it to the apps menu")
     i.add_argument("--data", default=default_data_dir()); i.add_argument("--no-autostart", action="store_true")
     o = sub.add_parser("open", help="start the server if needed and open its admin page")
@@ -214,7 +195,7 @@ def main():
         argv = ["host"] + argv                # the program's own options, e.g. --data DIR
     a = p.parse_args(argv)
     if a.cmd is None:
-        p.error("choose a command: host, serve or adduser")
+        p.error("choose a command: host or serve")
     from . import hostctl
     if a.cmd in ("install", "open", "selfcheck", "stop", "console"):
         return {"install": hostctl.cmd_install, "open": hostctl.cmd_open, "stop": hostctl.cmd_stop,
@@ -237,17 +218,11 @@ def main():
         logging.basicConfig(level=logging.INFO, handlers=[f, c, w])
     else:
         logging.basicConfig(level=logging.INFO, format=fmt)
-    if a.cmd == "adduser":
-        try:
-            print("created user id", Accounts(a.db).register(a.name, a.password, a.steam_id))
-        except AccountError as e:
-            sys.exit(f"error: {e}")
-    else:
-        try:
-            asyncio.run(run(a))
-        except KeyboardInterrupt:
-            pass
-        hostctl.after_shutdown()            # restart into a new version, or hand over to the background service
+    try:
+        asyncio.run(run(a))
+    except KeyboardInterrupt:
+        pass
+    hostctl.after_shutdown()                # restart into a new version, or hand over to the background service
 
 
 if __name__ == "__main__":

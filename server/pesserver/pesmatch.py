@@ -379,36 +379,6 @@ def _send_later(sess, msgid, rqid, kind, seq, body):
         log.info("push %s skipped: no event loop", msgid)
 
 
-# ---- dev hook: re-push the last match notification in a chosen variant (no restart needed) -------
-def admin_push(svc, params):
-    """params: kind (int, default 0x60), seq (int, default 1), rqid ('start' = each player's
-    START_MATCHING rqid, or an int), msgid (default CMD_WATCH_MATCHING), extra (JSON merged into body),
-    pids (comma list, default both of the last room)."""
-    import json
-    st = _state(svc)
-    if not st["rooms"]:
-        return {"error": "no room yet"}
-    room_id = max(st["rooms"]); room = st["rooms"][room_id]
-    kind = int(params.get("kind", "0x60"), 0); seq = int(params.get("seq", "1"), 0)
-    msgid = params.get("msgid", "CMD_WATCH_MATCHING")
-    extra = json.loads(params.get("extra", "{}"))
-    pids = [int(x) for x in params.get("pids", ",".join(map(str, room["members"]))).split(",")]
-    sent = []
-    for pid in pids:
-        sess = svc.online.get(pid)
-        if sess is None:
-            continue
-        rq = params.get("rqid", "0")
-        rqid = int(getattr(sess, "pes_match_req", {}).get("rqid", 0)) if rq == "start" else int(rq, 0)
-        members = [_member(svc, p, p == room["owner"], i, sess) for i, p in enumerate(room["members"])]
-        body = {"result": NOERR, "matching_state": "FINISH", "player_num": len(members), "ping": 30,
-                "member": members, **extra}
-        _send_later(sess, msgid, rqid, kind, seq, body)
-        sent.append({"pid": pid, "rqid": rqid})
-    log.info("ADMIN push %s kind=%#x seq=%d -> %s extra=%s", msgid, kind, seq, sent, extra)
-    return {"room": room_id, "sent": sent}
-
-
 # ---- after the match: game relay + relay check -----------------------------------------------------
 def _int(v):
     try:

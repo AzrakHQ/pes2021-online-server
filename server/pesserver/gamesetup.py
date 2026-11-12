@@ -1,10 +1,9 @@
 """Install the mod into PES 2021 copies on the host's own machine, from the admin page.
 
-The server looks for PES2021.exe on this computer (Steam libraries, ~/Games, on Windows the registry)
-and, on Linux, for each copy's Wine prefix.
+The server looks for PES2021.exe on this computer (Steam libraries, ~/Games) and for each copy's Wine prefix.
 
-Installing writes dinput8.dll (packed with this server's identity) next to PES2021.exe and, on
-Linux, tells Wine to load it for PES2021.exe only:
+Installing writes dinput8.dll (packed with this server's identity) next to PES2021.exe and tells Wine to
+load it for PES2021.exe only:
     [Software\\Wine\\AppDefaults\\PES2021.exe\\DllOverrides]  "dinput8"="native,builtin"
 in the prefix's user.reg, the same per-program setting Proton uses for its own overrides. That
 replaces the Steam launch option. Wine rewrites user.reg when the game exits, so the game must be
@@ -15,7 +14,7 @@ mod if it has none, and this server's mod is replaced when the server hands out 
 version, new addresses). A copy with another server's mod or someone else's dinput8.dll is left alone, and so
 is a copy the host removed the mod from on the admin page. The admin page can turn it off (auto.json).
 """
-import json, logging, os, re, sys, threading, time
+import json, logging, os, re, threading, time
 
 from . import identity
 
@@ -31,34 +30,13 @@ RESCAN_EVERY = 600     # look for newly installed copies
 
 
 def _steam_roots():
-    if sys.platform == "win32":
-        roots = []
-        try:
-            import winreg
-            for hive, key in ((winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam"),
-                              (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Valve\Steam")):
-                try:
-                    with winreg.OpenKey(hive, key) as k:
-                        for name in ("SteamPath", "InstallPath"):
-                            try:
-                                roots.append(winreg.QueryValueEx(k, name)[0])
-                            except OSError:
-                                pass
-                except OSError:
-                    pass
-        except ImportError:
-            pass
-        roots.append(os.path.join(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"), "Steam"))
-        return roots
     h = os.path.expanduser("~")
     return [os.path.join(h, ".steam/steam"), os.path.join(h, ".local/share/Steam"),
             os.path.join(h, ".var/app/com.valvesoftware.Steam/.local/share/Steam")]
 
 
 def _prefix_for(d):
-    """The Wine prefix PES 2021 runs in (Linux): Steam's compatdata, or a pfx next to the game."""
-    if sys.platform == "win32":
-        return None
+    """The Wine prefix PES 2021 runs in: Steam's compatdata, or a pfx next to the game."""
     m = d.replace("\\", "/").split("/steamapps/common/")
     if len(m) > 1:
         p = os.path.join(m[0], "steamapps/compatdata/1259970/pfx")
@@ -93,7 +71,7 @@ def find_local_games():
             if os.path.isfile(os.path.join(common, n, "PES2021.exe")):
                 found.append(os.path.join(common, n))
     games = os.path.expanduser("~/Games")
-    if sys.platform != "win32" and os.path.isdir(games):
+    if os.path.isdir(games):
         for top, dirs, files in os.walk(games):
             depth = top[len(games):].count(os.sep)
             dirs[:] = [x for x in dirs if x != "pfx" and depth < 5]
@@ -272,14 +250,7 @@ def set_auto(on):
 
 
 def game_running():
-    """Is PES 2021 running on this computer (under Wine/Proton, or natively on Windows)?"""
-    if sys.platform == "win32":
-        try:
-            import subprocess
-            out = subprocess.run(["tasklist", "/FI", "IMAGENAME eq PES2021.exe"], capture_output=True, text=True, timeout=10).stdout
-            return "PES2021.exe" in out
-        except Exception:  # noqa: BLE001
-            return True                            # can't tell: don't touch anything
+    """Is PES 2021 running on this computer (under Wine/Proton)?"""
     try:
         pids = [p for p in os.listdir("/proc") if p.isdigit()]
     except OSError:

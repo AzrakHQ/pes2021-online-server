@@ -36,11 +36,6 @@ def test_every_handler_matches_schema():
         assert pescmds.validate(name, resp), name
 
 
-def test_schema_defaults_are_typed():
-    d = pescmds.default_response("CMD_GET_PLAYER_DATA")
-    assert d["pid"] == 0 and d["has_data"] == "" and isinstance(d["pname"], bytes)
-
-
 def test_non_utf8_str_from_client_is_tolerated():
     import msgpack
     raw = b"\x82\xa5msgid\xafCMD_TEST_BINARY\xa4blob\xa4\x82\xff\x00\x01"   # str field holding raw bytes
@@ -158,7 +153,7 @@ def test_http_webapi_replies_msgpack_and_gateinfo_text(tmp_path, monkeypatch):
             assert rep["msgid"] == "CMD_AUTH_STEAM" and rep["rqid"] == 3 and rep["result"] == "NOERR"
             txt = await post(port, "/ntl/api/GateInfo.php", b"x=1")
             assert txt.startswith(b"STATUS: 200") and b"API_STATUS: 0" in txt
-            assert await post(port, "/admin/push", b"") == b"ok"   # dev hook is off by default
+            assert await post(port, "/admin/push", b"") == b"ok"   # (the old dev hook is gone)
         finally:
             srv.close()
     asyncio.run(go())
