@@ -24,7 +24,7 @@ def listing(svc):
     except OSError:
         return out
     for n in names:
-        if NAME_RE.match(n):
+        if NAME_RE.fullmatch(n):
             try:
                 st = os.stat(os.path.join(d, n))
             except OSError:
@@ -36,7 +36,7 @@ def listing(svc):
 def file_for(svc, name):
     """The path of a listed backup, or None (names are matched whole: no way out of the folder)."""
     name = str(name or "")
-    if not NAME_RE.match(name):
+    if not NAME_RE.fullmatch(name):
         return None
     p = os.path.join(folder(svc), name)
     return p if os.path.isfile(p) else None
@@ -49,15 +49,22 @@ def make(svc, kind="manual"):
     os.makedirs(d, exist_ok=True)
     name = f"{kind}-{time.strftime('%Y%m%d-%H%M%S')}.db"
     path, tmp = os.path.join(d, name), os.path.join(d, name + ".tmp")
-    dst = sqlite3.connect(tmp)
     try:
-        with svc.accounts.lock:
-            svc.accounts.db.commit()
-            svc.accounts.db.backup(dst)
-    finally:
-        dst.close()
-    os.chmod(tmp, 0o600)
-    os.replace(tmp, path)
+        dst = sqlite3.connect(tmp)
+        try:
+            with svc.accounts.lock:
+                svc.accounts.db.commit()
+                svc.accounts.db.backup(dst)
+        finally:
+            dst.close()
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, path)
+    except (OSError, sqlite3.Error) as e:         # a full disk: leave no half file behind
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        raise OSError(f"the backup couldn't be written ({e})") from None
     autos = [b for b in listing(svc) if b["auto"]]
     for b in autos[KEEP_AUTO:]:
         try:
@@ -86,24 +93,30 @@ def check(path):
 
 
 def restore(svc, name):
-    """Replace the live database with a backup. The current one is saved first (before-restore-…), everyone
-    online is disconnected (their game signs in again), and what the server remembers in memory is dropped."""
+    """Replace the live database with a backup. The current one is saved first (before-restore-…); once the
+    backup is in place everyone online is disconnected and has to sign in again (a game that only reconnected
+    would carry on as whoever has its player number in the backup), and what the server remembers in memory is
+    dropped. RuntimeError: the copy failed and nothing was changed."""
     path = file_for(svc, name)
     if path is None:
         raise LookupError("That backup is gone.")
     found = check(path)
     make(svc, "before-restore")
-    for pid, sess in list(svc.online.items()):
-        sess.kicked = True                    # not an early exit: no forfeit, no courtesy mark
-        if hasattr(sess, "close"):
-            sess.close()
     src = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     try:
         with svc.accounts.lock:
             svc.accounts.db.commit()
             src.backup(svc.accounts.db)
+    except sqlite3.Error as e:
+        raise RuntimeError(f"the backup couldn't be copied in ({e})") from None
     finally:
         src.close()
+    from . import pescmds
+    for pid, sess in list(svc.online.items()):
+        sess.kicked = True                    # not an early exit: no forfeit, no courtesy mark
+        pescmds.show_out(svc, pid)            # (the game's own reconnect is refused: a full sign-in)
+        if hasattr(sess, "close"):
+            sess.close()
     started = getattr(svc, "pes_events", {}).get("started")
     for attr in [a for a in vars(svc) if a.startswith(("pes_", "_pes_")) and a not in ("pes_shown_out", "_pes_discord")]:
         delattr(svc, attr)                    # queues, live matches, the feed, "table is ready" flags: read again

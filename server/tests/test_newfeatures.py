@@ -97,6 +97,18 @@ def test_a_deleted_player_can_be_put_back(svc):
     assert _api(svc, "/admin/api/players/restore", {"id": gone[0]["id"]})[0] == 404
 
 
+def test_what_others_did_meanwhile_does_not_push_out_a_restored_players_rows(svc):
+    from pesserver import pesmanner
+    db = svc.accounts.db
+    pesmanner._add(svc, 2, True, "EXIT"); pesmanner._add(svc, 2, True, "EXIT")
+    did = _api(svc, "/admin/api/players/delete", {"pid": 2})[1]["undo"]
+    for _ in range(3):                                                 # the others play on: the freed row numbers
+        pesmanner._add(svc, 1, False)                                  # are taken by their rows
+    assert _api(svc, "/admin/api/players/restore", {"id": did})[0] == 200
+    assert db.execute("SELECT left_early, reason FROM pes_manner WHERE pid=2").fetchall() == [(1, "EXIT")] * 2
+    assert db.execute("SELECT COUNT(*) FROM pes_manner WHERE pid=1").fetchone()[0] == 3
+
+
 def test_restore_is_refused_when_their_game_already_joined_again(svc):
     db = svc.accounts.db
     did = _api(svc, "/admin/api/players/delete", {"pid": 2})[1]["undo"]
@@ -108,7 +120,12 @@ def test_restore_is_refused_when_their_game_already_joined_again(svc):
         db.execute("DELETE FROM pes_players WHERE pid=9")
         db.execute("INSERT INTO pes_players(pid, username, name, created, handle) VALUES(9, 'other', 'bob', 1.0, 'bob')")
     code, r = _api(svc, "/admin/api/players/restore", {"id": did})
-    assert code == 409 and "uses the name" in r["error"]
+    assert code == 409 and "is called bob now" in r["error"]
+    with svc.accounts.lock, db:                                        # also a name the game would call the same
+        db.execute("UPDATE pes_players SET name='B_o-b', handle='b_o-b' WHERE pid=9")
+    code, r = _api(svc, "/admin/api/players/restore", {"id": did})
+    assert code == 409 and "is called B_o-b now" in r["error"]
+    assert db.execute("SELECT COUNT(*) FROM pes_deleted WHERE id=?", (did,)).fetchone()[0] == 1   # still there to restore
 
 
 # ---- backups ----------------------------------------------------------------------------------------
@@ -116,7 +133,10 @@ def test_backup_download_and_restore(svc):
     _match(svc, 1, 2, 3, 0)
     code, made = _api(svc, "/admin/api/backups/new")
     assert code == 200 and made["name"].startswith("manual-") and made["size"] > 0
-    assert [b["name"] for b in events.snapshot(svc) and pesbackup.listing(svc)] == [made["name"]]
+    assert [b["name"] for b in pesbackup.listing(svc)] == [made["name"]]
+    state = _api(svc, "/admin/api/state", method="GET")[1]
+    assert [b["name"] for b in state["server"]["backups"]["list"]] == [made["name"]]
+    assert state["results"] == []                                      # (for a page from before the update)
     code, f = _api(svc, "/admin/api/backups/file?name=" + made["name"], method="GET")
     assert code == 200 and f[0] == "file" and f[1].endswith(made["name"]) and f[2] == made["size"]
     assert _api(svc, "/admin/api/backups/file?name=../pesserver.db", method="GET")[0] == 404
@@ -125,8 +145,27 @@ def test_backup_download_and_restore(svc):
     _api(svc, "/admin/api/players/delete", {"pid": 3}); _match(svc, 1, 2, 0, 5)
     closed = []
     svc.online[1] = SimpleNamespace(pes_pid=1, close=lambda: closed.append(1))
+    # a copy that fails changes nothing: nobody is disconnected, and the page is told
+    real = pesbackup.sqlite3.connect
+    class Broken:
+        def __init__(self, *a, **k): self.c = real(*a, **k)
+        def backup(self, dst): raise pesbackup.sqlite3.OperationalError("destination database is in use")
+        def __getattr__(self, n): return getattr(self.c, n)
+    calls = []
+    def connect(*a, **k):
+        calls.append(a) if k.get("uri") else None                      # opening the backup: 1 the check, 2 the copy
+        return Broken(*a, **k) if k.get("uri") and len(calls) == 2 else real(*a, **k)
+    pesbackup.sqlite3.connect = connect
+    try:
+        code, err = _api(svc, "/admin/api/backups/restore", {"name": made["name"]})
+    finally:
+        pesbackup.sqlite3.connect = real
+    assert code == 500 and "Nothing was changed" in err["error"] and closed == [] and 1 in svc.online
+    assert events.snapshot(svc)["played_total"] == 2
     code, found = _api(svc, "/admin/api/backups/restore", {"name": made["name"]})
     assert code == 200 and found == {"players": 3, "matches": 1} and closed == [1]
+    # the game's own reconnect is refused: it has to sign in again, as the player the backup knows
+    assert pescmds._dispatch(svc, SimpleNamespace(), "CMD_RECONNECT", {"pid": 1})["result"] == "ERR_LOGIN_FAILED"
     snap = events.snapshot(svc)
     assert snap["played_total"] == 1 and {p["name"] for p in snap["players"]} == {"Ann", "Bob", "Cid"}
     assert any(b["name"].startswith("before-restore-") for b in pesbackup.listing(svc))    # the way back
@@ -192,3 +231,12 @@ def test_discord_test_message_reports_the_problem(svc, monkeypatch):
     code, st = _api(svc, "/admin/api/discord", {"test": True})
     assert code == 200 and st["sent"] is False and "doesn't know this webhook" in st["error"]
     assert calls[0][0] == HOOK and calls[0][1]["allowed_mentions"] == {"parse": []} and "pes2021" in calls[0][2]
+
+
+def test_an_answer_cut_short_does_not_stop_the_notices(svc, monkeypatch):
+    import http.client
+    def cut(*a, **k):
+        raise http.client.IncompleteRead(b"")
+    monkeypatch.setattr(pesdiscord.urllib.request, "urlopen", cut)
+    err = pesdiscord._send("https://discord.com/api/webhooks/1/x", "hi")
+    assert err.startswith("couldn't reach Discord")

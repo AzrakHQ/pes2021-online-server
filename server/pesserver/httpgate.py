@@ -1,7 +1,7 @@
 """HTTP side of the server: the game's web API (form-urlencoded POST with msgid=CMD_… → raw msgpack
 reply), the NTL GateInfo.php text reply used by the network test, and /ca.crt for players.
 Every request is logged in full (method, path, headers, body)."""
-import asyncio, sys, json, logging, os
+import asyncio, sys, json, logging, os, sqlite3
 
 log = logging.getLogger("pesserver.http")
 
@@ -519,6 +519,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False, p
         addrs = netsetup.game_addrs()
         main = netsetup.web_url(addrs[-1] if reachable else addrs[0])   # a link that works for someone
         from . import VERSION, updates
+        snap["results"] = []                  # (an admin page from before 2026-11-12, left open over the update, reads it)
         snap["server"] = {"main": main, "version": VERSION, "update": updates.STATE["latest"],
                           "ports": netsetup.port_list(),
                           "data_dir": getattr(service, "data_dir", ""), "lan_url": netsetup.web_url(st["lan"] or ""), "lan": st["lan"], "wan": st["wan"],
@@ -797,7 +798,10 @@ async def _admin(service, method, route, headers, body, peer="", secure=False, p
             return "404 Not Found", json.dumps({"error": str(e).strip("'")}).encode(), "application/json"
         except (ValueError, AttributeError) as e:
             return "400 Bad Request", json.dumps({"error": str(e) if " " in str(e) else "bad request"}).encode(), "application/json"
-        except OSError:
+        except RuntimeError:
+            log.exception("restore")
+            return "500 Internal Server Error", b'{"error":"The backup couldn\'t be put in place. Nothing was changed."}', "application/json"
+        except (OSError, sqlite3.Error):
             log.exception("backup")
             return "500 Internal Server Error", b'{"error":"Couldn\'t write the backup. Is the disk full?"}', "application/json"
         return "404 Not Found", b'{"error":"unknown"}', "application/json"

@@ -72,8 +72,8 @@ def _send(url, text):
     except urllib.error.HTTPError as e:
         return {401: "Discord doesn't know this webhook any more", 404: "Discord doesn't know this webhook any more",
                 429: "Discord is asking the server to slow down"}.get(e.code, f"Discord answered {e.code}")
-    except (OSError, ValueError) as e:
-        return f"couldn't reach Discord ({getattr(e, 'reason', e)})"
+    except Exception as e:  # noqa: BLE001 - a cut-off answer and the like: say so, never stop the worker
+        return f"couldn't reach Discord ({getattr(e, 'reason', e) or type(e).__name__})"
 
 
 def test(svc):
@@ -89,13 +89,16 @@ def test(svc):
 def _worker(svc, q):
     while True:
         text = q.get()
-        url = config(svc)["url"]
-        if url:
-            err = _send(url, text)
-            if err != svc._pes_discord["error"]:
-                svc._pes_discord["error"] = err
-                if err:
-                    log.warning("Discord notice not sent: %s", err)
+        try:
+            url = config(svc)["url"]
+            if url:
+                err = _send(url, text)
+                if err != svc._pes_discord["error"]:
+                    svc._pes_discord["error"] = err
+                    if err:
+                        log.warning("Discord notice not sent: %s", err)
+        except Exception:  # noqa: BLE001 - the notices must outlive one bad round
+            log.exception("Discord notice")
 
 
 def post(svc, text):

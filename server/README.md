@@ -119,9 +119,10 @@ Environment variables:
 | `ADMIN_PASSWORD` | fixed admin password (default: random, saved in `<data>/admin_password`) |
 | `PESSERVER_NO_IPCHECK` | `1` = don't ask api.ipify.org for the public IP (UPnP only) |
 
-Given on the install line (`curl … | UPNP=0 sh`), `PUBLIC_IP`, `UPNP`, `TURN`, `UPDATE_CHECK`, `AUTO_MOD`, `REPLAYS`
-and `PESSERVER_NO_IPCHECK` are saved in `<data>/server.env` and the background service keeps using them; a later
-run changes only the ones it names. `ADMIN_PASSWORD` is saved as `<data>/admin_password`.
+Given on the install line (`curl … | UPNP=0 sh`), `PUBLIC_IP`, `UPNP`, `TURN`, `UPDATE_CHECK`, `AUTO_MOD`, `REPLAYS`,
+`BACKUPS` and `PESSERVER_NO_IPCHECK` are saved in `<data>/server.env` and the background service keeps using them; a
+later run changes only the ones it names, and one given empty (`curl … | PUBLIC_IP= sh`) is forgotten. Lines you add
+to that file yourself (for example `PES_HTTP_PORT=8090`) stay. `ADMIN_PASSWORD` is saved as `<data>/admin_password`.
 
 ## Online Tournament competitions
 

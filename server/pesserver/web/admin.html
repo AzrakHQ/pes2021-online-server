@@ -857,7 +857,7 @@ const store = {
   clear() { try { ["pes-admin", "pes-admin-token", "pes-admin-until"].forEach(k => { localStorage.removeItem(k); sessionStorage.removeItem(k); }); } catch (e) {} },
 };
 let token = store.get(), timer = null, gamesTimer = null, updTimer = null, failures = 0, inflight = false, downSince = 0, lastOkAt = 0;
-let last = null, lastGames = [], dataDir = "", backUntil = 0, gamesRetry = false;
+let last = null, lastGames = [], dataDir = "", backUntil = 0, gamesRetry = false, pageVersion = "";
 const ui = {view: "overview", range: 14, pq: "", pf: "all", sort: "rank", dir: 1, rq: "", rr: "all", rN: 25, ff: "all", fq: "", fN: 50, re: false, rm: "",
             rank: (() => { try { return localStorage.getItem("pes-admin-rank") === "ppg" ? "ppg" : "pts"; } catch (e) { return "pts"; } })()};
 let lastAnnounce = null;
@@ -896,8 +896,15 @@ function put(id, html, force) {
 function text(id, t) { if ($(id).textContent !== t) $(id).textContent = t; }
 
 let toastT = 0;
+// A box that is open covers the rest of the page, the toast too: the toast is shown inside the top one then.
+const modals = [], showModal = HTMLDialogElement.prototype.showModal;
+HTMLDialogElement.prototype.showModal = function () { showModal.call(this); modals.push(this); };
+const toastHost = () => modals[modals.length - 1] || document.body;
+document.addEventListener("close", e => { const i = modals.indexOf(e.target); if (i < 0) return;
+  modals.splice(i, 1); const t = $("toast"); if (e.target.contains(t)) toastHost().append(t); }, true);
 function toast(msg, bad, act) {
   const t = $("toast"); clearTimeout(toastT);
+  const host = toastHost(); if (t.parentNode !== host) host.append(t);
   t.textContent = ""; t.className = "toast" + (bad ? " bad" : "");
   requestAnimationFrame(() => { t.textContent = msg;
     if (act) { const b = document.createElement("button"); b.type = "button"; b.className = "small"; b.textContent = act.label; b.style.marginLeft = "10px";
@@ -1014,6 +1021,7 @@ function paintUpd() {
 }
 function signedOut() {
   if (!token) return;
+  for (const d of document.querySelectorAll("dialog[open]")) d.close();      // nothing stays over the sign-in form
   let until = 0; try { until = +(localStorage.getItem("pes-admin-until") || sessionStorage.getItem("pes-admin-until") || 0); } catch (e) {}
   token = ""; store.clear();
   const msg = until && until * 1000 < Date.now() ? "Your sign-in expired. Sign in again." : "You were signed out. Sign in again.";
@@ -1068,6 +1076,9 @@ async function refresh() {
     return setDown(true); }
   clearTimeout(slow); inflight = false;
   setDown(false);
+  const v = d.server && d.server.version;        // the server was updated: this page is the old one, load the new
+  if (v && pageVersion && v !== pageVersion) return location.reload();
+  pageVersion = v || pageVersion;
   last = d;
   render(d);
   if ($("sheet").open && sheetPid != null && d.tag !== sheetTag && !$("dlg").open && !$("qm").open) loadPlayer();   // the open panel follows along
@@ -1565,11 +1576,12 @@ document.addEventListener("click", async e => {
     const name = await ask({title: "Start a new season?", body: `The table starts again from zero. ${cur.name}'s final table is kept under Past seasons.\n\nResults, ratings, Online Divisions and tournaments don't change. You can undo this with Reopen.`, label: `Name for the season that ends (optional)`, ok: "Start new season"});
     if (name === null) return;
     try { const done = await api("/admin/api/season/new", {method: "POST", body: JSON.stringify({name: name.slice(0, 40)})});
+      for (const k in seasonTables) delete seasonTables[k];      // (a season's number is used again after Reopen)
       toast(`${done.name} is closed${done.winner ? `: ${done.winner.name} won it with ${plural(done.winner.pts, "point")}` : ""}. A new season has started.`); }
     catch (err) { if (err.status === 401) return signedOut(); toast(err.status === 400 ? "No matches in this season yet." : "Couldn't start a new season. Try again.", true); }
   } else {
     if (await ask({title: `Reopen ${sb.dataset.name}?`, body: `The season after it is undone: the table counts ${sb.dataset.name}'s matches again, together with everything played since.`, ok: "Reopen"}) === null) return;
-    try { await api("/admin/api/season/reopen", {method: "POST"}); toast(`${sb.dataset.name} is the current season again.`); }
+    try { await api("/admin/api/season/reopen", {method: "POST"}); for (const k in seasonTables) delete seasonTables[k]; toast(`${sb.dataset.name} is the current season again.`); }
     catch (err) { if (err.status === 401) return signedOut(); toast("Couldn't reopen it. Try again.", true); }
   }
   await refreshNow();
@@ -1592,7 +1604,8 @@ async function loadResults(force) {
   const body = {q: ui.rq, since: sinceOf(ui.rr), until: untilOf(ui.rr), limit: ui.rN, early: ui.re, mode: ui.rm || null}, key = JSON.stringify(body);
   if (res.busy && !force) return;
   res.busy = true; res.want = key;
-  try { const j = await api("/admin/api/results", {method: "POST", body: key}); if (res.want !== key) return; res.data = j; res.key = key; res.tag = last && last.tag; }   // a newer filter won
+  const asked = last && last.tag;                 // (what the server had when this was asked: a result that lands meanwhile reloads it)
+  try { const j = await api("/admin/api/results", {method: "POST", body: key}); if (res.want !== key) return; res.data = j; res.key = key; res.tag = asked; }   // a newer filter won
   catch (e) { if (e.status === 401) return signedOut(); }
   finally { res.busy = false; }
   if (last && ui.view === "matches") renderMatches(last, ...liveCounts(last), true);
@@ -1708,6 +1721,7 @@ async function loadPlayer() {
   try { p = await api("/admin/api/player", {method: "POST", body: JSON.stringify({pid})}); }
   catch (e) { if (e.status === 401) { $("sheet").close(); return signedOut(); }
     if (sheetPid === pid) put("sh-f", "", true);
+    if (sheetPid === pid && e.status === 404) { put("sh-b", `<p class="empty">This player was deleted.</p>`, true); sheetPid = null; return; }   // (nothing more to load)
     if (sheetPid === pid) put("sh-b", e.status === 404 ? `<p class="empty">This player was deleted.</p>`
       : cachedPlayer(pid) + `<p class="empty" style="margin-top:14px">The server isn't answering. This panel reloads by itself when it's back.</p><button type="button" data-sheetretry="1" style="margin-top:10px">Try again</button>`, true); return; }
   if (sheetPid !== pid || !$("sheet").open) return;

@@ -67,6 +67,16 @@ def listing(svc):
         "SELECT id, pid, name, t FROM pes_deleted WHERE t >= ? ORDER BY id DESC", (time.time() - KEEP,))]
 
 
+def _same_name(db, name):
+    """The name of a player who has this name now, by the game's own rule (pesnames.key), or None."""
+    from . import pesnames
+    if not name:
+        return None
+    k = pesnames.key(name)
+    return next((n for n, h in db.execute("SELECT name, handle FROM pes_players WHERE name IS NOT NULL")
+                 if pesnames.key(h or n) == k), None)
+
+
 def restore(svc, did):
     """Put a deleted player back. Returns their name. LookupError: no such entry; ValueError: why not."""
     db = _db(svc)
@@ -82,17 +92,23 @@ def restore(svc, did):
         if db.execute("SELECT 1 FROM pes_players WHERE pid=?", (pid,)).fetchone():
             raise ValueError("Another player has their number now, so they can't be restored.")
         me = next((dict(zip(d["cols"], row)) for d in data if d["table"] == "pes_players" for row in d["rows"]), {})
-        if me.get("handle") and db.execute("SELECT 1 FROM pes_players WHERE handle=?", (me["handle"],)).fetchone():
-            raise ValueError(f"Another player uses the name {name} now.")
+        taken = _same_name(db, me.get("handle") or me.get("name"))
+        if taken:
+            raise ValueError(f"Another player is called {taken} now.")
         known = {t for (t,) in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        for d in data:
+        for d in sorted(data, key=lambda d: d["table"] != "pes_players"):       # the player first
             if d["table"] not in known:
                 continue
-            have = {c[1] for c in db.execute(f"PRAGMA table_info({d['table']})")}
-            cols = [c for c in d["cols"] if c in have]
+            info = db.execute(f"PRAGMA table_info({d['table']})").fetchall()
+            pk = [c[1] for c in info if c[5]]
+            # A row's own number (pes_manner.id, ...) may belong to someone else's row by now: it gets a new one.
+            own_id = pk[0] if len(pk) == 1 and pk[0] not in ("pid", "target") else None
+            cols = [c for c in d["cols"] if c in {c[1] for c in info} and c != own_id]
             idx = [d["cols"].index(c) for c in cols]
-            db.executemany(f"INSERT OR IGNORE INTO {d['table']} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
-                           [[_dec(row[i]) for i in idx] for row in d["rows"]])
+            n = db.executemany(f"INSERT OR IGNORE INTO {d['table']} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                               [[_dec(row[i]) for i in idx] for row in d["rows"]]).rowcount
+            if d["table"] == "pes_players" and n != len(d["rows"]):
+                raise ValueError("They can't be restored: something of theirs is used by another player now.")
         for col, ids in saved.get("matches", {}).items():
             if col in MATCH_COLS:
                 db.executemany(f"UPDATE pes_matches SET {col}=? WHERE id=? AND {col} IS NULL", [(pid, i) for i in ids])
