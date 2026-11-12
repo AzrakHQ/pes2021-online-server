@@ -25,6 +25,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 identity.key
+server/announce.json
 server/mod/dinput8.dll
 server/pesserver/_build.py
 server/build/

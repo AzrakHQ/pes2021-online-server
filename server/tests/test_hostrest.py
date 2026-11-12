@@ -239,3 +239,86 @@ def test_only_a_web_address_is_read_from_a_device_that_answers_the_search(monkey
     monkeypatch.setattr(netsetup.socket, "socket", Sock)
     monkeypatch.setattr(netsetup.urllib.request, "urlopen", lambda *a, **k: opened.append(a))
     assert netsetup.discover_gateway() is None and opened == []
+
+
+# ---- files made on first start, and the certificates -------------------------------------------------
+def test_a_replaced_ca_gets_a_new_server_certificate_even_with_the_same_name(tmp_path, monkeypatch):
+    import ssl
+    from pesserver import certs
+    monkeypatch.setattr(certs, "CA_REPLACED", False)     # (the banner's note: not for the tests after this one)
+    d = str(tmp_path / "certs")
+    crt, key = certs.ensure(d)
+    first = open(crt, "rb").read()
+    os.remove(os.path.join(d, "ca.crt"))                 # the CA is lost (or replaced): the new one has the same name
+    certs.ensure(d)
+    assert open(crt, "rb").read() != first               # so the old server certificate must not be kept
+    ctx = ssl.create_default_context(cafile=os.path.join(d, "ca.crt"))
+    ctx.load_cert_chain(crt, key)
+    assert certs._leaf_ok(crt, os.path.join(d, "ca.crt"))
+    again = open(crt, "rb").read()
+    certs.ensure(d)
+    assert open(crt, "rb").read() == again               # and a good one is kept
+    # a CA key that doesn't belong to the CA (a first start that was cut short) is made again, with its certificate
+    other = certs._key()
+    open(os.path.join(d, "ca.key"), "wb").write(certs._pem_key(other))
+    certs.ensure(d)
+    assert certs._ca_key_ok(d) and certs._leaf_ok(crt, os.path.join(d, "ca.crt")) and open(crt, "rb").read() != again
+
+
+def test_files_cut_short_on_first_start_do_not_stop_the_server(tmp_path, caplog):
+    from pesserver import identity, turn
+    monkey_key = identity._KEY[:]
+    try:
+        open(tmp_path / "identity.key", "wb").write(b"")             # a full disk on the first start
+        k = identity.init(str(tmp_path))
+        assert len(open(tmp_path / "identity.key", "rb").read()) == 32 and (tmp_path / "identity.key.damaged").exists()
+        assert identity.init(str(tmp_path)).public_key().public_bytes_raw() == k.public_key().public_bytes_raw()
+        assert "damaged" in caplog.text
+    finally:
+        identity._KEY[:] = monkey_key
+    open(tmp_path / "admin_password", "w").write("")
+    pw = netsetup.admin_password(str(tmp_path))
+    assert len(pw) == 14 and netsetup.admin_password(str(tmp_path)) == pw
+    assert os.stat(tmp_path / "admin_password").st_mode & 0o777 == 0o600
+    # the relay's key and certificate are a pair; a key from another write means both are made again
+    d = tmp_path / "turn"; d.mkdir()
+    der = turn._cert(str(d), ["192.168.1.100"])
+    assert turn._cert(str(d), ["192.168.1.100"]) == der
+    crt = open(d / "turn.crt", "rb").read()
+    turn._cert(str(tmp_path), ["192.168.1.100"])                     # (another pair, elsewhere)
+    open(d / "turn.key", "wb").write(open(tmp_path / "turn.key", "rb").read())
+    assert turn._cert(str(d), ["192.168.1.100"]) != der and open(d / "turn.crt", "rb").read() != crt
+    import ssl
+    ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER).load_cert_chain(str(d / "turn.crt"), str(d / "turn.key"))
+
+
+def test_no_identity_file_appears_where_the_tests_run(tmp_path, monkeypatch):
+    from pesserver import identity
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(identity, "_KEY", [])
+    assert len(identity.public_hex()) == 64 and not os.listdir(tmp_path)
+
+
+def test_live_update_names_and_broken_files(svc, tmp_path, monkeypatch):
+    from pesserver import liveupdate
+    monkeypatch.setattr(liveupdate, "_CACHE", {})
+    monkeypatch.setattr(liveupdate, "_version", lambda path: "102")
+    d = liveupdate.folder(svc)
+    os.makedirs(d)
+    os.symlink(os.path.join(d, "nowhere"), os.path.join(d, "gone.cpk"))      # a link to nowhere
+    assert liveupdate.current(svc) is None
+    odd = os.path.join(d, "Live Update 1.02 (final) #2.cpk")
+    open(odd, "wb").write(b"x" * 100)
+    e = liveupdate.entry(svc, "http://192.168.1.100:8080")
+    assert e["name"] == "Live_Update_1.02__final___2.cpk" and e["url"] == "http://192.168.1.100:8080/liveupdate/" + e["name"]
+    assert liveupdate.file_for(svc, e["name"].lower()) == odd                # (the web side lowercases the path)
+    assert liveupdate.file_for(svc, "live update 1.02 (final) #2.cpk") is None
+    # a damaged file, whatever the damage, is skipped and an older good one is offered
+    def version(path):
+        if path.endswith("bad.cpk"):
+            raise TypeError("unsupported operand type(s) for +: 'int' and 'NoneType'")
+        return "102"
+    monkeypatch.setattr(liveupdate, "_version", version)
+    open(os.path.join(d, "bad.cpk"), "wb").write(b"CPK ")
+    os.utime(odd, (time.time() - 100, time.time() - 100))
+    assert liveupdate.current(svc)[0] == odd

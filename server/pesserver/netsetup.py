@@ -383,15 +383,19 @@ def admin_password(data_dir):
         return pw
     path = os.path.join(data_dir, "admin_password")
     try:
-        return open(path).read().strip()
+        with open(path) as f:
+            pw = f.read().strip()
+        if pw:
+            return pw                               # (an empty file, cut short while first written: a new one)
     except OSError:
-        import secrets
-        alphabet = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-        pw = "-".join("".join(secrets.choice(alphabet) for _ in range(4)) for _ in range(3))
-        with open(path, "w") as f:
-            f.write(pw + "\n")
-        os.chmod(path, 0o600)
-        return pw
+        pass
+    import secrets
+    alphabet = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    pw = "-".join("".join(secrets.choice(alphabet) for _ in range(4)) for _ in range(3))
+    with open(os.open(path + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as f:
+        f.write(pw + "\n")
+    os.replace(path + ".tmp", path)                 # whole or not at all
+    return pw
 
 
 def banner(password=None, color=True):

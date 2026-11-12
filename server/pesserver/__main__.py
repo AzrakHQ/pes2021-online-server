@@ -40,24 +40,26 @@ async def run(a):
     svc = Service(Accounts(a.db), public_ip=a.public_ip)
     from . import certs, netsetup
     data_dir = os.path.dirname(os.path.abspath(a.db))
+    os.environ.setdefault("PESSERVER_CERTS", os.path.join(data_dir, "certs"))
     tls = None
     if a.cmd == "host" or os.path.exists(os.path.join(data_dir, "certs", "server.crt")):
         tls = certs.ensure(os.path.join(data_dir, "certs"))
     # 8080 speaks both HTTP and HTTPS: the mod sends the game's network test here (no admin rights needed)
     from . import hostctl
-    servers = []
+    servers, port = [], f"{a.gate_port} (TCP)"
     try:
-        servers += [await gate.serve(svc, CODECS[a.codec], a.host, a.gate_port),
-                    await httpgate.serve(svc, a.host, a.http_port, a.public_ip or "127.0.0.1", a.stun_port, a.gate_port, tls=tls)]
+        servers.append(await gate.serve(svc, CODECS[a.codec], a.host, a.gate_port))
+        port = f"{a.http_port} (TCP)"
+        servers.append(await httpgate.serve(svc, a.host, a.http_port, a.public_ip or "127.0.0.1", a.stun_port, a.gate_port, tls=tls))
+        port = f"{a.stun_port} (UDP)"
         st = await stun.serve(a.stun_host or a.host, a.stun_port)
-    except OSError as e:
+    except OSError:
         if a.cmd != "host":
             raise
         for s in servers:
             s.close()
         hostctl.trial_uncount()                 # (not a fault of a version that was just installed)
-        print(f"\n   The server can't start: one of its ports (TCP {a.gate_port}, {a.http_port} or UDP {a.stun_port}) is already\n"
-              f"   in use ({e.strerror or e}).\n"
+        print(f"\n   The server can't start: port {port} is already in use.\n"
               "   Is another PES 2021 server running on this computer? Close its window first.\n", file=sys.stderr, flush=True)
         sys.exit(hostctl.CANT_START_EXIT)       # (the service doesn't keep trying: it would fail the same way)
     if not tls:
@@ -89,8 +91,9 @@ async def run(a):
     svc.admin_password = netsetup.admin_password(data_dir)
     svc.data_dir = data_dir
     httpgate.load_remote(data_dir)
-    from . import identity
+    from . import identity, liveupdate
     identity.init(data_dir)
+    liveupdate.start(svc)                   # (a roster update's checksum is ready before the first game asks)
     logging.info("server identity %s", identity.public_hex())
     hostctl.console_open(data_dir)
 

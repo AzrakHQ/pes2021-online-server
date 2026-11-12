@@ -50,8 +50,9 @@ def _secret(d):
     except OSError:
         pass
     s = base64.urlsafe_b64encode(os.urandom(24)).decode().rstrip("=")
-    with open(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as f:
+    with open(os.open(path + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as f:
         f.write(s)
+    os.replace(path + ".tmp", path)
     return s
 
 
@@ -68,9 +69,11 @@ def _cert(d, ips):
         c = x509.load_pem_x509_certificate(open(crt, "rb").read())
         have = sorted(str(i) for i in c.extensions.get_extension_for_class(x509.SubjectAlternativeName)
                       .value.get_values_for_type(x509.IPAddress))
-        if have == want and c.not_valid_after_utc > datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30):
+        with open(key, "rb") as f:                  # (a key from a write that was cut short doesn't fit the certificate)
+            pair = serialization.load_pem_private_key(f.read(), None).public_key().public_numbers() == c.public_key().public_numbers()
+        if pair and have == want and c.not_valid_after_utc > datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=30):
             return c.public_bytes(serialization.Encoding.DER)
-    except (OSError, ValueError, x509.ExtensionNotFound):
+    except (OSError, ValueError, TypeError, x509.ExtensionNotFound):
         pass
     k = ec.generate_private_key(ec.SECP256R1())
     name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "PES2021 private server TURN")])
@@ -81,11 +84,13 @@ def _cert(d, ips):
          .add_extension(x509.SubjectAlternativeName([x509.IPAddress(ipaddress.ip_address(i)) for i in want]), False)
          .add_extension(x509.BasicConstraints(ca=True, path_length=None), True)
          .sign(k, hashes.SHA256()))
-    with open(os.open(key, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "wb") as f:
+    with open(os.open(key + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "wb") as f:
         f.write(k.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.TraditionalOpenSSL,
                                 serialization.NoEncryption()))
-    with open(crt, "wb") as f:
+    with open(crt + ".tmp", "wb") as f:
         f.write(c.public_bytes(serialization.Encoding.PEM))
+    os.replace(key + ".tmp", key)
+    os.replace(crt + ".tmp", crt)
     log.info("TURN certificate issued for %s", ", ".join(want))
     return c.public_bytes(serialization.Encoding.DER)
 
@@ -144,7 +149,7 @@ async def readdress(svc, data_dir, extra_ips=()):
     return await start(svc, data_dir, NET["lan"], NET["wan"], extra_ips)
 
 
-def _is_ip(s):
+def _is_ip(s):                                          # (a name, e.g. PESSERVER_PUBLIC_ADDR=my.example, is not)
     try:
         ipaddress.ip_address(s)
         return True

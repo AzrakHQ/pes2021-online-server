@@ -23,10 +23,10 @@ def _key():
 
 
 def _write(path, data, private=False):
-    with open(path, "wb") as f:
+    """Whole or not at all (a start that is cut short must not leave half a key behind)."""
+    with open(os.open(path + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600 if private else 0o644), "wb") as f:
         f.write(data)
-    if private:
-        os.chmod(path, 0o600)
+    os.replace(path + ".tmp", path)
 
 
 def _pem_key(k):
@@ -45,15 +45,30 @@ def ca_ok(path):
 
 
 def _leaf_ok(path, ca_path):
-    """The server certificate exists, is signed by the current CA and has a month or more left."""
+    """The server certificate exists, was signed by the current CA's key and has a month or more left.
+    (The name alone isn't enough: a replaced CA has the same name as the old one.)"""
     try:
         certs = x509.load_pem_x509_certificates(open(path, "rb").read())
         ca = x509.load_pem_x509_certificate(open(ca_path, "rb").read())
-    except (OSError, ValueError):
+        leaf = certs[0]
+        leaf.verify_directly_issued_by(ca)
+        with open(os.path.join(os.path.dirname(path), "server.key"), "rb") as f:
+            if serialization.load_pem_private_key(f.read(), None).public_key().public_numbers() != leaf.public_key().public_numbers():
+                return False                        # (its key is from another write)
+    except Exception:  # noqa: BLE001 - unreadable, not a certificate, another issuer, a bad signature
         return False
-    leaf = certs[0]
     left = leaf.not_valid_after_utc - datetime.datetime.now(datetime.timezone.utc)
-    return leaf.issuer == ca.subject and left > datetime.timedelta(days=30)
+    return left > datetime.timedelta(days=30)
+
+
+def _ca_key_ok(d):
+    """ca.key is there and is the key of ca.crt."""
+    try:
+        ca = x509.load_pem_x509_certificate(open(os.path.join(d, "ca.crt"), "rb").read())
+        with open(os.path.join(d, "ca.key"), "rb") as f:
+            return serialization.load_pem_private_key(f.read(), None).public_key().public_numbers() == ca.public_key().public_numbers()
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _make_ca(d):
@@ -131,7 +146,7 @@ def ensure(d):
     global CA_REPLACED
     os.makedirs(d, exist_ok=True)
     ca = os.path.join(d, "ca.crt")
-    if not ca_ok(ca):
+    if not (ca_ok(ca) and _ca_key_ok(d)):
         if os.path.exists(ca):
             log.warning("replacing the old certificate authority with a narrower one "
                         "(players set up with the old join line: run it again; mod users: nothing to do)")

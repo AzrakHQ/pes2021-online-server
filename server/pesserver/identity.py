@@ -29,22 +29,29 @@ def init(data_dir):
     """Load identity.key from data_dir, creating it the first time."""
     path = os.path.join(data_dir, "identity.key")
     try:
-        k = Ed25519PrivateKey.from_private_bytes(open(path, "rb").read())
-    except FileNotFoundError:
+        with open(path, "rb") as f:
+            k = Ed25519PrivateKey.from_private_bytes(f.read())
+    except (FileNotFoundError, ValueError) as e:
+        if isinstance(e, ValueError):               # cut short (a full disk, power lost while it was first written)
+            log.error("the server identity %s is damaged: making a new one (friends need a fresh mod file)", path)
+            os.replace(path, path + ".damaged")
         k = Ed25519PrivateKey.generate()
         raw = k.private_bytes(serialization.Encoding.Raw, serialization.PrivateFormat.Raw,
                               serialization.NoEncryption())
-        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        fd = os.open(path + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(fd, "wb") as f:
             f.write(raw)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(path + ".tmp", path)             # whole or not at all
         log.info("created the server identity %s", path)
     _KEY[:] = [k]
     return k
 
 
 def _key():
-    if not _KEY:
-        init(os.environ.get("PESSERVER_DATA", "."))
+    if not _KEY:                                    # tests and tools: a key for this run only (the server calls init)
+        _KEY[:] = [Ed25519PrivateKey.generate()]
     return _KEY[0]
 
 

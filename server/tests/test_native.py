@@ -49,7 +49,7 @@ def test_local_game_list(tmp_path, monkeypatch):
     monkeypatch.setattr(gamesetup, "LOCAL", None)
     gamesetup.use_local_games()
     games = gamesetup._games()
-    assert [(x["id"], x["dir"], x["prefix"]) for x in games] == [("1", str(g), str(pfx))]
+    assert [(x["id"], x["dir"], x["prefix"]) for x in games] == [(gamesetup.gid(str(g)), str(g), str(pfx))]
     monkeypatch.setattr(gamesetup, "LOCAL", None)
 
 

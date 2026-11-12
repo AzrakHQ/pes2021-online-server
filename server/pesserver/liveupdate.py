@@ -13,14 +13,25 @@ Rules found live (2026-11-05/06):
 - the CPK must contain common/etc/version/version_wu.bin (three 10-byte fields: live data version, game
   version, label); notes/re/functions/tools/mklivedata.py builds one.
 The newest *.cpk in the folder wins. Remove the file to stop offering it (games keep what they saved).
+
+The file's SHA-256 is worked out by a background thread (start), at startup and when the folder changes, so a
+game's request doesn't wait for hundreds of MB to be read. A name with spaces or other characters that don't
+travel well in a web address is offered under a plain one (safe_name).
 """
-import hashlib, logging, os, re, struct
+import hashlib, logging, os, re, threading, time
 
 from . import cpkread
 
 log = logging.getLogger("pesserver.liveupdate")
 VERSION_FILE = "common/etc/version/version_wu.bin"
 _CACHE = {}                                   # path -> (mtime, size, entry fields) | (mtime, size, None)
+_LOCK = threading.Lock()                      # one reader at a time (the thread, or a request that came first)
+CHECK_EVERY = 30                              # s between the thread's looks at the folder
+
+
+def safe_name(name):
+    """The name the game is given and asks for: letters, digits, dot, dash and underscore only."""
+    return re.sub(r"[^A-Za-z0-9._-]", "_", name) or "update.cpk"
 
 
 def folder(svc):
@@ -39,12 +50,22 @@ def _version(path):
 def current(svc):
     """(path, {name, size, hash, dlc_version}) of the update to offer, or None."""
     d = folder(svc)
+    files = []
     try:
-        files = [os.path.join(d, f) for f in os.listdir(d) if f.lower().endswith(".cpk")]
+        for f in os.listdir(d):
+            if f.lower().endswith(".cpk"):
+                try:
+                    files.append((os.stat(os.path.join(d, f)), os.path.join(d, f)))
+                except OSError:                   # a link to nowhere, a file that just went away
+                    continue
     except OSError:
         return None
-    for path in sorted(files, key=lambda p: os.path.getmtime(p), reverse=True):
-        st = os.stat(path)
+    with _LOCK:
+        return _newest(files)
+
+
+def _newest(files):
+    for st, path in sorted(files, key=lambda x: x[0].st_mtime, reverse=True):
         c = _CACHE.get(path)
         if c is None or c[:2] != (st.st_mtime, st.st_size):
             info = None
@@ -57,9 +78,10 @@ def current(svc):
                     with open(path, "rb") as f:
                         for chunk in iter(lambda: f.read(1 << 20), b""):
                             h.update(chunk)
-                    info = {"name": os.path.basename(path), "size": st.st_size, "hash": h.hexdigest(), "dlc_version": ver}
+                    info = {"name": safe_name(os.path.basename(path)), "size": st.st_size, "hash": h.hexdigest(),
+                            "dlc_version": ver}
                     log.info("Live Update offered: %s (version %s, %d bytes)", info["name"], ver, st.st_size)
-            except (OSError, ValueError, AssertionError, KeyError, IndexError, struct.error) as e:
+            except Exception as e:  # noqa: BLE001 - a damaged file fails in many ways; none may stop the others
                 log.warning("Live Update %s can't be read: %s", os.path.basename(path), e)
             c = _CACHE[path] = (st.st_mtime, st.st_size, info)
         if c[2] is not None:
@@ -73,6 +95,20 @@ def entry(svc, base_url):
         return None
     _, info = cur
     return {**info, "url": f"{base_url}/liveupdate/{info['name']}"}
+
+
+def start(svc):
+    """Background thread: keep the offered file's checksum ready, so no game request has to work it out."""
+    def loop():
+        while True:
+            try:
+                current(svc)
+            except Exception:  # noqa: BLE001
+                log.exception("Live Update check")
+            time.sleep(CHECK_EVERY)
+    t = threading.Thread(target=loop, name="liveupdate", daemon=True)
+    t.start()
+    return t
 
 
 def file_for(svc, name):

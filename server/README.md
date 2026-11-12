@@ -46,7 +46,9 @@ For a friend's problem, `pes2021-online.log` in their game folder usually says w
 | "Router ports are closed" | Turn on **UPnP** in your router's settings and start the server again, or forward the ports it lists. |
 | A warning about CGNAT | Your provider shares one public address between customers, so friends outside can't reach you: see [Friends far away](#friends-far-away). |
 | It works here, but nobody else can connect | This computer's firewall blocks the ports. Ubuntu: `sudo ufw allow 80,443,8080,10000/tcp` and `sudo ufw allow 3478,7600/udp`. Fedora: `sudo firewall-cmd --permanent --add-port={80,443,8080,10000}/tcp --add-port={3478,7600}/udp && sudo firewall-cmd --reload` |
-| "Port … is already in use" | Another server already runs on this computer: stop it, then paste the install line again. |
+| "Port … is already in use" | Another server already runs on this computer: stop it, then paste the install line again. (The background service stops trying until then.) |
+| The server stops when you log out | It was installed over SSH or on a computer without a desktop. Run `loginctl enable-linger` once. |
+| After an update: "didn't start on this computer, so the server went back" | The new version failed to start twice and the one before was put back. Players and results are untouched; try the update again later. |
 | Something else is broken | Paste the install line again: it repairs the server and keeps players and results. |
 
 ### Friends far away
@@ -172,7 +174,8 @@ development server.
 (`pesserver/hostctl.py`):
 
 - a systemd user service, `~/.config/systemd/user/pes2021-server.service` (`PES_SERVICE=1`; exit code 75 means
-  "restart me"), enabled unless `--no-autostart`;
+  "restart me", 78 "a port I need is taken": the service doesn't retry that one), enabled unless `--no-autostart`.
+  The running service brings this file up to date when a newer version writes it differently;
 - `~/.local/share/applications/pes2021-server.desktop` ("PES 2021 Server": `pes2021-server open` starts the
   server if needed and opens the admin page) and `~/.local/bin/pes2021-server`;
 - then it starts the service, opens `http://localhost:8080/admin` and shows the server's screen. `--here` runs it in
@@ -196,7 +199,10 @@ curl -s -H "Authorization: Bearer $T" -X POST $A/program/background -d '{}'     
 An update downloads the release's `pes2021-server-linux-x64` (or `-arm64`) next to the program, checks it against
 the release's `SHA256SUMS`, test-runs it (`pes2021-server selfcheck`), swaps it in and restarts (as a service:
 exit 75 and systemd starts it again; in a terminal: in place). "idle" waits until no match is running.
-`PESSERVER_RELEASE_URL` points it at another copy of a release (tests). Run from source, these report why they
+The program it replaces is kept as `pes2021-server.old` until the new one is up. A new version that fails to
+come up twice puts it back by itself (`hostctl.trial_begin`) and the Activity feed says so. `run.sh` checks a
+download the same way (checksum, `selfcheck`) before it replaces the program.
+`PESSERVER_RELEASE_URL` points both at another copy of a release (tests). Run from source, these report why they
 can't work.
 
 ## Code layout
@@ -223,7 +229,7 @@ can't work.
 | `pesserver/stun.py` | STUN responder |
 | `pesserver/liveupdate.py`, `cpkread.py` | the host's Live Update: the newest CPK in `<data>/liveupdate/` is offered to every game (CMD_GET_DLC_FILELIST) and served at `/liveupdate/<name>`; build one with `notes/re/functions/tools/mklivedata.py` |
 | `pesserver/turn.py`, `turnrelay.py`, `turndtls.py` | the relay: TURN list and credentials; TURN over TLS (first leg, sends the dual-route directive); TURN over DTLS with the game's framing (second leg, the one the match uses). Details: `notes/re/functions/ktcdtls.md`, `turncycle.md`, `turnlinkup.md` |
-| `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner |
+| `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner; a keeper thread follows a network that comes up late, a new address or a restarted router (the relay then starts again with the new addresses) |
 | `pesserver/identity.py` | the server's Ed25519 identity, signed notes and hellos for the mod, writing settings into the mod DLL |
 | `pesserver/gamesetup.py` | PES 2021 on the server's own computer: finds the copies, keeps the mod in them up to date by itself (and the admin page's buttons) |
 | `pesserver/certs.py`, `updates.py` | the server's CA and TLS certificate; the "newer version is out" check |
@@ -234,7 +240,7 @@ can't work.
 | `pesserver/web/` | player page, `join.ps1` / `join.sh` (served with the server address filled in), Proton CA installer |
 | `pesserver/schemas.json` | response schemas of ~400 commands, extracted from the client (`notes/re/extract_schemas.py`) |
 | `pesserver/service.py`, `gate.py` | session handling and dispatch |
-| `pesserver/accounts.py` | the SQLite database connection and its write lock |
+| `pesserver/accounts.py` | the SQLite database connection and its write lock; `once` makes a module's table setup run once per database |
 | `pesserver/pesseason.py` | seasons of the admin page's league table: start a new one (the final table is kept), reopen the last |
 | `pesserver/pesundo.py` | undo for the admin's Delete player: everything about the player is saved for 30 days and can be put back |
 | `pesserver/pesbackup.py` | backups of the database in `<data>/backups/`: one a day (7 kept), on demand, download and restore from the admin page |

@@ -14,7 +14,7 @@ mod if it has none, and this server's mod is replaced when the server hands out 
 version, new addresses). A copy with another server's mod or someone else's dinput8.dll is left alone, and so
 is a copy the host removed the mod from on the admin page. The admin page can turn it off (auto.json).
 """
-import json, logging, os, re, threading, time
+import hashlib, json, logging, os, re, threading, time
 
 from . import identity
 
@@ -99,19 +99,27 @@ def use_local_games():
     LOCAL = [(d, now[d]) for d in before if d in now] + [(d, p) for d, p in found if d not in before]
 
 
+def gid(d):
+    """A copy's id on the admin page: from its folder, so it stays the same when another copy comes or goes
+    (a click on the page's slightly older list must never land on a different copy)."""
+    return hashlib.sha1(os.path.normcase(os.path.realpath(d)).encode("utf-8", "surrogateescape")).hexdigest()[:10]
+
+
 def _games():
     if LOCAL is None:
         use_local_games()
-    return [{"id": str(i + 1), "dir": d, "host_dir": d, "prefix": p, "host_prefix": p}
-            for i, (d, p) in enumerate(LOCAL)]
+    return [{"id": gid(d), "dir": d, "prefix": p} for d, p in LOCAL]
 
 
 def _dll_state(path):
     """'none', 'ours' (this server), 'other-server' (our mod, another server) or 'foreign' (not ours)."""
     try:
-        data = open(path, "rb").read()
+        with open(path, "rb") as f:
+            data = f.read()
     except FileNotFoundError:
         return "none"
+    except OSError:                               # unreadable, or a folder of that name: not ours to touch
+        return "foreign"
     i = data.find(identity.EMBED_MARKER)
     if i < 0:
         return "foreign"
@@ -156,12 +164,12 @@ def _set_override(user_reg, on):
 
 
 def _write_as(path, text, st):
-    """Write a file owned like `st` (the player's own user, not the container's root)."""
+    """Write a file with the access rights of `st` (the file it stands in for)."""
     with open(path, "w", encoding="utf-8", errors="surrogateescape") as f:
         f.write(text)
     try:
-        os.chown(path, st.st_uid, st.st_gid)
-    except (OSError, AttributeError):             # AttributeError: Windows has no chown
+        os.chmod(path, st.st_mode & 0o777)
+    except OSError:
         pass
 
 
@@ -170,8 +178,7 @@ def status():
     for g in _games():
         dll = _dll_state(os.path.join(g["dir"], "dinput8.dll"))
         override = _override_set(os.path.join(g["prefix"], "user.reg")) if g["prefix"] else None
-        out.append({"id": g["id"], "path": g["host_dir"], "mod": dll, "override": override,
-                    "prefix": (g["host_prefix"] or g["prefix"]) if g["prefix"] else None})
+        out.append({"id": g["id"], "path": g["dir"], "mod": dll, "override": override, "prefix": g["prefix"] or None})
     return out
 
 
@@ -185,11 +192,6 @@ def install(gid, dll_bytes):
     tmp = path + ".pes2021-tmp"
     with open(tmp, "wb") as f:
         f.write(dll_bytes)
-    st = os.stat(g["dir"])
-    try:
-        os.chown(tmp, st.st_uid, st.st_gid)
-    except (OSError, AttributeError):
-        pass
     os.replace(tmp, path)
     if g["prefix"]:
         _set_override(os.path.join(g["prefix"], "user.reg"), True)

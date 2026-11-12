@@ -86,11 +86,12 @@ def make_handler(service, stun_host, stun_port, gate_port):
                             status, out, ctype = "404 Not Found", b"not found", "text/plain"
                     if send_file:
                         ctype = "application/octet-stream"
-                        log.info("Live Update %s sent to %s", os.path.basename(f), (writer.get_extra_info("peername") or ("",))[0])
+                        offered = liveupdate.safe_name(os.path.basename(f))
+                        log.info("Live Update %s sent to %s", offered, (writer.get_extra_info("peername") or ("",))[0])
                         if method == "GET":
                             from . import adminextra
                             try:
-                                adminextra.note_liveupdate(service, (writer.get_extra_info("peername") or ("",))[0], os.path.basename(f))
+                                adminextra.note_liveupdate(service, (writer.get_extra_info("peername") or ("",))[0], offered)
                             except Exception:  # noqa: BLE001
                                 log.exception("noting a Live Update download")
                 elif path.startswith("/status"):
@@ -103,7 +104,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
                                       "rooms": len(pesmatch._state(service)["rooms"])}).encode(); ctype = "application/json"
                 elif path.rstrip("/") == "/ca.crt":
                     # The private CA players must trust (NTL GateInfo.php runs over HTTPS with OS validation).
-                    ca = os.path.join(os.environ.get("PESSERVER_CERTS", "/data/certs"), "ca.crt")
+                    ca = os.path.join(certs_dir(), "ca.crt")
                     try:
                         out = open(ca, "rb").read(); ctype = "application/x-x509-ca-cert"
                     except OSError:
@@ -182,12 +183,17 @@ WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 _SID = []
 
 
+def certs_dir():
+    """Where the server's certificates are (__main__ sets it to <data>/certs)."""
+    return os.environ.get("PESSERVER_CERTS") or "certs"
+
+
 def server_id():
     """Short id of this server (from its CA), so join scripts can tell our server from another
     device at the same LAN address."""
     if not _SID:
         import hashlib
-        ca = os.path.join(os.environ.get("PESSERVER_CERTS", "/data/certs"), "ca.crt")
+        ca = os.path.join(certs_dir(), "ca.crt")
         try:
             _SID.append(hashlib.sha1(open(ca, "rb").read()).hexdigest()[:12])
         except OSError:
@@ -581,8 +587,8 @@ async def _admin(service, method, route, headers, body, peer="", secure=False, p
         events.feed(service, f"Message sent to {name}: “{announce.clean(req.get('title'), announce.TITLE_MAX, False)}”", "msg", [pid])
         return "200 OK", json.dumps(announce.snapshot(service)).encode(), "application/json"
     if route == "/admin/api/games":
-        from . import gamesetup
-        return "200 OK", json.dumps(gamesetup.status()).encode(), "application/json"
+        from . import gamesetup                     # (off the loop: it reads each copy's mod file and Wine settings)
+        return "200 OK", json.dumps(await asyncio.to_thread(gamesetup.status)).encode(), "application/json"
     if route == "/admin/api/games/auto":
         from . import gamesetup                     # keep the mod up to date in this computer's copies
         if method == "POST":
@@ -606,10 +612,10 @@ async def _admin(service, method, route, headers, body, peer="", secure=False, p
             if route.endswith("install"):
                 if not os.path.isfile(MOD_DLL):
                     return "501 Not Implemented", b'{"error":"This server was built without the mod."}', "application/json"
-                result = gamesetup.install(gid, mod_bytes(mod_url(service, headers, None)))
+                result = await asyncio.to_thread(gamesetup.install, gid, mod_bytes(mod_url(service, headers, None)))
                 verb = "installed in"
             else:
-                result = gamesetup.remove(gid)
+                result = await asyncio.to_thread(gamesetup.remove, gid)
                 verb = "removed from"
             path = next((g["path"] for g in result if g["id"] == gid), "")
             events.feed(service, f"The mod was {verb} PES 2021 on the server computer ({copy_name(path)})", "info")
@@ -1067,18 +1073,23 @@ async def _serve_mux(handler, host, port, tls):
     sock = socket.create_server((host, port), family=socket.AF_INET6 if ":" in host else socket.AF_INET, backlog=128)
     sock.setblocking(False)
 
-    def peek(conn):                           # in a thread: works on every event loop (Windows too)
-        conn.settimeout(15)
+    async def peek(conn, wait=15):
+        """The connection's first byte, left in place. Waits on the loop: a connection that says nothing must
+        not hold one of the worker threads the admin page's slower actions run on."""
+        conn.setblocking(False)
+        ready, fd = loop.create_future(), conn.fileno()
+        loop.add_reader(fd, lambda: ready.done() or ready.set_result(None))
         try:
+            await asyncio.wait_for(ready, wait)
             return conn.recv(1, socket.MSG_PEEK)
-        except OSError:
+        except (asyncio.TimeoutError, OSError):
             return b""
         finally:
-            conn.setblocking(False)
+            loop.remove_reader(fd)
 
     async def one(conn):
         try:
-            first = await asyncio.to_thread(peek, conn)
+            first = await peek(conn)
             if not first:
                 conn.close()
                 return

@@ -701,7 +701,7 @@ def cmd_console(args):
             ino = os.fstat(f.fileno()).st_ino
             show(f.read()); pos = f.tell()
     except OSError:
-        print("   The server is running, but its screen isn't there yet. Admin page: http://localhost:8080/admin")
+        print("   The server is running, but its screen isn't there yet. Admin page: http://localhost:%d/admin" % _port())
     hint = "   Ctrl+C closes this view; the server keeps running. Stop it: pes2021-server stop"
     show(("\x1b[2m" + hint + "\x1b[0m\n") if tty else hint + "\n"); sys.stdout.flush()
     if not tty or getattr(args, "no_follow", False):
@@ -737,7 +737,16 @@ def cmd_stop(args):
 
 
 # ---- command line: install, open, selfcheck ------------------------------------------------------------------------
-def _answering(port=8080, timeout=1.5):
+def _port():
+    """The web port of the server on this computer (PES_HTTP_PORT, as `host` reads it)."""
+    try:
+        return int(os.environ.get("PES_HTTP_PORT") or 8080)
+    except ValueError:
+        return 8080
+
+
+def _answering(port=None, timeout=1.5):
+    port = port or _port()
     try:
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/status", timeout=timeout) as r:
             return r.status == 200
@@ -745,7 +754,8 @@ def _answering(port=8080, timeout=1.5):
         return False
 
 
-def _open_page(port=8080):
+def _open_page(port=None):
+    port = port or _port()
     url = f"http://localhost:{port}/admin"
     opener = shutil.which("xdg-open")
     if opener and (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
@@ -755,7 +765,7 @@ def _open_page(port=8080):
     return url, False
 
 
-def _wait_up(port=8080, secs=60):
+def _wait_up(port=None, secs=60):
     end = time.time() + secs
     while time.time() < end:
         if _answering(port):

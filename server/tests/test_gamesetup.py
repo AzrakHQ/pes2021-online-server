@@ -1,4 +1,5 @@
 """Installing the mod into PES 2021 copies on the host, from the admin page."""
+import os
 import pytest
 from pesserver import gamesetup, identity
 
@@ -29,24 +30,34 @@ def host(tmp_path, monkeypatch):
     return tmp_path, identity.pack_mod(dll, identity.mod_settings("srv", "", ["192.168.1.5"]))
 
 
+def _by_folder(rows):
+    """{"1": row, "2": row}: the copies by their folder's name (the ids are made from the whole path)."""
+    return {os.path.basename(g["path"]): g for g in rows}
+
+
+def _id(tmp, n):
+    return gamesetup.gid(str(tmp / "games" / str(n)))
+
+
 def test_install_and_remove(host):
     tmp, dll = host
-    st = {g["id"]: g for g in gamesetup.status()}
+    st = _by_folder(gamesetup.status())
     assert set(st) == {"1", "2"} and st["1"]["path"] == str(tmp / "games" / "1")
+    assert st["1"]["id"] == _id(tmp, 1) != st["2"]["id"]
     assert st["1"]["mod"] == "none" and st["1"]["override"] is False and st["2"]["override"] is None
-    st = {g["id"]: g for g in gamesetup.install("1", dll)}
+    st = _by_folder(gamesetup.install(_id(tmp, 1), dll))
     assert st["1"]["mod"] == "ours" and st["1"]["override"] is True
     reg = (tmp / "prefixes" / "1" / "user.reg").read_text()
     assert '[Software\\\\Wine\\\\AppDefaults\\\\PES2021.exe\\\\DllOverrides]' in reg and '"dinput8"="native,builtin"' in reg
     assert '"atiadlxx"="builtin"' in reg and '"Replacements"="x"' in reg          # other settings untouched
     assert (tmp / "prefixes" / "1" / "user.reg.pes2021-backup").read_text() == USER_REG
-    gamesetup.install("1", dll)                                                   # twice: still one line
+    gamesetup.install(_id(tmp, 1), dll)                                                   # twice: still one line
     assert (tmp / "prefixes" / "1" / "user.reg").read_text().count('"dinput8"=') == 1
-    st = {g["id"]: g for g in gamesetup.remove("1")}
+    st = _by_folder(gamesetup.remove(_id(tmp, 1)))
     assert st["1"]["mod"] == "none" and st["1"]["override"] is False
     assert not (tmp / "games" / "1" / "dinput8.dll").exists()
     assert "PES2021.exe" not in (tmp / "prefixes" / "1" / "user.reg").read_text()
-    st = {g["id"]: g for g in gamesetup.install("2", dll)}                       # no prefix: dll only
+    st = _by_folder(gamesetup.install(_id(tmp, 2), dll))                       # no prefix: dll only
     assert st["2"]["mod"] == "ours" and st["2"]["override"] is None
 
 
@@ -55,11 +66,11 @@ def test_never_overwrites_another_mod(host):
     (tmp / "games" / "1" / "dinput8.dll").write_bytes(b"MZ some ASI loader")
     assert gamesetup.status()[0]["mod"] == "foreign"
     with pytest.raises(PermissionError):
-        gamesetup.install("1", dll)
-    gamesetup.remove("1")
+        gamesetup.install(_id(tmp, 1), dll)
+    gamesetup.remove(_id(tmp, 1))
     assert (tmp / "games" / "1" / "dinput8.dll").read_bytes() == b"MZ some ASI loader"
     with pytest.raises(LookupError):
-        gamesetup.install("9", dll)
+        gamesetup.install(_id(tmp, 9), dll)
 
 
 @pytest.fixture
@@ -89,12 +100,12 @@ def test_auto_puts_the_mod_in_and_keeps_it_current(auto):
 def test_auto_leaves_other_mods_and_removed_copies_alone(auto):
     tmp, dll = auto
     (tmp / "games" / "1" / "dinput8.dll").write_bytes(b"MZ someone else's mod")
-    gamesetup.install("2", dll)
-    gamesetup.remove("2")                                                  # the host took it out
+    gamesetup.install(_id(tmp, 2), dll)
+    gamesetup.remove(_id(tmp, 2))                                                  # the host took it out
     assert gamesetup.auto_pass(dll) == []
     assert (tmp / "games" / "1" / "dinput8.dll").read_bytes() == b"MZ someone else's mod"
     assert not (tmp / "games" / "2" / "dinput8.dll").exists()
-    gamesetup.install("2", dll)                                            # put back by hand: automatic again
+    gamesetup.install(_id(tmp, 2), dll)                                            # put back by hand: automatic again
     newer = identity.pack_mod(dll, identity.mod_settings("srv", "", ["10.0.0.9"]))
     assert [w for _, w in gamesetup.auto_pass(newer)] == ["updated"]
 
@@ -118,3 +129,20 @@ def test_only_the_game_itself_counts_as_running():
     assert gamesetup._is_game(b"python3\0/usr/proton\0waitforexitandrun\0/g/PES2021.exe\0")      # starting up
     assert gamesetup._is_game(b"c:\\windows\\system32\\steam.exe\0/g/PES2021.exe\0")
     assert not gamesetup._is_game(b"tail\0-f\0/g/PES2021.exe.log\0")
+
+
+def test_a_copy_keeps_its_id_when_another_one_goes_away(host, monkeypatch):
+    tmp, dll = host
+    second = _id(tmp, 2)
+    monkeypatch.setattr(gamesetup, "LOCAL", gamesetup.LOCAL[1:])          # the first copy's drive was unplugged
+    assert [g["id"] for g in gamesetup.status()] == [second]
+    with pytest.raises(LookupError):
+        gamesetup.install(_id(tmp, 1), dll)                                 # a click on the old list: no wrong copy
+    assert not (tmp / "games" / "2" / "dinput8.dll").exists()
+
+
+def test_a_mod_file_that_cannot_be_read_stops_nothing(auto):
+    tmp, dll = auto
+    (tmp / "games" / "1" / "dinput8.dll").mkdir()                          # not a file at all
+    assert _by_folder(gamesetup.status())["1"]["mod"] == "foreign"
+    assert [os.path.basename(d) for d, _ in gamesetup.auto_pass(dll)] == ["2"]     # the other copy still gets it
