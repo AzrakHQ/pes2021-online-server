@@ -6,6 +6,7 @@
 - Update from the admin page: the newest release is downloaded next to the program, checked against the
   release's SHA256SUMS and test-run (`pes2021-server selfcheck`), swapped in, and the server restarts into it
   (same process id: os.execv after a clean shutdown). "When nobody's playing" waits for running matches to end.
+  The previous program is kept until the new one has come up; if it doesn't (twice), the old one is put back.
 - Restart, stop, "start when I log in" (the service enabled or not) and "move to the background" (a server
   started in a terminal hands over to the service).
 
@@ -25,9 +26,12 @@ UNIT_NAME = "pes2021-server.service"
 APP_ID = "pes2021-server"
 
 RESTART_EXIT = 75                 # the service's "restart me" exit code
+CANT_START_EXIT = 78              # a port is taken: trying again every 2 seconds would not help (the unit stops)
+TRIES = 2                         # starts a newly installed version gets to come up before the old one is put back
 IDLE_POLL = 10                    # seconds between "is a match still on?" checks while an update waits
 STATE = {"update": "idle", "error": "", "progress": 0, "target": "", "when": "", "since": 0.0}
 _CTL = {"loop": None, "stop": None, "after": None, "cancel": threading.Event(), "wake": threading.Event(), "thread": None}
+_UPDATE_LOCK = threading.Lock()   # two "Update now" clicks at once start one update
 
 
 # ---- where things are -------------------------------------------------------------------------------------
@@ -44,8 +48,6 @@ def asset():
 
 def manageable():
     """(True, "") when this program can update and control itself, else (False, the reason in plain words)."""
-    if not sys.platform.startswith("linux"):
-        return False, "Updating from the admin page works on Linux only."
     p = program()
     if not p:
         return False, "This server runs from source code, so update it with git."
@@ -96,18 +98,27 @@ def _systemctl(*args, timeout=15):
 
 def installed():
     """Set up by `install` (Linux, the service exists): then `pes2021-server` alone shows its screen."""
-    return sys.platform.startswith("linux") and bool(program()) and os.path.exists(unit_path()) and not in_service()
+    return bool(program()) and os.path.exists(unit_path()) and not in_service()
+
+
+_SEEN = {"systemd": None, "autostart": (0.0, None)}     # answers kept: each one costs a systemctl process
 
 
 def systemd_ok():
-    return shutil.which("systemctl") is not None and _systemctl("show-environment")[0] == 0
+    if not _SEEN["systemd"]:                             # (a "yes" stays true for as long as this process lives)
+        _SEEN["systemd"] = shutil.which("systemctl") is not None and _systemctl("show-environment")[0] == 0
+    return _SEEN["systemd"]
 
 
-def autostart():
+def autostart(fresh=False):
     """True / False, or None when there is no systemd user session (then it can't be set)."""
     if not systemd_ok():
         return None
-    return os.path.exists(unit_path()) and _systemctl("is-enabled", UNIT_NAME)[1].splitlines()[:1] == ["enabled"]
+    t, on = _SEEN["autostart"]
+    if fresh or time.monotonic() - t > 30:
+        on = os.path.exists(unit_path()) and _systemctl("is-enabled", UNIT_NAME)[1].splitlines()[:1] == ["enabled"]
+        _SEEN["autostart"] = (time.monotonic(), on)
+    return on
 
 
 # ---- the service and the apps-menu entry --------------------------------------------------------------------
@@ -170,6 +181,8 @@ RestartSec=2
 # exit code 75 = "restart me" (an update or Restart on the admin page): systemd starts a fresh copy
 SuccessExitStatus=75
 RestartForceExitStatus=75
+# exit code 78 = a port it needs is taken by another program: starting again would fail the same way
+RestartPreventExitStatus=78
 
 [Install]
 WantedBy=default.target
@@ -195,6 +208,27 @@ def write_unit(prog, data):
     with open(unit_path(), "w") as f:
         f.write(unit_text(prog, data))
     _systemctl("daemon-reload")
+
+
+def refresh_unit(data):
+    """A server that updates itself from the admin page keeps the unit file its first install wrote. Bring it up to
+    date (it takes effect at the next start). Only for the running service; returns whether it changed."""
+    prog = program()
+    if not (prog and in_service() and os.path.exists(unit_path())):
+        return False
+    want = unit_text(prog, _unit_data() or data)
+    try:
+        with open(unit_path()) as f:
+            if f.read() == want:
+                return False
+        with open(unit_path() + ".tmp", "w") as f:
+            f.write(want)
+        os.replace(unit_path() + ".tmp", unit_path())
+    except OSError:
+        return False
+    _systemctl("daemon-reload")
+    log.info("the service's unit file was brought up to date")
+    return True
 
 
 def write_menu_entry(prog):
@@ -227,7 +261,7 @@ def set_autostart(on, prog=None, data=None):
         code, out = (0, "") if not os.path.exists(unit_path()) else _systemctl("disable", UNIT_NAME)
     if code != 0:
         raise RuntimeError(out or "systemctl failed")
-    return autostart()
+    return autostart(fresh=True)
 
 
 def _data_dir():
@@ -330,18 +364,15 @@ def download(cancel=None, want=None):
             f.write(chunk); h.update(chunk); got += len(chunk)
             STATE["progress"] = int(100 * got / total) if total else 0
     if h.hexdigest() != sha:
-        os.remove(new)
         raise RuntimeError("the download didn't match the release's checksum (a newer release may be on its way; try again in a few minutes)")
     os.chmod(new, 0o755)
     try:
         out = subprocess.run([new, "selfcheck"], capture_output=True, text=True, timeout=120, env=clean_env()).stdout
     except (OSError, subprocess.SubprocessError) as e:
-        os.remove(new)
         raise RuntimeError(f"the new program didn't start ({e})")
     if "pes2021-server ok" not in out:
-        os.remove(new)
         raise RuntimeError("the new program didn't pass its self-check")
-    return new, want
+    return new, want                            # (update() removes the file after any failure)
 
 
 def busy(svc):
@@ -351,9 +382,7 @@ def busy(svc):
     return any(m.get("phase") != "Full time" for m in list(events._st(svc)["live"].values()))
 
 
-def _swap(new, version):
-    prog = program()
-    os.replace(new, prog)
+def _note_version(prog, version):
     try:
         with open(os.path.join(os.path.dirname(prog), "program-version.txt"), "w") as f:
             f.write(version + "\n")
@@ -361,15 +390,119 @@ def _swap(new, version):
         pass
 
 
+def _swap(new, version):
+    """Put the new program in place. The running one is kept as <program>.old until the new one has come up
+    (trial_begin / trial_passed)."""
+    prog = program()
+    old = prog + ".old"
+    try:
+        if os.path.lexists(old):
+            os.remove(old)
+        try:
+            os.link(prog, old)
+        except OSError:
+            shutil.copy2(prog, old)
+        with open(prog + ".trying", "w") as f:
+            json.dump({"version": version, "from": current(), "starts": 0}, f)
+    except OSError as e:                        # (no way back then, as before; the update itself goes on)
+        log.warning("the current program couldn't be kept as a way back: %s", e)
+    os.replace(new, prog)
+    _note_version(prog, version)
+
+
+# ---- a new version that doesn't come up is undone ----------------------------------------------------------------
+def _trial(prog):
+    try:
+        with open(prog + ".trying") as f:
+            t = json.load(f)
+        return t if isinstance(t, dict) else None
+    except (OSError, ValueError):
+        return None
+
+
+def _save_trial(prog, t):
+    try:
+        with open(prog + ".trying.tmp", "w") as f:
+            json.dump(t, f)
+        os.replace(prog + ".trying.tmp", prog + ".trying")
+    except OSError:
+        pass
+
+
+def trial_begin():
+    """The first thing a start of the server does. After an update the new version gets TRIES starts to come up;
+    when it has failed them, the previous program is put back and started in its place."""
+    prog = program()
+    t = _trial(prog) if prog else None
+    if t is None:
+        return
+    t["starts"] = int(t.get("starts") or 0) + 1
+    old = prog + ".old"
+    if t["starts"] <= TRIES or not os.path.exists(old):
+        return _save_trial(prog, t)
+    try:
+        os.replace(old, prog)
+        os.remove(prog + ".trying")
+        with open(prog + ".undone", "w") as f:
+            json.dump({"version": t.get("version") or "", "back_to": t.get("from") or ""}, f)
+    except OSError:
+        return
+    _note_version(prog, str(t.get("from") or ""))
+    print(f"\n   The update to {t.get('version')} didn't start on this computer. Going back to {t.get('from')}.\n", flush=True)
+    sys.stdout.flush(); sys.stderr.flush()
+    if in_service():
+        sys.exit(RESTART_EXIT)                  # systemd starts the program that is in place now
+    os.execve(prog, [prog] + sys.argv[1:], clean_env())
+
+
+def trial_uncount():
+    """This start failed for a reason that isn't the new version's (a port taken by another program)."""
+    prog = program()
+    t = _trial(prog) if prog else None
+    if t is not None and int(t.get("starts") or 0) > 0:
+        t["starts"] -= 1
+        _save_trial(prog, t)
+
+
+def trial_passed(svc=None):
+    """The server is up: the previous program isn't needed any more. Says so if an update was undone."""
+    prog = program()
+    if not prog:
+        return
+    for ext in (".trying", ".old"):
+        try:
+            os.remove(prog + ext)
+        except OSError:
+            pass
+    try:
+        with open(prog + ".undone") as f:
+            u = json.load(f)
+        os.remove(prog + ".undone")
+    except (OSError, ValueError):
+        return
+    if svc is not None and isinstance(u, dict):
+        from . import events
+        events.feed(svc, f"The update to {u.get('version')} didn't start on this computer, so the server went back to "
+                         f"{u.get('back_to') or 'the version before'}", "warn")
+
+
 def update(svc, when="now"):
     """Start an update in the background ("now" or "idle"); "cancel" stops a waiting or running one."""
-    from . import events
     if when == "cancel":
         _CTL["cancel"].set(); _CTL["wake"].set()
         return STATE
     ok, why = manageable()
     if not ok:
         raise RuntimeError(why)
+    with _UPDATE_LOCK:
+        return _start_update(svc, when)
+
+
+def _start_update(svc, when):
+    from . import events
+    old = _CTL["thread"]
+    if _CTL["cancel"].is_set() and old is not None and old.is_alive():
+        old.join(10)                            # "Cancel" then "Update now": let the cancelled one finish first
     if STATE["update"] in ("downloading", "waiting", "restarting"):
         STATE["when"] = when
         if when == "now":
@@ -378,6 +511,12 @@ def update(svc, when="now"):
     _CTL["cancel"] = cancel = threading.Event()
     _CTL["wake"] = wake = threading.Event()
     STATE.update(update="downloading", error="", progress=0, when=when, since=time.time(), target="")
+
+    def drop_download():
+        try:
+            os.remove(program() + ".new")
+        except OSError:
+            pass
 
     def work():
         from . import updates
@@ -405,14 +544,12 @@ def update(svc, when="now"):
             time.sleep(1)                       # let the admin page see "restarting"
             _end("restart")
         except InterruptedError:
+            drop_download()
             STATE.update(update="idle", error="")
-            try:
-                os.remove(program() + ".new")
-            except OSError:
-                pass
             events.feed(svc, "The server update was cancelled", "info")
         except Exception as e:  # noqa: BLE001  (offline, GitHub busy, disk full: say so on the admin page)
             log.warning("update failed: %s", e)
+            drop_download()                     # (half a download, or one that failed its checks)
             STATE.update(update="error", error=str(e))
 
     _CTL["thread"] = threading.Thread(target=work, name="self-update", daemon=True)
@@ -438,7 +575,7 @@ def status(svc):
     return {"version": current(), "latest": updates.STATE.get("latest") or "", "update_available": bool(updates.STATE.get("available")),
             "checked": updates.STATE.get("checked") or 0,
             "can_update": ok, "why_not": why, "update": dict(STATE), "busy": busy(svc),
-            "systemd": systemd_ok() if sys.platform.startswith("linux") else False, "autostart": autostart() if sys.platform.startswith("linux") else None,
+            "systemd": systemd_ok(), "autostart": autostart(),
             "in_service": in_service(), "program": program() or "", "log": log_tail(svc)}
 
 
@@ -630,8 +767,8 @@ def _wait_up(port=8080, secs=60):
 def cmd_install(args):
     """run.sh: set up the service and the apps-menu entry, (re)start the server in the background, open the page."""
     prog, data = program(), args.data
-    if not prog or not sys.platform.startswith("linux"):
-        sys.exit("   install works for the downloadable program on Linux.")
+    if not prog:
+        sys.exit("   install works for the downloadable program.")
     os.makedirs(data, exist_ok=True)
     write_menu_entry(prog)
     if not systemd_ok():
@@ -655,7 +792,23 @@ def cmd_install(args):
    Installed. The server runs in the background{" and starts by itself when you log in" if not args.no_autostart else ""}.
    The admin page {"is open in your browser" if opened else f"is at {url}"}: inviting friends, updating and stopping are there.
    Later: run pes2021-server to see this screen again, or open "PES 2021 Server" from your apps menu.""", flush=True)
+    if stops_at_logout():
+        print("\n   On this computer the server stops when you log out. To keep it running: loginctl enable-linger", flush=True)
     cmd_console(args)
+
+
+def stops_at_logout():
+    """Installed over SSH or on a machine without a desktop: the user's services end with the last login session,
+    unless "lingering" is on for the user. (On a desktop the server is meant to run while you're logged in.)"""
+    if os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"):
+        return False
+    try:
+        import getpass
+        r = subprocess.run(["loginctl", "show-user", getpass.getuser(), "-p", "Linger", "--value"],
+                           capture_output=True, text=True, timeout=10, env=clean_env())
+    except (OSError, subprocess.SubprocessError, KeyError):
+        return False
+    return r.returncode == 0 and r.stdout.strip() == "no"
 
 
 def cmd_open(args):

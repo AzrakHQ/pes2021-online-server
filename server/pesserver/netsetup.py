@@ -6,7 +6,7 @@ fixed PUBLIC_IP the server answers each client with the address that client can 
   - client on a private network (LAN, Tailscale/ZeroTier, loopback): the local address it connected to;
   - client from the internet: the detected public (WAN) address.
 """
-import ipaddress, logging, os, re, socket, threading, urllib.error, urllib.parse, urllib.request
+import ipaddress, logging, os, re, socket, threading, time, urllib.error, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
 
 log = logging.getLogger("pesserver.net")
@@ -182,11 +182,11 @@ def discover_gateway(timeout=3.0):
             except socket.timeout:
                 return None
             loc = parse_ssdp_location(data)
-            if not loc or loc in seen:
-                continue
+            if not loc or loc in seen or not loc.lower().startswith("http://"):
+                continue                                # (any device at home can answer: only a plain web address)
             seen.add(loc)
             try:
-                found = parse_igd_description(urllib.request.urlopen(loc, timeout=3).read(), loc)
+                found = parse_igd_description(urllib.request.urlopen(loc, timeout=3).read(1 << 18), loc)
             except Exception as e:  # noqa: BLE001 - other UPnP devices (TVs, printers) answer too
                 log.debug("UPnP device %s: %s", loc, e)
                 continue
@@ -208,79 +208,150 @@ def public_ip_from_web():
     return None
 
 
-def setup(use_upnp=True, renew_every=1800):
-    """Detect LAN/WAN addresses and open the router ports. Blocking; call once at startup."""
-    STATE["lan"] = lan_ip()
-    web_ip = None if os.environ.get("PESSERVER_NO_IPCHECK") == "1" else public_ip_from_web()
-    gw = None
-    if use_upnp:
-        try:
-            gw = discover_gateway()
-            if gw is None:
-                STATE["upnp_error"] = "no UPnP router found (UPnP disabled on the router?)"
-            else:
-                ext = gw.external_ip()
-                STATE["upnp"] = gw.control_url
-                if ext and not is_public(ext):
-                    STATE["cgnat"] = True           # the router itself is behind another NAT (ISP CGNAT)
-                for port, proto in _ports():
-                    try:
-                        gw.add(port, proto)
-                        STATE["mapped"].append(f"{port}/{proto.lower()}")
-                    except (UPnPError, OSError) as e:
-                        log.warning("UPnP: could not open %s/%s: %s", port, proto, e)
-                if ext and is_public(ext):
-                    web_ip = web_ip or ext
-                    if web_ip != ext:
-                        STATE["cgnat"] = True
-        except Exception as e:  # noqa: BLE001
-            STATE["upnp_error"] = str(e)
-            gw = None
-    STATE["wan"] = web_ip
-    threading.Thread(target=_watch_wan, args=(gw,), daemon=True).start()
-    if gw and STATE["mapped"]:
-        def renew():
-            while not _stop.wait(renew_every):
-                for port, proto in _ports():
-                    try:
-                        gw.add(port, proto)
-                    except Exception as e:  # noqa: BLE001
-                        log.warning("UPnP renew %s/%s: %s", port, proto, e)
-        threading.Thread(target=renew, daemon=True).start()
-    STATE["_gw"] = gw
-    return STATE
-
-
+ON_CHANGE = []         # called (from the keeper thread) after this computer's or the public address changed
 _stop = threading.Event()
 
 
-def _watch_wan(gw, every=600):
-    """Home IPs change: re-check the public address so new mod files and the admin page stay right."""
-    while not _stop.wait(every):
-        ip = None
-        if os.environ.get("PESSERVER_NO_IPCHECK") != "1":
-            ip = public_ip_from_web()
-        if not ip and gw is not None:
-            try:
-                ext = gw.external_ip()
-                ip = ext if is_public(ext) else None
-            except Exception:  # noqa: BLE001
-                ip = None
-        if ip and ip != STATE["wan"]:
-            log.warning("public IP changed: %s -> %s (friends outside your network: send them a fresh mod file from the admin page)",
-                        STATE["wan"], ip)
-            STATE["wan"] = ip
-
-
-def teardown():
-    _stop.set()
-    gw = STATE.get("_gw")
-    for item in STATE["mapped"]:
-        port, proto = item.split("/")
+def _open_ports(gw):
+    """Ask the router for every port; returns the ones it opened ("8080/tcp"). OSError: the router is gone."""
+    got = []
+    for port, proto in _ports():
         try:
-            gw.delete(int(port), proto.upper())
+            gw.add(port, proto)
+            got.append(f"{port}/{proto.lower()}")
+        except UPnPError as e:
+            log.warning("UPnP: could not open %s/%s: %s", port, proto, e)
+    return got
+
+
+def _find_router():
+    """Find the UPnP router and open the ports (STATE: upnp, upnp_error, cgnat, mapped, _gw).
+    Returns the router's public address, or None."""
+    try:
+        gw = discover_gateway()
+        if gw is None:
+            STATE["upnp_error"] = "no UPnP router found (UPnP disabled on the router?)"
+            return None
+        ext = gw.external_ip()
+        STATE.update(upnp=gw.control_url, upnp_error=None, _gw=gw)
+        STATE["cgnat"] = bool(ext and not is_public(ext))    # the router itself is behind another NAT (ISP CGNAT)
+        STATE["mapped"] = _open_ports(gw)
+        return ext if ext and is_public(ext) else None
+    except Exception as e:  # noqa: BLE001
+        STATE.update(upnp_error=str(e), _gw=None)
+        return None
+
+
+def _look(use_upnp):
+    """Read the addresses and (re)open the router's ports."""
+    STATE["lan"] = lan_ip()
+    web_ip = None if os.environ.get("PESSERVER_NO_IPCHECK") == "1" else public_ip_from_web()
+    if use_upnp:
+        ext = _find_router()
+        if ext:
+            web_ip = web_ip or ext
+            if web_ip != ext:
+                STATE["cgnat"] = True
+    STATE["wan"] = web_ip or STATE["wan"]
+
+
+def setup(use_upnp=True, renew_every=1800, wait_for_net=30):
+    """Detect LAN/WAN addresses and open the router ports. Blocking; call once at startup. A keeper thread then
+    follows changes: a network that comes up later, a new address, a router that was restarted."""
+    waited = 0
+    while lan_ip() == "127.0.0.1" and waited < wait_for_net and not _stop.wait(2):
+        waited += 2                                     # started at login, before the Wi-Fi: give it a moment
+    if waited:
+        log.info("waited %d s for the network: %s", waited, "up" if lan_ip() != "127.0.0.1" else "still down")
+    STATE.setdefault("_gw", None)
+    _look(use_upnp)
+    threading.Thread(target=_keep, args=(use_upnp, renew_every), daemon=True).start()
+    return STATE
+
+
+def _changed():
+    for fn in list(ON_CHANGE):
+        try:
+            fn()
         except Exception:  # noqa: BLE001
-            pass
+            log.exception("address change handler")
+
+
+def _tick(use_upnp, due):
+    """One round of the keeper. `due` = {"renew": bool, "wan": bool, "find": bool}: what is due by the clock."""
+    lan, was = lan_ip(), (STATE["lan"], STATE["wan"])
+    if lan != STATE["lan"] and (lan != "127.0.0.1" or STATE["lan"] is None):
+        log.warning("this computer's address changed: %s -> %s", STATE["lan"], lan)
+        _look(use_upnp)                                 # another network: its router, its public address
+    else:
+        gw = STATE.get("_gw")
+        if use_upnp and gw is None and due["find"] and lan != "127.0.0.1":
+            ext = _find_router()                        # no router found so far (it, or the network, was still starting)
+            if ext and not STATE["wan"]:
+                STATE["wan"] = ext
+            if STATE["mapped"]:
+                log.info("UPnP: router found, ports open: %s", ", ".join(STATE["mapped"]))
+        elif use_upnp and gw is not None and due["renew"]:
+            try:
+                STATE["mapped"] = _open_ports(gw)       # (one that failed at first may open now)
+            except OSError as e:                        # the router is gone or was replaced: look for it again
+                log.warning("UPnP renew: %s", e)
+                STATE["_gw"] = None
+        if due["wan"]:
+            ip = None
+            if os.environ.get("PESSERVER_NO_IPCHECK") != "1":
+                ip = public_ip_from_web()
+            gw = STATE.get("_gw")
+            if not ip and gw is not None:
+                try:
+                    ext = gw.external_ip()
+                    ip = ext if is_public(ext) else None
+                except Exception:  # noqa: BLE001
+                    ip = None
+            if ip and ip != STATE["wan"]:
+                log.warning("public IP changed: %s -> %s (friends outside your network: send them a fresh mod file from the admin page)",
+                            STATE["wan"], ip)
+                STATE["wan"] = ip
+    if (STATE["lan"], STATE["wan"]) != was:
+        _changed()
+
+
+def _keep(use_upnp, renew_every=1800, wan_every=600, tick=60):
+    """Home networks change under a server that runs for weeks: follow them."""
+    last = {"renew": time.monotonic(), "wan": time.monotonic(), "find": time.monotonic()}
+    started = time.monotonic()
+    while not _stop.wait(tick):
+        now = time.monotonic()
+        find_every = tick if now - started < 600 else wan_every      # look often at first, then now and then
+        every = {"renew": renew_every, "wan": wan_every, "find": find_every}
+        due = {k: now - last[k] >= every[k] - 1 for k in last}
+        try:
+            _tick(use_upnp, due)
+        except Exception:  # noqa: BLE001 - the keeper must outlive one bad round
+            log.exception("network check")
+        for k in due:
+            if due[k]:
+                last[k] = now
+
+
+def teardown(deadline=10):
+    """Close the router's ports again. A router that doesn't answer is given up on at once, and the whole thing
+    takes at most `deadline` seconds, so stopping or restarting the server never hangs on it."""
+    _stop.set()
+    gw, end = STATE.get("_gw"), time.monotonic() + deadline
+    if gw is None:
+        return
+    for port, proto in _ports():                        # every port: one that failed at first may have opened later
+        if time.monotonic() > end:
+            log.warning("UPnP: closing the router's ports took too long; the rest stay open until their lease ends")
+            return
+        try:
+            gw.delete(port, proto)
+        except UPnPError:
+            pass                                        # (it wasn't open)
+        except Exception as e:  # noqa: BLE001
+            log.warning("UPnP: the router doesn't answer (%s); its ports stay open until their lease ends", e)
+            return
 
 
 def game_addrs():

@@ -44,14 +44,22 @@ async def run(a):
     if a.cmd == "host" or os.path.exists(os.path.join(data_dir, "certs", "server.crt")):
         tls = certs.ensure(os.path.join(data_dir, "certs"))
     # 8080 speaks both HTTP and HTTPS: the mod sends the game's network test here (no admin rights needed)
+    from . import hostctl
+    servers = []
     try:
-        servers = [await gate.serve(svc, CODECS[a.codec], a.host, a.gate_port),
-                   await httpgate.serve(svc, a.host, a.http_port, a.public_ip or "127.0.0.1", a.stun_port, a.gate_port, tls=tls)]
+        servers += [await gate.serve(svc, CODECS[a.codec], a.host, a.gate_port),
+                    await httpgate.serve(svc, a.host, a.http_port, a.public_ip or "127.0.0.1", a.stun_port, a.gate_port, tls=tls)]
+        st = await stun.serve(a.stun_host or a.host, a.stun_port)
     except OSError as e:
         if a.cmd != "host":
             raise
-        sys.exit(f"\n   The server can't start: port {a.gate_port} or {a.http_port} is already in use.\n"
-                 "   Is another PES 2021 server running on this computer? Close its window first.\n")
+        for s in servers:
+            s.close()
+        hostctl.trial_uncount()                 # (not a fault of a version that was just installed)
+        print(f"\n   The server can't start: one of its ports (TCP {a.gate_port}, {a.http_port} or UDP {a.stun_port}) is already\n"
+              f"   in use ({e.strerror or e}).\n"
+              "   Is another PES 2021 server running on this computer? Close its window first.\n", file=sys.stderr, flush=True)
+        sys.exit(hostctl.CANT_START_EXIT)       # (the service doesn't keep trying: it would fail the same way)
     if not tls:
         netsetup.skip_port(443)
     if tls and a.https_port:        # 443: players set up with the /join line, and mods from before 2026-11
@@ -74,8 +82,9 @@ async def run(a):
             netsetup.WEB_PORT = a.http_port
     else:
         netsetup.WEB_PORT = a.http_port
-    st = await stun.serve(a.stun_host or a.host, a.stun_port)
-    await stun.serve_relay(a.stun_host or a.host, int(os.environ.get("PESSERVER_RELAY_PORT", "7600")))
+    relay_port = int(os.environ.get("PESSERVER_RELAY_PORT", "7600"))
+    if await _optional("relay log", relay_port, stun.serve_relay(a.stun_host or a.host, relay_port)) is None:
+        netsetup.skip_port(relay_port)
     logging.info("gate tcp/%d  http tcp/%d  stun udp/%d", a.gate_port, a.http_port, a.stun_port)
     svc.admin_password = netsetup.admin_password(data_dir)
     svc.data_dir = data_dir
@@ -83,7 +92,6 @@ async def run(a):
     from . import identity
     identity.init(data_dir)
     logging.info("server identity %s", identity.public_hex())
-    from . import hostctl
     hostctl.console_open(data_dir)
 
     def show_banner():
@@ -100,25 +108,33 @@ async def run(a):
     await turn.start(svc, data_dir, netsetup.STATE["lan"], netsetup.STATE["wan"],
                      [os.environ.get("PESSERVER_PUBLIC_ADDR", "")])
     show_banner()
+    hostctl.trial_passed(svc)               # up: an update's way back isn't needed any more
+    if hostctl.in_service():
+        import threading
+        threading.Thread(target=hostctl.refresh_unit, args=(data_dir,), daemon=True).start()
     identity.start_publisher()
     if a.cmd == "host" and os.environ.get("AUTO_MOD", "1") != "0":
         from . import gamesetup                 # keep the mod up to date in PES 2021 on this computer
         gamesetup.auto_start(svc, lambda: httpgate.mod_bytes(httpgate.mod_url(svc, {}, None))
                              if os.path.isfile(httpgate.MOD_DLL) else None)
     from . import events, updates
-    from . import hostctl
     how = "update it on the admin page (Server)" if hostctl.manageable()[0] else \
         "close this window and start the server again to update"
     updates.start(lambda v: events.feed(svc, f"A newer server version is out ({v}): {how}", "warn"))
     if a.cmd == "host" and os.environ.get("BACKUPS", "1") != "0":
         from . import pesbackup                 # a copy of the database a day, in <data>/backups
-        backups = asyncio.create_task(pesbackup.daily(svc))   # (kept in a name: a task nobody holds can vanish)
+        svc.backup_task = asyncio.create_task(pesbackup.daily(svc))   # (kept: a task nobody holds can vanish)
     if os.environ.get("PES_CONSOLE") == "1" and not hostctl.in_service():
         print("   Keep this window open while you play. Press Ctrl+C to stop the server.\n", flush=True)
     stop = asyncio.Event()
     import signal
     loop = asyncio.get_running_loop()
     hostctl.attach(loop, stop)              # the admin page can restart, update or stop the server
+
+    async def addresses_changed():          # the keeper thread saw a new address (netsetup._keep)
+        show_banner()
+        await turn.readdress(svc, data_dir, [os.environ.get("PESSERVER_PUBLIC_ADDR", "")])
+    netsetup.ON_CHANGE.append(lambda: loop.call_soon_threadsafe(lambda: asyncio.ensure_future(addresses_changed())))
     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):     # SIGHUP: the terminal window was closed
         loop.add_signal_handler(sig, stop.set)
     try:
@@ -184,7 +200,7 @@ def main():
     o = sub.add_parser("open", help="start the server if needed and open its admin page")
     o.add_argument("--data", default=default_data_dir())
     sub.add_parser("selfcheck")
-    st = sub.add_parser("stop", help="stop the server running in the background")
+    sub.add_parser("stop", help="stop the server running in the background")
     cn = sub.add_parser("console", help="show the background server's screen live (Ctrl+C closes the view)")
     cn.add_argument("--data", default=default_data_dir()); cn.add_argument("--no-follow", action="store_true")
     argv = sys.argv[1:]
@@ -201,6 +217,7 @@ def main():
         return {"install": hostctl.cmd_install, "open": hostctl.cmd_open, "stop": hostctl.cmd_stop,
                 "console": hostctl.cmd_console}.get(a.cmd, lambda _: hostctl.cmd_selfcheck())(a)
     if a.cmd == "host":
+        hostctl.trial_begin()               # (after an update: put the old program back if the new one can't start)
         _host_setup(a)
     fmt = "%(asctime)s %(name)s %(message)s"
     if os.environ.get("PES_CONSOLE") == "1" and a.cmd in ("serve", "host"):

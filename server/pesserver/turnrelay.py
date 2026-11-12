@@ -29,7 +29,12 @@ A_SOFTWARE = 0x8022
 
 DEFAULT_LIFETIME, MAX_LIFETIME = 600, 3600
 PERMISSION_LIFETIME, CHANNEL_LIFETIME = 300, 600
-MAX_ALLOCATIONS = 64
+# Limits (a relayed player needs one connection, one allocation and one opponent; the port range is the capacity):
+MAX_CONNS, MAX_CONNS_PER_IP = 128, 16       # TLS connections: each one is an open file of the whole server
+QUIET_NEW, QUIET = 60, MAX_LIFETIME + 120   # s without a message before the connection is closed: no allocation / one
+MAX_PER_USER = 4                            # allocations one player can hold
+MAX_PEERS = 16                              # permissions, and channels, per allocation
+WRITE_HIGH = 512 * 1024                     # bytes waiting for a client that stopped reading: relay data is dropped
 
 
 # ---- STUN encoding ----------------------------------------------------------------------------------
@@ -126,10 +131,10 @@ class Allocation:
         ch = self.channel_for(peer)
         if ch is not None:
             frame = struct.pack("!HH", ch, len(data)) + data
-            self.conn.write(frame if self.conn.datagram else frame + b"\0" * (-len(frame) % 4))
+            self.conn.write(frame if self.conn.datagram else frame + b"\0" * (-len(frame) % 4), relayed=True)
         else:
             self.conn.write(build(DATA, INDICATION, os.urandom(12),
-                                  [(A_XOR_PEER, xor_addr(*peer)), (A_DATA, data)], fingerprint=False))
+                                  [(A_XOR_PEER, xor_addr(*peer)), (A_DATA, data)], fingerprint=False), relayed=True)
 
     def to_peer(self, data, peer):
         if not self.permitted(peer[0]):
@@ -161,6 +166,7 @@ class TurnServer:
         self.relay_ports = list(range(relay_ports[0], relay_ports[1] + 1))
         self.advertise, self.own_ips = advertise, set(own_ips)
         self.allocations = {}                               # relay port -> Allocation
+        self.conns = {}                                     # client ip -> open TLS connections
         self.tickets = {}                                   # mobility ticket -> Allocation
         self.server = None
         self.dtls, self.dtls_port = None, None              # second leg (turndtls.DtlsLeg) and its UDP port
@@ -170,7 +176,7 @@ class TurnServer:
     async def start(self, host, port, certfile, keyfile, dtls_port=None):
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ctx.load_cert_chain(certfile, keyfile)
-        self.server = await asyncio.start_server(self._client, host, port, ssl=ctx)
+        self.server = await asyncio.start_server(self._client, host, port, ssl=ctx, ssl_handshake_timeout=15)
         self._sweeper = asyncio.get_running_loop().create_task(self._sweep())
         if dtls_port is not None:
             from . import turndtls
@@ -224,11 +230,36 @@ class TurnServer:
         return None
 
     # -- connections
+    def reclaim(self, mine=None):
+        """Free the oldest allocation whose client is gone (kept a minute for a client that comes back with its
+        ticket): a waiting player matters more. With `mine`, only among that user's. Returns whether one went."""
+        idle = [a for a in self.allocations.values() if a.conn is None and (mine is None or user_of(a.username) == mine)]
+        if not idle:
+            return False
+        a = min(idle, key=lambda a: a.expires)
+        log.info("TURN allocation %d freed early (%s)", a.port, a.username)
+        self._free(a)
+        return True
+
     async def _client(self, reader, writer):
+        ip = (writer.get_extra_info("peername") or ("?",))[0]
+        if self.conns.get(ip, 0) >= MAX_CONNS_PER_IP or sum(self.conns.values()) >= MAX_CONNS:
+            log.info("TURN connection from %s refused: too many open", ip)
+            writer.close()
+            return
+        self.conns[ip] = self.conns.get(ip, 0) + 1
         conn = _Conn(self, writer)
+        quiet = 0
         try:
             while True:
-                head = await reader.readexactly(4)
+                try:
+                    head = await asyncio.wait_for(reader.readexactly(4), QUIET_NEW)
+                    quiet = 0
+                except asyncio.TimeoutError:                # (a cancelled read leaves its bytes in the buffer)
+                    quiet += QUIET_NEW
+                    if conn.alloc is None or quiet >= QUIET:
+                        break
+                    continue
                 if head[0] & 0xC0 == 0x40:                 # ChannelData
                     ch, n = struct.unpack("!HH", head)
                     data = await reader.readexactly(n + (-n % 4))
@@ -239,11 +270,20 @@ class TurnServer:
                     break
                 rest = await reader.readexactly(16 + length)
                 conn.stun(head + rest)
-        except (asyncio.IncompleteReadError, ConnectionError, ssl.SSLError, OSError):
+        except (asyncio.IncompleteReadError, asyncio.TimeoutError, ConnectionError, ssl.SSLError, OSError):
             pass
         finally:
             conn.closed()
             writer.close()
+            if self.conns.get(ip, 0) > 1:
+                self.conns[ip] -= 1
+            else:
+                self.conns.pop(ip, None)
+
+
+def user_of(username):
+    """The player in a credential's username "<expiry>:<pid>"."""
+    return username.split(":", 1)[-1]
 
 
 class _Conn:
@@ -255,14 +295,21 @@ class _Conn:
         self.nonce = base64.b16encode(os.urandom(12)).decode().lower()
         self.alloc = None
         self.pending = False                                # an Allocate is being set up
+        self.gone = False                                   # the connection has ended
         self.last = {}                                      # transaction id -> response (retransmits)
 
-    def write(self, data):
-        if not self.writer.is_closing():
-            self.writer.write(data)
+    def write(self, data, relayed=False):
+        if self.writer.is_closing():
+            return
+        if relayed:                                         # like UDP: dropped when the client isn't reading
+            t = getattr(self.writer, "transport", None)
+            if t is not None and t.get_write_buffer_size() > WRITE_HIGH:
+                return
+        self.writer.write(data)
 
     def closed(self):
         # Keep a mobile allocation for a while: the client may come back with its ticket.
+        self.gone = True
         a, self.alloc = self.alloc, None
         if a is not None:
             a.conn = None
@@ -345,8 +392,11 @@ class _Conn:
         transport = get.get(A_REQUESTED_TRANSPORT, b"")
         if len(transport) < 1 or transport[0] != 17:
             return self._error(ALLOCATE, tid, 442, "Unsupported Transport Protocol", key)
-        if len(self.s.allocations) >= MAX_ALLOCATIONS:
+        me = user_of(username)
+        if sum(user_of(a.username) == me for a in self.s.allocations.values()) >= MAX_PER_USER and not self.s.reclaim(me):
             return self._error(ALLOCATE, tid, 486, "Allocation Quota Reached", key)
+        if len(self.s.allocations) >= len(self.s.relay_ports):
+            self.s.reclaim()                                # (its port is free a moment later: the game asks again)
         free = [p for p in self.s.relay_ports if p not in self.s.allocations]
         sock = None
         for port in free:
@@ -366,10 +416,19 @@ class _Conn:
         proto = _RelayProtocol()
         try:
             transport, _ = await asyncio.get_running_loop().create_datagram_endpoint(lambda: proto, sock=sock)
+        except OSError:
+            sock.close()
+            return
         finally:
             self.pending = False
-        port = sock.getsockname()[1]
-        ip = self.s.advertise(self.local[0], self.peer[0])
+        try:
+            if self.gone or self.writer.is_closing():       # the client left meanwhile: nothing would free the port
+                raise ConnectionError("client gone")
+            port = sock.getsockname()[1]
+            ip = self.s.advertise(self.local[0], self.peer[0])
+        except Exception:  # noqa: BLE001
+            transport.close()
+            return
         a = Allocation(self.s, self, port, transport, ip, username, key)
         proto.alloc = a
         self.s.allocations[port] = a
@@ -442,8 +501,12 @@ class _Conn:
             return self._error(CREATE_PERMISSION, tid, 443, "Peer Address Family Mismatch", key)
         if not peers:
             return self._error(CREATE_PERMISSION, tid, 400, "Bad Request", key)
+        now = time.monotonic()
+        a.permissions = {ip: exp for ip, exp in a.permissions.items() if exp > now}
+        if len(set(a.permissions) | {ip for ip, _ in peers}) > MAX_PEERS:
+            return self._error(CREATE_PERMISSION, tid, 508, "Insufficient Capacity", key)
         for ip, _ in peers:
-            a.permissions[ip] = time.monotonic() + PERMISSION_LIFETIME
+            a.permissions[ip] = now + PERMISSION_LIFETIME
         log.info("TURN permission %d -> %s", a.port, ", ".join(ip for ip, _ in peers))
         self._reply(tid, build(CREATE_PERMISSION, SUCCESS, tid, [], key))
 
@@ -459,9 +522,12 @@ class _Conn:
         if not 0x4000 <= ch <= 0x7FFF:
             return self._error(CHANNEL_BIND, tid, 400, "Bad Request", key)
         now = time.monotonic()
+        a.channels = {c: (p, exp) for c, (p, exp) in a.channels.items() if exp > now}
         for other, (p, exp) in a.channels.items():
-            if exp > now and ((other == ch) != (p == peer)):
+            if (other == ch) != (p == peer):
                 return self._error(CHANNEL_BIND, tid, 400, "Bad Request", key)
+        if ch not in a.channels and len(a.channels) >= MAX_PEERS:
+            return self._error(CHANNEL_BIND, tid, 508, "Insufficient Capacity", key)
         a.channels[ch] = (peer, now + CHANNEL_LIFETIME)
         a.permissions[peer[0]] = now + PERMISSION_LIFETIME
         log.info("TURN channel %d: %#x -> %s:%d", a.port, ch, *peer)

@@ -130,6 +130,20 @@ def stop():
         srv.close()
 
 
+async def readdress(svc, data_dir, extra_ips=()):
+    """This computer's or the public address changed (netsetup's keeper): the relay's certificate and its own
+    addresses name them, so the relay starts again with the new ones. Returns whether it did."""
+    import asyncio
+    from .netsetup import STATE as NET
+    ips = tuple(sorted({i for i in (NET["lan"], NET["wan"], *extra_ips, "127.0.0.1") if i and _is_ip(i)}))
+    if not enabled() or ips == tuple(STATE.get("ips") or ()):
+        return False
+    log.warning("TURN relay: starting again for the new addresses (%s)", ", ".join(ips))
+    stop()
+    await asyncio.sleep(0.5)                            # (the old sockets close on the loop's next turns)
+    return await start(svc, data_dir, NET["lan"], NET["wan"], extra_ips)
+
+
 def _is_ip(s):
     try:
         ipaddress.ip_address(s)

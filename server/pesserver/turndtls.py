@@ -27,6 +27,8 @@ except ImportError:  # pragma: no cover - checked by available()
 
 MAX_SESSIONS = 256
 IDLE_TIMEOUT = 300                      # s without a record from the client: forget the association
+HANDSHAKE_TIMEOUT = 15                  # s for a handshake to finish (the game's takes well under a second)
+MAX_STRANGERS = 16                      # unfinished handshakes from addresses that didn't allocate on the TLS leg first
 TYPE_PLAIN = b"\x00"
 
 
@@ -75,8 +77,9 @@ class _Writer:
 class _Assoc:
     """One DTLS association (one client)."""
 
-    def __init__(self, ep, addr):
+    def __init__(self, ep, addr, known=True):
         self.ep, self.addr, self.dead, self.ready = ep, addr, False, False
+        self.known = known              # its address allocated on the TLS leg (the game always does that first)
         self.c = SSL.Connection(ep.ctx, None)
         self.c.set_accept_state()
         try:
@@ -101,8 +104,8 @@ class _Assoc:
         if self.timer is not None:
             self.timer.cancel()
             self.timer = None
-        if self.dead or self.ready:
-            return
+        if self.dead or self.ready or not self.known:
+            return                      # (a stranger gets one answer per hello: nothing to aim at someone else)
         try:
             t = self.c.DTLSv1_get_timeout()
         except (AttributeError, SSL.Error):
@@ -195,13 +198,27 @@ class DtlsLeg(asyncio.DatagramProtocol):
     def connection_made(self, transport):
         self.transport = transport
         self.local = transport.get_extra_info("sockname")[:2]
-        self._sweeper = asyncio.get_running_loop().call_later(60, self._sweep)
+        self._sweeper = asyncio.get_running_loop().call_later(5, self._sweep)
 
     def _sweep(self):
         now = time.monotonic()
-        for a in [a for a in self.assocs.values() if now - a.seen > IDLE_TIMEOUT]:
+        for a in [a for a in self.assocs.values()
+                  if now - a.seen > IDLE_TIMEOUT or (not a.ready and now - a.t0 > HANDSHAKE_TIMEOUT)]:
             a.close()
-        self._sweeper = asyncio.get_running_loop().call_later(60, self._sweep)
+        self._sweeper = asyncio.get_running_loop().call_later(5, self._sweep)
+
+    def _room_for(self, known):
+        """Whether a new handshake may start. Unfinished ones can't crowd players out: strangers share a few
+        places, and when the table is full a player's handshake takes the place of the oldest unfinished one."""
+        waiting = [a for a in self.assocs.values() if not a.ready]
+        if not known and sum(not a.known for a in waiting) >= MAX_STRANGERS:
+            return False
+        if len(self.assocs) < MAX_SESSIONS:
+            return True
+        if not known or not waiting:
+            return False
+        min(waiting, key=lambda a: (a.known, a.t0)).close()
+        return True
 
     def close(self):
         for a in list(self.assocs.values()):
@@ -223,9 +240,10 @@ class DtlsLeg(asyncio.DatagramProtocol):
                 a = self._roam(addr, data)
                 if a is not None:
                     return
-            if data[0] != 22 or len(self.assocs) >= MAX_SESSIONS:
+            known = addr[0] in self.server.dtls_local
+            if data[0] != 22 or not self._room_for(known):
                 return                                  # only a handshake opens an association
-            a = self.assocs[addr] = _Assoc(self, addr)
+            a = self.assocs[addr] = _Assoc(self, addr, known)
         for msg in a.feed(data):
             a.handle(msg)
 
