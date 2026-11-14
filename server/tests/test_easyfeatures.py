@@ -2,7 +2,7 @@
 Information list (announce.py)."""
 import msgpack
 
-from pesserver import announce, events, pescmds, pescoop, pesmanner, pesmatch  # noqa: F401  (handlers)
+from pesserver import announce, events, pescmds, pescoop, pesmanner, pesmatch, pestourney  # noqa: F401  (handlers)
 from test_pesrooms import svc, Sess, unb   # noqa: F401  (fixture)
 
 
@@ -510,3 +510,15 @@ def test_replay_closed_when_the_recorder_drops(svc):
     assert mid not in pesreplay._live
     meta = dict(pesreplay.recordings(svc))[mid]
     assert meta["closed"] is True
+
+
+def test_a_new_early_exit_warns_even_when_an_old_one_rolls_out(svc):
+    """Grade C with 5 exits in the last 10. The next match is another exit and the oldest one rolls out of the
+    window at the same time: still 5. Counting alone, that exit got no "still C" warning."""
+    a = Sess(1)
+    svc.online[1] = a
+    for left in (1, 1, 1, 1, 1, 0, 0, 0, 0, 0):
+        pesmanner._add(svc, 1, bool(left), "GIVEUP" if left else "")
+    assert pesmanner.rating(svc, 1)["quits"] == 5 and _warn(svc, a) == "STILL_C" and _warn(svc, a) is None
+    pesmanner._add(svc, 1, True, "GIVEUP")
+    assert pesmanner.rating(svc, 1)["quits"] == 5 and _warn(svc, a) == "STILL_C" and _warn(svc, a) is None

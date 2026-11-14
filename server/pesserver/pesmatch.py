@@ -504,6 +504,8 @@ def change_gamephase(svc, sess, req):
         if room.get("coop") and all(room["phase"].get(p) == "END" for p in room["members"]):
             from . import pescoop
             pescoop.award(svc, room)              # co-op level points at the final whistle
+        if all(room["phase"].get(p) == "END" for p in room["members"]):
+            room.setdefault("end_at", time.time())
         if (os.environ.get("PESSERVER_VERDICT_AT_END", "1") != "0"
                 and "pushed_at_end" not in room
                 and all(room["phase"].get(p) == "END" for p in room["members"])):
@@ -516,6 +518,24 @@ def change_gamephase(svc, sess, req):
                 if (s := svc.online.get(p)) is not None and v is not None:
                     _send_later(s, "CMD_WATCH_GAMEADDPOINT", 0, 0x60, 1, v)
     return {"result": NOERR}
+
+
+VERDICT_WAIT = 18        # s after the final whistle a game still takes the verdict (it gives up at 20)
+
+
+def verdict_after_quit_check(svc, rid, room):
+    """pesmanner called a forfeit off (the player's line only blinked). If the final whistle came meanwhile,
+    the verdict was held back (quit_pending), and nothing else would ever work it out: no ratings, Divisions or
+    Matchday result. Work it out now, and push it to games that are still waiting for it."""
+    if room is None or "verdict" in room or "forfeit" in room or "end_at" not in room:
+        return
+    v = _verdict(svc, rid, room)
+    if v is None or time.time() - room["end_at"] > VERDICT_WAIT:
+        return
+    for p in room["members"]:
+        if (s := svc.online.get(p)) is not None:
+            _send_later(s, "CMD_WATCH_GAMEADDPOINT", 0, 0x60, 1, v)
+    log.info("VERDICT room %s pushed after the reconnect check", rid)
 
 
 @cmd("CMD_SET_GAMETEAM")

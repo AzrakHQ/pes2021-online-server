@@ -252,3 +252,31 @@ def test_live_update_download_is_streamed_whole(tmp_path, monkeypatch):
         r, w = await asyncio.open_connection("127.0.0.1", port)
         assert (await _req(r, w, "GET", "/liveupdate/other.cpk"))[0] == 404
     _serve(svc, test)
+
+
+def test_a_blink_just_before_full_time_still_gets_the_verdict(svc, monkeypatch):
+    """The line blinks at 88', both games reach END while the forfeit is being decided (verdict held back),
+    the player is back in time: the verdict is worked out then (ratings) and pushed to the waiting games."""
+    db = svc.accounts.db
+    for pid in (1, 2):
+        db.execute("INSERT INTO pes_players(pid, username, name, created) VALUES(?,?,?,0)", (pid, f"u{pid}", f"P{pid}"))
+    sent = []
+    monkeypatch.setattr(pesmatch, "_send_later", lambda s, msgid, *a: sent.append((s.pes_pid, msgid)))
+    a, b = SimpleNamespace(pes_pid=1, connected_at=1.0), SimpleNamespace(pes_pid=2, connected_at=1.0)
+    svc.online.update({1: a, 2: b})
+    rooms = pesmatch._state(svc)["rooms"]
+    rooms[5] = {"owner": 1, "members": [1, 2], "t": 0}
+    for s in (a, b):
+        pescmds.dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST", "gtimer": 1})
+    pescmds.dispatch(svc, a, "CMD_ADD_SCORE", {"goal_side": "HOME", "gtimer": 30})
+    lv = events._st(svc)["live"][5]
+    events.disconnected(svc, a); svc.online.pop(1)
+    new = SimpleNamespace()
+    assert pescmds.dispatch(svc, new, "CMD_RECONNECT", {"pid": 1})["result"] == "NOERR"
+    for s in (new, b):
+        pescmds.dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "END", "gtimer": 2})
+    assert "verdict" not in rooms[5] and sent == []                  # held back while it's being decided
+    lv["forfeit_decide"](); lv["left_decide"]()
+    assert "forfeit" not in rooms[5] and rooms[5]["verdict"]["winner_side"] == "WINNER_HOME"
+    assert sorted(sent) == [(1, "CMD_WATCH_GAMEADDPOINT"), (2, "CMD_WATCH_GAMEADDPOINT")]
+    assert db.execute("SELECT rating FROM pes_players WHERE pid=1").fetchone()[0] > 1000

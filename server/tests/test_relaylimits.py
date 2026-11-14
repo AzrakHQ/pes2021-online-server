@@ -158,6 +158,34 @@ def test_the_relay_restarts_for_a_new_address_only_when_nobody_plays_through_it(
     asyncio.run(go())
 
 
+def test_a_relay_restart_that_fails_is_tried_again(tmp_path, monkeypatch):
+    """Before, a restart for a new address that hit a port not free yet left the relay off until the next
+    address change: every game got an empty TURN list."""
+    from types import SimpleNamespace
+    from pesserver import netsetup
+    monkeypatch.setattr(turn, "STATE", {"server": None, "dir": None, "secret": None, "cert_der": None, "ips": ()})
+    monkeypatch.setattr(turn, "TLS_PORT", 51370); monkeypatch.setattr(turn, "DTLS_PORT", 51371)
+    monkeypatch.setattr(turn, "RELAY_PORTS", (51372, 51373))
+    monkeypatch.setattr(turn, "RESTART_RETRY", (0.05, 0.05))
+    monkeypatch.delenv("TURN", raising=False)
+    monkeypatch.setattr(netsetup, "STATE", {**netsetup.STATE, "lan": "127.0.0.1", "wan": None})
+    svc = SimpleNamespace(online={})
+
+    async def go():
+        assert await turn.start(svc, str(tmp_path), "127.0.0.1", None)
+        real_start, tries = turn.start, []
+
+        async def busy_then_free(*a):                                    # the port isn't free yet, twice
+            tries.append(1)
+            return False if len(tries) <= 2 else await real_start(*a)
+        monkeypatch.setattr(turn, "start", busy_then_free)
+        netsetup.STATE["wan"] = "81.2.69.160"
+        assert await asyncio.wait_for(turn.readdress(svc, str(tmp_path)), 5) is True
+        assert len(tries) == 3 and turn.running() and "81.2.69.160" in turn.STATE["ips"]
+        turn.stop()
+    asyncio.run(go())
+
+
 def test_an_allocation_has_a_bounded_number_of_peers(tmp_path, monkeypatch):
     monkeypatch.setattr(tr, "MAX_PEERS", 2)
 

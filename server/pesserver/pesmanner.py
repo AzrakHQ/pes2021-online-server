@@ -45,6 +45,8 @@ def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_manner_state (pid INTEGER PRIMARY KEY, grade TEXT,
                   warned_quits INTEGER DEFAULT 0, still_c_t REAL DEFAULT 0)""")
     db.execute("CREATE INDEX IF NOT EXISTS pes_manner_pid ON pes_manner(pid, id)")     # a player's last rows
+    if "warned_row" not in {r[1] for r in db.execute("PRAGMA table_info(pes_manner_state)")}:
+        db.execute("ALTER TABLE pes_manner_state ADD COLUMN warned_row INTEGER")   # the newest exit warned about
 
 
 def _add(svc, pid, left_early, reason=""):
@@ -121,12 +123,17 @@ def _schedule(svc, lv):
                 lv["manner_done"] = False
                 lv.pop("forfeit_scheduled", None)
             log.info("pid %s reconnected in time: no early exit, no forfeit", back)
+        from . import pesmatch
         if len(marked) == 1:
-            from . import pesmatch
             try:
                 pesmatch.forfeit(svc, lv.get("room"), next(iter(marked)))
             except Exception:  # noqa: BLE001 - must never break the server
                 log.exception("forfeit")
+        else:
+            try:
+                pesmatch.verdict_after_quit_check(svc, lv.get("room"), room)
+            except Exception:  # noqa: BLE001
+                log.exception("verdict after the reconnect check")
     import asyncio
     try:
         asyncio.get_running_loop().call_later(DECIDE_AFTER, decide)
@@ -176,14 +183,19 @@ def warning(svc, pid):
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
-        st = db.execute("SELECT grade, warned_quits FROM pes_manner_state WHERE pid=?", (pid,)).fetchone()
-        old, warned = st if st else ("A", 0)
+        st = db.execute("SELECT grade, warned_quits, warned_row FROM pes_manner_state WHERE pid=?", (pid,)).fetchone()
+        old, warned, wrow = st if st else ("A", 0, None)
+        newest = db.execute("SELECT MAX(id) FROM pes_manner WHERE pid=? AND left_early=1", (pid,)).fetchone()[0] or 0
+        # a new early exit since the last warning; by the count alone, one that came in as an old one rolled out
+        # of the last RECENT matches went unwarned (no row noted yet: the count, as before)
+        new_exit = q > warned if wrow is None else newest > wrow
         kind = None
         if ORDER.index(g) > ORDER.index(old):
             kind = "A_TO_B" if g == "B" else "STILL_C"
-        elif g == old and q > warned:
+        elif g == old and q and new_exit:
             kind = {"A": "DOWN_B", "B": "DOWN_C", "C": "STILL_C"}[g]
-        db.execute("INSERT OR REPLACE INTO pes_manner_state (pid, grade, warned_quits) VALUES (?,?,?)", (pid, g, q))
+        db.execute("INSERT OR REPLACE INTO pes_manner_state (pid, grade, warned_quits, warned_row) VALUES (?,?,?,?)",
+                   (pid, g, q, newest))
     return kind
 
 

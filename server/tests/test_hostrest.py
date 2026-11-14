@@ -90,6 +90,37 @@ def test_two_update_clicks_at_once_start_one_update(svc, release, monkeypatch):
     assert started == [1] and hostctl.STATE["update"] == "restarting"
 
 
+def test_update_now_right_after_cancel_is_not_lost(svc, release, monkeypatch):
+    """Cancel while the download is still being checked, then Update now: the second click used to be dropped
+    (the cancelled one was still 'downloading'), and the page fell back to idle."""
+    gate, calls = threading.Event(), []
+    real = hostctl.download
+
+    def slow(cancel=None, want=None):
+        calls.append(1)
+        if len(calls) == 1:
+            gate.wait(5)                                              # the first one is slow to stop
+        if cancel is not None and cancel.is_set():
+            raise InterruptedError
+        return real(cancel, want)
+    monkeypatch.setattr(hostctl, "download", slow)
+    monkeypatch.setattr(hostctl, "CANCEL_JOIN", 0.1)
+    pause = threading.Event().wait                                   # (the fixture turns time.sleep off)
+    hostctl.update(svc, "now")
+    while not calls:
+        pause(0.01)
+    hostctl.update(svc, "cancel")
+    t = threading.Thread(target=hostctl.update, args=(svc, "now")); t.start()
+    t.join(5)
+    assert hostctl.STATE["update"] == "downloading"                  # (the first one is still stopping)
+    gate.set()
+    for _ in range(200):
+        if hostctl.STATE["update"] == "restarting":
+            break
+        pause(0.05)
+    assert len(calls) == 2 and hostctl.STATE["update"] == "restarting"
+
+
 def test_the_unit_stops_retrying_when_a_port_is_taken(tmp_path, monkeypatch):
     unit = hostctl.unit_text("/opt/pes/pes2021-server", str(tmp_path))
     assert f"RestartPreventExitStatus={hostctl.CANT_START_EXIT}" in unit and "Restart=on-failure" in unit
@@ -128,6 +159,34 @@ def test_saved_settings_can_be_cleared_and_hand_added_lines_stay(tmp_path, monke
     monkeypatch.setenv("PUBLIC_IP", "")                           # PUBLIC_IP= ... | sh: forget it
     assert hostctl.keep_settings(str(tmp_path)) == {"BACKUPS": "0", "PES_HTTP_PORT": "8090"}
     assert open(hostctl.env_path(str(tmp_path))).read() == "BACKUPS=0\nPES_HTTP_PORT=8090\n"
+
+
+def test_hand_added_lines_with_spaces_or_paths_stay(tmp_path, monkeypatch):
+    """Before, a line whose value had anything but letters, digits and .:-_ was dropped on the next install."""
+    for k in hostctl.KEPT:
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+    with open(hostctl.env_path(str(tmp_path)), "w") as f:
+        f.write("# my settings\nSERVER_NAME=Rashad's Server\nPESSERVER_MOD_DLL=/home/x/mod.dll\n")
+    monkeypatch.setenv("BACKUPS", "0")
+    assert hostctl.keep_settings(str(tmp_path)) == {"SERVER_NAME": "Rashad's Server",
+                                                    "PESSERVER_MOD_DLL": "/home/x/mod.dll", "BACKUPS": "0"}
+    assert open(hostctl.env_path(str(tmp_path))).read() == ("# my settings\nBACKUPS=0\nPESSERVER_MOD_DLL=/home/x/mod.dll\n"
+                                                            "SERVER_NAME=Rashad's Server\n")
+    monkeypatch.setenv("BACKUPS", "0 && rm -rf ~")                # from the command line: still checked
+    assert hostctl.keep_settings(str(tmp_path))["BACKUPS"] == "0"
+
+
+def test_the_web_port_comes_from_the_services_settings_too(tmp_path, monkeypatch):
+    """`install`, `open` and `stop` look for the server on the port the service runs on (server.env)."""
+    monkeypatch.delenv("PES_HTTP_PORT", raising=False)
+    monkeypatch.setattr(hostctl, "_unit_data", lambda: str(tmp_path))
+    assert hostctl._port() == 8080
+    with open(hostctl.env_path(str(tmp_path)), "w") as f:
+        f.write("PES_HTTP_PORT=8090\n")
+    assert hostctl._port() == 8090
+    monkeypatch.setenv("PES_HTTP_PORT", "8100")                    # given in this window: that one
+    assert hostctl._port() == 8100
 
 
 def test_a_start_that_was_stopped_before_it_was_up_is_not_a_failed_start(svc, release, monkeypatch):
@@ -379,3 +438,13 @@ def test_live_update_names_and_broken_files(svc, tmp_path, monkeypatch):
         t = time.monotonic()
         assert liveupdate.current(svc)[0] == odd and time.monotonic() - t < 0.5
     assert liveupdate.current(svc, wait=True)[0].endswith("newer.cpk")
+
+
+def test_no_user_session_isnt_asked_again_on_every_poll(monkeypatch):
+    calls = []
+    monkeypatch.setattr(hostctl, "_SEEN", {"systemd": None, "autostart": (0.0, None)})
+    monkeypatch.setattr(hostctl.shutil, "which", lambda n: "/usr/bin/systemctl")
+    monkeypatch.setattr(hostctl, "_systemctl", lambda *a: calls.append(a) or (1, ""))
+    assert [hostctl.systemd_ok() for _ in range(5)] == [False] * 5 and len(calls) == 1
+    hostctl._SEEN["systemd_no"] -= 31                                  # 30 s later: asked again
+    assert hostctl.systemd_ok() is False and len(calls) == 2

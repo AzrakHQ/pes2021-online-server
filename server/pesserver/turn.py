@@ -135,6 +135,9 @@ def stop():
         srv.close()
 
 
+RESTART_RETRY = (2, 5, 15, 30, 60, 120)    # s between attempts when the relay can't start again
+
+
 async def readdress(svc, data_dir, extra_ips=(), poll=20):
     """This computer's or the public address changed (netsetup's keeper): the relay's certificate and its own
     addresses name them, so the relay starts again with the new ones. Addresses it already knows are kept, so an
@@ -158,6 +161,11 @@ async def readdress(svc, data_dir, extra_ips=(), poll=20):
         log.warning("TURN relay: starting again for the new addresses (%s)", ", ".join(sorted(want)))
         stop()
         await asyncio.sleep(0.5)                        # (the old sockets close on the loop's next turns)
+        for wait in RESTART_RETRY:                      # a port not free yet: nothing else would start it again
+            if await start(svc, data_dir, None, None, sorted(want)):
+                return True
+            log.warning("TURN relay: trying again in %d s", wait)
+            await asyncio.sleep(wait)
         return await start(svc, data_dir, None, None, sorted(want))
     finally:
         STATE["readdressing"] = False

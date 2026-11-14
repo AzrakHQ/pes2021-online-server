@@ -101,13 +101,17 @@ def installed():
     return bool(program()) and os.path.exists(unit_path()) and not in_service()
 
 
-_SEEN = {"systemd": None, "autostart": (0.0, None)}     # answers kept: each one costs a systemctl process
+_SEEN = {"systemd": None, "systemd_no": -1e9, "autostart": (0.0, None)}   # answers kept: each costs a systemctl process
 
 
 def systemd_ok():
-    if not _SEEN["systemd"]:                             # (a "yes" stays true for as long as this process lives)
+    # a "yes" stays true for as long as this process lives; a "no" is asked again after 30 s (the admin page polls
+    # twice a few seconds, and on a host with no user session each try could take the full systemctl timeout)
+    if not _SEEN["systemd"] and time.monotonic() - _SEEN.get("systemd_no", -1e9) > 30:
         _SEEN["systemd"] = shutil.which("systemctl") is not None and _systemctl("show-environment")[0] == 0
-    return _SEEN["systemd"]
+        if not _SEEN["systemd"]:
+            _SEEN["systemd_no"] = time.monotonic()
+    return bool(_SEEN["systemd"])
 
 
 def autostart(fresh=False):
@@ -130,19 +134,30 @@ def env_path(data):
     return os.path.join(data, "server.env")
 
 
+def read_settings(data):
+    """<data>/server.env as {name: value}, values as written (a hand-added SERVER_NAME=Rashad's Server or a path
+    stays: only settings taken from the command line are checked before they are saved)."""
+    name = lambda k: bool(k) and k.replace("_", "").isalnum() and not k[0].isdigit()
+    out = {}
+    try:
+        for line in open(env_path(data), encoding="utf-8"):
+            k, eq, v = line.strip().partition("=")
+            if eq and name(k.strip()):
+                out[k.strip()] = v.strip()
+    except OSError:
+        pass
+    return out
+
+
 def keep_settings(data):
     """Save the settings this process was started with for the service (<data>/server.env, read by the unit).
     A setting given now replaces the saved one, given empty (PUBLIC_IP= ...) it is forgotten; the others stay,
     also lines the host added to the file by hand. ADMIN_PASSWORD goes where the server reads its password from,
     not into a file other programs list."""
     ok = lambda v: bool(v) and all(c.isalnum() or c in ".:-_" for c in v)
-    name = lambda k: bool(k) and k.replace("_", "").isalnum() and not k[0].isdigit()
-    kept = {}
-    try:
-        for line in open(env_path(data), encoding="utf-8"):
-            k, _, v = line.strip().partition("=")
-            if name(k) and ok(v):
-                kept[k] = v
+    kept, notes = read_settings(data), []
+    try:                                             # (the host's own comments stay too)
+        notes = [ln.rstrip("\n") for ln in open(env_path(data), encoding="utf-8") if ln.lstrip().startswith("#")]
     except OSError:
         pass
     for k in KEPT:
@@ -156,7 +171,7 @@ def keep_settings(data):
         os.makedirs(data, exist_ok=True)
         tmp = env_path(data) + ".tmp"
         with open(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w", encoding="utf-8") as f:
-            f.write("".join(f"{k}={v}\n" for k, v in sorted(kept.items())))
+            f.write("".join(f"{n}\n" for n in notes) + "".join(f"{k}={v}\n" for k, v in sorted(kept.items())))
         os.replace(tmp, env_path(data))
         from . import netsetup
         pw = os.environ.get("ADMIN_PASSWORD") or ""
@@ -513,6 +528,7 @@ def trial_passed(svc=None):
 def update(svc, when="now"):
     """Start an update in the background ("now" or "idle"); "cancel" stops a waiting or running one."""
     if when == "cancel":
+        _CTL.pop("again", None)
         _CTL["cancel"].set(); _CTL["wake"].set()
         return STATE
     ok, why = manageable()
@@ -522,11 +538,17 @@ def update(svc, when="now"):
         return _start_update(svc, when)
 
 
+CANCEL_JOIN = 10         # s a new "Update now" waits for a cancelled update to stop
+
+
 def _start_update(svc, when):
     from . import events
     old = _CTL["thread"]
     if _CTL["cancel"].is_set() and old is not None and old.is_alive():
-        old.join(10)                            # "Cancel" then "Update now": let the cancelled one finish first
+        old.join(CANCEL_JOIN)                   # "Cancel" then "Update now": let the cancelled one finish first
+        if old.is_alive():                      # still in the test run of its download (up to 2 minutes): it
+            _CTL["again"] = when                # starts this one when it's done, so the click isn't lost
+            return STATE
     if STATE["update"] in ("downloading", "waiting", "restarting"):
         STATE["when"] = when
         if when == "now":
@@ -571,6 +593,9 @@ def _start_update(svc, when):
             drop_download()
             STATE.update(update="idle", error="")
             events.feed(svc, "The server update was cancelled", "info")
+            again = _CTL.pop("again", None)
+            if again:                           # "Update now" came while this one was still stopping
+                threading.Thread(target=update, args=(svc, again), name="self-update-again", daemon=True).start()
         except Exception as e:  # noqa: BLE001  (offline, GitHub busy, disk full: say so on the admin page)
             log.warning("update failed: %s", e)
             drop_download()                     # (half a download, or one that failed its checks)
@@ -762,9 +787,13 @@ def cmd_stop(args):
 
 # ---- command line: install, open, selfcheck ------------------------------------------------------------------------
 def _port():
-    """The web port of the server on this computer (PES_HTTP_PORT, as `host` reads it)."""
+    """The web port of the server on this computer (PES_HTTP_PORT, as `host` reads it): from this window, else
+    from <data>/server.env, where the background service gets it."""
+    v = os.environ.get("PES_HTTP_PORT")
+    if not v:
+        v = read_settings(_unit_data() or _data_dir()).get("PES_HTTP_PORT", "").strip("'\"")
     try:
-        return int(os.environ.get("PES_HTTP_PORT") or 8080)
+        return int(v or 8080)
     except ValueError:
         return 8080
 
