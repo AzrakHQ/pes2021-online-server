@@ -107,11 +107,47 @@ def _live(svc, rid, room):
         home, away = room["owner"], next((p for p in room["members"] if p != room["owner"]), None)
         for old_rid, old in list(lv.items()):        # a new pairing replaces an unfinished one
             if {old["home"], old["away"]} & {home, away} and old["phase"] != "Full time":
-                lv.pop(old_rid)
+                _end(svc, old_rid)
         lv[rid] = {"room": rid, "home": home, "away": away, "home_name": name_of(svc, home),
                    "away_name": name_of(svc, away) if away else "", "phase": "Pre-match", "raw_phase": "",
                    "home_score": 0, "away_score": 0, "started": time.time(), "kickoff": None, "saved": False}
     return lv[rid]
+
+
+def _end(svc, rid):
+    """Take a match off the live list, keeping its record. Its room stays (pesmatch reads the verdict from it),
+    and the players keep sending commands (heartbeats every 30 s) while it is still their newest room. Before,
+    any of them brought the match back as a new "Pre-match", so the server looked busy forever and an update
+    "when nobody's playing" never started (live 2026-11-14). Now only signs that the match is still being played
+    bring it back (observe), and a late result is saved from this record."""
+    st = _st(svc)
+    lv = st["live"].pop(rid, None)
+    if lv is None:
+        return
+    lv["ended_at"] = time.time()
+    ended = st.setdefault("ended", {})
+    ended[rid] = lv
+    while len(ended) > 200:
+        ended.pop(next(iter(ended)))
+
+
+STILL_PLAYING = ("CMD_CHANGE_GAMEPHASE", "CMD_ADD_SCORE")   # the match goes on: it was taken as ended too early
+LATE_RESULT = 180                                           # s after its end a match's result may still come
+
+
+def _late_match(svc, pid, rid):
+    """(rid, record) of pid's previous match when a result can only be that one's: it ended a moment ago with no
+    result saved, and pid's newest match (a rematch) hasn't kicked off. The result has no match id."""
+    st = _st(svc)
+    cur = st["live"].get(rid)
+    if cur is not None and cur["kickoff"]:
+        return None, None
+    now = time.time()
+    for old_rid, old in sorted(st.get("ended", {}).items(), reverse=True):
+        if old_rid != rid and pid in (old["home"], old["away"]) and not old["saved"] \
+                and now - old.get("ended_at", 0) < LATE_RESULT:
+            return old_rid, old
+    return None, None
 
 
 def _mode(room):
@@ -158,6 +194,20 @@ def observe(svc, sess, msgid, req):
     rid, room = _room_of(svc, pid)
     if room is None:
         return
+    st = _st(svc)
+    if rid not in st["live"] and rid in st.get("ended", {}):
+        if msgid in STILL_PLAYING:
+            st["live"][rid] = st["ended"].pop(rid)
+            st["live"][rid].pop("ended_at", None)
+        elif msgid == "CMD_SEND_GAME_RESULT":
+            return _result(svc, rid, room, st["ended"][rid], req)
+        else:
+            return                                 # heartbeats, menus, more LEAVE_ROOMs: it stays over
+    elif msgid == "CMD_SEND_GAME_RESULT":
+        old_rid, old = _late_match(svc, pid, rid)
+        if old is not None:
+            from . import pesmatch
+            return _result(svc, old_rid, pesmatch._state(svc)["rooms"].get(old_rid) or room, old, req)
     lv = _live(svc, rid, room)
     side = "home" if pid == lv["home"] else "away"
     both = [lv["home"], lv["away"]]
@@ -186,30 +236,7 @@ def observe(svc, sess, msgid, req):
             lv[scorer.lower() + "_score"] += 1
             feed(svc, f"GOAL! {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "goal", both)
     elif msgid == "CMD_SEND_GAME_RESULT":
-        hs, as_ = req.get("home_score"), req.get("away_score")
-        if isinstance(hs, int) and isinstance(as_, int):
-            lv["home_score"], lv["away_score"] = hs, as_
-        lv["phase"] = "Full time"
-        if not lv["saved"]:
-            lv["saved"] = True
-            reason = str(req.get("abnormalend_reason", "NOERR"))
-            left_pid, lx = _leaver(svc, lv["home"], lv["away"]) if reason != "NOERR" else (None, None)
-            if left_pid is not None:
-                _st(svc).get("leavers", {}).pop(left_pid, None)       # used once: never for a later match
-            marked = lv.get("manner_marked") or set()
-            if len(marked) == 1:                                      # pesmanner knows who left early
-                left_pid = next(iter(marked))
-            db = svc.accounts.db
-            with svc.accounts.lock, db:
-                db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name,"
-                           " home_score, away_score, reason, left_pid, left_at, mode) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                           (rid, lv["kickoff"] or (lx and lx["kickoff"]) or lv["started"], time.time(), lv["home"], lv["away"],
-                            lv["home_name"], lv["away_name"], lv["home_score"], lv["away_score"],
-                            "" if reason == "NOERR" else reason, left_pid, lx and lx["t"], _mode(room)))
-                ht, at = req.get("home_team_id"), req.get("away_team_id")
-                if isinstance(ht, int) and isinstance(at, int):
-                    db.execute("UPDATE pes_matches SET home_team=?, away_team=? WHERE id=last_insert_rowid()", (ht, at))
-            feed(svc, f"Full time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "result", both)
+        _result(svc, rid, room, lv, req)
     elif msgid == "CMD_LEAVE_ROOM":
         lv.setdefault("left", set()).add(pid)
         if lv["phase"] != "Full time":
@@ -218,9 +245,44 @@ def observe(svc, sess, msgid, req):
             else:
                 _note_left(svc, lv, pid)
                 feed(svc, f"Match ended early: {name_of(svc, pid)} left", "warn", both)
-            _st(svc)["live"].pop(rid, None)
+            _end(svc, rid)
         elif lv["left"] >= {lv["home"], lv["away"]}:
-            _st(svc)["live"].pop(rid, None)
+            _end(svc, rid)
+
+
+def _result(svc, rid, room, lv, req):
+    """CMD_SEND_GAME_RESULT: both games send one; the first is saved. `lv` may be the record of a match already
+    taken off the live list (a late result)."""
+    hs, as_ = req.get("home_score"), req.get("away_score")
+    if isinstance(hs, int) and isinstance(as_, int):
+        lv["home_score"], lv["away_score"] = hs, as_
+    lv["phase"] = "Full time"
+    if lv["saved"]:
+        return
+    lv["saved"] = True
+    reason = str(req.get("abnormalend_reason", "NOERR"))
+    left_pid, lx = _leaver(svc, lv["home"], lv["away"]) if reason != "NOERR" else (None, None)
+    if left_pid is not None:
+        _st(svc).get("leavers", {}).pop(left_pid, None)       # used once: never for a later match
+    marked = lv.get("manner_marked") or set()
+    if len(marked) == 1:                                      # pesmanner knows who left early
+        left_pid = next(iter(marked))
+    db = svc.accounts.db
+    with svc.accounts.lock, db:
+        # a forfeit (pesmatch._forfeit_row) may have saved this match already: it stands, no second row
+        if db.execute("SELECT 1 FROM pes_matches WHERE room=? AND home_pid=? AND away_pid=? AND reason='FORFEIT'"
+                      " AND ended >= ?", (rid, lv["home"], lv["away"], room.get("t", 0))).fetchone():
+            return
+        db.execute("INSERT INTO pes_matches(room, started, ended, home_pid, away_pid, home_name, away_name,"
+                   " home_score, away_score, reason, left_pid, left_at, mode) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                   (rid, lv["kickoff"] or (lx and lx["kickoff"]) or lv["started"], time.time(), lv["home"], lv["away"],
+                    lv["home_name"], lv["away_name"], lv["home_score"], lv["away_score"],
+                    "" if reason == "NOERR" else reason, left_pid, lx and lx["t"], _mode(room)))
+        ht, at = req.get("home_team_id"), req.get("away_team_id")
+        if isinstance(ht, int) and isinstance(at, int):
+            db.execute("UPDATE pes_matches SET home_team=?, away_team=? WHERE id=last_insert_rowid()", (ht, at))
+    feed(svc, f"Full time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "result",
+         [lv["home"], lv["away"]])
 
 
 def _manner(fn, *a):
@@ -266,7 +328,7 @@ def _left_match(svc, rid, lv, pid, wait):
             return                                    # back: still the same match
         _note_left(svc, lv, pid)
         feed(svc, f"Match ended early: {name_of(svc, pid)} disconnected", "warn", [lv["home"], lv["away"]])
-        st["live"].pop(rid, None)
+        _end(svc, rid)
     if not wait:
         return gone()
     import asyncio

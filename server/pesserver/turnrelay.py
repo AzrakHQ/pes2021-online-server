@@ -127,10 +127,11 @@ class Allocation:
 
     def renew(self):
         """A Refresh of the allocation also renews its live permissions and channels. The RFC has the client
-        renew those itself (CreatePermission within 5 minutes, ChannelBind within 10), but the game only ever
-        Refreshes the allocation (every 30 s). With the RFC timers alone, every relayed match broke 300 s after
-        its ChannelBind (live 2026-11-14: the relay stopped forwarding at bind + 300 s and both games reported
-        DISCONN_P2P 15 s later). Ones that have already run out stay gone."""
+        renew those itself (CreatePermission within 5 minutes, ChannelBind within 10). The game Refreshes the
+        allocation every 30 s and re-sends its ChannelBind only after ~570 s, and it never sends CreatePermission.
+        With the RFC timers alone, every relayed match broke 300 s after its ChannelBind (live 2026-11-14: the
+        relay stopped forwarding at bind + 300 s and both games reported DISCONN_P2P 15 s later; with this, a
+        full match ran). Ones that have already run out stay gone."""
         now = time.monotonic()
         self.permissions = {ip: max(exp, now + PERMISSION_LIFETIME)
                             for ip, exp in self.permissions.items() if exp > now}

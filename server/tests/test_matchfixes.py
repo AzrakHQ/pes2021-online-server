@@ -247,3 +247,127 @@ def test_cancel_after_a_pairing_sends_no_cancel(svc, monkeypatch):
     assert {body["matching_state"] for _, _, body in pushed} == {"FINISH"}
     pescmds._dispatch(svc, a, "CMD_CANCEL_MATCHING", {})
     assert all(body["matching_state"] == "FINISH" for _, _, body in pushed)
+
+
+def test_a_finished_match_stays_off_the_live_list(svc):
+    """Live 2026-11-14: after a dropped match the players' heartbeats (their newest room is still that one)
+    brought it back as "Pre-match", so the server looked busy forever. Its late result is still saved, once."""
+    from pesserver import hostctl
+    for pid, user in ((1, "u1"), (2, "u2")):
+        svc.accounts.db.execute("INSERT INTO pes_players(pid, username, name, created) VALUES(?,?,?,0)", (pid, user, user))
+    pesmatch._state(svc)["rooms"][1] = {"owner": 1, "members": [1, 2], "t": 0}
+    a, b = SimpleNamespace(pes_pid=1, peer_ip="10.0.0.1"), SimpleNamespace(pes_pid=2, peer_ip="10.0.0.2")
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+    for s in (a, b):
+        events.observe(svc, s, "CMD_SEND_ABNORMALEND", {"reason": "DISCONN_P2P"})
+    events.observe(svc, a, "CMD_LEAVE_ROOM", {"error_code": "GNCX_0003"})       # the first one out ends it
+    assert events.snapshot(svc)["live"] == [] and not hostctl.busy(svc)
+    for s in (a, b):                                                              # late results from both games
+        events.observe(svc, s, "CMD_SEND_GAME_RESULT", {"home_score": 0, "away_score": 1,
+                                                        "abnormalend_reason": "DISCONN_P2P"})
+    for s in (b, a, b):
+        events.observe(svc, s, "CMD_SEND_HEARTBEAT", {})
+        events.observe(svc, s, "CMD_LEAVE_ROOM", {"error_code": ""})
+    events.observe(svc, a, "CMD_SEND_HEARTBEAT", {})
+    assert events.snapshot(svc)["live"] == [] and not hostctl.busy(svc)
+    rows = svc.accounts.db.execute("SELECT home_score, away_score FROM pes_matches WHERE room=1").fetchall()
+    assert [tuple(r) for r in rows] == [(0, 1)]
+    # a new match of the same two players shows up as usual
+    pesmatch._state(svc)["rooms"][2] = {"owner": 2, "members": [2, 1], "t": 1}
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "DATASYNC"})
+    assert [lv["room"] for lv in events.snapshot(svc)["live"]] == [2] and hostctl.busy(svc)
+
+
+def test_a_normal_full_time_leaves_no_ghost_match(svc):
+    from pesserver import hostctl
+    for pid, user in ((1, "u1"), (2, "u2")):
+        svc.accounts.db.execute("INSERT INTO pes_players(pid, username, name, created) VALUES(?,?,?,0)", (pid, user, user))
+    pesmatch._state(svc)["rooms"][1] = {"owner": 1, "members": [1, 2], "t": 0}
+    a, b = SimpleNamespace(pes_pid=1, peer_ip="10.0.0.1"), SimpleNamespace(pes_pid=2, peer_ip="10.0.0.2")
+    for raw in ("1ST", "END"):
+        for s in (a, b):
+            events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": raw})
+    for s in (a, b):
+        events.observe(svc, s, "CMD_SEND_GAME_RESULT", {"home_score": 2, "away_score": 2})
+    for s in (a, b):
+        events.observe(svc, s, "CMD_LEAVE_ROOM", {"error_code": ""})
+    events.observe(svc, a, "CMD_SEND_HEARTBEAT", {})
+    assert events.snapshot(svc)["live"] == [] and not hostctl.busy(svc)
+    assert svc.accounts.db.execute("SELECT COUNT(*) FROM pes_matches").fetchone()[0] == 1
+
+
+def _players(svc, *pids):
+    for pid in pids:
+        svc.accounts.db.execute("INSERT INTO pes_players(pid, username, name, created) VALUES(?,?,?,0)", (pid, f"u{pid}", f"P{pid}"))
+    return [SimpleNamespace(pes_pid=pid, peer_ip=f"10.0.0.{pid}") for pid in pids]
+
+
+def _rows(svc):
+    return [tuple(r) for r in svc.accounts.db.execute(
+        "SELECT room, home_score, away_score, reason FROM pes_matches ORDER BY id").fetchall()]
+
+
+def test_a_late_result_never_touches_the_players_next_match(svc):
+    """A drops out of room 1, plays C in room 2; B's late room-1 result must not end room 2."""
+    a, b, c = _players(svc, 1, 2, 3)
+    rooms = pesmatch._state(svc)["rooms"]
+    rooms[1] = {"owner": 1, "members": [1, 2], "t": 0}
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+    events.observe(svc, a, "CMD_LEAVE_ROOM", {"error_code": "GNCX_0003"})
+    rooms[2] = {"owner": 1, "members": [1, 3], "t": 1}
+    for s in (a, c):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+    events.observe(svc, b, "CMD_SEND_GAME_RESULT", {"home_score": 0, "away_score": 2, "abnormalend_reason": "DISCONN_P2P"})
+    live = events.snapshot(svc)["live"]
+    assert [(lv["room"], lv["phase"]) for lv in live] == [(2, "1st half")]
+    events.observe(svc, a, "CMD_ADD_SCORE", {"goal_side": "HOME", "gtimer": 10})
+    assert events.snapshot(svc)["live"][0]["home_score"] == 1
+    assert _rows(svc) == [(1, 0, 2, "DISCONN_P2P")]
+
+
+def test_a_match_taken_as_over_too_early_comes_back(svc):
+    """A connection blink before kick-off ends the match at once; the next phase report brings it back,
+    with what it had (here the kick-off isn't lost)."""
+    a, b = _players(svc, 1, 2)
+    pesmatch._state(svc)["rooms"][1] = {"owner": 1, "members": [1, 2], "t": 0}
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "GAMELOAD"})
+    events._end(svc, 1)                                          # what _left_match / LEAVE_ROOM do
+    events.observe(svc, b, "CMD_SEND_HEARTBEAT", {})
+    assert events.snapshot(svc)["live"] == []
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+    live = events.snapshot(svc)["live"]
+    assert len(live) == 1 and live[0]["kickoff"] and "ended_at" not in live[0]
+
+
+def test_a_late_result_after_a_drop_belongs_to_the_dropped_match_not_the_rematch(svc):
+    a, b = _players(svc, 1, 2)
+    rooms = pesmatch._state(svc)["rooms"]
+    rooms[1] = {"owner": 1, "members": [1, 2], "t": 0}
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+    events.observe(svc, a, "CMD_LEAVE_ROOM", {"error_code": "GNCX_0003"})
+    rooms[2] = {"owner": 2, "members": [2, 1], "t": 1}              # the rematch, still in the menus
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "DATASYNC"})
+    events.observe(svc, b, "CMD_SEND_GAME_RESULT", {"home_score": 1, "away_score": 0, "abnormalend_reason": "DISCONN_P2P"})
+    from pesserver import hostctl
+    live = events.snapshot(svc)["live"]
+    assert [(lv["room"], lv["phase"] != "Full time") for lv in live] == [(2, True)]
+    assert not events._st(svc)["live"][2]["saved"]
+    assert hostctl.busy(svc)
+    for raw in ("1ST", "END"):
+        events.observe(svc, b, "CMD_CHANGE_GAMEPHASE", {"phase": raw})
+    events.observe(svc, a, "CMD_SEND_GAME_RESULT", {"home_score": 3, "away_score": 3})
+    assert _rows(svc) == [(1, 1, 0, "DISCONN_P2P"), (2, 3, 3, "")]
+
+
+def test_a_late_result_after_a_forfeit_adds_no_second_row(svc):
+    a, b = _players(svc, 1, 2)
+    room = pesmatch._state(svc)["rooms"][1] = {"owner": 1, "members": [1, 2], "t": 0}
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+    events.observe(svc, a, "CMD_LEAVE_ROOM", {"error_code": ""})
+    pesmatch._forfeit_row(svc, 1, room, 1, 0, 3, insert_if_missing=True)
+    events.observe(svc, b, "CMD_SEND_GAME_RESULT", {"home_score": 1, "away_score": 1, "abnormalend_reason": "DISCONN_P2P"})
+    assert _rows(svc) == [(1, 0, 3, "FORFEIT")]
