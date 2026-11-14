@@ -275,3 +275,18 @@ The run's facts:
 - Then SET_GAMERELAY_CHECK_RES / SEND_MATCHING_RESULT go out without MXNV_0013. Stop there.
 - If it is still silent, the local label is not host_addr. Swap the two labels, or use `0.0.0.1:9` / `240.0.0.1:9`
   as the low and high labels, and retry.
+
+## The 5-minute drop and the rematch that never connects (live, 2026-11-14) **[LIVE]**
+- First real WAN match over the relay (host on the LAN, friend on the internet). It dropped with `DISCONN_P2P`
+  (`GNCX_0003_0x20000000`) on both sides at the same moment, twice, each time **300 s after the ChannelBinds**.
+- Caught on the second run: the server's packets out to the far player fell from ~55/s to 0 between bind + 300.03 s
+  and bind + 300.29 s, while his packets kept coming in. Both games sent ABNORMALEND 15 s later.
+- Cause: the game sends one ChannelBind per side and after that **only Refreshes the allocation** (every 30 s,
+  LIFETIME 60). It never sends CreatePermission and never re-binds. Our relay used the RFC timers (permission 300 s,
+  channel 600 s), so the permission ran out mid-match and the relay dropped everything.
+- Fix (turnrelay.py `Allocation.renew`): every Refresh also renews the allocation's live permissions and channels.
+- Second symptom: a rematch ~90 s later got **the same relay ports** as the dead match (lowest free port first). Both
+  games published their TURN address, sent no ChannelBind, and quit after 15 s with `ER_MATCHING_RETRY`, then
+  ABNORMALEND `DEGRADE_SC` `EYRH1530`. The next try, on new ports, bound at once. The guess is that the game
+  still has the old peer address cached **[inferred]**. Fix: relay ports go out least-recently-freed first.
+- Both fixes are not yet tested in a match (the drop itself was caught live).

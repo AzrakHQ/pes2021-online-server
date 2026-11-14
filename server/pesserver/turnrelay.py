@@ -125,6 +125,18 @@ class Allocation:
         now = time.monotonic()
         return next((ch for ch, (p, exp) in self.channels.items() if p == peer and exp > now), None)
 
+    def renew(self):
+        """A Refresh of the allocation also renews its live permissions and channels. The RFC has the client
+        renew those itself (CreatePermission within 5 minutes, ChannelBind within 10), but the game only ever
+        Refreshes the allocation (every 30 s). With the RFC timers alone, every relayed match broke 300 s after
+        its ChannelBind (live 2026-11-14: the relay stopped forwarding at bind + 300 s and both games reported
+        DISCONN_P2P 15 s later). Ones that have already run out stay gone."""
+        now = time.monotonic()
+        self.permissions = {ip: max(exp, now + PERMISSION_LIFETIME)
+                            for ip, exp in self.permissions.items() if exp > now}
+        self.channels = {ch: (p, max(exp, now + CHANNEL_LIFETIME))
+                         for ch, (p, exp) in self.channels.items() if exp > now}
+
     def from_peer(self, data, peer):
         """Datagram for this client from `peer` (via UDP or handed over by another allocation)."""
         if not self.permitted(peer[0]) or self.conn is None:
@@ -167,6 +179,7 @@ class TurnServer:
         self.relay_ports = list(range(relay_ports[0], relay_ports[1] + 1))
         self.advertise, self.own_ips = advertise, set(own_ips)
         self.allocations = {}                               # relay port -> Allocation
+        self.freed = {}                                     # relay port -> when its last allocation went
         self.conns = {}                                     # client ip -> open TLS connections
         self.writers = set()                                # their writers (closed with the server)
         self.tickets = {}                                   # mobility ticket -> Allocation
@@ -210,6 +223,7 @@ class TurnServer:
 
     def _free(self, a):
         self.allocations.pop(a.port, None)
+        self.freed[a.port] = time.monotonic()
         if a.ticket:
             self.tickets.pop(a.ticket, None)
         a.close()
@@ -417,8 +431,11 @@ class _Conn:
         asyncio.get_running_loop().create_task(self._finish_allocate(tid, get, key, username, sock))
 
     def _bind(self):
-        """A UDP socket on a free relay port, or None."""
-        for port in [p for p in self.s.relay_ports if p not in self.s.allocations]:
+        """A UDP socket on a free relay port, or None. Unused ports first, then the one freed longest ago: a
+        rematch right after a dropped match must not get the dead match's relayed address back (live
+        2026-11-14: with the same address as before, both games skipped the ChannelBind and gave up after 15 s)."""
+        free = [p for p in self.s.relay_ports if p not in self.s.allocations]
+        for port in sorted(free, key=lambda p: self.s.freed.get(p, 0)):
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             try:
                 sock.bind(("0.0.0.0", port))
@@ -507,6 +524,7 @@ class _Conn:
             self.s._free(a)
         else:
             a.expires = time.monotonic() + lifetime
+            a.renew()
         self._reply(tid, build(REFRESH, SUCCESS, tid, out, key))
 
     def _peers(self, attrs):

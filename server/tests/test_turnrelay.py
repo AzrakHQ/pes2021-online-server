@@ -134,6 +134,73 @@ def test_relay_end_to_end(tmp_path):
     asyncio.run(go())
 
 
+async def _pair(tmp_path):
+    """A server and two clients, B with a channel 0x4001 to A's relayed address (what the game sets up)."""
+    turn._cert(str(tmp_path), ["127.0.0.1"])
+    srv = tr.TurnServer(SECRET, REALM, PORTS, lambda local, peer: "127.0.0.1", own_ips={"127.0.0.1"})
+    server = await srv.start("127.0.0.1", 0, str(tmp_path / "turn.crt"), str(tmp_path / "turn.key"))
+    port = server.sockets[0].getsockname()[1]
+    alloc = [(tr.A_REQUESTED_TRANSPORT, b"\x11\0\0\0"), (tr.A_LIFETIME, b"\0\0\0\x3c")]
+    a, b = await Client.connect(port), await Client.connect(port)
+    ma = await a.auth_request(tr.ALLOCATE, alloc, *creds(1))
+    mb = await b.auth_request(tr.ALLOCATE, alloc, *creds(2))
+    relay_a, relay_b = tr.unxor_addr(ma[3][tr.A_XOR_RELAYED]), tr.unxor_addr(mb[3][tr.A_XOR_RELAYED])
+    assert (await a.request(tr.CHANNEL_BIND, [(tr.A_CHANNEL_NUMBER, b"\x40\x01\0\0"),
+                                              (tr.A_XOR_PEER, tr.xor_addr(*relay_b))]))[2] == tr.SUCCESS
+    assert (await b.request(tr.CHANNEL_BIND, [(tr.A_CHANNEL_NUMBER, b"\x40\x01\0\0"),
+                                              (tr.A_XOR_PEER, tr.xor_addr(*relay_a))]))[2] == tr.SUCCESS
+    return srv, port, a, b, relay_a, relay_b
+
+
+async def _arrives(client, timeout=0.5):
+    try:
+        return await asyncio.wait_for(client.recv(), timeout)
+    except asyncio.TimeoutError:
+        return None
+
+
+def test_refresh_keeps_the_channels_of_a_long_match(tmp_path, monkeypatch):
+    """The game binds its channel once and then only Refreshes the allocation every 30 s. The channel and its
+    permission must last as long as those Refreshes do (a match is ~15 minutes; the RFC permission is 5)."""
+    monkeypatch.setattr(tr, "PERMISSION_LIFETIME", 1)
+    monkeypatch.setattr(tr, "CHANNEL_LIFETIME", 1)
+
+    async def go():
+        srv, _, a, b, _, _ = await _pair(tmp_path)
+        for _ in range(4):                                     # 2 s: twice the permission's lifetime
+            await asyncio.sleep(0.5)
+            for c in (a, b):
+                assert (await c.request(tr.REFRESH, [(tr.A_LIFETIME, b"\0\0\0\x3c")]))[2] == tr.SUCCESS
+        a.channel(0x4001, b"minute 80")
+        assert await _arrives(b) == ("channel", 0x4001, b"minute 80")
+        b.channel(0x4001, b"still here")
+        assert await _arrives(a) == ("channel", 0x4001, b"still here")
+
+        # without Refreshes they run out as before, and a late Refresh doesn't bring them back
+        await asyncio.sleep(1.2)
+        assert (await a.request(tr.REFRESH, [(tr.A_LIFETIME, b"\0\0\0\x3c")]))[2] == tr.SUCCESS
+        a.channel(0x4001, b"too late")
+        assert await _arrives(b) is None
+        srv.close()
+    asyncio.run(go())
+
+
+def test_a_rematch_gets_new_relay_ports(tmp_path):
+    """A relayed address freed by a dropped match isn't handed out again while other ports are free."""
+    async def go():
+        srv, port, a, b, relay_a, relay_b = await _pair(tmp_path)
+        for c in (a, b):                                       # the match ends: both allocations go
+            assert (await c.request(tr.REFRESH, [(tr.A_LIFETIME, b"\0\0\0\0")]))[2] == tr.SUCCESS
+        assert not srv.allocations
+        a2, b2 = await Client.connect(port), await Client.connect(port)
+        alloc = [(tr.A_REQUESTED_TRANSPORT, b"\x11\0\0\0")]
+        new = {tr.unxor_addr((await c.auth_request(tr.ALLOCATE, alloc, *creds(pid)))[3][tr.A_XOR_RELAYED])[1]
+               for c, pid in ((a2, 1), (b2, 2))}
+        assert len(new) == 2 and not new & {relay_a[1], relay_b[1]}
+        srv.close()
+    asyncio.run(go())
+
+
 def test_message_integrity_and_fingerprint_round_trip():
     key = tr.long_term_key("1:2", REALM, "pw")
     msg = tr.build(tr.ALLOCATE, tr.SUCCESS, b"x" * 12, [(tr.A_LIFETIME, b"\0\0\x02\x58")], key)
