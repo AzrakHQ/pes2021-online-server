@@ -371,3 +371,73 @@ def test_a_late_result_after_a_forfeit_adds_no_second_row(svc):
     pesmatch._forfeit_row(svc, 1, room, 1, 0, 3, insert_if_missing=True)
     events.observe(svc, b, "CMD_SEND_GAME_RESULT", {"home_score": 1, "away_score": 1, "abnormalend_reason": "DISCONN_P2P"})
     assert _rows(svc) == [(1, 0, 3, "FORFEIT")]
+
+
+def test_full_time_or_a_repeated_goal_does_not_bring_an_ended_match_back(svc):
+    """A left mid-match; B's own END report or the second copy of the last goal isn't the match going on, and
+    B's leave afterwards isn't a second early exit."""
+    from pesserver import hostctl
+    a, b = _players(svc, 1, 2)
+    pesmatch._state(svc)["rooms"][1] = {"owner": 1, "members": [1, 2], "t": 0}
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+    events.observe(svc, a, "CMD_ADD_SCORE", {"goal_side": "HOME", "gtimer": 500})
+    events.observe(svc, a, "CMD_LEAVE_ROOM", {"error_code": "GNCX_0003"})
+    events.observe(svc, b, "CMD_ADD_SCORE", {"goal_side": "HOME", "gtimer": 500})
+    events.observe(svc, b, "CMD_CHANGE_GAMEPHASE", {"phase": "END"})
+    events.observe(svc, b, "CMD_CHANGE_GAMEPHASE", {"phase": "MATCHMENU"})
+    assert events.snapshot(svc)["live"] == [] and not hostctl.busy(svc)
+    events.observe(svc, b, "CMD_LEAVE_ROOM", {"error_code": ""})
+    texts = [f["text"] for f in events._st(svc)["feed"]]
+    assert sum("ended early" in t for t in texts) == 1 and set(events._st(svc).get("leavers", {})) == {1}
+
+
+def test_a_revived_match_forgets_who_had_left(svc):
+    a, b = _players(svc, 1, 2)
+    pesmatch._state(svc)["rooms"][1] = {"owner": 1, "members": [1, 2], "t": 0}
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+    events.observe(svc, a, "CMD_LEAVE_ROOM", {"error_code": ""})            # a stray one: A plays on
+    assert set(events._st(svc)["leavers"]) == {1}
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST_15MIN"})
+    assert len(events.snapshot(svc)["live"]) == 1 and not events._st(svc)["leavers"]
+
+
+def test_a_late_result_of_a_full_time_match_skips_the_rematch(svc):
+    a, b = _players(svc, 1, 2)
+    rooms = pesmatch._state(svc)["rooms"]
+    rooms[1] = {"owner": 1, "members": [1, 2], "t": 0}
+    for raw in ("1ST", "END"):
+        for s in (a, b):
+            events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": raw})
+    events.observe(svc, a, "CMD_LEAVE_ROOM", {"error_code": ""})
+    rooms[2] = {"owner": 1, "members": [1, 2], "t": 1}
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "DATASYNC"})
+    events.observe(svc, b, "CMD_SEND_GAME_RESULT", {"home_score": 2, "away_score": 1})
+    assert _rows(svc) == [(1, 2, 1, "")] and not events._st(svc)["live"][2]["saved"]
+
+
+def test_a_match_cancelled_before_kick_off_takes_no_result(svc):
+    a, b = _players(svc, 1, 2)
+    rooms = pesmatch._state(svc)["rooms"]
+    rooms[1] = {"owner": 1, "members": [1, 2], "t": 0}
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "TEAMSELECT"})
+    events.observe(svc, b, "CMD_LEAVE_ROOM", {"error_code": ""})
+    rooms[2] = {"owner": 1, "members": [1, 2], "t": 1}
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "DATASYNC"})
+    events.observe(svc, a, "CMD_SEND_GAME_RESULT", {"home_score": 0, "away_score": 0, "abnormalend_reason": "DEGRADE_SC"})
+    assert _rows(svc) == [(2, 0, 0, "DEGRADE_SC")]
+
+
+def test_a_late_result_keeps_its_own_mode_when_the_room_is_gone(svc):
+    a, b = _players(svc, 1, 2)
+    rooms = pesmatch._state(svc)["rooms"]
+    rooms[1] = {"owner": 1, "members": [1, 2], "t": 0, "lobby_room": 7}
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+    events.observe(svc, a, "CMD_LEAVE_ROOM", {"error_code": ""})
+    del rooms[1]
+    rooms[2] = {"owner": 1, "members": [1, 2], "t": 1}
+    events.observe(svc, b, "CMD_SEND_GAME_RESULT", {"home_score": 1, "away_score": 1, "abnormalend_reason": "DISCONN_P2P"})
+    from pesserver.adminextra import LOBBY
+    assert svc.accounts.db.execute("SELECT room, mode FROM pes_matches").fetchall() == [(1, LOBBY)]

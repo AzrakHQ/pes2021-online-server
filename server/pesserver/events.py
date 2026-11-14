@@ -105,8 +105,8 @@ def _live(svc, rid, room):
     lv = _st(svc)["live"]
     if rid not in lv:
         home, away = room["owner"], next((p for p in room["members"] if p != room["owner"]), None)
-        for old_rid, old in list(lv.items()):        # a new pairing replaces an unfinished one
-            if {old["home"], old["away"]} & {home, away} and old["phase"] != "Full time":
+        for old_rid, old in list(lv.items()):        # a new pairing replaces the players' earlier one
+            if {old["home"], old["away"]} & {home, away}:
                 _end(svc, old_rid)
         lv[rid] = {"room": rid, "home": home, "away": away, "home_name": name_of(svc, home),
                    "away_name": name_of(svc, away) if away else "", "phase": "Pre-match", "raw_phase": "",
@@ -124,30 +124,61 @@ def _end(svc, rid):
     lv = st["live"].pop(rid, None)
     if lv is None:
         return
+    from . import pesmatch
     lv["ended_at"] = time.time()
+    lv["room_then"] = dict(pesmatch._state(svc)["rooms"].get(rid) or {})   # for a late result if it's pruned
     ended = st.setdefault("ended", {})
     ended[rid] = lv
     while len(ended) > 200:
         ended.pop(next(iter(ended)))
 
 
-STILL_PLAYING = ("CMD_CHANGE_GAMEPHASE", "CMD_ADD_SCORE")   # the match goes on: it was taken as ended too early
+NOT_PLAYING = {"", "DATASYNC", "TEAMSELECT", "MATCHMENU", "END"}
 LATE_RESULT = 180                                           # s after its end a match's result may still come
 
 
+def _still_playing(lv, msgid, req):
+    """A report that only a match in progress sends: it was taken as over too early (a connection blink, a
+    stray LEAVE_ROOM). Full time, the menus and the second copy of a goal already counted are not."""
+    if msgid == "CMD_CHANGE_GAMEPHASE":
+        return str(req.get("phase", "")) not in NOT_PLAYING
+    if msgid == "CMD_ADD_SCORE":
+        return (req.get("gtimer"), str(req.get("goal_side") or "").upper()) not in lv.get("goals_seen", [])
+    return False
+
+
+def _revive(svc, rid):
+    """Back on the live list as it was, minus what its end noted: who left, and the leaver notes for its result."""
+    st = _st(svc)
+    lv = st["live"][rid] = st["ended"].pop(rid)
+    lv.pop("ended_at", None); lv.pop("room_then", None)
+    for pid in lv.pop("left", set()):
+        x = st.get("leavers", {}).get(pid)
+        if x and x["pair"] == {lv["home"], lv["away"]} and x["kickoff"] == lv["kickoff"]:
+            st["leavers"].pop(pid, None)
+    return lv
+
+
 def _late_match(svc, pid, rid):
-    """(rid, record) of pid's previous match when a result can only be that one's: it ended a moment ago with no
-    result saved, and pid's newest match (a rematch) hasn't kicked off. The result has no match id."""
+    """(rid, record) of pid's previous match when a result can only be that one's: it was played, ended a moment
+    ago with no result saved, and pid's newest match (a rematch) hasn't kicked off. The result has no match id."""
     st = _st(svc)
     cur = st["live"].get(rid)
     if cur is not None and cur["kickoff"]:
         return None, None
     now = time.time()
-    for old_rid, old in sorted(st.get("ended", {}).items(), reverse=True):
-        if old_rid != rid and pid in (old["home"], old["away"]) and not old["saved"] \
-                and now - old.get("ended_at", 0) < LATE_RESULT:
+    for old_rid, old in reversed(st.get("ended", {}).items()):       # newest end first
+        if now - old.get("ended_at", 0) >= LATE_RESULT:
+            break
+        if old_rid != rid and pid in (old["home"], old["away"]) and old["kickoff"] and not old["saved"]:
             return old_rid, old
     return None, None
+
+
+def _old_room(svc, rid, lv):
+    from . import pesmatch
+    return pesmatch._state(svc)["rooms"].get(rid) or lv.get("room_then") or \
+        {"owner": lv["home"], "members": [lv["home"], lv["away"]], "t": 0}
 
 
 def _mode(room):
@@ -196,18 +227,15 @@ def observe(svc, sess, msgid, req):
         return
     st = _st(svc)
     if rid not in st["live"] and rid in st.get("ended", {}):
-        if msgid in STILL_PLAYING:
-            st["live"][rid] = st["ended"].pop(rid)
-            st["live"][rid].pop("ended_at", None)
-        elif msgid == "CMD_SEND_GAME_RESULT":
+        if msgid == "CMD_SEND_GAME_RESULT":
             return _result(svc, rid, room, st["ended"][rid], req)
-        else:
+        if not _still_playing(st["ended"][rid], msgid, req):
             return                                 # heartbeats, menus, more LEAVE_ROOMs: it stays over
+        _revive(svc, rid)
     elif msgid == "CMD_SEND_GAME_RESULT":
         old_rid, old = _late_match(svc, pid, rid)
         if old is not None:
-            from . import pesmatch
-            return _result(svc, old_rid, pesmatch._state(svc)["rooms"].get(old_rid) or room, old, req)
+            return _result(svc, old_rid, _old_room(svc, old_rid, old), old, req)
     lv = _live(svc, rid, room)
     side = "home" if pid == lv["home"] else "away"
     both = [lv["home"], lv["away"]]
