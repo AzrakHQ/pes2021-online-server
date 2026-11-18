@@ -50,6 +50,13 @@ def skip_port(port):
     PORTS = [(p, proto) for p, proto in PORTS if p != port]
 
 
+def use_ports(http, gate, stun, https=0, join=0, relay=7600):
+    """The ports this server was started on (PES_HTTP_PORT=8090 and the like): the ones the router has to open."""
+    global PORTS
+    wanted = [(join, "TCP"), (https, "TCP"), (http, "TCP"), (gate, "TCP"), (stun, "UDP"), (relay, "UDP")]
+    PORTS = list(dict.fromkeys(p for p in wanted if p[0]))
+
+
 def _ports():
     from . import turn
     return PORTS + turn.ports()
@@ -233,13 +240,18 @@ def _open_ports(gw):
     return got
 
 
+def _no_router(**why):
+    """The router is gone: what it had open for us no longer counts (admin page, banner, the link to share)."""
+    STATE.update(_gw=None, mapped=[], **why)
+
+
 def _find_router():
     """Find the UPnP router and open the ports (STATE: upnp, upnp_error, cgnat, mapped, _gw).
     Returns the router's public address, or None."""
     try:
         gw = discover_gateway()
         if gw is None:
-            STATE["upnp_error"] = "no UPnP router found (UPnP disabled on the router?)"
+            _no_router(upnp_error="no UPnP router found (UPnP disabled on the router?)")
             return None
         ext = gw.external_ip()
         STATE.update(upnp=gw.control_url, upnp_error=None, _gw=gw)
@@ -247,7 +259,7 @@ def _find_router():
         STATE["mapped"] = _open_ports(gw)
         return ext if ext and is_public(ext) else None
     except Exception as e:  # noqa: BLE001
-        STATE.update(upnp_error=str(e), _gw=None)
+        _no_router(upnp_error=str(e))
         return None
 
 
@@ -305,7 +317,7 @@ def _tick(use_upnp, due):
                 STATE["mapped"] = _open_ports(gw)       # (one that failed at first may open now)
             except OSError as e:                        # the router is gone or was replaced: look for it again
                 log.warning("UPnP renew: %s", e)
-                STATE["_gw"] = None
+                _no_router()
         if due["wan"]:
             ip = None
             if os.environ.get("PESSERVER_NO_IPCHECK") != "1":

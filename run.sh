@@ -56,5 +56,10 @@ elif [ -z "$latest" ]; then
   [ -x "$BIN" ] || { echo "Can't reach GitHub to download the server. Check the internet connection and run the line again."; exit 1; }
   echo "Couldn't check for a newer version (offline?); starting the version you have ($have)."
 fi
-if [ "${1:-}" = "--here" ]; then shift; exec "$BIN" host "$@"; fi   # in this terminal, even when the service is installed
+here=""; n=$#
+while [ "$n" -gt 0 ]; do                  # --here anywhere among the options
+  a="$1"; shift; n=$((n - 1))
+  if [ "$a" = "--here" ]; then here=1; else set -- "$@" "$a"; fi
+done
+if [ -n "$here" ]; then exec "$BIN" host "$@"; fi   # in this terminal, even when the service is installed
 exec "$BIN" install "$@"

@@ -7,7 +7,10 @@ log = logging.getLogger("pesserver.events")
 PHASES = {"DATASYNC": "Pre-match", "TEAMSELECT": "Pre-match", "MATCHMENU": "Pre-match",
           "GAMELOAD": "Loading", "ENTRY": "Walking out", "1ST": "1st half", "1ST_15MIN": "1st half",
           "1ST_30MIN": "1st half", "BREAK1": "Half-time", "2ND": "2nd half", "2ND_15MIN": "2nd half",
-          "2ND_30MIN": "2nd half", "END": "Full time"}
+          "2ND_30MIN": "2nd half", "BREAK2": "Break", "EX1ST": "Extra time", "BREAK3": "Break", "EX2ND": "Extra time",
+          "BREAK4": "Break", "PK": "Penalties", "END": "Full time"}
+LIVE_FIELDS = ("room", "home", "away", "home_name", "away_name", "phase", "raw_phase", "home_score", "away_score",
+               "started", "kickoff")                # what the admin page gets of a live match (the rest is bookkeeping)
 
 
 def _st(svc):
@@ -161,7 +164,8 @@ def _revive(svc, rid):
 
 def _late_match(svc, pid, rid):
     """(rid, record) of pid's previous match when a result can only be that one's: it was played, ended a moment
-    ago with no result saved, and pid's newest match (a rematch) hasn't kicked off. The result has no match id."""
+    ago, pid hasn't reported on it yet (both games send one, so the second copy comes after it was saved), and pid's
+    newest match (a rematch) hasn't kicked off. The result has no match id."""
     st = _st(svc)
     cur = st["live"].get(rid)
     if cur is not None and cur["kickoff"]:
@@ -170,7 +174,8 @@ def _late_match(svc, pid, rid):
     for old_rid, old in reversed(st.get("ended", {}).items()):       # newest end first
         if now - old.get("ended_at", 0) >= LATE_RESULT:
             break
-        if old_rid != rid and pid in (old["home"], old["away"]) and old["kickoff"] and not old["saved"]:
+        if old_rid != rid and pid in (old["home"], old["away"]) and old["kickoff"] \
+                and (not old["saved"] or pid not in old.get("reported", ())):
             return old_rid, old
     return None, None
 
@@ -228,14 +233,14 @@ def observe(svc, sess, msgid, req):
     st = _st(svc)
     if rid not in st["live"] and rid in st.get("ended", {}):
         if msgid == "CMD_SEND_GAME_RESULT":
-            return _result(svc, rid, room, st["ended"][rid], req)
+            return _result(svc, rid, room, st["ended"][rid], req, pid)
         if not _still_playing(st["ended"][rid], msgid, req):
             return                                 # heartbeats, menus, more LEAVE_ROOMs: it stays over
         _revive(svc, rid)
     elif msgid == "CMD_SEND_GAME_RESULT":
         old_rid, old = _late_match(svc, pid, rid)
         if old is not None:
-            return _result(svc, old_rid, _old_room(svc, old_rid, old), old, req)
+            return _result(svc, old_rid, _old_room(svc, old_rid, old), old, req, pid)
     lv = _live(svc, rid, room)
     side = "home" if pid == lv["home"] else "away"
     both = [lv["home"], lv["away"]]
@@ -264,8 +269,8 @@ def observe(svc, sess, msgid, req):
             lv[scorer.lower() + "_score"] += 1
             feed(svc, f"GOAL! {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "goal", both)
     elif msgid == "CMD_SEND_GAME_RESULT":
-        _result(svc, rid, room, lv, req)
-    elif msgid == "CMD_LEAVE_ROOM":
+        _result(svc, rid, room, lv, req, pid)
+    elif msgid in ("CMD_LEAVE_ROOM", "CMD_LEAVE_GAME"):     # (a Friendly Match Lobby match ends with LEAVE_GAME)
         lv.setdefault("left", set()).add(pid)
         if lv["phase"] != "Full time":
             if not lv["kickoff"]:
@@ -278,9 +283,10 @@ def observe(svc, sess, msgid, req):
             _end(svc, rid)
 
 
-def _result(svc, rid, room, lv, req):
-    """CMD_SEND_GAME_RESULT: both games send one; the first is saved. `lv` may be the record of a match already
-    taken off the live list (a late result)."""
+def _result(svc, rid, room, lv, req, pid):
+    """CMD_SEND_GAME_RESULT from pid: both games send one; the first is saved. `lv` may be the record of a match
+    already taken off the live list (a late result)."""
+    lv.setdefault("reported", set()).add(pid)
     hs, as_ = req.get("home_score"), req.get("away_score")
     if isinstance(hs, int) and isinstance(as_, int):
         lv["home_score"], lv["away_score"] = hs, as_
@@ -334,11 +340,17 @@ def disconnected(svc, sess):
     except Exception:  # noqa: BLE001
         pass
     for rid, lv in list(_st(svc)["live"].items()):
-        if pid in (lv["home"], lv["away"]) and lv["phase"] != "Full time":
-            kicked = getattr(sess, "kicked", False)
-            if not kicked:
-                _manner("dropped", svc, lv, pid)
-            _left_match(svc, rid, lv, pid, wait=bool(lv.get("kickoff")) and not kicked)
+        if pid not in (lv["home"], lv["away"]):
+            continue
+        if lv["phase"] == "Full time":                # it is over: this player just won't send a LEAVE any more
+            lv.setdefault("left", set()).add(pid)
+            if lv["left"] >= {lv["home"], lv["away"]}:
+                _end(svc, rid)
+            continue
+        kicked = getattr(sess, "kicked", False)
+        if not kicked:
+            _manner("dropped", svc, lv, pid)
+        _left_match(svc, rid, lv, pid, wait=bool(lv.get("kickoff")) and not kicked)
 
 
 BLINK = 16      # s a game gets to reconnect before its match counts as ended (just after pesmanner.DECIDE_AFTER)
@@ -426,7 +438,7 @@ def snapshot(svc):
     st = _st(svc)
     mm = pesmatch._state(svc)
     queued = {p for p, _ in mm["queue"]}
-    in_match = {p for lv in st["live"].values() for p in (lv["home"], lv["away"])}
+    in_match = {p for lv in st["live"].values() if lv["phase"] != "Full time" for p in (lv["home"], lv["away"])}
     now = time.time()
     online = [{"pid": pid, "name": name_of(svc, pid), "ip": getattr(s, "peer_ip", ""),
                "since": getattr(s, "connected_at", now),
@@ -467,7 +479,7 @@ def snapshot(svc):
                         "online": pid in svc.online, **rec, "form": list(rec["form"]),
                         "played_ever": (ever if ever is not None else table).get(pid, NO_RECORD)["played"],
                         "rating": rating, "streak": streak})
-    live = [{k: v for k, v in lv.items() if k not in ("left", "saved", "goals_seen")} for lv in st["live"].values()]
+    live = [{k: lv[k] for k in LIVE_FIELDS if k in lv} for lv in st["live"].values()]
     return {"now": now, "uptime": now - st["started"], "online": online, "searching": len(queued),
             "live": live, "played_total": played_total, "players": players,
             "season": season, "seasons": pesseason.past(svc), "deleted": pesundo.listing(svc),
@@ -516,7 +528,7 @@ def results_page(svc, q="", since=0, limit=25, until=None, early=False, mode=Non
     """Finished matches for the admin page's Results list: newest first, optionally only one player's
     (name contains q) or only those that kicked off in [since, until) (the same clock as the charts).
     Returns (rows, how many match in all)."""
-    q = str(q or "").strip().lower()
+    q = str(q or "").strip().casefold()
     where, args = ["COALESCE(started, ended) >= ?"], [float(since or 0)]
     if early:
         where.append("COALESCE(reason, '') != ''")
@@ -526,7 +538,7 @@ def results_page(svc, q="", since=0, limit=25, until=None, early=False, mode=Non
         where.append("COALESCE(mode, 'Quick Match') = ?"); args.append(str(mode))
     if q:
         like = "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
-        where.append("(LOWER(home_name) LIKE ? ESCAPE '\\' OR LOWER(away_name) LIKE ? ESCAPE '\\')")
+        where.append("(fold(home_name) LIKE ? ESCAPE '\\' OR fold(away_name) LIKE ? ESCAPE '\\')")
         args += [like, like]
     w = " WHERE " + " AND ".join(where)
     db = svc.accounts.db

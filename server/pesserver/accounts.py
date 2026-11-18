@@ -27,7 +27,12 @@ def once(setup):
     return run
 
 
+def _fold(text):
+    return text.casefold() if isinstance(text, str) else text
+
+
 class Accounts:
     def __init__(self, path=":memory:"):
         self.db = sqlite3.connect(path, check_same_thread=False, factory=Db)
+        self.db.create_function("fold", 1, _fold, deterministic=True)     # (SQLite's LOWER only knows A-Z)
         self.lock = threading.Lock()

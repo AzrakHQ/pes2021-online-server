@@ -134,18 +134,24 @@ def env_path(data):
     return os.path.join(data, "server.env")
 
 
+def _settings_lines(data):
+    """The lines of <data>/server.env. It may be edited by hand in any encoding: other bytes pass through unchanged."""
+    try:
+        with open(env_path(data), encoding="utf-8", errors="surrogateescape") as f:
+            return list(f)
+    except OSError:
+        return []
+
+
 def read_settings(data):
     """<data>/server.env as {name: value}, values as written (a hand-added SERVER_NAME=Rashad's Server or a path
     stays: only settings taken from the command line are checked before they are saved)."""
     name = lambda k: bool(k) and k.replace("_", "").isalnum() and not k[0].isdigit()
     out = {}
-    try:
-        for line in open(env_path(data), encoding="utf-8"):
-            k, eq, v = line.strip().partition("=")
-            if eq and name(k.strip()):
-                out[k.strip()] = v.strip()
-    except OSError:
-        pass
+    for line in _settings_lines(data):
+        k, eq, v = line.strip().partition("=")
+        if eq and name(k.strip()):
+            out[k.strip()] = v.strip()
     return out
 
 
@@ -155,11 +161,8 @@ def keep_settings(data):
     also lines the host added to the file by hand. ADMIN_PASSWORD goes where the server reads its password from,
     not into a file other programs list."""
     ok = lambda v: bool(v) and all(c.isalnum() or c in ".:-_" for c in v)
-    kept, notes = read_settings(data), []
-    try:                                             # (the host's own comments stay too)
-        notes = [ln.rstrip("\n") for ln in open(env_path(data), encoding="utf-8") if ln.lstrip().startswith("#")]
-    except OSError:
-        pass
+    kept = read_settings(data)
+    notes = [ln.rstrip("\n") for ln in _settings_lines(data) if ln.lstrip().startswith("#")]   # the host's own comments
     for k in KEPT:
         if k in os.environ:
             v = os.environ[k].strip()
@@ -170,7 +173,8 @@ def keep_settings(data):
     try:
         os.makedirs(data, exist_ok=True)
         tmp = env_path(data) + ".tmp"
-        with open(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w", encoding="utf-8") as f:
+        with open(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w", encoding="utf-8",
+                  errors="surrogateescape") as f:
             f.write("".join(f"{n}\n" for n in notes) + "".join(f"{k}={v}\n" for k, v in sorted(kept.items())))
         os.replace(tmp, env_path(data))
         from . import netsetup
@@ -564,6 +568,11 @@ def _start_update(svc, when):
         except OSError:
             pass
 
+    def start_again():
+        again = _CTL.pop("again", None)
+        if again:                               # "Update now" came while this one was still stopping
+            threading.Thread(target=update, args=(svc, again), name="self-update-again", daemon=True).start()
+
     def work():
         from . import updates
         try:
@@ -593,13 +602,12 @@ def _start_update(svc, when):
             drop_download()
             STATE.update(update="idle", error="")
             events.feed(svc, "The server update was cancelled", "info")
-            again = _CTL.pop("again", None)
-            if again:                           # "Update now" came while this one was still stopping
-                threading.Thread(target=update, args=(svc, again), name="self-update-again", daemon=True).start()
+            start_again()
         except Exception as e:  # noqa: BLE001  (offline, GitHub busy, disk full: say so on the admin page)
             log.warning("update failed: %s", e)
             drop_download()                     # (half a download, or one that failed its checks)
             STATE.update(update="error", error=str(e))
+            start_again()                       # (the cancelled download failed its checks: the new click still counts)
 
     _CTL["thread"] = threading.Thread(target=work, name="self-update", daemon=True)
     _CTL["thread"].start()

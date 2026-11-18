@@ -43,6 +43,7 @@ SINGLE_MAX = 0x3f7          # data bytes that fit one frame: 9-byte header + 0x3
 FIRST_CHUNK = 0x3f3         # 13-byte header + 0x3f3 = 0x400
 NEXT_CHUNK = 0x3fc          # 4-byte header + 0x3fc = 0x400
 FRAG_KINDS = {0x60: (0x70, 0x71, 0x72), 0x10: (0x20, 0x21, 0x22)}    # single kind -> first/middle/last
+MAX_INFLATED = 1 << 24      # bytes a message may unpack to (zlib turns 1 MB of zeros into 1 GB)
 
 
 
@@ -139,7 +140,11 @@ def encode_message(obj: dict, kind: int = KIND_EASY, seq: int = 1, compress: boo
 
 
 def _inflate(data: bytes, orig: int, comp: int) -> dict:
-    raw = zlib.decompress(data) if comp else data
+    raw = data
+    if comp:
+        raw = zlib.decompressobj().decompress(data, MAX_INFLATED + 1)
+        if len(raw) > MAX_INFLATED:
+            raise ProtocolError(f"message unpacks to more than {MAX_INFLATED} bytes")
     if len(raw) != orig:
         log.warning("original_size mismatch: header %d, got %d", orig, len(raw))
     # The client packs some binary payloads as msgpack *str*; keep them losslessly (surrogateescape).

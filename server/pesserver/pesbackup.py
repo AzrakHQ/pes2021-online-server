@@ -5,11 +5,16 @@ time, download it, or restore one from the admin page (Server, Backups). A backu
 hand (moving to a new computer) shows up in the list too. Restoring replaces the database in place, without a
 restart: everyone online is disconnected first and signs in again.
 """
-import asyncio, logging, os, re, sqlite3, time
+import asyncio, logging, os, re, sqlite3, time, urllib.parse
 
 log = logging.getLogger("pesserver.backup")
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}\.db$")
 KEEP_AUTO, EVERY = 7, 86400
+
+
+def _read_only(path):
+    """A backup opened for reading. (In a file: address, a #, ? or % in the data folder's path would mean something else.)"""
+    return sqlite3.connect(f"file:{urllib.parse.quote(path)}?mode=ro", uri=True)
 
 
 def folder(svc):
@@ -78,7 +83,7 @@ def make(svc, kind="manual"):
 def check(path):
     """Is this file a server database? Returns how many players and matches it holds; ValueError if not."""
     try:
-        src = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        src = _read_only(path)
         try:
             if src.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise ValueError("That backup file is damaged.")
@@ -102,7 +107,7 @@ def restore(svc, name):
         raise LookupError("That backup is gone.")
     found = check(path)
     make(svc, "before-restore")
-    src = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    src = _read_only(path)
     try:
         with svc.accounts.lock:
             svc.accounts.db.commit()

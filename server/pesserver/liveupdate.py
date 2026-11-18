@@ -27,6 +27,8 @@ VERSION_FILE = "common/etc/version/version_wu.bin"
 _CACHE = {}                                   # path -> (mtime, size, entry fields) | (mtime, size, None)
 _LOCK = threading.Lock()                      # one reader at a time (the thread, or a request that came first)
 _LAST = {}                                    # folder -> the last answer (given while the thread is reading a new file)
+_WATCHED = set()                              # folders the thread looks after: only it reads their new files
+_WAKE = threading.Event()                     # a request met a new or changed file: the thread looks now
 CHECK_EVERY = 30                              # s between the thread's looks at the folder
 
 
@@ -61,7 +63,10 @@ def current(svc, wait=False):
                     continue
     except OSError:
         return None
-    # The server's own loop never waits for the thread to finish reading a big file: it gets the last answer.
+    # The server's own loop never reads a big file, nor waits for the thread reading one: it gets the last answer.
+    if not wait and d in _WATCHED and not _known(files):
+        _WAKE.set()                           # (a replaced file fails the game's check until its new sum is ready)
+        return _LAST.get(d)
     if not _LOCK.acquire(blocking=wait):
         return _LAST.get(d)
     try:
@@ -71,8 +76,23 @@ def current(svc, wait=False):
         _LOCK.release()
 
 
+def _by_age(files):
+    return sorted(files, key=lambda x: x[0].st_mtime, reverse=True)
+
+
+def _known(files):
+    """The answer can be given without reading a file: no new or changed one comes before the file to offer."""
+    for st, path in _by_age(files):
+        c = _CACHE.get(path)
+        if c is None or c[:2] != (st.st_mtime, st.st_size):
+            return False
+        if c[2] is not None:
+            return True
+    return True
+
+
 def _newest(files):
-    for st, path in sorted(files, key=lambda x: x[0].st_mtime, reverse=True):
+    for st, path in _by_age(files):
         c = _CACHE.get(path)
         if c is None or c[:2] != (st.st_mtime, st.st_size):
             info = None
@@ -106,13 +126,16 @@ def entry(svc, base_url):
 
 def start(svc):
     """Background thread: keep the offered file's checksum ready, so no game request has to work it out."""
+    _WATCHED.add(folder(svc))
+
     def loop():
         while True:
             try:
                 current(svc, wait=True)
             except Exception:  # noqa: BLE001
                 log.exception("Live Update check")
-            time.sleep(CHECK_EVERY)
+            _WAKE.wait(CHECK_EVERY)
+            _WAKE.clear()
     t = threading.Thread(target=loop, name="liveupdate", daemon=True)
     t.start()
     return t

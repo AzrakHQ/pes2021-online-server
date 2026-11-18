@@ -1,6 +1,0 @@
-__pycache__
-*.pyc
-pesserver.db
-certs
-tests
-test_*.py

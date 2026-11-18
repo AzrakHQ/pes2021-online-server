@@ -2,12 +2,13 @@
 numbers stay unique, replay uploads don't fill the log, garbage on the wire is a short line (not a traceback),
 Divisions shows the real rating, a deleted competition leaves no "seen" marks, a recording cut by a restart is
 closed, only a logged-in connection can search or use rooms, a reconnect must come from the same install, old match
-rooms go, and table setup runs once."""
-import asyncio, os, struct, time
+rooms go, and table setup runs once. Also the 2026-11-18 review (at the end): what the open web API may do, limits on
+what strangers can send, a lobby match survives a blink, the router's ports and the relay's bookkeeping."""
+import asyncio, hashlib, os, struct, threading, time, zlib
 from types import SimpleNamespace
 import msgpack
 import pytest
-from pesserver import accounts, ncl, pescmds, pescoop, pesdivisions, pesmatch, pesreplay, pesrooms, pestourney  # noqa: F401
+from pesserver import accounts, announce, httpgate, ncl, netsetup, pescmds, pescoop, pesdivisions, pesmatch, pesmatchday, pesreplay, pesrooms, pestourney, turndtls, turnrelay  # noqa: F401
 from pesserver.accounts import Accounts
 from pesserver.protocol import ProtocolError
 from pesserver.service import Service
@@ -168,3 +169,325 @@ def test_table_setup_runs_once_per_database(svc):
     _setup(db); _setup(db)                                # so it is not remembered
     assert len(calls) == 4
     db.commit()
+
+
+# ---- 2026-11-18 ------------------------------------------------------------------------------------------
+def _web(svc, msgid, **form):
+    """A POST to the web API (port 8080, open to the internet): no connection, every value is text."""
+    return pescmds.dispatch(svc, None, msgid, {k: str(v) for k, v in form.items()})
+
+
+def test_the_web_api_cant_act_for_a_player(svc, monkeypatch):
+    sent = []
+    monkeypatch.setattr(pesmatch, "_send_later", lambda s, m, *a: sent.append(m))
+    _sess(svc, 1)
+    pesmatch._state(svc)["ntl"][1] = {"reflexive_addr": "home address"}
+    for m in ("CMD_SEND_NOTICE", "CMD_SEND_SYNC_NOTICE", "CMD_SEND_SYSTEM_NOTICE"):
+        assert _web(svc, m, pid_list="1", data="x")["result"] == "ERR_LOGIN_FAILED"
+    assert sent == []
+    assert "reflexive_addr" not in _web(svc, "CMD_GET_IPANDPORT_NTL", pid=1)
+    db = svc.accounts.db
+    assert _web(svc, "CMD_LOGIN", username="stranger")["result"] == "ERR_LOGIN_FAILED"
+    assert not db.execute("SELECT 1 FROM pes_players WHERE username='stranger'").fetchone()
+    assert _web(svc, "CMD_FINISH_SEASON")["result"] == "ERR_LOGIN_FAILED"
+    assert _web(svc, "CMD_JOIN_MATCHDAY", team_id=101, sp_gameplan_data="x" * 1000)["result"] == "ERR_LOGIN_FAILED"
+    assert pesdivisions._state(svc, 1) and pesmatchday._totals(svc) == {}
+    assert db.execute("SELECT COUNT(*) FROM pes_division").fetchone()[0] == 1      # only player 1's, just above
+
+
+def test_the_web_api_cant_name_a_player(svc):
+    announce.tell(svc, 1, "Private", "for player 1")
+    announce.set_news(svc, "News", "for everyone")
+    assert "announce_info_list" not in _web(svc, "CMD_GET_PRIVATEINFOTITLELIST", pid=1)
+    assert "is_announcement" not in _web(svc, "CMD_GET_URGENT_ANNOUNCEMENT", pid=1)
+    assert announce.snapshot(svc)["news"]["seen"] == 0
+    cid = pestourney.save(svc, {"name": "Cup"})
+    assert _web(svc, "CMD_JOIN_PESLEAGUE_COMPE", compe_id=cid, pid=1, team_id=8) == {"result": "NOERR"}
+    assert pestourney.entry(svc, cid, 1) is None
+    # a game on its own connection still gets its messages
+    assert "announce_info_list" in pescmds._dispatch(svc, _sess(svc, 1), "CMD_GET_PRIVATEINFOTITLELIST", {"pid": 1})
+
+
+def test_a_tiny_message_cant_unpack_into_gigabytes():
+    with pytest.raises(ProtocolError):
+        ncl._inflate(zlib.compress(b"\0" * (ncl.MAX_INFLATED + 1)), 10, 1)
+    assert ncl._inflate(zlib.compress(msgpack.packb({"a": 1})), 3, 1) == {"a": 1}
+
+
+def test_a_request_that_never_sends_its_body_is_dropped(svc, monkeypatch):
+    monkeypatch.setattr(httpgate, "BODY_WAIT", 0.05)
+
+    async def go():
+        srv = await asyncio.start_server(httpgate.make_handler(svc, "127.0.0.1", 0, 0), "127.0.0.1", 0)
+        r, w = await asyncio.open_connection(*srv.sockets[0].getsockname()[:2])
+        w.write(b"POST / HTTP/1.1\r\nContent-Length: 100\r\n\r\n")
+        assert await asyncio.wait_for(r.read(), 2) == b""             # closed, not kept open for ever
+        w.close(); srv.close()
+    asyncio.run(go())
+
+
+def _lobby_match(svc):
+    a, b = _sess(svc, 1), _sess(svc, 2)
+    d = lambda s, m, r=None: pescmds._dispatch(svc, s, m, r or {})
+    rid = d(a, "CMD_CREATEJOIN_ROOM", {"name": "R"})["room_id"]
+    d(b, "CMD_JOIN_ROOM_NTL", {"room_id": rid})
+    for s in (a, b):
+        d(s, "CMD_ENTRY_GAME", {"entry": "TRUE"})
+    d(a, "CMD_SET_GAMEMEMBER")
+    return a, b, pesrooms._st(svc)["rooms"][rid]
+
+
+def test_a_blink_during_a_lobby_match_keeps_the_room(svc, monkeypatch):
+    monkeypatch.setattr(pesmatch, "GONE_AFTER", 0.02)
+
+    async def go():
+        a, b, room = _lobby_match(svc)
+        pesrooms.disconnected(svc, b)
+        del svc.online[2]
+        assert room["members"] == [1, 2]
+        _sess(svc, 2, pes_reconnected=True)              # the game's CMD_RECONNECT: a new connection
+        await asyncio.sleep(0.05)
+        assert room["members"] == [1, 2]                 # both come back to the room after the match
+        pesrooms.disconnected(svc, a)                    # the owner's game is really gone
+        del svc.online[1]
+        await asyncio.sleep(0.05)
+        assert room["members"] == [2] and room["owner"] == 2
+    asyncio.run(go())
+
+
+def test_a_kicked_player_leaves_the_room_at_once(svc, monkeypatch):
+    monkeypatch.setattr(pesmatch, "GONE_AFTER", 60)
+
+    async def go():
+        _a, b, room = _lobby_match(svc)
+        b.kicked = True
+        pesrooms.disconnected(svc, b)
+        assert room["members"] == [1]
+    asyncio.run(go())
+
+
+def test_a_delayed_push_doesnt_bring_a_closed_room_back(svc, monkeypatch):
+    sent = []
+    monkeypatch.setattr(pesmatch, "_send_later", lambda s, m, r, k, q, body: sent.append(body["list_type"]))
+    a, b = _sess(svc, 1), _sess(svc, 2)
+    pescmds._dispatch(svc, b, "CMD_REQWATCHL_ROOMLIST", {})
+    room = {"id": 99, "members": []}
+    pesrooms.roomlist_push(svc, room, "ADD")             # (it closed before its ADD went out)
+    pesrooms.roomlist_push(svc, room, "UPDATE")
+    assert sent == []
+    pesrooms.roomlist_push(svc, room, "DEL")
+    assert sent == ["DEL"]
+
+
+def test_the_router_opens_the_ports_the_server_really_uses(monkeypatch):
+    monkeypatch.setattr(netsetup, "PORTS", list(netsetup.PORTS))
+    netsetup.use_ports(8090, 10001, 3479, https=0, join=8090, relay=7601)
+    assert netsetup.PORTS == [(8090, "TCP"), (10001, "TCP"), (3479, "UDP"), (7601, "UDP")]
+
+
+@pytest.mark.parametrize("how", ["none found", "no answer"])
+def test_ports_arent_called_open_once_the_router_is_gone(monkeypatch, how):
+    monkeypatch.setattr(netsetup, "STATE", {**netsetup.STATE, "lan": "192.168.1.5", "wan": None, "_gw": object(),
+                                            "mapped": ["8080/tcp"], "upnp_error": None})
+    monkeypatch.setattr(netsetup, "lan_ip", lambda: "192.168.1.5")
+    if how == "none found":
+        monkeypatch.setattr(netsetup, "discover_gateway", lambda: None)
+        netsetup._find_router()
+    else:
+        def silent(gw):
+            raise OSError("no route")
+        monkeypatch.setattr(netsetup, "_open_ports", silent)
+        netsetup._tick(True, {"renew": True, "wan": False, "find": False})
+    assert netsetup.STATE["mapped"] == [] and netsetup.STATE["_gw"] is None
+
+
+class _Tr:
+    def close(self):
+        self.closed = True
+
+
+def _alloc(srv, port, conn=None):
+    a = turnrelay.Allocation(srv, conn, port, _Tr(), "127.0.0.1", "9:1", b"k")
+    srv.allocations[port] = a
+    return a
+
+
+def test_an_expired_allocation_lets_go_of_its_connection_and_port():
+    srv = turnrelay.TurnServer("s", "r", (51400, 51401), lambda *_: "127.0.0.1")
+    conn = SimpleNamespace(alloc=None)
+    old = conn.alloc = _alloc(srv, 51400, conn)
+    srv._free(old)                                       # what the sweep does when its time is up
+    assert conn.alloc is None                            # so Refresh says 437 and the game allocates again
+    new = _alloc(srv, 51400)                             # the port goes to someone else
+    srv._free(old)                                       # the old connection ends only now
+    assert srv.allocations[51400] is new
+
+
+def test_an_empty_dtls_message_is_ignored():
+    got = []
+    turndtls._Assoc.handle(SimpleNamespace(conn=SimpleNamespace(stun=got.append)), turndtls.TYPE_PLAIN)
+    assert got == []
+
+
+# ---- round 3 of the 2026-11-18 review ----------------------------------------------------------------------
+def test_the_web_api_does_not_hand_out_a_rooms_addresses(svc):
+    a = _sess(svc, 1)
+    pescmds._dispatch(svc, a, "CMD_SEND_IPANDPORT_NTL", {"reflexive_addr": "HIS-ADDRESS"})
+    rid = pescmds._dispatch(svc, a, "CMD_CREATEJOIN_ROOM", {"name": "R"})["room_id"]
+    r = pescmds._dispatch(svc, None, "CMD_REQWATCHL_ROOMPLAYERLIST_NTL", {"room_id": str(rid)})
+    assert r == {"result": "ERR_LOGIN_FAILED"}
+    assert pescmds._dispatch(svc, a, "CMD_REQWATCHL_ROOMPLAYERLIST_NTL", {"room_id": rid})["list_num"] == 1
+
+
+def test_a_new_sign_in_during_a_lobby_match_does_not_leave_a_ghost_in_the_room(svc, monkeypatch):
+    monkeypatch.setattr(pesmatch, "GONE_AFTER", 0.02)
+
+    async def go():
+        a, b, room = _lobby_match(svc)
+        pesrooms.disconnected(svc, b)
+        del svc.online[2]
+        _sess(svc, 2)                                    # a full sign-in, not CMD_RECONNECT
+        await asyncio.sleep(0.05)
+        assert room["members"] == [1]
+        pescmds._dispatch(svc, a, "CMD_LEAVE_GAME", {})
+        assert room["state"] == "WAITING"                # the friend isn't left waiting for the one who went
+    asyncio.run(go())
+
+
+def test_a_new_sign_in_keeps_the_room_it_made_meanwhile(svc, monkeypatch):
+    monkeypatch.setattr(pesmatch, "GONE_AFTER", 0.02)
+
+    async def go():
+        _a, b, room = _lobby_match(svc)
+        pesrooms.disconnected(svc, b)
+        del svc.online[2]
+        b2 = _sess(svc, 2)
+        rid = pescmds._dispatch(svc, b2, "CMD_CREATEJOIN_ROOM", {"name": "New"})["room_id"]
+        await asyncio.sleep(0.05)
+        assert pesrooms.room_of(svc, 2)["id"] == rid and room["members"] == [1]
+    asyncio.run(go())
+
+
+def test_a_recording_survives_a_blink_and_ends_when_the_player_is_gone(svc, monkeypatch):
+    monkeypatch.setattr(pesmatch, "GONE_AFTER", 0.02)
+    closed = []
+    monkeypatch.setattr(pesreplay, "close", lambda _s, mid, why: closed.append(mid))
+    monkeypatch.setattr(pesreplay, "_live", {"m1": {"uploader": 1, "home": 1, "away": 2}})
+
+    async def go():
+        pesreplay.disconnected(svc, 1)
+        _sess(svc, 1, pes_reconnected=True)
+        await asyncio.sleep(0.05)
+        assert closed == []
+        del svc.online[1]
+        pesreplay.disconnected(svc, 1)
+        await asyncio.sleep(0.05)
+        assert closed == ["m1"]
+    asyncio.run(go())
+
+
+# ---- round 4 of the 2026-11-18 review ----------------------------------------------------------------------
+def test_a_second_blink_gets_its_own_wait_for_the_room_and_the_recording(svc, monkeypatch):
+    closed = []
+    monkeypatch.setattr(pesreplay, "close", lambda _s, mid, why: closed.append(mid))
+    monkeypatch.setattr(pesreplay, "_live", {"m1": {"uploader": 2, "home": 1, "away": 2}})
+    monkeypatch.setattr(pesreplay, "_away", {})
+    monkeypatch.setattr(pesmatch, "GONE_AFTER", 0.4)
+
+    def drop(s):
+        pesrooms.disconnected(svc, s)
+        pesreplay.disconnected(svc, 2)
+        del svc.online[2]
+
+    async def go():
+        _a, b, room = _lobby_match(svc)
+        drop(b)
+        await asyncio.sleep(0.2)
+        drop(_sess(svc, 2, pes_reconnected=True))        # back, and gone again halfway through the first wait
+        await asyncio.sleep(0.25)                        # the first wait is over, the second isn't
+        assert room["members"] == [1, 2] and closed == []
+        _sess(svc, 2, pes_reconnected=True)
+        await asyncio.sleep(0.25)
+        assert room["members"] == [1, 2] and closed == []
+    asyncio.run(go())
+
+
+def test_a_new_live_update_file_is_never_read_on_the_servers_loop(svc, monkeypatch):
+    from pesserver import liveupdate
+    monkeypatch.setattr(liveupdate, "_CACHE", {})
+    monkeypatch.setattr(liveupdate, "_LAST", {})
+    monkeypatch.setattr(liveupdate, "_WATCHED", {liveupdate.folder(svc)})
+    read = []
+    monkeypatch.setattr(liveupdate, "_version", lambda path: read.append(path) or "102")
+    os.makedirs(liveupdate.folder(svc))
+    path = os.path.join(liveupdate.folder(svc), "new.cpk")
+    open(path, "wb").write(b"x" * 10)
+    assert liveupdate.current(svc) is None and read == []          # (what a game or the admin page asks)
+    assert liveupdate.current(svc, wait=True)[0] == path           # the background thread's turn
+    read.clear()
+    assert liveupdate.current(svc)[0] == path and read == []
+    open(path, "ab").write(b"y")                                   # still being copied in: not read here either
+    assert liveupdate.current(svc)[0] == path and read == []
+
+
+def test_a_replaced_live_update_file_gets_its_new_checksum_at_once(svc, monkeypatch):
+    from pesserver import liveupdate
+    monkeypatch.setattr(liveupdate, "_CACHE", {})
+    monkeypatch.setattr(liveupdate, "_LAST", {})
+    monkeypatch.setattr(liveupdate, "_WATCHED", set())
+    monkeypatch.setattr(liveupdate, "_WAKE", threading.Event())
+    monkeypatch.setattr(liveupdate, "CHECK_EVERY", 60)             # (the thread's own round can't be what finds it)
+    monkeypatch.setattr(liveupdate, "_version", lambda path: "102")
+    os.makedirs(liveupdate.folder(svc))
+    path = os.path.join(liveupdate.folder(svc), "roster.cpk")
+
+    def offered(data):
+        want, end = hashlib.sha256(data).hexdigest(), time.monotonic() + 5
+        while time.monotonic() < end:
+            cur = liveupdate.current(svc)
+            if cur and cur[1]["hash"] == want:
+                return True
+            time.sleep(0.01)
+        return False
+    open(path, "wb").write(b"old")
+    liveupdate.start(svc)
+    assert offered(b"old")
+    open(path, "wb").write(b"the new roster")
+    assert offered(b"the new roster")
+
+
+def test_backups_work_in_a_folder_with_a_hash_in_its_name(tmp_path):
+    from pesserver import pesbackup
+    d = tmp_path / "server #1 100%"
+    d.mkdir()
+    s = Service(Accounts(str(d / "a.db")))
+    s.data_dir = str(d)
+    pescmds._db(s)
+    assert pesbackup.restore(s, pesbackup.make(s)["name"])["players"] == 0
+
+
+def test_results_search_ignores_case_in_every_alphabet(svc):
+    from pesserver import events
+    events._st(svc)
+    db = svc.accounts.db
+    with svc.accounts.lock, db:
+        db.execute("INSERT INTO pes_matches(room, started, ended, home_name, away_name) VALUES(1, 1, 2, 'Émile', 'ÖZIL')")
+    assert events.results_page(svc, "émile")[1] == 1 and events.results_page(svc, "ÉMILE")[1] == 1
+    assert events.results_page(svc, "özil")[1] == 1 and events.results_page(svc, "100%")[1] == 0
+
+
+def test_the_coop_block_list_needs_a_logged_in_player(svc):
+    r = pescmds._dispatch(svc, SimpleNamespace(), "CMD_SET_COOP_REJECT", {"set_reject_pid_list": [1, 2]})
+    assert r["reject_list_num"] == 0
+    pescoop.rejects(svc, 1)                              # (makes the table)
+    assert svc.accounts.db.execute("SELECT COUNT(*) FROM pes_coop_reject").fetchone()[0] == 0
+
+
+def test_a_relative_data_folder_becomes_absolute(monkeypatch, tmp_path):
+    from pesserver import __main__ as m, hostctl
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("sys.argv", ["pesserver", "open", "--data", "rel"])
+    seen = []
+    monkeypatch.setattr(hostctl, "cmd_open", seen.append)
+    m.main()
+    assert seen[0].data == str(tmp_path / "rel")

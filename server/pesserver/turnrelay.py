@@ -223,10 +223,13 @@ class TurnServer:
                 self._free(a)
 
     def _free(self, a):
-        self.allocations.pop(a.port, None)
-        self.freed[a.port] = time.monotonic()
-        if a.ticket:
-            self.tickets.pop(a.ticket, None)
+        if self.allocations.get(a.port) is a:               # (its port may be a newer allocation's by now)
+            del self.allocations[a.port]
+            self.freed[a.port] = time.monotonic()
+        if self.tickets.get(a.ticket) is a:
+            del self.tickets[a.ticket]
+        if a.conn is not None and a.conn.alloc is a:        # its client now gets 437 and allocates again
+            a.conn.alloc = None
         a.close()
 
     def may_send(self, ip):
@@ -260,8 +263,6 @@ class TurnServer:
             return False
         a = min(idle, key=lambda a: a.expires) if idle else min(own, key=lambda a: a.born)
         log.info("TURN allocation %d freed early (%s)", a.port, a.username)
-        if a.conn is not None:
-            a.conn.alloc = None
         self._free(a)
         return True
 

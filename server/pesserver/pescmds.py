@@ -514,16 +514,25 @@ def dispatch(svc, sess, msgid, req):
     return resp
 
 
-# Commands that put the caller in a queue, a room or a chat: only for a connection that has logged in. (The web
-# API has no connection at all, and port 8080 is open to the internet.)
+# Commands that act for a player (a queue, a room, a chat, a message to another game, a player's addresses, their
+# season or Matchday entry): only for a connection that has logged in. (The web API has no connection at all, and
+# port 8080 is open to the internet.)
 NEEDS_PLAYER = frozenset("CMD_" + c for c in (
     "START_MATCHING WATCH_MATCHING CANCEL_MATCHING START_COOP_MATCHING CANCEL_COOP_MATCHING JOIN_LOBBY LEAVE_LOBBY "
     "CREATEJOIN_ROOM JOIN_ROOM_NTL LEAVE_ROOM ENTRY_GAME LEAVE_GAME SET_GAMEMEMBER SET_GAMEENV SET_ROOM_OPTION "
-    "REQWATCHL_ROOMLIST SEND_TEXTCHAT").split())
+    "REQWATCHL_ROOMLIST REQWATCHL_ROOMPLAYERLIST_NTL SEND_TEXTCHAT SEND_NOTICE SEND_SYNC_NOTICE SEND_SYSTEM_NOTICE "
+    "SEND_IPANDPORT_NTL "
+    "GET_IPANDPORT_NTL FINISH_SEASON JOIN_MATCHDAY").split())
+
+
+def player_of(sess, req):
+    """Whose command this is: the connection's player. The pid in the request counts only on a game connection:
+    the web API has none, and anyone can post any pid to it."""
+    return getattr(sess, "pes_pid", None) or (req.get("pid") if sess is not None else None)
 
 
 def _dispatch(svc, sess, msgid, req):
-    if msgid in NEEDS_PLAYER and getattr(sess, "pes_pid", None) is None:
+    if (msgid in NEEDS_PLAYER and getattr(sess, "pes_pid", None) is None) or (msgid == "CMD_LOGIN" and sess is None):
         log.warning("%s refused: not logged in", msgid)
         return {"result": "ERR_LOGIN_FAILED"}
     fn = HANDLERS.get(msgid)

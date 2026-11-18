@@ -26,7 +26,7 @@ The rating is also the co-op "courtesy rating" (pescoop).
 import logging, time
 
 from .accounts import once
-from .pescmds import NOERR, cmd, _db
+from .pescmds import NOERR, cmd, _db, player_of
 
 log = logging.getLogger("pesserver.manner")
 
@@ -129,7 +129,7 @@ def _schedule(svc, lv):
                 pesmatch.forfeit(svc, lv.get("room"), next(iter(marked)))
             except Exception:  # noqa: BLE001 - must never break the server
                 log.exception("forfeit")
-        else:
+        elif not marked:                         # (both left early: no forfeit, and no normal result either)
             try:
                 pesmatch.verdict_after_quit_check(svc, lv.get("room"), room)
             except Exception:  # noqa: BLE001
@@ -201,7 +201,7 @@ def warning(svc, pid):
 
 @cmd("CMD_GET_MANNER_WARN")
 def get_manner_warn(svc, sess, req):
-    pid = getattr(sess, "pes_pid", None) or req.get("pid")      # the session's own player first
+    pid = player_of(sess, req)
     if not isinstance(pid, int):
         return {"result": NOERR}
     kind = warning(svc, pid)

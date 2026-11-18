@@ -280,3 +280,36 @@ def test_a_blink_just_before_full_time_still_gets_the_verdict(svc, monkeypatch):
     assert "forfeit" not in rooms[5] and rooms[5]["verdict"]["winner_side"] == "WINNER_HOME"
     assert sorted(sent) == [(1, "CMD_WATCH_GAMEADDPOINT"), (2, "CMD_WATCH_GAMEADDPOINT")]
     assert db.execute("SELECT rating FROM pes_players WHERE pid=1").fetchone()[0] > 1000
+
+
+def test_the_verdict_comes_when_the_blinking_game_never_reported_full_time(svc, monkeypatch):
+    db = svc.accounts.db
+    for pid in (1, 2):
+        db.execute("INSERT INTO pes_players(pid, username, name, created) VALUES(?,?,?,0)", (pid, f"u{pid}", f"P{pid}"))
+    pushed = []
+    monkeypatch.setattr(pesmatch, "_send_later", lambda s, msgid, *a: pushed.append((s.pes_pid, msgid)))
+    a, b = SimpleNamespace(pes_pid=1, connected_at=1.0), SimpleNamespace(pes_pid=2, connected_at=1.0)
+    svc.online.update({1: a, 2: b})
+    room = pesmatch._state(svc)["rooms"][5] = {"owner": 1, "members": [1, 2], "t": 0}
+    for s in (a, b):
+        pescmds.dispatch(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST", "gtimer": 1})
+    lv = events._st(svc)["live"][5]
+    events.disconnected(svc, a); svc.online.pop(1)
+    pescmds.dispatch(svc, b, "CMD_CHANGE_GAMEPHASE", {"phase": "END", "gtimer": 2})     # A's END is lost with its line
+    assert pescmds.dispatch(svc, SimpleNamespace(), "CMD_RECONNECT", {"pid": 1})["result"] == "NOERR"
+    lv["forfeit_decide"]()
+    assert room.get("verdict") and "forfeit" not in room and (2, "CMD_WATCH_GAMEADDPOINT") in pushed
+
+
+def test_a_restored_player_gets_no_warning_for_old_exits(svc):
+    from pesserver import pesmanner, pesundo
+    db = svc.accounts.db
+    db.execute("INSERT INTO pes_players(pid, username, name, created) VALUES(1,'u1','P1',0)")
+    db.execute("INSERT INTO pes_players(pid, username, name, created) VALUES(2,'u2','P2',0)")
+    pesmanner._add(svc, 1, True, "EXIT")
+    assert pesmanner.warning(svc, 1) == "DOWN_B"
+    did = pesundo.capture(svc, 1)
+    pescmds.purge_player(svc, 1)
+    pesmanner._add(svc, 2, False)                                    # the old row's number is taken meanwhile
+    pesundo.restore(svc, did)
+    assert pesmanner.warning(svc, 1) is None

@@ -183,6 +183,8 @@ def get_coop_reject_list(svc, sess, req):
 def set_coop_reject(svc, sess, req):
     """{set_reject_pid_list, unset_reject_pid_list}: add / remove players; the reply is the new list."""
     pid = _pid(sess)
+    if not isinstance(pid, int):
+        return {"result": NOERR, "reject_list": [], "reject_list_num": 0}
     add = [t for t in req.get("set_reject_pid_list") or [] if isinstance(t, int) and t != pid]
     drop = [t for t in req.get("unset_reject_pid_list") or [] if isinstance(t, int)]
     db = pescmds._db(svc)

@@ -78,7 +78,7 @@ Requires Python 3.10+.
 ```bash
 pip install msgpack cryptography pyopenssl
 cd server
-sh mod/build.sh mod/dinput8.dll          # the mod (needs gcc-mingw-w64-x86-64); optional
+sh mod/build.sh                          # the mod, mod/dinput8.dll (needs gcc-mingw-w64-x86-64); optional
 python3 -m pesserver --data data         # same as the downloaded program: banner, admin page, feed
 ```
 
@@ -122,7 +122,7 @@ Environment variables:
 Given on the install line (`curl … | UPNP=0 sh`), `PUBLIC_IP`, `UPNP`, `TURN`, `UPDATE_CHECK`, `AUTO_MOD`, `REPLAYS`,
 `BACKUPS` and `PESSERVER_NO_IPCHECK` are saved in `<data>/server.env` and the background service keeps using them; a
 later run changes only the ones it names, and one given empty (`curl … | PUBLIC_IP= sh`) is forgotten. Lines you add
-to that file yourself (for example `PES_HTTP_PORT=8090`) stay. `ADMIN_PASSWORD` is saved as `<data>/admin_password`.
+to that file yourself (for example `SERVER_NAME=Friday Football`) stay. `ADMIN_PASSWORD` is saved as `<data>/admin_password`.
 
 ## Online Tournament competitions
 

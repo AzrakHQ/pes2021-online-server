@@ -2007,7 +2007,7 @@ function renderProgram() {
   put("cmds", upd + where + sw + ctl + logs + repair);
 }
 async function progCall(path, body, done) {
-  try { prog = await api(path, {method: "POST", body: JSON.stringify(body || {}), timeout: 10000}); renderProgram(); if (last && last.server.update) paintUpdateBanner(); if (done) toast(done); return true; }
+  try { prog = await api(path, {method: "POST", body: JSON.stringify(body || {}), timeout: 15000}); renderProgram(); if (last && last.server.update) paintUpdateBanner(); if (done) toast(done); return true; }
   catch (err) { if (err.status === 401) { signedOut(); return false; } toast(err.message && err.message !== "failed" ? err.message : "That didn't work. Try again.", true); return false; }
 }
 document.addEventListener("click", async e => {
@@ -2244,7 +2244,7 @@ async function loadGames(force, focusMsg, focusKey) {
   try { gs = await api("/admin/api/games"); } catch (e) {
     if (e.status === 401) return signedOut();
     if (!$("thispc").hidden) put("games", `<p class="empty">Couldn't check this PC's games right now. This page will try again.</p>`);
-    else if (!gamesRetry) { gamesRetry = true; setTimeout(() => loadGames(), 3000); }
+    else if (!gamesRetry) { gamesRetry = true; setTimeout(() => { gamesRetry = false; loadGames(); }, 3000); }
     return;
   }
   lastGames = gs;
@@ -2422,7 +2422,7 @@ document.addEventListener("click", async e => {
     return; }
   const mc = e.target.closest("[data-monthly]");
   if (mc) { const on = mc.dataset.monthly === "1"; mc.disabled = true;
-    await tnCall("/admin/api/tourneys/monthly", {on}, on ? "A Friends Cup starts each month when none of yours is on." : "No more monthly Friends Cups. A cup that's running now keeps going; end or delete it above."); return; }
+    await tnCall("/admin/api/tourneys/monthly", {on}, on ? "A Friends Cup starts each month when none of yours is on." : "No more monthly Friends Cups. A cup that's running now keeps going; end or delete it above."); mc.disabled = false; return; }
   const rms = e.target.closest("[data-rmset]");
   if (rms) { ui.rm = rms.dataset.rmset; ui.rr = "all"; ui.re = false; ui.rq = ""; $("r-q").value = ""; ui.rN = 25; loadResults(true); location.hash = "#matches/h-results"; return; }
   const pl = e.target.closest("[data-player]");
@@ -2465,7 +2465,7 @@ document.addEventListener("click", async e => {
     rm.disabled = true;
     try { await api("/admin/api/remote", {method: "POST", body: JSON.stringify({on})}); toast(on ? "The admin page can now be opened from the internet." : "The admin page is back to home network only."); }
     catch (err) { if (err.status === 401) return signedOut(); toast("Couldn't change it: the server didn't answer. Try again.", true); }
-    await refreshNow(); return;
+    await refreshNow(); rm.disabled = false; return;
   }
   if (e.target.closest("#logout-all")) {
     if (await ask({title: "Sign out on all devices?", body: "Every browser signed in to this admin page, including this one, has to sign in again.", ok: "Sign out everywhere", danger: true}) === null) return;
@@ -2541,7 +2541,7 @@ document.addEventListener("click", async e => {
     k.setAttribute("aria-disabled", "true");
     try { await api("/admin/api/kick", {method: "POST", body: JSON.stringify({pid: +pid, reason: reason.slice(0, 200)})}); toast(`${name} was disconnected.`); }
     catch (err) { if (err.status === 401) return signedOut(); toast(`Couldn't kick ${name}; they may have already left.`, true); }
-    await refreshNow();
+    await refreshNow(); k.removeAttribute("aria-disabled");
     if ($("sheet").open) { await loadPlayer(); $("sh-x").focus(); return; }
     const again = document.querySelector(`[data-key="pn-${CSS.escape(pid)}"]`);
     (again || $("p-q")).focus();

@@ -14,7 +14,7 @@ import json, logging, time
 import msgpack
 
 from .accounts import once
-from .pescmds import NOERR, cmd, _db
+from .pescmds import NOERR, cmd, _db, player_of
 from . import pesreplay
 
 log = logging.getLogger("pesserver.tourney")
@@ -128,7 +128,7 @@ def _fields(svc, c, pid=None):
 
 
 def _pid(sess, req):
-    return getattr(sess, "pes_pid", None) or req.get("pid")
+    return player_of(sess, req)
 
 
 # ---- the competition screens --------------------------------------------------------------------------------

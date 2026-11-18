@@ -109,6 +109,9 @@ def restore(svc, did):
                                [[_dec(row[i]) for i in idx] for row in d["rows"]]).rowcount
             if d["table"] == "pes_players" and n != len(d["rows"]):
                 raise ValueError("They can't be restored: something of theirs is used by another player now.")
+        if {"pes_manner", "pes_manner_state"} <= known:      # their exits got new numbers: none of them is a new exit
+            db.execute("UPDATE pes_manner_state SET warned_row=(SELECT MAX(id) FROM pes_manner WHERE pid=? AND left_early=1)"
+                       " WHERE pid=? AND warned_row IS NOT NULL", (pid, pid))
         for col, ids in saved.get("matches", {}).items():
             if col in MATCH_COLS:
                 db.executemany(f"UPDATE pes_matches SET {col}=? WHERE id=? AND {col} IS NULL", [(pid, i) for i in ids])

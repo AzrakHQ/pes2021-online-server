@@ -22,7 +22,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
                 headers = {k.lower(): v for k, v in (l.split(": ", 1) for l in lines[1:] if ": " in l)}
                 body = b""
                 if int(headers.get("content-length", 0)):
-                    body = await reader.readexactly(min(int(headers["content-length"]), 1 << 16))
+                    body = await asyncio.wait_for(reader.readexactly(min(int(headers["content-length"]), 1 << 16)), BODY_WAIT)
                 route = path.split("?", 1)[0].rstrip("/").lower()
                 log.log(logging.DEBUG if method == "GET" and route in ADMIN_POLLS else logging.INFO,
                         "HTTP %s %s hdr=%s body=%r", method, path,
@@ -329,6 +329,7 @@ ADMIN_POLLS = ("/admin/api/state", "/admin/api/games", "/admin/api/games/auto", 
 # ^ an open admin page asks these every few seconds: logged at debug so they don't crowd the game's lines out of the log
 KEEP_IDLE = 15          # seconds a browser's admin connection stays open for the next poll (it polls every 3 s)
 KEEP_MAX = 1000         # requests on one connection before it's closed and the browser opens a fresh one
+BODY_WAIT = 30          # seconds for a request's body: a client that announces one and sends nothing is dropped
 _GZ = {}                # compressed copies of large unchanging bodies (the admin page): digest -> bytes
 
 

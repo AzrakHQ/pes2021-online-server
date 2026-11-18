@@ -64,8 +64,8 @@ async def run(a):
         print(f"\n   The server can't start: port {port} is already in use.\n"
               "   Is another PES 2021 server running on this computer? Close its window first.\n", file=sys.stderr, flush=True)
         sys.exit(hostctl.CANT_START_EXIT)       # (the service doesn't keep trying: it would fail the same way)
-    if not tls:
-        netsetup.skip_port(443)
+    relay_port = int(os.environ.get("PESSERVER_RELAY_PORT", "7600"))
+    netsetup.use_ports(a.http_port, a.gate_port, a.stun_port, a.https_port if tls else 0, a.join_port, relay_port)
     if tls and a.https_port:        # 443: players set up with the /join line, and mods from before 2026-11
         s = await _optional("HTTPS for join-line players", a.https_port,
                             httpgate.serve_tls(svc, a.host, a.https_port, *tls, a.public_ip or "127.0.0.1",
@@ -86,7 +86,6 @@ async def run(a):
             netsetup.WEB_PORT = a.http_port
     else:
         netsetup.WEB_PORT = a.http_port
-    relay_port = int(os.environ.get("PESSERVER_RELAY_PORT", "7600"))
     if await _optional("relay log", relay_port, stun.serve_relay(a.stun_host or a.host, relay_port)) is None:
         netsetup.skip_port(relay_port)
     logging.info("gate tcp/%d  http tcp/%d  stun udp/%d", a.gate_port, a.http_port, a.stun_port)
@@ -221,6 +220,8 @@ def main():
     a = p.parse_args(argv)
     if a.cmd is None:
         p.error("choose a command: host or serve")
+    if getattr(a, "data", None):
+        a.data = os.path.abspath(a.data)      # (the service runs from another folder than this terminal)
     from . import hostctl
     if a.cmd in ("install", "open", "selfcheck", "stop", "console"):
         return {"install": hostctl.cmd_install, "open": hostctl.cmd_open, "stop": hostctl.cmd_stop,

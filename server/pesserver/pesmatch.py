@@ -504,7 +504,7 @@ def change_gamephase(svc, sess, req):
         if room.get("coop") and all(room["phase"].get(p) == "END" for p in room["members"]):
             from . import pescoop
             pescoop.award(svc, room)              # co-op level points at the final whistle
-        if all(room["phase"].get(p) == "END" for p in room["members"]):
+        if room["phase"][pid] == "END":           # (the first report: a game whose line blinked may never send its own)
             room.setdefault("end_at", time.time())
         if (os.environ.get("PESSERVER_VERDICT_AT_END", "1") != "0"
                 and "pushed_at_end" not in room

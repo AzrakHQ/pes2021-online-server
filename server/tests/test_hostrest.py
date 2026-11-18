@@ -121,6 +121,47 @@ def test_update_now_right_after_cancel_is_not_lost(svc, release, monkeypatch):
     assert len(calls) == 2 and hostctl.STATE["update"] == "restarting"
 
 
+def test_update_now_after_cancel_survives_a_failed_test_run(svc, release, monkeypatch):
+    gate, calls = threading.Event(), []
+    real = hostctl.download
+
+    def slow(cancel=None, want=None):
+        calls.append(1)
+        if len(calls) == 1:
+            gate.wait(5)
+            raise RuntimeError("the new program didn't pass its self-check")
+        return real(cancel, want)
+    monkeypatch.setattr(hostctl, "download", slow)
+    monkeypatch.setattr(hostctl, "CANCEL_JOIN", 0.1)
+    pause = threading.Event().wait
+    hostctl.update(svc, "now")
+    while not calls:
+        pause(0.01)
+    hostctl.update(svc, "cancel")
+    t = threading.Thread(target=hostctl.update, args=(svc, "now")); t.start()
+    t.join(5)
+    gate.set()
+    for _ in range(200):
+        if hostctl.STATE["update"] == "restarting":
+            break
+        pause(0.05)
+    assert len(calls) == 2 and hostctl.STATE["update"] == "restarting"
+
+
+def test_a_settings_file_that_is_not_utf8_is_kept_as_it_is(tmp_path, monkeypatch):
+    monkeypatch.delenv("PES_HTTP_PORT", raising=False)
+    for k in hostctl.KEPT:
+        monkeypatch.delenv(k, raising=False)
+    path = hostctl.env_path(str(tmp_path))
+    with open(path, "wb") as f:
+        f.write(b"# \xe5\xc7\xe3\nSERVER_NAME=\xd1\xd4\xc7\xcf\nPES_HTTP_PORT=8090\n")
+    assert hostctl.read_settings(str(tmp_path))["PES_HTTP_PORT"] == "8090"
+    hostctl.keep_settings(str(tmp_path))
+    with open(path, "rb") as f:
+        saved = f.read()
+    assert b"# \xe5\xc7\xe3\n" in saved and b"SERVER_NAME=\xd1\xd4\xc7\xcf\n" in saved
+
+
 def test_the_unit_stops_retrying_when_a_port_is_taken(tmp_path, monkeypatch):
     unit = hostctl.unit_text("/opt/pes/pes2021-server", str(tmp_path))
     assert f"RestartPreventExitStatus={hostctl.CANT_START_EXIT}" in unit and "Restart=on-failure" in unit

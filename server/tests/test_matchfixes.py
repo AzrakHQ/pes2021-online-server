@@ -441,3 +441,73 @@ def test_a_late_result_keeps_its_own_mode_when_the_room_is_gone(svc):
     events.observe(svc, b, "CMD_SEND_GAME_RESULT", {"home_score": 1, "away_score": 1, "abnormalend_reason": "DISCONN_P2P"})
     from pesserver.adminextra import LOBBY
     assert svc.accounts.db.execute("SELECT room, mode FROM pes_matches").fetchall() == [(1, LOBBY)]
+
+
+def _kicked_off(svc, a, b, rid=1):
+    pesmatch._state(svc)["rooms"][rid] = {"owner": a.pes_pid, "members": [a.pes_pid, b.pes_pid], "t": rid - 1}
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "1ST"})
+
+
+def test_both_copies_of_a_late_result_stay_off_the_rematch(svc):
+    """Both games send a result: the second copy found the old match already saved and ended the rematch."""
+    a, b = _players(svc, 1, 2)
+    _kicked_off(svc, a, b)
+    events.observe(svc, a, "CMD_LEAVE_ROOM", {"error_code": "GNCX_0003"})
+    pesmatch._state(svc)["rooms"][2] = {"owner": 1, "members": [1, 2], "t": 1}
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "DATASYNC"})
+    for s in (a, b):
+        events.observe(svc, s, "CMD_SEND_GAME_RESULT", {"home_score": 1, "away_score": 0, "abnormalend_reason": "DISCONN_P2P"})
+    assert _rows(svc) == [(1, 1, 0, "DISCONN_P2P")] and not events._st(svc)["live"][2]["saved"]
+    for raw in ("1ST", "END"):
+        for s in (a, b):
+            events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": raw})
+    events.observe(svc, a, "CMD_SEND_GAME_RESULT", {"home_score": 3, "away_score": 3})
+    assert _rows(svc) == [(1, 1, 0, "DISCONN_P2P"), (2, 3, 3, "")]
+
+
+def test_the_admin_state_survives_a_match_at_full_time(svc):
+    from pesserver import httpgate
+    a, b = _players(svc, 1, 2)
+    _kicked_off(svc, a, b)
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "END"})
+    snap = events.snapshot(svc)
+    assert snap["live"][0]["phase"] == "Full time" and "manner_marked" not in snap["live"][0]
+    assert httpgate.state_reply(snap, "")
+
+
+def test_a_lobby_match_ends_with_leave_game(svc):
+    from pesserver import hostctl
+    a, b = _players(svc, 1, 2)
+    _kicked_off(svc, a, b)
+    events.observe(svc, a, "CMD_LEAVE_GAME", {"pid": 1})                         # quit to the room mid-match
+    assert events.snapshot(svc)["live"] == [] and not hostctl.busy(svc)
+    _kicked_off(svc, a, b, 2)
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "END"})
+    for s in (a, b):
+        events.observe(svc, s, "CMD_LEAVE_GAME", {"pid": s.pes_pid})
+    assert events.snapshot(svc)["live"] == []
+
+
+def test_players_gone_after_full_time_end_the_match_and_show_as_free(svc):
+    a, b = _players(svc, 1, 2)
+    for s in (a, b):
+        s.connected_at = 1.0
+    svc.online.update({1: a, 2: b})
+    _kicked_off(svc, a, b)
+    for s in (a, b):
+        events.observe(svc, s, "CMD_CHANGE_GAMEPHASE", {"phase": "END"})
+    assert {o["status"] for o in events.snapshot(svc)["online"]} == {"In menus"}
+    events.disconnected(svc, a); svc.online.pop(1)
+    assert len(events.snapshot(svc)["live"]) == 1
+    events.disconnected(svc, b); svc.online.pop(2)
+    assert events.snapshot(svc)["live"] == []
+
+
+def test_extra_time_phases_have_names(svc):
+    a, b = _players(svc, 1, 2)
+    _kicked_off(svc, a, b)
+    events.observe(svc, a, "CMD_CHANGE_GAMEPHASE", {"phase": "EX1ST"})
+    assert events.snapshot(svc)["live"][0]["phase"] == "Extra time"

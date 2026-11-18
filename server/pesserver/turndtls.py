@@ -158,6 +158,8 @@ class _Assoc:
         if msg[-1:] != TYPE_PLAIN:                      # 0x01/0x02 = ktc key/token messages: not used by us
             return
         msg = msg[:-1]
+        if not msg:
+            return
         if msg[0] & 0xC0 == 0x40:                       # ChannelData
             if len(msg) >= 4:
                 ch, n = struct.unpack("!HH", msg[:4])

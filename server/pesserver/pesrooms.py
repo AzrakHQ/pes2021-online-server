@@ -112,6 +112,8 @@ def room_entry(svc, room):
 
 
 def roomlist_push(svc, room, typ):
+    if typ != "DEL" and _st(svc)["rooms"].get(room["id"]) is not room:
+        return                                       # (a delayed push: the room closed meanwhile, its DEL went out)
     body = _wl("room_id", typ, [room_entry(svc, room)] if typ != "DEL" else [pack({"room_id": room["id"]})])
     for p in list(_st(svc)["subs"]):
         _push(svc, p, "CMD_REQWATCHL_ROOMLIST", body)
@@ -387,12 +389,32 @@ def set_room_option(svc, sess, req):
 
 
 def disconnected(svc, sess):
-    """A player's gate connection ended: out of the block and out of their room."""
+    """A player's gate connection ended: out of the block and out of their room. During a match the game gets
+    time to reconnect (the match itself runs peer to peer): it comes back to this room afterwards."""
     pid = _pid(sess)
     if pid is None or svc.online.get(pid) not in (None, sess):
         return                                       # an older connection of a player who is still online
-    _st(svc)["subs"].discard(pid)
-    _leave(svc, pid, "disconnected")
+
+    room = room_of(svc, pid)
+
+    def gone():
+        now = svc.online.get(pid)
+        if now is None or now is sess:
+            _st(svc)["subs"].discard(pid)
+            _leave(svc, pid, "disconnected")
+        elif not getattr(now, "pes_reconnected", False) and room_of(svc, pid) is room:
+            _leave(svc, pid, "signed in again")      # a new sign-in isn't coming back to this room: don't hold it up
+    away = _st(svc).setdefault("away", {})           # pid -> the connection whose wait counts (its latest)
+    away.pop(pid, None)
+    if room is None or room["state"] == "WAITING" or getattr(sess, "kicked", False):
+        return gone()
+    away[pid] = sess
+
+    def waited():
+        if away.get(pid) is sess:                    # (it came back and dropped again: that drop gets its own wait)
+            del away[pid]
+            gone()
+    _later(waited, delay=pesmatch.GONE_AFTER)
 
 
 def snapshot(svc):

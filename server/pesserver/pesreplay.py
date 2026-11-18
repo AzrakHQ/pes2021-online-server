@@ -25,6 +25,7 @@ LIST_MAX = 10
 KEY = bytes.fromhex("35a110675829e36845dc775162cca1bb69b786ed1e73d82ea9fe7e6176743881")   # game key, 0x142897bd0
 _lock = threading.Lock()
 _live = {}            # match_id -> state while recording
+_away = {}            # pid -> the latest wait for that player's game to come back
 
 
 def enabled():
@@ -192,9 +193,23 @@ def observe(svc, sess, msgid, req):
 
 
 def disconnected(svc, pid):
-    """The player's connection closed: close every recording they were part of (a crash, a closed game)."""
-    for mid in [m for m, st in list(_live.items()) if pid in (st["uploader"], st["home"], st["away"])]:
-        close(svc, mid, "disconnect")
+    """The player's connection closed: close every recording they were part of (a crash, a closed game). After a
+    blink the game reconnects and the match goes on, and so does its recording."""
+    mine = _away[pid] = object()
+
+    def gone():
+        if _away.get(pid) is not mine:                # (it came back and dropped again: that drop gets its own wait)
+            return
+        del _away[pid]
+        if getattr(svc.online.get(pid), "pes_reconnected", False):
+            return
+        for mid in [m for m, st in list(_live.items()) if pid in (st["uploader"], st["home"], st["away"])]:
+            close(svc, mid, "disconnect")
+    import asyncio
+    try:
+        asyncio.get_running_loop().call_later(pesmatch.GONE_AFTER, gone)
+    except RuntimeError:                              # no loop (unit tests call this directly)
+        gone()
 
 
 def chunk_file(svc, mid, name):
