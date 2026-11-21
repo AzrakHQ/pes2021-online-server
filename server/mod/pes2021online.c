@@ -1176,7 +1176,7 @@ static struct {
     int size, rounds, nties;
     uint32_t slot[32];
     br_tie tie[64];
-    br_tie third; int has_third;
+    br_tie third; int has_third, third_place;    /* third: the match; third_place: the cup has one */
 } g_br;                                         /* the server's bracket (filled before opening) */
 static uint8_t g_br_round[9][0x208];            /* our round tables: [0..7] kinds 0x2e..0x35, [8] 0x36 */
 static uint8_t g_br_fix[66][0x17c];             /* our fixtures: BR_FID0 + n */
@@ -1237,6 +1237,7 @@ static BOOL br_parse(const char *body)
     for (const char *l = body; l && *l; l = strchr(l, '\n') ? strchr(l, '\n') + 1 : NULL) {
         unsigned a[8] = {0}; int n;
         if (sscanf(l, "size %u", &a[0]) == 1) g_br.size = (int)a[0];
+        else if (sscanf(l, "thirdplace %u", &a[0]) == 1) g_br.third_place = (int)a[0];
         else if (sscanf(l, "slot %u %u", &a[0], &a[1]) == 2 && a[0] < 32) g_br.slot[a[0]] = a[1] ? a[1] << 14 : 0xffffffff;
         else if ((n = sscanf(l, "tie %u %u %u %u %u %u %d %u", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], (int *)&a[6], &a[7])) == 8
                  && g_br.nties < 64) {
@@ -1357,6 +1358,8 @@ static BOOL br_lend_locked(void)
     memcpy(g_br_save_state, save + 0x183789c, 4);
     for (int i = 0; i < 32; i++) *(uint32_t *)(pick + 0x170 + 4 * i) = i < g_br.size ? g_br.slot[i] : 0xffffffff;
     *(uint16_t *)(pick + 0x30a) = (uint16_t)((*(uint16_t *)(pick + 0x30a) & ~0x7f) | g_br.size);
+    uint32_t f = *(uint32_t *)(pick + 0x304);     /* bit 9: the "3rd Place Playoffs" card (set in the Copa America) */
+    *(uint32_t *)(pick + 0x304) = g_br.third_place ? f | 0x200 : f & ~0x200u;
     *(uint32_t *)(save + 0x1787b5c) = *(uint32_t *)(pick + 0x80);
     *(uint16_t *)(save + 0x1787b60) = g_br_inst;
     *(uint32_t *)(save + 0x183789c) = 1;
@@ -1416,7 +1419,7 @@ static DWORD WINAPI br_thread(LPVOID unused)
     (void)unused;
     char name[128], last[128] = "";
     BOOL after_match = FALSE, seen = FALSE;
-    ULONGLONG left_at = 0, lent_at = 0;
+    ULONGLONG left_at = 0, lent_at = 0, fetched_at = 0;
     for (;;) {
         Sleep(150);
         flow_name(name, sizeof name);
@@ -1436,6 +1439,11 @@ static DWORD WINAPI br_thread(LPVOID unused)
                 continue;
             }
         }
+        if (!strcmp(name, last) && !g_br_open && !strcmp(name, "Online/PesLg/1vs1/PesLg1vs1MainMenu")
+            && GetTickCount64() - fetched_at > 15000) {          /* still on the cup's menu: the draw may be new */
+            fetched_at = GetTickCount64();
+            InterlockedExchange(&g_br_ready, br_fetch());
+        }
         if (strcmp(name, last)) {
             if (!strncmp(name, "Match/", 6) && match_online()) after_match = TRUE;     /* (online matches only) */
             if (!strncmp(name, "TopMenu/", 8)) after_match = FALSE;
@@ -1443,6 +1451,7 @@ static DWORD WINAPI br_thread(LPVOID unused)
             if (menu && g_br_open) continue;            /* (back from the bracket: handled once it is given back) */
             if (menu) {
                 InterlockedExchange(&g_br_ready, 0);
+                fetched_at = GetTickCount64();
                 InterlockedExchange(&g_br_ready, br_fetch());                 /* (for Rankings too) */
                 if (after_match && g_br_ready) {
                     char was[128];

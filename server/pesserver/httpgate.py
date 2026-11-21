@@ -997,7 +997,8 @@ def mod_bracket(service, mod_id):
     if not b:
         return ""
     size, slots, ties, third = b
-    out = [f"size {size}"] + [f"slot {i} {t}" for i, t in enumerate(slots)]
+    out = [f"size {size}", f"thirdplace {int(pescup.third_place(c) and size >= 4)}"]
+    out += [f"slot {i} {t}" for i, t in enumerate(slots)]
     out += ["tie " + " ".join(map(str, t)) for t in ties]
     if third:
         out.append("third " + " ".join(map(str, third[2:])))

@@ -36,7 +36,7 @@ def test_bracket_of_a_four_player_cup(svc):
         assert httpgate.mod_bracket(svc, sess[1].mod_id) == ""            # before the draw: nothing
         pescup.draw(svc, c, rng=random.Random(1))
         b = _lines(httpgate.mod_bracket(svc, sess[1].mod_id))
-        assert b["size"] == [[4]] and len(b["slot"]) == 4
+        assert b["size"] == [[4]] and len(b["slot"]) == 4 and b["thirdplace"] == [[1]]
         assert sorted(t for _, t in b["slot"]) == sorted(pestourney.TEAMS[1:5])
         assert len(b["tie"]) == 2 and all(t[0] == 1 and t[6] == -1 and t[7] == 0 for t in b["tie"])
         semis = [f for f in pescup.fixtures(svc, c["compe_id"]) if f["round"] == 1]
@@ -71,3 +71,10 @@ def test_a_league_has_no_bracket(svc):
     svc.online[1] = s
     pescmds._dispatch(svc, s, "CMD_JOIN_PESLEAGUE_COMPE", {"compe_id": cid, "team_id": 9})
     assert httpgate.mod_bracket(svc, s.mod_id) == ""
+
+
+def test_two_players_no_third_place(svc):
+    c, sess = _cup(svc, 2)
+    pescup.draw(svc, c, rng=random.Random(1))
+    b = _lines(httpgate.mod_bracket(svc, sess[1].mod_id))
+    assert b["size"] == [[2]] and b["thirdplace"] == [[0]] and len(b["tie"]) == 1
