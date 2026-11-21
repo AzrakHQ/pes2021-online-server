@@ -198,6 +198,35 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
     together. (After a normal final whistle END is already in.)
   - Tracing 0x1404472d8 (a chunk) crashed the games; MinHook refused 0x140447230 (MH_ERROR_UNSUPPORTED_FUNCTION).
 
+- **Cup bracket: Konami's "Tournament Table" online [live 2026-11-22, mod "bracket1"].**
+  - The screen is flow node Common/CmnTournamentMenu (offline: Common/CmnCompeInfoMenu `01_tournamentdraw`),
+    menu::MenuModeTournamentProgress (vtable 0x142723430; factory 0x140af9810). It is not tied to a mode: the
+    factory reads the save's selected competition (save = [[0x143705e10]+0x48]; save+0x1787b5c u32 competition
+    id + u16 instance id; save+0x183789c data state, 0 = the draw editor "You can freely alter the competition
+    draw.", 1 = the competition's own data) and finds its entry in the instance table (save+0xc12e9c, 0x314 bytes,
+    count at save+0xd0bcf4; +0 instance id, +0x80 competition id, +0x84 kind 3 = knockout, +0x170 the team per
+    place as id << 14 (0xffffffff none), +0x30a & 0x7f places). No entry → NULL → the flow engine's "@@" placeholder.
+  - Posting flow message 0x1030008 "Common/CmnTournamentMenu" (string at 0x142658880) through 0x14149b790(
+    [0x143704e88], id, text) opens it from the online cup's menu; 0x1030008 "Online/PesLg/1vs1/PesLg1vs1MainMenu"
+    (0x1426dae38) goes back (the menu reloads with MAINMENU_INFO). The save's real competitions (214 entries: the
+    leagues and cups of the offline modes) draw with real teams and flags; 8 places → the one-column layout,
+    9..32 → both halves, with Final and 3rd Place Playoffs cards.
+  - Results come from round tables 0x141579ee0(&instance, &kind) (0x208 bytes: 16 match records of 0x20 at +4 —
+    +0/+4 teams, +8/+0xa fixture ids of the legs —, count at +0x204; kinds 0x2e..0x35 by round, 0x35 the final,
+    0x36 third place), fixtures 0x1414bb280(save, id) (0x17c bytes: +0 u16 its id, +4 bit 30 played, bits 28..29
+    leg type (1 = one match), teams +0x14 / +0x18, goals +0x1c(+0x1d) / +0x1f(+0x20)), 0x1414bb950 (does the id
+    exist) and the winner 0x14151b230(out, record) — the screen passes its own stack copy of the record.
+    0x1414d6380(record, leg type) picks the fixture. A tie with an unknown side crashed the screen: a round's
+    record exists once both teams are known.
+  - Screen calls (probe, 16 places): 0x140ca5fc0(menu, column, index, code) = Lua setResult (column = round from
+    1; index down the left half, then the right; code 4/5 = the top/bottom team won, 1..3 not played) and
+    0x140ca6540(menu, column, index, goals a, goals b) put the numbers on the lines.
+  - Opening it from Rankings by first going to PesLg1vs1Ranking and jumping on crashed the game (its ranking
+    request answers a screen that is gone): the mod replaces the queued 0x1030006 "02_ranking" with the jump.
+    The bracket's own Return queues 0x1030006 "return" (which offline goes to Common/CmnPostCompeMenuReturn →
+    offline menus): replaced by the jump back. A jump posted while a screen change is under way
+    ([0x1437f8990]+0x30 != 0) is lost.
+
 ## Not built / open
 
 - **Random Selection competitions** [static, 2026-11-08]: `match_type "PES_LEAGUE_MATCH_1VS1_RANDOM"` (enum 1) takes

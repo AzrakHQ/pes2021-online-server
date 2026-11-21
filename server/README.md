@@ -188,6 +188,11 @@ celebrate, the captain lifts the trophy under confetti, the team photo with the 
 screens. After a shootout it starts with the deciding penalty. Both friends need mod 0.7.0 or newer (download
 the mod again from the admin page); with an older mod on either side the final ends as before.
 
+**Bracket**: once a cup's knockout is drawn, Rankings inside the cup opens Konami's own bracket screen (the
+"Tournament Table" of the game's offline cups) instead of the points table, and it opens by itself when a friend
+comes back to the cup after a cup match: every team with its flag, the scores and the winners' lines, the final
+and the third-place match. Return goes back to the cup. Mod 0.8.0 or newer; the group stage keeps the table.
+
 **Look** (`"look"`): the competition the game dresses the matches as: its loading screen, intro card,
 scoreboard and boards, and the trophy of the ceremony. UEFA EURO 2020 (33), or one of Konami's own cups:
 International Cup (27, a cup's default), American Cup (34), Asia-Oceanian Cup (35), African Cup (36), European

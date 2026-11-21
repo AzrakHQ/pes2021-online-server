@@ -58,7 +58,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
                                  b"X-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
                         out, enc = gzipped(out, ctype, headers)     # (setup scripts stay plain for curl/PowerShell)
                         extra += enc
-                elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll", "/mod/final"):
+                elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll", "/mod/final", "/mod/bracket"):
                     status, out, ctype, extra = _mod(service, route, headers, writer, path)
                     if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
                         note_download(service, (writer.get_extra_info("peername") or ("",))[0])
@@ -924,6 +924,9 @@ def _mod(service, route, headers, writer, path=""):
             return "200 OK", identity.hello(nonce, int(v) if v.isdigit() else 1).encode(), "text/plain; charset=utf-8", b""
         except ValueError:
             return "400 Bad Request", b"bad nonce", "text/plain", b""
+    if route == "/mod/bracket":
+        return "200 OK", mod_bracket(service, parse_qs(urlsplit(path).query).get("id", [""])[0]).encode(), \
+            "text/plain", b""
     if route == "/mod/final":
         q = parse_qs(urlsplit(path).query)
         grp = mod_final(service, q.get("id", [""])[0], q.get("over", [""])[0] == "1")
@@ -967,6 +970,38 @@ def mod_final(service, mod_id, over=False):
         # through the dispatcher, so the activity feed, the live list and the replay see the END as well
         pescmds._dispatch(service, service.online[pid], "CMD_CHANGE_GAMEPHASE", {"phase": "END"})
     return grp
+
+
+def mod_bracket(service, mod_id):
+    """/mod/bracket?id=<install id>: the knockout of the cup that player has open (the competition their game
+    last entered), for the game's own bracket screen ("Tournament Table"; pesmod "bracket1"). Text lines:
+    "size N", "slot I TEAM", "tie ROUND INDEX TEAM_A TEAM_B GOALS_A GOALS_B WINNER PLAYED", "third ...".
+    Empty when it is not a cup in its knockout (a league or the group stage keep the game's own Rankings)."""
+    from . import pescup, pestourney
+    pid = next((p for p, s in list(service.online.items()) if getattr(s, "mod_id", None) == mod_id), None) if mod_id else None
+    c = pestourney.get(service, getattr(service.online.get(pid), "pes_compe", None)) if pid is not None else None
+    if not pescup.is_cup(c):
+        return ""
+    teams = {}
+
+    def team_of(p):
+        if p not in teams:
+            e = pestourney.entry(service, c["compe_id"], p) if p and p > 0 else None
+            teams[p] = (e or {}).get("team_id") or 0
+        return teams[p]
+    try:
+        b = pescup.bracket(service, c, team_of)
+    except Exception:  # noqa: BLE001 - no bracket is better than a broken one
+        log.exception("mod bracket")
+        return ""
+    if not b:
+        return ""
+    size, slots, ties, third = b
+    out = [f"size {size}"] + [f"slot {i} {t}" for i, t in enumerate(slots)]
+    out += ["tie " + " ".join(map(str, t)) for t in ties]
+    if third:
+        out.append("third " + " ".join(map(str, third[2:])))
+    return "\n".join(out) + "\n"
 
 
 def copy_name(path):

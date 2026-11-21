@@ -36,6 +36,8 @@
  *     the id line then also says "coop1". Only on the exact 1.01.00 code.
  *   - Cup finals end with Konami's trophy ceremony (mod 0.7.0): the server arms it through /mod/final and the
  *     id line says "trophy1" (see "trophy ceremony" below). Only on the exact 1.01.00 code.
+ *   - A cup shows Konami's own bracket screen ("Tournament Table") after each cup match and in place of
+ *     Rankings (mod 0.8.0, "bracket1", the server's /mod/bracket; see "the cup bracket" below).
  *   - Invites: a copy the host made for one friend carries an invite code ("invite=" in the settings area);
  *     the id line then ends with " inv=<code>" so the server knows that friend on any PC. Sent only to the
  *     server whose key made the file, and only if its /mod/hello answers version 4.
@@ -62,7 +64,7 @@
 #include "monocypher/monocypher.h"
 #include "monocypher/monocypher-ed25519.h"
 
-#define MOD_VERSION "0.7.0"
+#define MOD_VERSION "0.8.0"
 
 /* Reserved settings area: the server overwrites everything after the 32-byte marker with
  * "key=...\nname=...\nurl=...\naddrs=a,b\nbook=...\n" (see server/pesserver/identity.py pack_mod). */
@@ -102,6 +104,7 @@ static volatile LONG g_id_on;     /* the server in use reads the player-id line 
 static volatile LONG g_math_on;   /* the game gets our math functions (server pairs by them) */
 static volatile LONG g_coop_fix;  /* the co-op hooks are in (id line says coop1) */
 static volatile LONG g_trophy_on; /* the trophy-ceremony hooks are in (id line says trophy1) */
+static volatile LONG g_bracket_on; /* the cup-bracket hooks are in (id line says bracket1) */
 static char g_id_hex[33];         /* this install's player id ("" = none) */
 static char g_id_line[128];       /* the line for the server in use */
 static char g_invite[33];         /* this copy's invite code from the host ("" = none) */
@@ -324,9 +327,9 @@ static void use_server(int hello_v)
     EnterCriticalSection(&g_slock);
     /* the invite code only to the server that made this file, and only if it reads it (version 4) */
     BOOL inv = hello_v >= 4 && g_invite[0] && !strcmp(g_srv.keyhex, g_invite_key);
-    if (hello_v >= 3) snprintf(g_id_line, sizeof g_id_line, "PESID2 %s math1%s%s%s%s\n", g_id_hex,
-                               g_coop_fix ? " coop1" : "", g_trophy_on ? " trophy1" : "", inv ? " inv=" : "",
-                               inv ? g_invite : "");
+    if (hello_v >= 3) snprintf(g_id_line, sizeof g_id_line, "PESID2 %s math1%s%s%s%s%s\n", g_id_hex,
+                               g_coop_fix ? " coop1" : "", g_trophy_on ? " trophy1" : "", g_bracket_on ? " bracket1" : "",
+                               inv ? " inv=" : "", inv ? g_invite : "");
     else snprintf(g_id_line, sizeof g_id_line, "PESID1 %s\n", g_id_hex);
     LeaveCriticalSection(&g_slock);
     InterlockedExchange(&g_id_on, hello_v >= 2 && g_id_hex[0]);
@@ -1154,6 +1157,348 @@ static void hook_trophy(void)
     logf_("trophy ceremony for cup finals ready");
 }
 
+/* ------------------------------------------------------------------ the cup bracket ("bracket1")
+ * Konami's own bracket screen of the offline cups ("Tournament Table", flow node Common/CmnTournamentMenu,
+ * menu::MenuModeTournamentProgress) for an online cup: after a cup match, and in place of Rankings, the mod
+ * opens it with the server's knockout (/mod/bracket). The screen reads the offline competition the save
+ * has selected (save+0x1787b5c: competition id, instance id; save+0x183789c: data state; the instance table
+ * at save+0xc12e9c, 0x314 bytes each: +0x170 the team per place, +0x30a the number of places), the round
+ * tables (0x141579ee0(&instance, &kind) -> 16 match records of 0x20 bytes at +4, count at +0x204; kinds
+ * 0x2e..0x35, 0x35 the final, 0x36 third place), fixtures (0x1414bb280(save, id) -> played at +4 bit 30, teams
+ * at +0x14 / +0x18, goals at +0x1c / +0x1f) and the winner of a match record (0x14151b230). While it is open the
+ * mod lends it one of the save's own knockout competitions with our teams in it (put back on close), and
+ * answers the round-table, fixture and winner questions for that competition from the server's bracket;
+ * everything else in the game reads its own data. Return goes back to the cup's menu. Team ids: id << 14.
+ * notes/re/functions/tourney.md, "Cup bracket". */
+#define BR_FID0 0xf000                          /* our fixture ids (the game's own are far below) */
+typedef struct { int rnd, idx; uint32_t ta, tb; int ga, gb, win, played; } br_tie;
+static struct {
+    int size, rounds, nties;
+    uint32_t slot[32];
+    br_tie tie[64];
+    br_tie third; int has_third;
+} g_br;                                         /* the server's bracket (filled before opening) */
+static uint8_t g_br_round[9][0x208];            /* our round tables: [0..7] kinds 0x2e..0x35, [8] 0x36 */
+static uint8_t g_br_fix[66][0x17c];             /* our fixtures: BR_FID0 + n */
+static int32_t g_br_win[66];                    /* their winners: 0 / 1 side, -1 none */
+static volatile LONG g_br_open;                 /* the lent competition is in place */
+static CRITICAL_SECTION g_br_lock;              /* lending and giving back (the game thread and br_thread) */
+static volatile LONG g_br_ready;                /* g_br holds the bracket of the cup whose menu is shown */
+static uintptr_t (*o_flow_post)(void *, uintptr_t, const char *);   /* 0x14149b790(mgr, message, text) */
+static uint16_t g_br_inst;                      /* its instance id */
+static uint8_t *g_br_entry;                     /* its entry in the save */
+static uint8_t g_br_save_entry[0x314], g_br_save_key[12], g_br_save_state[4];
+static uintptr_t (*o_br_round)(void *, void *);           /* 0x141579ee0 */
+static uint8_t *(*o_br_fixture)(void *, uintptr_t);       /* 0x1414bb280 */
+static uint32_t *(*o_br_winner)(uint32_t *, void *);      /* 0x14151b230 */
+static uintptr_t (*o_br_fix_exists)(void *, uint16_t *);  /* 0x1414bb950(save, &id) */
+static void (*game_post)(void *, uint32_t, const char *); /* 0x14149b790(mgr, message, text) */
+
+static uint8_t *game_save(void)
+{
+    uint8_t *m = *(uint8_t **)game_va(0x143705e10);
+    return m ? *(uint8_t **)(m + 0x48) : NULL;
+}
+
+/* jump to a flow node; names: game strings 0x142658880 "Common/CmnTournamentMenu",
+   0x1426dae38 "Online/PesLg/1vs1/PesLg1vs1MainMenu" (the message queue takes posts from any thread) */
+static void flow_jump(uint64_t name_va)
+{
+    void *mgr = *(void **)game_va(0x143704e88);
+    if (mgr) game_post(mgr, 0x1030008, (const char *)game_va(name_va));
+}
+
+/* the current flow node's name ([0x1437f8990]+0x60, an MSVC std::string) */
+static void flow_name(char *out, size_t cap)
+{
+    out[0] = 0;
+    uint8_t *fl = *(uint8_t **)game_va(0x1437f8990);
+    if (!fl) return;
+    uint8_t *str = fl + 0x60;
+    size_t n = *(size_t *)(str + 0x10), c = *(size_t *)(str + 0x18);
+    if (n >= cap || n > 200) return;
+    const char *t = c >= 16 ? *(const char **)str : (const char *)str;
+    if (!t) return;
+    memcpy(out, t, n);
+    out[n] = 0;
+}
+
+/* a screen change is under way ([0x1437f8990]+0x30, the transition step: 0 = idle); a jump posted
+   meanwhile is lost (live 2026-11-22) */
+static BOOL flow_busy(void)
+{
+    uint8_t *fl = *(uint8_t **)game_va(0x1437f8990);
+    return !fl || *(uint32_t *)(fl + 0x30) != 0;
+}
+
+static BOOL br_parse(const char *body)
+{
+    memset(&g_br, 0, sizeof g_br);
+    for (const char *l = body; l && *l; l = strchr(l, '\n') ? strchr(l, '\n') + 1 : NULL) {
+        unsigned a[8] = {0}; int n;
+        if (sscanf(l, "size %u", &a[0]) == 1) g_br.size = (int)a[0];
+        else if (sscanf(l, "slot %u %u", &a[0], &a[1]) == 2 && a[0] < 32) g_br.slot[a[0]] = a[1] ? a[1] << 14 : 0xffffffff;
+        else if ((n = sscanf(l, "tie %u %u %u %u %u %u %d %u", &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], (int *)&a[6], &a[7])) == 8
+                 && g_br.nties < 64) {
+            br_tie *t = &g_br.tie[g_br.nties++];
+            t->rnd = (int)a[0]; t->idx = (int)a[1]; t->ta = a[2] ? a[2] << 14 : 0xffffffff; t->tb = a[3] ? a[3] << 14 : 0xffffffff;
+            t->ga = (int)a[4]; t->gb = (int)a[5]; t->win = (int)a[6]; t->played = (int)a[7];
+        } else if (sscanf(l, "third %u %u %u %u %d %u", &a[0], &a[1], &a[2], &a[3], (int *)&a[4], &a[5]) == 6) {
+            br_tie *t = &g_br.third; g_br.has_third = 1;
+            t->ta = a[0] ? a[0] << 14 : 0xffffffff; t->tb = a[1] ? a[1] << 14 : 0xffffffff;
+            t->ga = (int)a[2]; t->gb = (int)a[3]; t->win = (int)a[4]; t->played = (int)a[5];
+        }
+    }
+    int r = 0;
+    while ((1 << r) < g_br.size) r++;
+    g_br.rounds = r;
+    return g_br.size >= 2 && g_br.size <= 32 && g_br.size == 1 << r;
+}
+
+static BOOL br_fetch(void)
+{
+    char ip[64], url[256];
+    static char body[8192];
+    snprintf(ip, sizeof ip, "%s", g_ip);
+    if (!ip[0] || !g_id_hex[0]) return FALSE;
+    snprintf(url, sizeof url, "http://%s:8080/mod/bracket?id=%s", ip, g_id_hex);
+    return http_get(url, body, sizeof body, 2500) && br_parse(body);
+}
+
+/* our round tables and fixtures from g_br */
+static void br_build(void)
+{
+    memset(g_br_round, 0, sizeof g_br_round);
+    memset(g_br_fix, 0, sizeof g_br_fix);
+    int nf = 0;
+    for (int i = 0; i <= g_br.nties; i++) {
+        br_tie *t = i < g_br.nties ? &g_br.tie[i] : (g_br.has_third ? &g_br.third : NULL);
+        if (!t) break;
+        int k = i < g_br.nties ? 7 - (g_br.rounds - t->rnd) : 8;          /* the final is kind 0x35 (index 7) */
+        if (t->ta == 0xffffffff || t->tb == 0xffffffff) continue;          /* (a tie exists once both are known) */
+        if (k < 0 || k > 8 || nf >= 66) continue;
+        uint8_t *R = g_br_round[k];
+        uint32_t cnt = *(uint32_t *)(R + 0x204);
+        if (cnt >= 16) continue;
+        uint8_t *m = R + 4 + 0x20 * cnt;
+        *(uint32_t *)(m + 0) = t->ta; *(uint32_t *)(m + 4) = t->tb;
+        *(uint16_t *)(m + 8) = (uint16_t)(BR_FID0 + nf); *(uint16_t *)(m + 0xa) = 0xffff;
+        *(uint32_t *)(R + 0x204) = cnt + 1;
+        uint8_t *F = g_br_fix[nf++];
+        *(uint16_t *)F = (uint16_t)(BR_FID0 + nf - 1);                    /* its own id (checked) */
+        *(uint32_t *)(F + 4) = (t->played ? 1u << 30 : 0) | 1u << 28;       /* played; leg type 1: one match */
+        *(uint32_t *)(F + 0x14) = t->ta; *(uint32_t *)(F + 0x18) = t->tb;
+        F[0x1c] = (uint8_t)t->ga; F[0x1f] = (uint8_t)t->gb;
+        g_br_win[nf - 1] = t->win;
+    }
+}
+
+static int br_round_kind(uint32_t kind) { return kind >= 0x2e && kind <= 0x35 ? (int)(kind - 0x2e) : kind == 0x36 ? 8 : -1; }
+
+static int g_br_debug;                          /* PES2021ONLINE_BRACKET_DEBUG=1: no round tables (tests only) */
+static uintptr_t hk_br_round(void *inst, void *kind)
+{
+    if (g_br_open && inst && kind && *(uint16_t *)inst == g_br_inst) {
+        if (g_br_debug == 1) return 0;
+        int k = br_round_kind(*(uint32_t *)kind);
+        return k >= 0 && *(uint32_t *)(g_br_round[k] + 0x204) ? (uintptr_t)g_br_round[k] : 0;
+    }
+    return o_br_round(inst, kind);
+}
+
+static uint8_t *hk_br_fixture(void *save, uintptr_t id)
+{
+    unsigned f = (unsigned)(id & 0xffff);
+    if (g_br_open && f >= BR_FID0 && f < BR_FID0 + 66) return g_br_fix[f - BR_FID0];
+    return o_br_fixture(save, id);
+}
+
+static uintptr_t hk_br_fix_exists(void *save, uint16_t *id)
+{
+    if (g_br_open && id && *id >= BR_FID0 && *id < BR_FID0 + 66) return 1;
+    return o_br_fix_exists(save, id);
+}
+
+static uint32_t *hk_br_winner(uint32_t *out, void *rec)
+{
+    uint8_t *m = rec;                        /* (often the screen's own copy of a record: known by its fixture id) */
+    unsigned f = m ? *(uint16_t *)(m + 8) : 0;
+    if (g_br_open && out && f >= BR_FID0 && f < BR_FID0 + 66) {
+        int32_t w = g_br_win[f - BR_FID0];
+        *out = w == 0 ? *(uint32_t *)m : w == 1 ? *(uint32_t *)(m + 4) : 0xffffffff;
+        return out;
+    }
+    return o_br_winner(out, rec);
+}
+
+/* Lend the screen one of the save's own knockout competitions, with our places in it. */
+static BOOL br_lend_locked(void)
+{
+    uint8_t *save = game_save();
+    if (!save || g_br_open) return FALSE;
+    uint32_t count = *(uint32_t *)(save + 0xd0bcf4);
+    static const uint32_t final_set[] = { 2, 3, 5, 6, 8, 47, 48, 70, 71, 72, 89, 91, 97, 128 };
+    uint8_t *pick = NULL;
+    for (uint32_t i = 0; i < count && i < 300; i++) {
+        uint8_t *e = save + 0xc12e9c + i * 0x314;
+        uint32_t comp = *(uint32_t *)(e + 0x80), kind = *(uint32_t *)(e + 0x84);
+        if (kind != 3 || (*(uint16_t *)(e + 0x30a) & 0x7f) < 2 || *(uint16_t *)(e + 0x76) != 0xffff) continue;
+        BOOL skip = FALSE;
+        for (size_t j = 0; j < sizeof final_set / sizeof final_set[0]; j++) skip |= comp == final_set[j];
+        if (skip) continue;
+        if (!pick || comp == 34) pick = e;                                 /* (the Copa América if it is there) */
+        if (comp == 34) break;
+    }
+    if (!pick) { logf_("cup bracket: no knockout competition in this save to lend"); return FALSE; }
+    g_br_entry = pick;
+    g_br_inst = *(uint16_t *)pick;
+    memcpy(g_br_save_entry, pick, 0x314);
+    memcpy(g_br_save_key, save + 0x1787b5c, 12);
+    memcpy(g_br_save_state, save + 0x183789c, 4);
+    for (int i = 0; i < 32; i++) *(uint32_t *)(pick + 0x170 + 4 * i) = i < g_br.size ? g_br.slot[i] : 0xffffffff;
+    *(uint16_t *)(pick + 0x30a) = (uint16_t)((*(uint16_t *)(pick + 0x30a) & ~0x7f) | g_br.size);
+    *(uint32_t *)(save + 0x1787b5c) = *(uint32_t *)(pick + 0x80);
+    *(uint16_t *)(save + 0x1787b60) = g_br_inst;
+    *(uint32_t *)(save + 0x183789c) = 1;
+    br_build();
+    InterlockedExchange(&g_br_open, 1);
+    return TRUE;
+}
+
+static BOOL br_lend(void)
+{
+    EnterCriticalSection(&g_br_lock);
+    BOOL ok = br_lend_locked();
+    LeaveCriticalSection(&g_br_lock);
+    return ok;
+}
+
+static void br_give_back(void)
+{
+    EnterCriticalSection(&g_br_lock);
+    uint8_t *save = game_save();
+    if (g_br_open && save && g_br_entry) {         /* (the save first, the flag last) */
+        memcpy(g_br_entry, g_br_save_entry, 0x314);
+        memcpy(save + 0x1787b5c, g_br_save_key, 12);
+        memcpy(save + 0x183789c, g_br_save_state, 4);
+    }
+    InterlockedExchange(&g_br_open, 0);
+    LeaveCriticalSection(&g_br_lock);
+}
+
+/* Rankings in a cup: the cup menu queues flow message 0x1030006 "02_ranking" (fire that event) once its menu
+   has closed; with the cup's bracket at hand the mod queues the jump to the bracket instead. (Going to
+   Rankings first and on from there crashed the game: its ranking request answers a screen that is gone.)
+   The text is an MSVC std::string; a short one keeps its characters in place. */
+static uintptr_t hk_flow_post(void *mgr, uintptr_t msg, const char *text)
+{
+    if ((uint32_t)msg == 0x1030006 && text && g_br_open && !strncmp(text, "return", 7)) {
+        char name[128];                      /* Return on our bracket: back to the online cup's menu */
+        flow_name(name, sizeof name);
+        if (!strcmp(name, "Common/CmnTournamentMenu"))
+            return o_flow_post(mgr, 0x1030008, (const char *)game_va(0x1426dae38));
+    }
+    if ((uint32_t)msg == 0x1030006 && text && g_br_ready && !g_br_open && !strncmp(text, "02_ranking", 11)) {
+        char name[128];
+        flow_name(name, sizeof name);
+        if (!strcmp(name, "Online/PesLg/1vs1/PesLg1vs1MainMenu") && br_lend()) {
+            logf_("cup bracket: %d places, %d ties (Rankings)", g_br.size, g_br.nties);
+            return o_flow_post(mgr, 0x1030008, (const char *)game_va(0x142658880));
+        }
+    }
+    return o_flow_post(mgr, msg, text);
+}
+
+/* Watches the screens: after a cup match (a Match/ screen, then the cup's menu again) and on Rankings in a
+   cup, asks the server for the bracket and opens it; gives the competition back once the screen is left. */
+static DWORD WINAPI br_thread(LPVOID unused)
+{
+    (void)unused;
+    char name[128], last[128] = "";
+    BOOL after_match = FALSE, seen = FALSE;
+    ULONGLONG left_at = 0, lent_at = 0;
+    for (;;) {
+        Sleep(150);
+        flow_name(name, sizeof name);
+        if (!name[0]) continue;
+        BOOL on_br = !strcmp(name, "Common/CmnTournamentMenu");
+        if (!g_br_open) { seen = FALSE; lent_at = 0; left_at = 0; }
+        else if (on_br) { seen = TRUE; left_at = 0; }
+        else {
+            ULONGLONG now = GetTickCount64();
+            if (!lent_at) lent_at = now;
+            if (seen && !left_at) left_at = now;
+            /* the screen was left (1.5 s for it to fade out), or the jump never arrived (10 s) */
+            if ((seen && now - left_at > 1500) || (!seen && now - lent_at > 10000 && !flow_busy())) {
+                br_give_back();
+                logf_("cup bracket closed%s", seen ? "" : " (it never opened)");
+                last[0] = 0;                         /* (the cup's menu again: fetch the bracket anew) */
+                continue;
+            }
+        }
+        if (strcmp(name, last)) {
+            if (!strncmp(name, "Match/", 6) && match_online()) after_match = TRUE;     /* (online matches only) */
+            if (!strncmp(name, "TopMenu/", 8)) after_match = FALSE;
+            BOOL menu = !strcmp(name, "Online/PesLg/1vs1/PesLg1vs1MainMenu");
+            if (menu && g_br_open) continue;            /* (back from the bracket: handled once it is given back) */
+            if (menu) {
+                InterlockedExchange(&g_br_ready, 0);
+                InterlockedExchange(&g_br_ready, br_fetch());                 /* (for Rankings too) */
+                if (after_match && g_br_ready) {
+                    char was[128];
+                    snprintf(was, sizeof was, "%s", name);
+                    for (int i = 0; i < 100 && flow_busy(); i++) Sleep(30);     /* let the screen finish arriving */
+                    Sleep(300);
+                    flow_name(name, sizeof name);
+                    if (!strcmp(name, was) && br_lend()) {                     /* (still there: nobody moved on) */
+                        logf_("cup bracket: %d places, %d ties (after a match)", g_br.size, g_br.nties);
+                        flow_jump(0x142658880);
+                    }
+                }
+                after_match = FALSE;
+            } else if (!menu && strcmp(name, "Common/CmnTournamentMenu")) InterlockedExchange(&g_br_ready, 0);
+            snprintf(last, sizeof last, "%s", name);
+        }
+    }
+    return 0;
+}
+
+static const struct { uint64_t va; const char *hex; } bracket_code[] = {
+    { 0x141579ee0, "48895c240848896c2410488974241857" },  /* round table of (instance, kind) */
+    { 0x1414bb280, "40534883ec20488bd9e8d21200004885" },  /* fixture by id */
+    { 0x14151b230, "48895c2408574883ec20488bfa488bd9" },  /* winner of a match record */
+    { 0x1414bb950, "4883ec280fb712e8040c00004885c00f" },  /* does a fixture id exist */
+    { 0x14149b790, "405356574883ec6048c7442428feffff" },  /* post a flow message */
+    { 0x142658880, "436f6d6d6f6e2f436d6e546f75726e61" },  /* "Common/CmnTournamentMenu" */
+    { 0x1426dae38, "4f6e6c696e652f5065734c672f317673" },  /* "Online/PesLg/1vs1/PesLg1vs1MainMenu" */
+};
+
+static void hook_bracket(void)
+{
+    if (!g_exe) g_exe = (uint8_t *)GetModuleHandleW(NULL);
+    const IMAGE_NT_HEADERS *nt = (const IMAGE_NT_HEADERS *)(g_exe + ((const IMAGE_DOS_HEADER *)g_exe)->e_lfanew);
+    if (PES_BASE + nt->OptionalHeader.SizeOfImage <= 0x143705e10 + 8) { logf_("cup bracket: not PES 2021 1.01.00, off"); return; }
+    for (size_t i = 0; i < sizeof bracket_code / sizeof bracket_code[0]; i++)
+        if (!code_is(bracket_code[i].va, bracket_code[i].hex)) {
+            logf_("cup bracket: game code at %llx is not 1.01.00, off", (unsigned long long)bracket_code[i].va);
+            return;
+        }
+    game_post = (void (*)(void *, uint32_t, const char *))game_va(0x14149b790);
+    InitializeCriticalSection(&g_br_lock);
+    g_br_debug = GetEnvironmentVariableA("PES2021ONLINE_BRACKET_DEBUG", NULL, 0) > 0 ? 1 : 0;
+    if (MH_CreateHook(game_va(0x141579ee0), (void *)hk_br_round, (void **)&o_br_round) != MH_OK ||
+        MH_CreateHook(game_va(0x1414bb280), (void *)hk_br_fixture, (void **)&o_br_fixture) != MH_OK ||
+        MH_CreateHook(game_va(0x14151b230), (void *)hk_br_winner, (void **)&o_br_winner) != MH_OK ||
+        MH_CreateHook(game_va(0x1414bb950), (void *)hk_br_fix_exists, (void **)&o_br_fix_exists) != MH_OK ||
+        MH_CreateHook(game_va(0x14149b790), (void *)hk_flow_post, (void **)&o_flow_post) != MH_OK) {
+        logf_("ERROR: cup bracket hooks"); return;
+    }
+    HANDLE t = CreateThread(NULL, 0, br_thread, NULL, 0, NULL);
+    if (t) CloseHandle(t);
+    InterlockedExchange(&g_bracket_on, 1);
+    logf_("cup bracket screen ready");
+}
+
 static void maybe_start(HWND parent, DWORD style)
 {
     if (!parent && !(style & WS_CHILD) && !InterlockedCompareExchange(&g_started, 1, 0)) startup();
@@ -1191,6 +1536,7 @@ static void install_hooks(void)
     hook_math();
     hook_coop();
     hook_trophy();
+    hook_bracket();
     if (g_id_hex[0]) {
         hook(L"ws2_32.dll", "send", hk_send, (void **)&o_send);
         hook(L"ws2_32.dll", "WSASend", hk_WSASend, (void **)&o_WSASend);

@@ -585,6 +585,35 @@ def final_of(svc, c, a, b):
     return f if f["round"] == last else None
 
 
+def bracket(svc, c, team_of):
+    """The knockout for the game's own bracket screen (pesmod, /mod/bracket): (size, slots, ties, third).
+    size: the first round's places (a power of two); slots: [team id or 0] per place, top to bottom (the
+    left half, then the right half, as the screen draws them); ties: [(round, index, team a, team b, goals a,
+    goals b, winner 0 / 1 / -1, played)] with round 1 = the first round and index top to bottom; third: the
+    third-place match the same way, or None. team_of(pid) = the team that player entered with."""
+    fx = fixtures(svc, c["compe_id"])
+    ko = [f for f in fx if f["stage"] == "K"]
+    if not ko:
+        return None
+    first = [f for f in ko if f["round"] == 1]
+    size = 2 * len(first)
+    slots = [0] * size
+    for f in first:
+        slots[2 * f["slot"]] = team_of(f["a"]) if f["a"] is not None else 0
+        slots[2 * f["slot"] + 1] = team_of(f["b"]) if f["b"] is not None else 0
+
+    def row(f, rnd):
+        a = team_of(f["a"]) if f["a"] is not None else 0
+        b = team_of(f["b"]) if f["b"] is not None else 0
+        won = -1 if not f["winner"] else 0 if f["winner"] == f["a"] else 1
+        ga, gb = f["a_goals"] or 0, f["b_goals"] or 0             # (a shootout: level goals, the winner's line)
+        return (rnd, f["slot"], a, b, ga, gb, won, int(f["how"] in ("played", "walkover")))
+    ties = [row(f, f["round"]) for f in sorted(ko, key=lambda f: (f["round"], f["slot"]))
+            if f["how"] != "bye" and (f["a"] is not None or f["b"] is not None)]
+    third = next((row(f, 0) for f in fx if f["stage"] == "T" and (f["a"] is not None or f["b"] is not None)), None)
+    return size, slots, ties, third
+
+
 def snapshot(svc, c):
     """For the admin page: the stage, the group tables and every tie by round."""
     fx = fixtures(svc, c["compe_id"])
