@@ -36,13 +36,17 @@ def _pname(name, pid):
                   "psn_user_id": _pack({"account_id": pid or 0, "online_id": "", "is_valid_cache": "YES"})})
 
 
-def _entry(t, home, away, hname, aname, hs, as_, hteam, ateam, category):
-    def score(n):
-        return _pack({"score_1st": n or 0, "score_2nd": 0, "score_ex1st": 0, "score_ex2nd": 0, "score_pk": 0})
+def _entry(t, home, away, hname, aname, hs, as_, hteam, ateam, category, pk=None):
+    """pk (home, away): the shootout of a match that went to penalties."""
+    pk = tuple(pk) if pk and pk[0] is not None and pk[1] is not None and (hs or 0) == (as_ or 0) else None
+
+    def score(n, pens=0):
+        return _pack({"score_1st": n or 0, "score_2nd": 0, "score_ex1st": 0, "score_ex2nd": 0, "score_pk": pens})
     players = [_pack({"pid": p or 0, "pname": _pname(n, p), "side": side, "is_com": "NO", "cpu_level": "NORMAL",
                       "is_follow": "NO", "is_guest": "NO"}) for p, n, side in ((home, hname, "HOME"), (away, aname, "AWAY"))]
-    return _pack({"date": int(t or 0), "ex_type": "", "pk_flag": "NO", "no_match": "NO", "player": players,
-                  "team": [int(hteam or 0), int(ateam or 0)], "score": [score(hs), score(as_)],
+    return _pack({"date": int(t or 0), "ex_type": "", "pk_flag": "YES" if pk else "NO", "no_match": "NO", "player": players,
+                  "team": [int(hteam or 0), int(ateam or 0)],
+                  "score": [score(hs, pk[0] if pk else 0), score(as_, pk[1] if pk else 0)],
                   "match_category": category, "gameend_reason": "NORMAL_END"})
 
 
@@ -58,7 +62,8 @@ def history(svc, pid, kind="ALL"):
             if cols:
                 team = "home_team, away_team" if "home_team" in cols else "NULL, NULL"
                 mode = "mode" if "mode" in cols else "NULL"
-                q = (f"SELECT ended, home_pid, away_pid, home_name, away_name, home_score, away_score, {team}, {mode}"
+                pens = "home_pk, away_pk" if "home_pk" in cols else "NULL, NULL"
+                q = (f"SELECT ended, home_pid, away_pid, home_name, away_name, home_score, away_score, {team}, {mode}, {pens}"
                      " FROM pes_matches WHERE (home_pid=? OR away_pid=?)")
                 if "voided" in cols:
                     q += " AND voided=0"
@@ -68,7 +73,7 @@ def history(svc, pid, kind="ALL"):
                     cat = CATEGORY.get(r[9] or "Quick Match", "PESLEAGUE_LOBBY")
                     if kind == "RANK" and cat != "RANK_MATCH":
                         continue
-                    out.append(_entry(*r[:9], cat))
+                    out.append(_entry(*r[:9], cat, pk=r[10:12]))
     return out
 
 

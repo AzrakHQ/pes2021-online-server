@@ -137,7 +137,36 @@ def start_matching(svc, sess, req):
     sess.pes_match_req = {k: v for k, v in req.items() if not k.startswith("_")}
     log.info("MATCH queue += pid %s  (queue=%s)", pid, [p for p, _ in st["queue"]])
     _try_pair(svc)
+    _cup_out(svc, pid, sess)
     return {"result": NOERR}
+
+
+CUP_OUT_STATE = "TIMEOUT"
+
+
+def _cup_out(svc, pid, sess):
+    """A player with nothing left to play in a knockout cup (knocked out, not in the draw, the cup is over) would
+    search forever: nobody is ever paired with them. Their search is ended at once instead, the way the game
+    expects a search without a result to end (a WATCH_MATCHING push, as for Cancel)."""
+    st = _state(svc)
+    key = _queue_key(sess)
+    if key[0] != "PES_LEAGUE" or not any(p == pid for p, _ in st["queue"]):
+        return
+    from . import pescup, pestourney
+    if not pescup.is_cup(pestourney.get(svc, key[1])) or not pescup.out(svc, key[1], pid):
+        return
+    st["queue"] = [(p, s) for p, s in st["queue"] if p != pid]
+    st.get("qsince", {}).pop(pid, None)
+    _forget_mismatch(st, pid)
+    log.info("MATCH pid %s has nothing left to play in cup %s: search ended (%s)", pid, key[1], CUP_OUT_STATE)
+    _send_later(sess, "CMD_WATCH_MATCHING", 0, 0x60, 1,
+                {"result": NOERR, "matching_state": CUP_OUT_STATE, "player_num": 0, "member": []})
+
+
+def cup_sweep(svc):
+    """After a cup changed (pescup._wake): players who were searching and now have nothing left to play."""
+    for pid, sess in list(_state(svc)["queue"]):
+        _cup_out(svc, pid, sess)
 
 
 @cmd("CMD_CANCEL_MATCHING")
@@ -328,10 +357,20 @@ def _next_pair(svc):
             from . import pesblock
             if pesblock.blocked(svc, q[i][0], q[j][0]):
                 continue                                  # one of them put the other on the Match Block List
+            key = _queue_key(q[i][1])
+            if key[0] == "PES_LEAGUE" and not _cup_pair(svc, key[1], q[i][0], q[j][0]):
+                continue                                  # a cup: only the two players of a tie in its draw
             if _compatible(q[i][1], q[j][1]):
                 return i, j
             _note_mismatch(svc, q[i][0], q[j][0], q[i][1], q[j][1])
     return None
+
+
+def _cup_pair(svc, cid, a, b):
+    """False when the competition is a knockout cup (pescup) and these two have no tie to play."""
+    from . import pescup, pestourney
+    c = pestourney.get(svc, cid)
+    return not pescup.is_cup(c) or pescup.can_pair(svc, cid, a, b)
 
 
 def _try_pair(svc):
@@ -340,6 +379,9 @@ def _try_pair(svc):
         i, j = ij
         (a, sa), (b, sb) = st["queue"][i], st["queue"][j]
         st["queue"] = [x for k, x in enumerate(st["queue"]) if k not in (i, j)]
+        if _queue_key(sa)[0] == "PES_LEAGUE":             # a cup: the owner's game sets extra time and penalties
+            from . import pestourney
+            (a, sa), (b, sb) = pestourney.host_first(svc, _queue_key(sa)[1], (a, sa), (b, sb))
         _forget_mismatch(st, a, b)
         room = new_room(svc, owner=a, members=[a, b], mode=_matching_type(sa), compe=_queue_key(sa)[1])
         log.info("MATCH FOUND room %d: owner %s vs %s", room, a, b)
@@ -501,6 +543,10 @@ def change_gamephase(svc, sess, req):
     rid, room = _room_of(svc, pid)
     if room is not None:
         room.setdefault("phase", {})[pid] = str(req.get("phase", ""))
+        if room["phase"][pid] == "PK" and "shootout" not in room:
+            # from here on ADD_SCORE reports are penalties of the shootout: by the match clock, which keeps
+            # running (live: PK at gtimer 27076, a penalty at 65253), so a goal report that comes late is not one
+            room["shootout"] = req["gtimer"] if isinstance(req.get("gtimer"), int) else True
         if room.get("coop") and all(room["phase"].get(p) == "END" for p in room["members"]):
             from . import pescoop
             pescoop.award(svc, room)              # co-op level points at the final whistle
@@ -555,11 +601,29 @@ def set_gameteam(svc, sess, req):
 @cmd("CMD_ADD_SCORE")
 def add_score(svc, sess, req):
     # Both games report every goal with the same gtimer; a set keeps one copy.
+    # A scored penalty of a shootout comes the same way (after phase PK; live 2026-11-21: a 0-0 that went 1-0 on
+    # penalties sent one ADD_SCORE, the game's own result stayed 0-0 "(1 PK 0)"), so those are kept apart.
     rid, room = _room_of(svc, _pid(sess))
     side = str(req.get("goal_side", "")).upper()
     if room is not None and side in ("HOME", "AWAY"):
-        room.setdefault("goals", set()).add((req.get("gtimer"), side))
+        room.setdefault("pk_goals" if _penalty(room, req.get("gtimer")) else "goals", set()).add((req.get("gtimer"), side))
     return {"result": NOERR}
+
+
+def _penalty(room, gtimer):
+    """True for a goal report that belongs to the shootout (see change_gamephase)."""
+    start = room.get("shootout")
+    if not start:
+        return False
+    return start is True or not isinstance(gtimer, int) or gtimer >= start
+
+
+def shootout(room):
+    """{"HOME": n, "AWAY": n} when the match went to penalties and they produced a winner, else None."""
+    if not room.get("shootout"):
+        return None
+    pk = {s: sum(1 for _, g in room.get("pk_goals", set()) if g == s) for s in ("HOME", "AWAY")}
+    return pk if pk["HOME"] != pk["AWAY"] else None
 
 
 @cmd("CMD_REQ_GAMEADDPOINT")
@@ -588,7 +652,8 @@ def _forfeit_row(svc, rid, room, quitter, hs, as_, insert_if_missing=False):
     try:
         events._st(svc)                      # (creates the table and its newer columns)
         with svc.accounts.lock, db:
-            cur = db.execute("UPDATE pes_matches SET home_score=?, away_score=?, reason='FORFEIT', left_pid=? "
+            cur = db.execute("UPDATE pes_matches SET home_score=?, away_score=?, reason='FORFEIT', left_pid=?, "
+                             "home_pk=NULL, away_pk=NULL "
                              "WHERE id=(SELECT MAX(id) FROM pes_matches WHERE room=? AND home_pid=? AND away_pid=? "
                              "AND ended >= ?)", (hs, as_, quitter, rid, home, away, room.get("t", 0)))
             if cur.rowcount == 0 and insert_if_missing:
@@ -676,6 +741,11 @@ def _verdict(svc, rid, room):
                or (ELO_START, 0)) for p in (home, away)}
     result = {home: 0.5 + 0.5 * ((score["HOME"] > score["AWAY"]) - (score["HOME"] < score["AWAY"]))}
     result[away] = 1 - result[home]
+    # Level after extra time and decided on penalties (cups, lobby rooms with penalties on): the match counts as
+    # a draw for the ratings; the verdict names the shootout's winner.
+    pk = shootout(room) if score["HOME"] == score["AWAY"] else None
+    if pk:
+        room["pk"] = pk
     if room.get("coop"):
         new = dict(old)                      # co-op: no 1v1 rating change (the co-op level is pescoop's)
     else:
@@ -706,8 +776,10 @@ def _verdict(svc, rid, room):
                         "rating_compe": 0, "side": side[p], "contWin_num": new[p][1],
                         "skill_rank": "SKILL_RANK_NONE", "is_rankup_skill_rank": "NO", "is_first_skillrank": "NO"})
     winner = "WINNER_HOME" if result[home] == 1 else "WINNER_AWAY" if result[away] == 1 else "WINNER_NONE"
+    if pk:
+        winner = "WINNER_HOME" if pk["HOME"] > pk["AWAY"] else "WINNER_AWAY"
     room["verdict"] = {"result": NOERR, "player_count": 2, "player_list": [msgpack.packb(x, use_bin_type=True) for x in players],
-                       "winner_side": winner, "gameend_reason": "NORMAL_END", "is_pk": "NO"}
+                       "winner_side": winner, "gameend_reason": "NORMAL_END", "is_pk": "YES" if pk else "NO"}
     if room.get("mode") == "OC_RANK":
         from . import pesdivisions
         pesdivisions.record(svc, room)

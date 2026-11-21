@@ -70,8 +70,10 @@ def source(cmd, src):
     if src.startswith("hex:"):
         return bytes.fromhex(src[4:])
     if src.startswith("json:"):
-        from pesserver import pescmds
-        body = pescmds._unjson(json.loads(src[5:]))
+        sys.path.insert(0, os.path.join(HERE, "testserver"))
+        os.environ.setdefault("PATCH_CTL", os.devnull)
+        import replypatch                          # ({"__blob__": …} notation: replypatch._unjson)
+        body = replypatch._unjson(json.loads(src[5:]))
         body.setdefault("msgid", cmd)
         return msgpack.packb(body, use_bin_type=True)
     if src.startswith("last"):

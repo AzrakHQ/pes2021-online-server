@@ -116,5 +116,7 @@ def restore(svc, did):
             if col in MATCH_COLS:
                 db.executemany(f"UPDATE pes_matches SET {col}=? WHERE id=? AND {col} IS NULL", [(pid, i) for i in ids])
         db.execute("DELETE FROM pes_deleted WHERE id=?", (int(did),))
+    from . import pescup
+    pescup.restore(svc, pid)                    # (their name in cup draws; ties given away stay given away)
     log.info("player %s (%s) restored", pid, name)
     return name

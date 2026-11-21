@@ -117,6 +117,13 @@ def _still_searching(svc, pid):
     return any(p == pid for p, _ in mm.get("queue", [])) or any(x[0] == pid for x in mm.get("coop_queue", []))
 
 
+def cup(svc, text):
+    """A knockout cup's news (the draw, the next tie, the winner; pescup), sent with the result notices."""
+    cfg = config(svc)
+    if cfg["url"] and cfg["results"]:
+        post(svc, "🏆 " + text)
+
+
 def on_feed(svc, item):
     """Called for every activity line (events.feed): turn the two interesting kinds into notices."""
     cfg = config(svc)

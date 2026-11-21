@@ -494,6 +494,21 @@
   .tn { margin-bottom:16px; }
   .tn .meta { margin:-4px 0 12px; }
   .tn .acts { display:flex; gap:8px; flex-wrap:wrap; }
+  .cup h3 { font-size:13px; font-weight:600; color:var(--muted); margin:14px 0 6px; }
+  .cup h3:first-child { margin-top:0; }
+  .cup ul { list-style:none; margin:0; padding:0; }
+  .cup li { display:flex; align-items:center; gap:10px; padding:6px 0; border-top:1px solid var(--line); font-size:14px; flex-wrap:wrap; }
+  .cup li:first-child { border-top:0; }
+  .cup li > .pl { flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cup li > .pl:first-child { text-align:right; }
+  .cup li > .pl.l { opacity:.55; }
+  .cup li > .mid { flex:none; min-width:4.5em; text-align:center; display:flex; flex-direction:column; align-items:center; line-height:1.2; }
+  .cup .award { flex:none; font-size:13px; }
+  .cup .award > summary { list-style:none; cursor:pointer; }
+  .cup .award > summary::-webkit-details-marker { display:none; }
+  .cup .award[open] { flex-basis:100%; display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:wrap; }
+  .cup .award .row { display:inline-flex; gap:6px; flex-wrap:wrap; }
+  .cup .grp { margin-bottom:6px; }
   .tn table td.team, .tn table th.team { color:var(--muted); }
   .tn .win1 td { font-weight:600; }
   .tn details { margin-top:12px; }
@@ -675,6 +690,7 @@
           <form id="tnform" novalidate>
             <label for="tn-name">Name</label><input id="tn-name" maxlength="60" autocomplete="off" placeholder="e.g. Saturday Cup">
             <div class="tn-dates"><div><label for="tn-start">Starts</label><input type="datetime-local" id="tn-start"></div><div><label for="tn-end">Ends</label><input type="datetime-local" id="tn-end"></div></div>
+            <label for="tn-fmt">Format</label><select id="tn-fmt"><option value="league" selected>League table</option><option value="cup">Knockout cup</option><option value="cup3">Knockout cup with a third-place match</option></select>
             <label for="tn-min">Match length</label><select id="tn-min"><option value="5">5 minutes</option><option value="6">6 minutes</option><option value="8">8 minutes</option><option value="10" selected>10 minutes</option><option value="12">12 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option></select>
             <fieldset class="tn-teams" id="tn-teams-f"><legend>Teams friends can enter with <span class="small muted" id="tn-tcount"></span></legend><div id="tn-teams"><div class="skel"></div></div></fieldset>
             <label for="tn-info">Competition Outline <span class="small muted" style="font-weight:400">(optional)</span></label><textarea id="tn-info" maxlength="2000" placeholder="Shown under Competition Details in the game. Empty: written from the dates and rules." aria-describedby="tn-err"></textarea>
@@ -1213,7 +1229,7 @@ function myMatches(list, pid) {
 const formHtml = f => f.length ? `<span class="form" title="Last ${f.length} results, newest on the right" aria-label="Last ${f.length}, oldest first: ${f.map(x => ({W: "won", D: "drew", L: "lost"})[x]).join(", ")}">` + f.map(x => `<span class="${x}" aria-hidden="true">${x}</span>`).join("") + `</span>` : `<span class="muted">–</span>`;
 const formOf = (list, pid, n) => myMatches(list, pid).filter(m => !m.r.voided).slice(0, n || 5).map(m => m.res).reverse();
 const handleTag = p => p.handle && p.handle !== p.name.toLowerCase() ? `<span class="handle" title="Handle: no two players share it" dir="ltr">@<bdi>${esc(p.handle)}</bdi></span>` : "";
-const pname = (name, pid, key) => pid == null ? nm(name) : `<button type="button" class="pname" data-player="${pid}" data-key="${key || "pn-" + pid}" aria-haspopup="dialog">${nm(name)}</button>`;
+const pname = (name, pid, key) => pid == null || pid < 0 ? nm(name) : `<button type="button" class="pname" data-player="${pid}" data-key="${key || "pn-" + pid}" aria-haspopup="dialog">${nm(name)}</button>`;
 
 let msgDirty = false;
 const waitingFor = pid => lastAnnounce && (lastAnnounce.personal || []).find(m => m.pid === pid);
@@ -1661,10 +1677,11 @@ function renderMatches(d, playing, ready, fromLoad) {
   const tm = id => id && TEAMS ? `<span class="team-n">${esc(teamName(id))}</span>` : "";
   put("results", none ? `<p class="empty">No results yet.</p>` : !total ? `<p class="empty">No results${ui.re ? " that ended early" : ""}${ui.rm ? " in " + esc(ui.rm) : ""}${q ? ` with "${esc(ui.rq)}"` : ""}${ui.rr !== "all" ? " in this period" : ""}. <button type="button" class="linkbtn" data-clear="results">Show all results</button></p>` :
     `<div class="tablewrap"><table class="res"><caption class="sr">Results, newest first</caption><colgroup><col class="w"><col class="hm"><col class="s"><col class="aw"></colgroup><thead><tr><th scope="col">When</th><th scope="col" style="text-align:right">Home</th><th scope="col" style="text-align:center">Score</th><th scope="col">Away</th></tr></thead><tbody>` +
-    shownRs.map(r => { const hw = r.home_score > r.away_score, aw = r.away_score > r.home_score;
+    shownRs.map(r => { const pens = r.home_pk != null && r.away_pk != null && r.home_score === r.away_score;
+      const hw = r.home_score > r.away_score || pens && r.home_pk > r.away_pk, aw = r.away_score > r.home_score || pens && r.away_pk > r.home_pk;
       const early = r.reason || r.voided, score = `${r.home_name} ${r.home_score ?? "?"}–${r.away_score ?? "?"} ${r.away_name}`;
       return `<tr${early ? ' class="has-note"' : ""}><td class="when nw muted small"><time datetime="${iso(r.ended)}" title="${fmt.format(new Date(r.ended * 1000))}">${whenCell(r.ended, now)}</time>${r.started && r.ended > r.started ? `<span class="len-m"> · ${Math.max(1, Math.round((r.ended - r.started) / 60))} min</span>` : ""}${ui.rm ? "" : modeTag(r.mode || "Quick Match")}</td>
-        <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}${tm(r.home_team)}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${r.voided ? `<span class="pill neutral tag">not counted</span>` : r.reason === "FORFEIT" ? `<span class="pill warn tag">forfeit</span>` : r.reason ? `<span class="pill warn tag">ended early</span>` : ""}</td>
+        <td class="h ${hw ? "win" : aw ? "lose" : ""}">${pname(r.home_name, r.home_pid, `rh-${r.id}`)}${hw ? '<span class="sr"> won</span>' : ""}${tm(r.home_team)}</td><td class="sc">${r.home_score ?? "?"} – ${r.away_score ?? "?"}${pens ? `<span class="pill neutral tag">${r.home_pk}–${r.away_pk} pens</span>` : ""}${r.voided ? `<span class="pill neutral tag">not counted</span>` : r.reason === "FORFEIT" ? `<span class="pill warn tag">forfeit</span>` : r.reason ? `<span class="pill warn tag">ended early</span>` : ""}</td>
         <td class="a ${aw ? "win" : hw ? "lose" : ""}">${pname(r.away_name, r.away_pid, `ra-${r.id}`)}${aw ? '<span class="sr"> won</span>' : ""}${tm(r.away_team)}</td></tr>` +
         (early ? `<tr class="note-r"><td class="pad"></td><td colspan="3"><span class="small ${r.voided ? "muted" : ""}">${r.reason === "FORFEIT" ? forfeitWhy(r) + ". " : r.reason ? why(r) + ". " : ""}${r.voided ? "Not in the table." : ""}</span> <button type="button" class="small needs-server" data-count="${r.id}" data-counted="${r.voided ? 1 : 0}" data-score="${esc(score)}" data-key="cnt-${r.id}">${r.voided ? "Count it again" : "Don't count it"}</button></td></tr>` : ""); }).join("") +
     `</tbody></table></div>` +
@@ -1829,7 +1846,7 @@ function paintTnTeams() {
 function tnReset(focus) {
   tn.edit = null; tn.teams = defaultTeams(); tn.extra = [];
   const t0 = Math.floor(Date.now() / 60000) * 60;
-  $("tn-name").value = ""; $("tn-info").value = ""; $("tn-min").value = "10";
+  $("tn-name").value = ""; $("tn-info").value = ""; $("tn-min").value = "10"; $("tn-fmt").value = "league"; $("tn-fmt").disabled = false;
   $("tn-start").value = dtLocal(t0); $("tn-end").value = dtLocal(t0 + 7 * 86400);
   text("h-tnform", "New tournament"); text("tn-save", "Create tournament"); $("tn-cancel").hidden = true;
   text("tn-err", ""); document.querySelectorAll("#tnform [aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
@@ -1841,6 +1858,8 @@ function tnEdit(c) {
   tn.edit = c.compe_id; tn.teams = new Set(c.teams); tn.extra = c.teams.filter(t => !nat.has(t));
   $("tn-name").value = c.name; $("tn-info").value = c.info || ""; $("tn-start").value = dtLocal(c.start); $("tn-end").value = dtLocal(c.end);
   $("tn-min").value = [...$("tn-min").options].some(o => +o.value === c.minutes) ? String(c.minutes) : "10";
+  $("tn-fmt").value = c.format === "cup" ? (c.third_place ? "cup3" : "cup") : "league";
+  $("tn-fmt").disabled = c.state !== "ended" && (c.cup ? c.cup.stage !== "entry" : c.matches > 0);     // the format stays once it's under way
   text("h-tnform", `Change “${c.name}”`); text("tn-save", "Save changes"); $("tn-cancel").hidden = false; text("tn-err", "");
   paintTnTeams();
   $("h-tnform").scrollIntoView({block: "start"}); $("tn-name").focus({preventScroll: true});
@@ -1850,6 +1869,33 @@ function tnState(c, now) {
   if (c.state === "upcoming") return `<span class="pill neutral">Starts in ${dur(c.start - now)}</span>`;
   return `<span class="pill neutral">Ended ${esc(dShort.format(new Date(c.end * 1000)))}</span>`;
 }
+// A knockout cup (pescup): who entered and the draw buttons, then the group tables and every tie by round.
+function cupTie(c, t) {
+  const id = c.compe_id, done = t.winner !== null && t.winner !== undefined;
+  const pl = (p, k) => `<span class="pl${p && done && t.winner && t.winner !== p.pid ? " l" : ""}">${p ? pname(p.name, p.pid, `cup-${id}-${t.fid}-${k}`) : t.how === "bye" ? "" : '<span class="muted">–</span>'}</span>`;
+  const mid = t.how === "bye" ? `<span class="small muted">bye</span>`
+    : done ? `<b>${t.a_goals}–${t.b_goals}</b>` + (t.a_pk !== null && t.a_pk !== undefined ? `<span class="small muted">${t.a_pk}–${t.b_pk} pens</span>` : "") + (t.how === "walkover" ? `<span class="small muted">awarded</span>` : "")
+    : `<span class="muted">v</span>` + (t.replays ? `<span class="small muted">replay</span>` : "");
+  const award = t.open && c.state === "running" ? `<details class="award" data-key="aw-${id}-${t.fid}"><summary class="linkbtn">Award</summary><span class="row">` +
+    [t.a, t.b].map(p => `<button type="button" class="small needs-server" data-tnaward="${id}" data-fid="${t.fid}" data-win="${p.pid}" data-key="aw-${id}-${t.fid}-${p.pid}">${esc(p.name)}</button>`).join("") + `</span></details>` : "";
+  return `<li>${pl(t.a, "a")}<span class="mid">${mid}</span>${pl(t.b, "b")}${award}</li>`;
+}
+function cupView(c) {
+  const k = c.cup, id = c.compe_id, n = c.table.length, live = c.state === "running";
+  if (k.stage === "entry") {
+    const who = c.table.map(r => pname(r.name, r.pid, `cupe-${id}-${r.pid}`));
+    return `<div class="cup">` + (n ? `<p class="small">${plural(n, "player")} entered: ${who.join(", ")}</p>` : `<p class="empty">${c.state === "ended" ? "Nobody played in it." : "Nobody has entered yet."}</p>`) +
+      (live ? `<div class="acts"><button type="button" class="small primary needs-server" data-tndraw="${id}" data-groups="0" data-key="cupd-${id}"${n < 2 ? " disabled" : ""}>Draw the knockout</button>` +
+        (n >= 6 ? `<button type="button" class="small needs-server" data-tndraw="${id}" data-groups="1" data-key="cupg-${id}">Draw groups first</button>` : "") + `</div>` : "") + `</div>`;
+  }
+  const th = (l, t, cls) => `<th scope="col" class="${cls || ""}">${t ? `<abbr title="${t}">${l}</abbr>` : l}</th>`;
+  const groups = k.groups.map(g => `<div class="grp"><h3>${esc(g.name)}</h3><div class="tablewrap"><table><caption class="sr">${esc(c.name)}: ${esc(g.name)}</caption><thead><tr>${th("#", "", "num")}${th("Player")}${th("P", "Played", "num")}${th("W", "Won", "num hide-sm")}${th("D", "Drawn", "num hide-sm")}${th("L", "Lost", "num hide-sm")}${th("Goals", "", "num hide-sm")}${th("Pts", "Points", "num")}</tr></thead><tbody>` +
+    g.table.map((r, i) => `<tr${i < 2 ? ' class="win1"' : ""}><td class="num muted">${i + 1}</td><td class="name">${pname(r.name, r.pid, `cupg-${id}-${r.pid}`)}</td><td class="num">${r.played}</td><td class="num hide-sm">${r.win}</td><td class="num hide-sm">${r.draw}</td><td class="num hide-sm">${r.lose}</td><td class="num hide-sm">${r.gf}:${r.ga}</td><td class="num"><b>${r.pts}</b></td></tr>`).join("") +
+    `</tbody></table></div><ul>${g.ties.map(t => cupTie(c, t)).join("")}</ul></div>`).join("");
+  const rounds = k.rounds.map(r => `<h3>${esc(r.name)}</h3><ul>${r.ties.map(t => cupTie(c, t)).join("")}</ul>`).join("");
+  const played = [...k.groups.flatMap(g => g.ties), ...k.rounds.flatMap(r => r.ties)].some(t => t.how === "played" || t.how === "walkover" || t.replays);
+  return `<div class="cup">${rounds}${groups}` + (live && !played ? `<div class="acts" style="margin-top:12px"><button type="button" class="small needs-server" data-tnundraw="${id}" data-key="cupu-${id}">Take back the draw</button></div>` : "") + `</div>`;
+}
 function tnCard(c, now) {
   const teams = c.teams.map(t => c.team_names[String(t)] || teamName(t)), id = c.compe_id;
   const tlist = teams.length <= 6 ? andList(teams.map(esc)) : esc(teams.slice(0, 5).join(", ")) + ` and ${teams.length - 5} more`;
@@ -1858,10 +1904,12 @@ function tnCard(c, now) {
       c.table.map(r => `<tr${r.rank === 1 && ended && r.points ? ' class="win1"' : ""}><td class="num muted">${r.rank}</td><td class="name">${pname(r.name, r.pid, `tn-${id}-${r.pid}`)}<small class="show-sm">${r.team ? esc(r.team) + " · " : ""}${r.win}W ${r.draw}D ${r.lose}L</small></td><td class="team hide-sm">${esc(r.team || "–")}</td>` +
         `<td class="num">${r.win + r.draw + r.lose}</td><td class="num hide-sm">${r.win}</td><td class="num hide-sm">${r.draw}</td><td class="num hide-sm">${r.lose}</td><td class="num hide-sm">${r.goals_for}:${r.goals_against}</td><td class="num"><b>${r.points}</b></td></tr>`).join("") + `</tbody></table></div>`
     : `<p class="empty">${ended ? "Nobody played in it." : "Nobody has entered yet."}</p>`;
-  const top = c.table[0], won = ended && top && top.points ? `<p class="small">${ICON.trophy.replace("<svg ", '<svg class="i" ')} Won by <b>${pname(top.name, top.pid, `tnw-${id}`)}</b> with ${plural(top.points, "point")}.</p>` : "";
+  const top = c.table[0], champ = c.cup && c.cup.stage === "done";
+  const won = champ && top ? `<p class="small">${ICON.trophy.replace("<svg ", '<svg class="i" ')} Won by <b>${pname(top.name, top.pid, `tnw-${id}`)}</b>.</p>`
+    : !c.cup && ended && top && top.points ? `<p class="small">${ICON.trophy.replace("<svg ", '<svg class="i" ')} Won by <b>${pname(top.name, top.pid, `tnw-${id}`)}</b> with ${plural(top.points, "point")}.</p>` : "";
   return `<section class="card tn" aria-labelledby="tn-h-${id}"><div class="card-h"><h2 id="tn-h-${id}" tabindex="-1">${esc(c.name)}</h2>${tnState(c, now)}</div>` +
-    `<p class="small muted meta">${esc(fmt.format(new Date(c.start * 1000)))} – ${esc(fmt.format(new Date(c.end * 1000)))} · ${c.minutes}-minute matches · ${plural(c.matches, "match", "matches")} played · ${plural(teams.length, "team")}: ${tlist}${c.auto ? " · monthly" : ""}</p>` +
-    won + table +
+    `<p class="small muted meta">${esc(fmt.format(new Date(c.start * 1000)))} – ${esc(fmt.format(new Date(c.end * 1000)))} · ${c.cup ? "knockout cup · " : ""}${c.minutes}-minute matches · ${plural(c.matches, "match", "matches")} played · ${plural(teams.length, "team")}: ${tlist}${c.auto ? " · monthly" : ""}</p>` +
+    won + (c.cup ? cupView(c) : table) +
     `<details class="keycheck" data-key="tno-${id}"><summary>What friends read in the game</summary><div class="pb">${esc(c.outline)}</div></details>` +
     `<div class="acts" style="margin-top:12px">${!ended ? `<button type="button" class="small needs-server" data-tntell="${id}" data-key="tnt-tell-${id}">Tell everyone</button>` : ""}<button type="button" class="small needs-server" data-tnedit="${id}" data-key="tnt-edit-${id}">${ended ? "Run it again" : "Change"}</button>` +
     `${!ended ? `<button type="button" class="small needs-server" data-tnend="${id}" data-key="tnt-end-${id}">End now</button>` : ""}<button type="button" class="small danger needs-server" data-tndel="${id}" data-key="tnt-del-${id}">Delete</button></div></section>`;
@@ -1881,7 +1929,7 @@ function renderTourneys(d) {
 const tnOf = id => ((last && last.tourneys) || []).find(c => c.compe_id === +id);
 async function tnCall(path, body, done) {
   try { await api(path, {method: "POST", body: JSON.stringify(body)}); toast(done); }
-  catch (err) { if (err.status === 401) { signedOut(); return false; } toast(err.status === 404 ? "That tournament is gone." : "Couldn't reach the server. Try again.", true); return false; }
+  catch (err) { if (err.status === 401) { signedOut(); return false; } toast(err.status === 404 ? "That tournament is gone." : err.status === 400 ? err.message.charAt(0).toUpperCase() + err.message.slice(1) + "." : "Couldn't reach the server. Try again.", true); if (err.status === 400) await refreshNow(); return false; }
   await refreshNow(); return true;
 }
 $("tn-teams").addEventListener("change", e => {
@@ -1902,6 +1950,7 @@ $("tnform").onsubmit = async e => {
   if (end <= now) return bad("That end time has already passed.", $("tn-end"));
   if (!tn.teams.size) { tn.open = true; paintTnTeams(); return bad("Choose at least one team friends can enter with.", $("tn-teams-f")); }
   const editing = tn.edit, body = {name, start, end, match_minutes: +$("tn-min").value, teams: [...tn.teams], info: $("tn-info").value.trim()};
+  if (!$("tn-fmt").disabled) { const f = $("tn-fmt").value; body.format = f === "league" ? "league" : "cup"; body.third_place = f === "cup3"; }
   if (editing) body.compe_id = editing;
   $("tn-save").disabled = true;
   try { await api("/admin/api/tourneys/save", {method: "POST", body: JSON.stringify(body)}); }
@@ -1915,7 +1964,9 @@ $("tnform").onsubmit = async e => {
 };
 function tnTell(c) {
   const at = t => fmt.format(new Date(t * 1000)), up = c.state === "upcoming";
-  const body = `${c.name} ${up ? `starts ${at(c.start)} and runs` : "is on"} until ${at(c.end)}. In eFootball → Online Tournament, enter with a team, then choose Match to play friends who entered. ${c.minutes}-minute matches, 3 points a win.`;
+  const body = c.cup ? (c.cup.stage === "entry" ? `${c.name} is a knockout cup${up ? `, open from ${at(c.start)}` : ""}. In eFootball → Online Tournament, enter with a team. The draw is made when everyone is in. ${c.minutes}-minute matches.`
+      : `${c.name}: the draw is made. In eFootball → Online Tournament, open Competition Details on it and read Competition Outline to see who you play. Then enter it and both choose Start Match at the same time. ${c.minutes}-minute matches.`)
+    : `${c.name} ${up ? `starts ${at(c.start)} and runs` : "is on"} until ${at(c.end)}. In eFootball → Online Tournament, enter with a team, then choose Match to play friends who entered. ${c.minutes}-minute matches, 3 points a win.`;
   return [c.name.slice(0, 60), body.slice(0, 600)];
 }
 
@@ -2402,7 +2453,7 @@ document.addEventListener("click", async e => {
   if (tg) { const r = tnRegions().find(x => x.name === tg.dataset.tnreg); if (r) r.ids.forEach(t => tn.teams[tg.dataset.on === "1" ? "add" : "delete"](t)); paintTnTeams(); return; }
   const te = e.target.closest("[data-tnedit]");
   if (te) { const c = tnOf(te.dataset.tnedit); if (!c) return;
-    if (c.state === "ended") { tnEdit(c); tn.edit = null; text("h-tnform", "New tournament"); text("tn-save", "Create tournament"); $("tn-cancel").hidden = false; $("tn-name").value = c.name.slice(0, 54) + " (2)";
+    if (c.state === "ended") { tnEdit(c); tn.edit = null; text("h-tnform", "New tournament"); text("tn-save", "Create tournament"); $("tn-cancel").hidden = false; $("tn-name").value = c.name.slice(0, 54) + " (2)"; $("tn-fmt").disabled = false;
       const t0 = Math.floor(Date.now() / 60000) * 60; $("tn-start").value = dtLocal(t0); $("tn-end").value = dtLocal(t0 + Math.max(3600, c.end - c.start)); }
     else tnEdit(c);
     return; }
@@ -2410,6 +2461,18 @@ document.addEventListener("click", async e => {
   if (tt) { const c = tnOf(tt.dataset.tntell); if (!c) return; const [t, b] = tnTell(c);
     if (($("msg-title").value.trim() || $("msg-body").value.trim()) && await ask({title: "Replace what you wrote?", body: "The tournament's text replaces the title and message in the Messages form.", ok: "Replace"}) === null) return;
     $("msg-title").value = t; $("msg-body").value = b; msgCount(); location.hash = "#messages/msg-body"; return; }
+  const tdr = e.target.closest("[data-tndraw]");
+  if (tdr) { const c = tnOf(tdr.dataset.tndraw); if (!c) return; const groups = tdr.dataset.groups === "1", n = c.table.length, g = Math.floor((n + 3) / 4);
+    if (await ask({title: `Make the draw for “${c.name}”?`, body: `${plural(n, "player")}. Nobody else can enter after the draw.` + (groups ? `\n\n${g} groups: everyone plays the others in their group once, and the top two of each go to the knockout.` : ""), ok: "Make the draw"}) === null) return;
+    return tnCall("/admin/api/tourneys/draw", {compe_id: c.compe_id, groups}, `The draw for “${c.name}” is made.`); }
+  const tud = e.target.closest("[data-tnundraw]");
+  if (tud) { const c = tnOf(tud.dataset.tnundraw); if (!c) return;
+    if (await ask({title: `Take back the draw of “${c.name}”?`, body: "Entry opens again. You make a new draw when everyone is in.", ok: "Take it back", danger: true}) === null) return;
+    return tnCall("/admin/api/tourneys/undraw", {compe_id: c.compe_id}, `“${c.name}” is open for entry again.`); }
+  const taw = e.target.closest("[data-tnaward]");
+  if (taw) { const c = tnOf(taw.dataset.tnaward); if (!c) return; const who = taw.textContent;
+    if (await ask({title: `Award the tie to ${who}?`, body: "It counts as a 3–0 win and can't be undone.", ok: "Award", danger: true}) === null) return;
+    return tnCall("/admin/api/tourneys/award", {compe_id: c.compe_id, fid: +taw.dataset.fid, winner: +taw.dataset.win}, `${who} was awarded the tie.`); }
   const tx = e.target.closest("[data-tnend]");
   if (tx) { const c = tnOf(tx.dataset.tnend); if (!c) return;
     if (await ask({title: `End “${c.name}” now?`, body: c.state === "upcoming" ? "It hasn't started yet. Ending it now means it never runs; it moves to Past tournaments." : "No more matches count for it. The table stays, and each friend who entered sees their final place the next time they open Online Tournament.", ok: "End now", danger: true}) === null) return;

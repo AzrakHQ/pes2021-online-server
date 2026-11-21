@@ -50,10 +50,24 @@ def ctl():
     return _cache["data"]
 
 
+def _unjson(v):
+    """{"__blob__": obj} -> one msgpack blob; {"__blobs__": [objs]} -> a list of blobs. (The server had this as
+    pescmds._unjson until its overrides.json hook was removed.)"""
+    if isinstance(v, dict):
+        if "__blob__" in v:
+            return msgpack.packb(_unjson(v["__blob__"]), use_bin_type=True)
+        if "__blobs__" in v:
+            return [msgpack.packb(_unjson(x), use_bin_type=True) for x in v["__blobs__"]]
+        return {k: _unjson(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_unjson(x) for x in v]
+    return v
+
+
 def value(v):
     if isinstance(v, dict) and set(v) == {"__bin__"}:
         return bytes.fromhex(v["__bin__"])
-    return pescmds._unjson(v)
+    return _unjson(v)
 
 
 def _pack(o):

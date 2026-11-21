@@ -122,7 +122,7 @@ def _tourneys(svc):
     for c in out:
         c["team_names"] = {str(t): team_name(t) for t in c["teams"]}
         c["matches"] = played.get(c["compe_id"], 0)
-        c["outline"] = pestourney.outline(c)
+        c["outline"] = pestourney.outline(c, svc)
         c["minutes"] = pestourney.regulation(c)["match_time"]
         c["auto"] = c["compe_id"] in auto              # the monthly Friends Cup the server made itself
         for r in c["table"]:

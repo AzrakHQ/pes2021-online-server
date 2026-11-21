@@ -40,8 +40,20 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
   is_efootball_pro_stadium, entry_compe, team_id, clan_info blob (co-op/clan competitions) and eula_url.
   - **`compe_regulation` is a top-level blob** (found with the parser bench; inside compe_data it is ignored):
     match_time NUM (this+0x580), condition STR (+0x588; CONDITION_WORST…CONDITION_BEST), ranking_match_num NUM
-    and trade_num NUM (+0x5a8/+0x5ac), extra_time STR (+0x5b0), guest STR (+0x5f0; GUEST / GUEST_NONE /
-    PLATFORM_GUEST), is_equalization / is_3member_coop / is_ex_substitution "YES"/"NO" (+0x610/+0x630/+0x650).
+    and trade_num NUM (+0x5a8/+0x5ac), extra_time STR (+0x5b0), **pk STR (+0x5d0; key at 0x142add6d4, the schema
+    extractor missed it)**, guest STR (+0x5f0; GUEST / GUEST_NONE / PLATFORM_GUEST), is_equalization /
+    is_3member_coop / is_ex_substitution "YES"/"NO" (+0x610/+0x630/+0x650).
+  - **extra_time "YES" + pk "YES" [live 2026-11-21]:** a match level after 90 minutes goes BREAK2 → EX1ST → EX2ND
+    → BREAK4 → PK → END (without them: 2ND_30MIN → END). The shootout waits for the kickers' input (a copy left
+    alone sat on the first kick for 12 minutes). Each scored penalty is a CMD_ADD_SCORE like any goal (after the
+    PK phase report); the game's own result keeps them apart: Full Time 0-0 "120:00 (1 PK 0)", SEND_GAME_RESULT
+    home_score 0 / away_score 0. The verdict push with winner_side of the shootout's winner and is_pk "YES" is
+    taken without trouble. pesmatch keeps shootout penalties in room["pk_goals"].
+  - **Both games play by the room owner's rules [live 2026-11-21, one direction]:** owner with match_time 5 /
+    extra_time YES / pk YES, guest with 10 / NO / NO: both reported 1ST_15MIN after 50 s (a 5-minute match) and
+    both went to BREAK2 at 0-0. A game reads the regulation only with COMPE_INFO (when the competition is opened
+    from the list), not after each match. Leaving the 1v1 menu ("This will stop play and withdraw you…") goes
+    back to the main menu; entering again asks for the team again.
   - **match_time = match length in real minutes [live]:** without the blob a whole match took ~2 minutes
     (1ST→BREAK1 3345 gtimer ticks); with match_time 5 the first half took 8100 ticks (2.5 min). A 10-minute
     Quick Match half is ~17150 ticks. Checked by the in-game clock 60 s after kick-off: match_time 7 → 13:04
@@ -53,7 +65,7 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
     their overall ratings recalibrated…" at team select, and before the match the game sends
     GET_PLAYER_PARAMETERLIST with `is_equalization:"YES"`, expecting the evened-out stats from the server. With
     "NO" the notice is gone. pestourney always sends "NO" (it makes no such stats).
-  - condition / extra_time / guest / ranking_match_num / trade_num: values and effects not tested.
+  - condition / guest / ranking_match_num / trade_num: values and effects not tested.
 - **TEAM_LIST** (0x141bdf3b0): `team_list` [team ids], team_list_num. National-team ids 1–14, 45, 50 checked with
   pesdb.py; the select screen groups them by region.
 - **1VS1_MAINMENU_INFO** (0x141c36530): compe_end_time ("Competition ends in"), matching_first_date +
@@ -85,6 +97,57 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
 - The verdict push (WATCH_GAMEADDPOINT) is the same as in Quick Match; its rating/oldrating are what "Changes in
   rating" shows, so pestourney puts the competition points there (1 > 2 (+1) live).
 
+## Knockout cups (pescup.py, 2026-11-21)
+
+- **The game has no bracket screen online [static]:** the flow files reach Compe/CompeKnockout,
+  Common/CmnTournamentMenu and the TournamentProgress menus only from the offline Compe (Cup/League), ML and BL
+  flows; no Online/* flow leads there. (The knockout stages of the official esports events were run outside the
+  game's Online Tournament menus.) A cup is therefore a server-side bracket inside a PES League competition.
+- The server pairs only the two players of an open tie (pesmatch._cup_pair), sends extra_time/pk "YES" for
+  every cup match (pestourney.regulation), makes a player whose game holds the cup's rules the room owner
+  (host_first), and shows the bracket in the Competition Outline text (overview_info), the Rankings order and
+  the admin page. A knockout tie that still ends level is played again; a group match is then a draw.
+- **Why the group matches have the knockout's rules:** a game reads compe_regulation only with COMPE_INFO, when
+  the player opens the competition from the list. After a match it sends LEAVE_ROOM, JOIN_PESLEAGUE_COMPE and
+  1VS1_MAINMENU_INFO only [live], so rules that changed between the groups and the knockout would never reach
+  friends who stayed in the competition's menu. A match decided on penalties is a win (3 points in a group); its
+  goals stay level.
+- Match settings struct (default init 0x141007db0; the lobby's DECIDE_GAMEENV handler 0x1410ffac0 fills one):
+  +0 cpuLevel, +4 gametime, +8 injury, +0xc ball_type, +0x10 exGame, +0x11 pkOnOff, +0x14 substitution,
+  +0x18 exSubstitution, +0x1c limitTime [static].
+- **[live 2026-11-21] a two-player cup (the final) between two copies, rules from pestourney.regulation:** 0-0
+  after 90 minutes → extra time → penalties (one scored) → verdict winner_side WINNER_AWAY, is_pk YES → "Changes
+  in rating" (the competition points, 0 > 1 each: the match itself is a draw) → the 1v1 menu with the game's own
+  dialog "The final results have been calculated. You can view them from the Competition Menu." (the cup had
+  ended itself) → on the next visit to Online Tournament the Competition Results notice, Final Position 1ST.
+  A 549-character bracket text in Competition Outline shows about nine lines at a time and scrolls.
+- In a shootout driven by keys, hold a direction and press shoot (d) on the kicker's copy and the other
+  direction on the keeper's; the same direction on both was saved nine times in a row.
+- **[live 2026-11-21, second session] a six-player cup with groups (two copies and four stand-in entries, the
+  stand-ins' ties awarded by the host):**
+  - Both copies chose Start Match before the draw: they waited, unpaired. The draw put them in one group and
+    paired them at once (pescup._wake).
+  - The group match: 0-0 → extra time → penalties 3-0. The match clock keeps running in a shootout (phase PK at
+    gtimer 27075, the penalties at 29208, 32053, 34695, END at 37273), so penalties of one side never collapse
+    and pesmatch tells them from goals by the clock. Full Time shows "0 0, 120:00 (3 PK 0)". The winner got 3
+    points and 1/0/0, the loser 0/0/1.
+  - **Current Match Results** (GET_GAMERESULTS game_res_type PESLEAGUE) with `pk_flag "YES"` and `score_pk` in
+    the two score blobs shows "0 - 0" and "Loss (PK)" on the loser's copy. With pk_flag "NO" (before) the same
+    match was a plain draw.
+  - **Regulations → Match Settings** inside the competition reads the regulation: "Match Time: 5 min", "With
+    Overtime", "With Penalty Shootout", "Condition: According to Live Update".
+  - **JOIN_PESLEAGUE_COMPE result ERR_COMPE_AFTER_ENTRYTIME** (a player not in the draw): the dialog "Entries for
+    this Competition are currently closed.", then back to the list (PesLgProcCompeJoin `return`).
+  - **WATCH_MATCHING push matching_state "TIMEOUT"** (a player with nothing left to play, while searching or right
+    after START_MATCHING): Online/Quick/QuickNotMatching, the dialog "Unable to find opponent.", then back to the
+    competition's menu.
+  - Rankings inside the competition lists the players in the order the server sends (knockout progress first).
+  - **The Competition Outline is not offered inside the competition:** PesLg1vs1CompeDetail (Competition Menu →
+    Competition Info) shows the schedule and format only; its flow has no overview exit. The outline is reached
+    from the list (X → Competition Details → Competition Outline).
+  - The cup ended by the host's award of the final while the winner was searching: the search ended (TIMEOUT), and
+    on the next visit to Online Tournament the Competition Results notice showed Final Position 1ST, User Numbers 6.
+
 ## Not built / open
 
 - **Random Selection competitions** [static, 2026-11-08]: `match_type "PES_LEAGUE_MATCH_1VS1_RANDOM"` (enum 1) takes
@@ -100,7 +163,11 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
 
 - Rewards (REWARD_INFO/REWARD_LIST/present box), participation rights (PARTICIPATION_RIGHT), the member list,
   clan and 3-vs-3 (co-op) competitions, the "best N consecutive matches" ranking rule (regulation_match_num),
-  rank_type values, the effects of condition / extra_time.
+  rank_type values, the effects of condition.
+- Cups: two-legged ties; the reverse of the owner-rules test (an owner with the longer match; with the same
+  rules for every cup match it only matters after a league was changed into a cup); a third-place match and a
+  knockout tie right after a group match in one sitting were not played live (unit tests only); showing the
+  bracket inside the competition's menu (the game offers no text screen there).
 
 ## Testing notes
 

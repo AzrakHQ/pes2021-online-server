@@ -8,6 +8,7 @@ How the game runs a competition (flow files Online/PesLg/*, notes/re/functions/t
 - The "Match Replays" competition (pesreplay, compe_id 1) is listed next to these and keeps its lobby path.
 
 Competitions live in the server database (pes_tourney). With none running, a monthly "Friends Cup" is made.
+A competition with rules format "cup" is a knockout cup: pescup.py keeps its draw and bracket.
 """
 import json, logging, time
 
@@ -15,7 +16,7 @@ import msgpack
 
 from .accounts import once
 from .pescmds import NOERR, cmd, _db, player_of
-from . import pesreplay
+from . import pescup, pesreplay
 
 log = logging.getLogger("pesserver.tourney")
 POINTS = {"WIN": 3, "DRAW": 1, "LOSE": 0}
@@ -45,6 +46,9 @@ def _setup(db):
     db.execute("""CREATE TABLE IF NOT EXISTS pes_tourney_match (compe_id INTEGER, match_id TEXT, pid INTEGER,
                   opp INTEGER, my_team INTEGER, opp_team INTEGER, my_goals INTEGER, opp_goals INTEGER,
                   result TEXT, t REAL, PRIMARY KEY (compe_id, match_id, pid))""")
+    if "my_pk" not in {r[1] for r in db.execute("PRAGMA table_info(pes_tourney_match)")}:      # a shootout's score
+        db.execute("ALTER TABLE pes_tourney_match ADD COLUMN my_pk INTEGER")
+        db.execute("ALTER TABLE pes_tourney_match ADD COLUMN opp_pk INTEGER")
 
 
 def _month(now):
@@ -84,18 +88,39 @@ def competitions(svc, now=None):
 # is_ex_substitution "YES"/"NO". match_time is the match length in real minutes (live 2026-11-08: 5 gave a
 # 2.5-minute half); without it the game plays a match of about 2 minutes, so it is always sent.
 MATCH_MINUTES = 10                  # like Quick Match
-def regulation(c):
+def regulation(c, svc=None):
     r = c.get("rules") or {}
     # is_equalization NO: with YES the game tells players their ratings are evened out and asks the server for
     # the evened-out stats (GET_PLAYER_PARAMETERLIST is_equalization YES), which this server does not make; teams
     # play at their real strength, as in Quick Match, and the game says so (no notice; live 2026-11-08).
-    return {"match_time": int(r.get("match_minutes") or MATCH_MINUTES), "is_equalization": "NO"}
+    reg = {"match_time": int(r.get("match_minutes") or MATCH_MINUTES), "is_equalization": "NO"}
+    if pescup.is_cup(c):
+        # extra_time / pk "YES": a match level after 90 minutes goes to extra time, then to penalties (live
+        # 2026-11-21: BREAK2 -> EX1ST -> EX2ND -> BREAK4 -> PK). Every match of a cup has them, the group matches
+        # too: a game reads the rules only when the player opens the competition (not after a match), so rules
+        # that changed between the groups and the knockout would leave friends who stayed in its menu playing
+        # knockout ties without extra time.
+        reg.update(extra_time="YES", pk="YES")
+    return reg
+
+
+def host_first(svc, cid, x, y):
+    """(pid, session) x and y are about to play a cup match: the one whose game has the cup's rules goes first
+    and becomes the room's owner. Both games play by the owner's rules (live 2026-11-21: an owner with 5-minute
+    matches and a guest with 10 played 5), and a game only reads the rules when it opens the competition, so a
+    friend who opened it while it was still a league (the host changed the format later) has no extra time."""
+    c = get(svc, cid)
+    if not pescup.is_cup(c):
+        return x, y
+    want = (c["compe_id"], regulation(c, svc)["extra_time"])
+    has = lambda s: getattr(s[1], "pes_reg", None) == want       # noqa: E731
+    return (y, x) if has(y) and not has(x) else (x, y)
 
 
 def get(svc, compe_id):
     try:
         cid = int(compe_id)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return None
     return next((c for c in competitions(svc) if c["compe_id"] == cid), None)
 
@@ -155,7 +180,10 @@ def compe_info(svc, sess, req):
     # the fields must also be inside compe_data, or the game takes the default competition type (live 2026-11-06)
     out = {"result": NOERR, **f, "eula_url": "", "entry_compe": f["is_entry"],
            "compe_data": _pack({**f, "eula_url": "", "entry_compe": f["is_entry"]})}
-    out["compe_regulation"] = _pack(regulation(c))
+    reg = regulation(c, svc)
+    out["compe_regulation"] = _pack(reg)
+    if sess is not None:
+        sess.pes_reg = (c["compe_id"], reg.get("extra_time"))       # (host_first: which rules this game holds)
     return out
 
 
@@ -163,11 +191,14 @@ def compe_info(svc, sess, req):
 def compe_overview(svc, sess, req):
     """The host's own text about the competition (rules, prizes, dates), set with the admin API (info)."""
     c = get(svc, req.get("compe_id"))
-    return {"result": NOERR, "overview_info": outline(c) if c else ""}
+    return {"result": NOERR, "overview_info": outline(c, svc) if c else ""}
 
 
-def outline(c):
-    """The host's text, or one made from the competition's rules."""
+def outline(c, svc=None):
+    """The host's text, or one made from the competition's rules. A cup: its draw and results, then the host's text."""
+    if svc is not None and pescup.is_cup(c):
+        text = pescup.outline(svc, c)
+        return (text + "\n\n" + c["info"])[:2000] if c.get("info") else text
     if c.get("info"):
         return c["info"]
     minutes = int((c.get("rules") or {}).get("match_minutes") or MATCH_MINUTES)
@@ -197,10 +228,15 @@ def join_compe(svc, sess, req):
         team = 0
     if team not in c["teams"]:
         team = c["teams"][0]
+    closed = pescup.is_cup(c) and pescup.stage(svc, c["compe_id"]) != "entry"
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
         new = not db.execute("SELECT 1 FROM pes_tourney_entry WHERE compe_id=? AND pid=?", (c["compe_id"], pid)).fetchone()
+        if new and closed:                        # a cup after its draw: nobody new comes in (they are never paired)
+            log.info("TOURNEY pid %s is too late for cup %d (the draw is made)", pid, c["compe_id"])
+            # the game says "Entries for this Competition are currently closed." (server_errors.tsv)
+            return {"result": "ERR_COMPE_AFTER_ENTRYTIME"}
         # the game sends this again after every match (same team): only the first one is an entry
         db.execute("INSERT INTO pes_tourney_entry (compe_id, pid, team_id, joined) VALUES (?,?,?,?) "
                    "ON CONFLICT (compe_id, pid) DO UPDATE SET team_id=excluded.team_id", (c["compe_id"], pid, team, time.time()))
@@ -247,19 +283,32 @@ def record(svc, room):
     teams = room.get("teams") or {}
     mid = room.get("match_id") or f"{int(room.get('t', time.time()))}-{home}-{away}"
     now = time.time()
+    cup = pescup.is_cup(c)
+    fresh = False
+    pk = room.get("pk") if score["HOME"] == score["AWAY"] else None      # (pesmatch.shootout: only with a winner)
     db = _db(svc)
+    if cup:                               # a cup counts only the ties of its draw
+        with svc.accounts.lock, db:
+            _setup(db)
+            known = db.execute("SELECT 1 FROM pes_tourney_match WHERE compe_id=? AND match_id=?", (cid, mid)).fetchone()
+        if not known and not pescup.can_pair(svc, cid, home, away):
+            return {}
     with svc.accounts.lock, db:
         _setup(db)
         for me, opp, side in ((home, away, "HOME"), (away, home, "AWAY")):
             mine, theirs = (score["HOME"], score["AWAY"]) if side == "HOME" else (score["AWAY"], score["HOME"])
             res = "WIN" if mine > theirs else "LOSE" if mine < theirs else "DRAW"
+            other = "AWAY" if side == "HOME" else "HOME"
+            if cup and pk:                    # a cup match decided on penalties is a win (the goals stay level)
+                res = "WIN" if pk[side] > pk[other] else "LOSE"
             if not db.execute("SELECT 1 FROM pes_tourney_entry WHERE compe_id=? AND pid=?", (cid, me)).fetchone():
                 db.execute("INSERT INTO pes_tourney_entry (compe_id, pid, team_id, joined) VALUES (?,?,?,?)",
                            (cid, me, teams.get(me) or c["teams"][0], now))
             before = db.execute("SELECT points FROM pes_tourney_entry WHERE compe_id=? AND pid=?", (cid, me)).fetchone()[0]
             cur = db.execute("INSERT OR IGNORE INTO pes_tourney_match (compe_id, match_id, pid, opp, my_team, opp_team, "
-                             "my_goals, opp_goals, result, t) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                             (cid, mid, me, opp, teams.get(me) or 0, teams.get(opp) or 0, mine, theirs, res, now))
+                             "my_goals, opp_goals, result, t, my_pk, opp_pk) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                             (cid, mid, me, opp, teams.get(me) or 0, teams.get(opp) or 0, mine, theirs, res, now,
+                              pk and pk.get(side), pk and pk.get(other)))
             if cur.rowcount:
                 col = {"WIN": "win", "DRAW": "draw", "LOSE": "lose"}[res]
                 db.execute(f"UPDATE pes_tourney_entry SET points=points+?, {col}={col}+1, goals_for=goals_for+?, "
@@ -267,9 +316,12 @@ def record(svc, room):
                            (POINTS[res], mine, theirs, cid, me))
                 log.info("TOURNEY %d: pid %s %s %d-%d (+%d)", cid, me, res, mine, theirs, POINTS[res])
                 out[me] = (before, before + POINTS[res])
+                fresh = True
             else:
                 out[me] = (before - POINTS[res], before)
     room["tourney_points"] = out
+    if cup and fresh:
+        pescup.result(svc, c, home, away, score["HOME"], score["AWAY"], mid, pk)
     return out
 
 
@@ -282,11 +334,15 @@ def standings(svc, cid):
                           "e.goals_against FROM pes_tourney_entry e JOIN pes_players p ON p.pid=e.pid WHERE e.compe_id=? "
                           "ORDER BY e.points DESC, (e.goals_for-e.goals_against) DESC, e.goals_for DESC, "
                           "(e.win+e.draw+e.lose) ASC, e.joined ASC", (cid,)).fetchall()
-    return [(i, *r) for i, r in enumerate(rows, 1)]
+        cup = (json.loads((db.execute("SELECT rules FROM pes_tourney WHERE compe_id=?", (cid,)).fetchone() or ("{}",))[0]
+                          or "{}").get("format") == "cup")
+    rows = [(i, *r) for i, r in enumerate(rows, 1)]
+    return pescup.order(svc, cid, rows) if cup else rows     # a cup: how far each got in the knockout comes first
 
 
 def forget(svc, pid):
-    """A deleted player leaves every competition (their opponents keep their points)."""
+    """A deleted player leaves every competition (their opponents keep their points; open cup ties go to them)."""
+    pescup.forget(svc, pid)
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
@@ -361,12 +417,12 @@ def results(svc, pid, compe_id):
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
-        rows = db.execute("SELECT m.t, m.pid, m.opp, a.name, b.name, m.my_goals, m.opp_goals, m.my_team, m.opp_team "
-                          "FROM pes_tourney_match m LEFT JOIN pes_players a ON a.pid=m.pid "
+        rows = db.execute("SELECT m.t, m.pid, m.opp, a.name, b.name, m.my_goals, m.opp_goals, m.my_team, m.opp_team, "
+                          "m.my_pk, m.opp_pk FROM pes_tourney_match m LEFT JOIN pes_players a ON a.pid=m.pid "
                           "LEFT JOIN pes_players b ON b.pid=m.opp WHERE m.compe_id=? AND m.pid=? ORDER BY m.t DESC LIMIT ?",
                           (c["compe_id"], pid, HISTORY)).fetchall()
     # the player is listed as HOME: the list shows the score from that side. PESLEAGUE_MATCH = "eFootball League"
-    return [_entry(*r, "PESLEAGUE_MATCH") for r in rows]
+    return [_entry(*r[:9], "PESLEAGUE_MATCH", pk=r[9:11]) for r in rows]
 
 
 # ---- the host's admin API (/admin/api/tourneys…, signed in) --------------------------------------------------
@@ -386,7 +442,8 @@ def _when(v, default):
 
 def save(svc, d):
     """Create (no compe_id) or change a competition. Keys: name, start, end, teams [ids], info (overview text),
-    match_minutes (5-30, default 10)."""
+    match_minutes (5-30, default 10), format ("league", the default: a points table; "cup": a knockout, pescup),
+    third_place (a cup: the beaten semi-finalists play a third-place match; fixed once the draw is made)."""
     now = time.time()
     cur = get(svc, d.get("compe_id")) if d.get("compe_id") not in (None, "") else None
     if d.get("compe_id") not in (None, "") and cur is None:
@@ -416,6 +473,27 @@ def save(svc, d):
         if not 5 <= m <= 30:
             raise ValueError("match_minutes must be 5 to 30")
         rules["match_minutes"] = m
+    if d.get("format") not in (None, ""):
+        fmt = str(d["format"]).lower()
+        if fmt not in ("league", "cup"):
+            raise ValueError("format must be league or cup")
+        if fmt != (rules.get("format") or "league"):
+            if cur and (pescup.fixtures(svc, cur["compe_id"]) or standings(svc, cur["compe_id"]) and any(
+                    r[5] + r[6] + r[7] for r in standings(svc, cur["compe_id"]))):
+                raise ValueError("matches have been played: the format stays")
+            rules.pop("format", None)
+            if fmt == "cup":
+                rules["format"] = "cup"
+    if rules.get("format") != "cup":
+        rules.pop("third_place", None)
+    elif d.get("third_place") is not None and not isinstance(d["third_place"], bool):
+        raise ValueError("third_place must be true or false")
+    elif d.get("third_place") is not None and d["third_place"] != bool(rules.get("third_place")):
+        if cur and pescup.fixtures(svc, cur["compe_id"]):
+            raise ValueError("the draw is made: the third-place match stays as it is")
+        rules.pop("third_place", None)
+        if d["third_place"]:
+            rules["third_place"] = True
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
@@ -454,6 +532,7 @@ def delete(svc, cid):
         # (seen too: the next competition gets this number, and its final-results notice must still show)
         for t in ("pes_tourney_match", "pes_tourney_entry", "pes_tourney_seen", "pes_tourney"):
             db.execute(f"DELETE FROM {t} WHERE compe_id=?", (c["compe_id"],))
+        pescup.delete(db, c["compe_id"])
         if auto:                                  # a deleted monthly cup does not come back the same month
             old = (db.execute("SELECT value FROM pes_tourney_cfg WHERE key='skipped'").fetchone() or ("",))[0]
             db.execute("INSERT OR REPLACE INTO pes_tourney_cfg (key, value) VALUES ('skipped', ?)",
@@ -480,7 +559,9 @@ def snapshot(svc):
         state = "running" if c["start"] <= now < c["end"] else "ended" if c["end"] <= now else "upcoming"
         table = [{"rank": r[0], "pid": r[1], "name": r[2], "team_id": r[3], "points": r[4], "win": r[5], "draw": r[6],
                   "lose": r[7], "goals_for": r[8], "goals_against": r[9]} for r in standings(svc, c["compe_id"])]
-        out.append({**c, "state": state, "table": table})
+        cup = pescup.snapshot(svc, c) if pescup.is_cup(c) else None
+        out.append({**c, "state": state, "table": table, "format": "cup" if cup else "league", "cup": cup,
+                    "third_place": pescup.third_place(c)})
     return out
 
 
@@ -509,10 +590,27 @@ def admin_api(svc, route, method, body):
         if route == "/admin/api/tourneys/delete":
             delete(svc, req.get("compe_id"))
             return ok({"ok": True})
+        if route in ("/admin/api/tourneys/draw", "/admin/api/tourneys/undraw", "/admin/api/tourneys/award"):
+            c = get(svc, req.get("compe_id"))
+            if c is None:
+                raise KeyError("no such competition")
+            if not pescup.is_cup(c):
+                raise ValueError("that competition is not a cup")
+            if route.endswith("/undraw"):
+                pescup.undraw(svc, c)
+            elif time.time() >= c["end"]:
+                raise ValueError("that cup has ended")
+            elif route.endswith("/draw"):
+                pescup.draw(svc, c, groups=bool(req.get("groups")))
+            else:
+                pescup.walkover(svc, c, req.get("fid"), req.get("winner"))
+            return ok({"ok": True})
     except KeyError as e:
         return bad("404 Not Found", str(e.args[0]) if e.args else "not found")
     except ValueError as e:
         return bad("400 Bad Request", str(e))
+    except OverflowError:                         # (a number no competition or tie can have)
+        return bad("400 Bad Request", "bad number")
     return bad("404 Not Found", "unknown")
 
 

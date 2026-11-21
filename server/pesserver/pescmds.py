@@ -423,7 +423,7 @@ def reconnect(svc, sess, req):
         log.warning("RECONNECT refused: pid %s belongs to another install", pid)
         return {"result": "ERR_LOGIN_FAILED"}
     sess.pes_username, sess.pes_pid = r[0], pid
-    for attr in ("pes_versions", "pes_sums", "pes_match_req", "pes_compe", "mod_id", "mod_features"):
+    for attr in ("pes_versions", "pes_sums", "pes_match_req", "pes_compe", "pes_reg", "mod_id", "mod_features"):
         if old is not None and hasattr(old, attr) and not hasattr(sess, attr):
             setattr(sess, attr, getattr(old, attr))
     sess.pes_reconnected = True                         # (pesmanner: a blip, not the player quitting)

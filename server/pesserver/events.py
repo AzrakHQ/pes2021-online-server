@@ -37,6 +37,9 @@ def _st(svc):
             if "home_team" not in cols:            # team ids, for the players' own match history (pesresults.py)
                 db.execute("ALTER TABLE pes_matches ADD COLUMN home_team INTEGER")
                 db.execute("ALTER TABLE pes_matches ADD COLUMN away_team INTEGER")
+            if "home_pk" not in cols:              # the shootout of a match decided on penalties
+                db.execute("ALTER TABLE pes_matches ADD COLUMN home_pk INTEGER")
+                db.execute("ALTER TABLE pes_matches ADD COLUMN away_pk INTEGER")
             if "pids" not in {r[1] for r in db.execute("PRAGMA table_info(pes_feed)")}:
                 db.execute("ALTER TABLE pes_feed ADD COLUMN pids TEXT")       # who a line is about ("3,7")
             # a player's matches are looked up by either side
@@ -266,8 +269,14 @@ def observe(svc, sess, msgid, req):
         seen = lv.setdefault("goals_seen", [])
         if scorer in ("HOME", "AWAY") and key not in seen:
             seen.append(key)
-            lv[scorer.lower() + "_score"] += 1
-            feed(svc, f"GOAL! {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "goal", both)
+            from . import pesmatch
+            if pesmatch._penalty(room, req.get("gtimer")):     # a scored penalty of the shootout: not a goal of the match
+                pk = lv.setdefault("pk", {"HOME": 0, "AWAY": 0})
+                pk[scorer] += 1
+                feed(svc, f"Penalties: {lv['home_name']} {pk['HOME']}–{pk['AWAY']} {lv['away_name']}", "match", both)
+            else:
+                lv[scorer.lower() + "_score"] += 1
+                feed(svc, f"GOAL! {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "goal", both)
     elif msgid == "CMD_SEND_GAME_RESULT":
         _result(svc, rid, room, lv, req, pid)
     elif msgid in ("CMD_LEAVE_ROOM", "CMD_LEAVE_GAME"):     # (a Friendly Match Lobby match ends with LEAVE_GAME)
@@ -301,6 +310,9 @@ def _result(svc, rid, room, lv, req, pid):
     marked = lv.get("manner_marked") or set()
     if len(marked) == 1:                                      # pesmanner knows who left early
         left_pid = next(iter(marked))
+    pk = lv.get("pk") or {}                                   # a shootout that decided a level match
+    if reason != "NOERR" or lv["home_score"] != lv["away_score"] or pk.get("HOME") == pk.get("AWAY"):
+        pk = None                                             # (not one that a player walked out of)
     db = svc.accounts.db
     with svc.accounts.lock, db:
         # a forfeit (pesmatch._forfeit_row) may have saved this match already: it stands, no second row
@@ -313,9 +325,16 @@ def _result(svc, rid, room, lv, req, pid):
                     lv["home_name"], lv["away_name"], lv["home_score"], lv["away_score"],
                     "" if reason == "NOERR" else reason, left_pid, lx and lx["t"], _mode(room)))
         ht, at = req.get("home_team_id"), req.get("away_team_id")
+        mid = db.execute("SELECT last_insert_rowid()").fetchone()[0]
         if isinstance(ht, int) and isinstance(at, int):
-            db.execute("UPDATE pes_matches SET home_team=?, away_team=? WHERE id=last_insert_rowid()", (ht, at))
-    feed(svc, f"Full time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}", "result",
+            db.execute("UPDATE pes_matches SET home_team=?, away_team=? WHERE id=?", (ht, at, mid))
+        if pk:
+            db.execute("UPDATE pes_matches SET home_pk=?, away_pk=? WHERE id=?", (pk["HOME"], pk["AWAY"], mid))
+    pens = ""
+    if pk:
+        won = "home" if pk["HOME"] > pk["AWAY"] else "away"
+        pens = f" ({lv[won + '_name']} won {max(pk.values())}–{min(pk.values())} on penalties)"
+    feed(svc, f"Full time: {lv['home_name']} {lv['home_score']}–{lv['away_score']} {lv['away_name']}{pens}", "result",
          [lv["home"], lv["away"]])
 
 
@@ -497,7 +516,7 @@ def player_detail(svc, pid):
     if r is None:
         return None
     _st(svc)
-    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason", "voided", "left_pid", "left_at", "mode", "home_team", "away_team")
+    keys = ("id", "started", "ended", "home_pid", "away_pid", "home_name", "away_name", "home_score", "away_score", "reason", "voided", "left_pid", "left_at", "mode", "home_team", "away_team", "home_pk", "away_pk")
     matches = [dict(zip(keys, m)) for m in db.execute(
         "SELECT " + ", ".join(keys) + " FROM pes_matches WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid))]
     name = r[1] or f"Player {pid}"
@@ -543,7 +562,7 @@ def results_page(svc, q="", since=0, limit=25, until=None, early=False, mode=Non
     w = " WHERE " + " AND ".join(where)
     db = svc.accounts.db
     _st(svc)
-    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid", "voided", "left_pid", "left_at", "mode", "home_team", "away_team")
+    keys = ("id", "started", "ended", "home_name", "away_name", "home_score", "away_score", "reason", "home_pid", "away_pid", "voided", "left_pid", "left_at", "mode", "home_team", "away_team", "home_pk", "away_pk")
     rows = [dict(zip(keys, r)) for r in db.execute("SELECT " + ", ".join(keys) + " FROM pes_matches" + w +
                                                    " ORDER BY id DESC LIMIT ?", (*args, max(1, min(int(limit), 1000))))]
     return rows, db.execute("SELECT COUNT(*) FROM pes_matches" + w, args).fetchone()[0]

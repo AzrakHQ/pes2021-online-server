@@ -146,6 +146,43 @@ curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/monthly -d '{"on": fal
 names any id). `match_minutes` is 5 to 30 (default 10). `info` is shown in the game under Competition Details → Competition
 Outline. When a competition ends, each player sees their final position the next time they open Online Tournament.
 
+### Knockout cups
+
+A competition saved with `"format": "cup"` (admin page: Format → Knockout cup) is a knockout. With
+`"third_place": true` (Format → Knockout cup with a third-place match) the two beaten semi-finalists also play for
+third place:
+
+1. Friends enter it with a team, as for any competition.
+2. When everyone is in, the host makes the draw (admin page, or `tourneys/draw`). Nobody can enter after it: the
+   game tells a late friend "Entries for this Competition are currently closed." With 6 players or more the host
+   can draw groups first: everyone plays the others in their group once, and the top two of each group go to the
+   knockout. Any number of players works; spare places in the first round are byes.
+3. To play a tie, both players enter the cup and choose Start Match at the same time. The server pairs a player
+   only with their opponent. A friend who chooses Start Match before their opponent is known just waits. A friend
+   with nothing left to play (knocked out, or the cup is over) is not left searching: the game says "Unable to
+   find opponent."
+4. Every cup match that is level after 90 minutes goes to extra time and penalties, so every match has a winner:
+   3 points in a group (the goals stay level), the next round in the knockout. The group matches have the same
+   rules as the knockout because a game reads a competition's rules only when the player opens it.
+5. The final's winner wins the cup. It ends by itself (after the third-place match too, when there is one) and
+   everyone sees their final position.
+
+A friend who never shows up: the host awards the tie to the opponent (3-0). A player the host deletes loses every
+tie they are in, now or later, and does not go through from a group.
+
+The game has no bracket screen for online competitions, so the draw, the tables and the results are shown in its
+Competition Outline text (Online Tournament → Competition Details on the cup → Competition Outline; the game
+offers it from the list of competitions, not from inside the cup), in the Rankings order inside the cup, on the
+admin page and in the activity feed (and Discord). A match decided on penalties is marked "(PK)" in the game's
+results list.
+
+```bash
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/save -d '{"name": "Winter Cup", "format": "cup"}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/draw -d '{"compe_id": 102, "groups": false}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/award -d '{"compe_id": 102, "fid": 3, "winner": 7}'  # a no-show: 3-0
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/undraw -d '{"compe_id": 102}'   # before any tie is played
+```
+
 ## Players: names, Block, Move
 
 Each copy of the mod is one player (its install id, sent on the mod's id line). The first time, the game asks for
@@ -218,6 +255,7 @@ can't work.
 | `pesserver/pesrooms.py` | Friendly Match Lobby: block, room list, create/join, player list, ready (ENTRY_GAME), owner start, back to the room after a match. Rules (never push a RELOAD list, etc.): `notes/re/functions/rooms.md` |
 | `pesserver/pesreplay.py` | match replays: every online match is recorded (the games upload it) into `<data>/replays/`, newest 20 kept; watched from Online Tournament → Match Replays → Match List, served at `/r/<match_id>/<N>.enc`. `REPLAYS=0` turns it off |
 | `pesserver/pestourney.py` | Online Tournament: friends' 1v1 competitions in the game's PES League screens (a monthly Friends Cup by default, or the host's own via `/admin/api/tourneys`): entry with a team, its own matchmaking queue, 3/1/0 points, rankings, match length, the results notice at the end |
+| `pesserver/pescup.py` | knockout cups inside Online Tournament: the draw (groups optional), pairing only the two players of a tie, a third-place match, extra time and penalties in every cup match, the bracket in the Competition Outline text and on the admin page, awards for no-shows |
 | `pesserver/pesmanner.py` | courtesy rating from early exits over the last 10 matches; the game's own warning dialogs |
 | `pesserver/pesprofile.py`, `pesavatar.py` | player profiles (favourite team/player, comment, courtesy rating, Online Divisions and Matchday records) and avatars |
 | `pesserver/pesresults.py`, `pesranking.py` | match history (Last 20 results), Play Analysis uploads, rankings (overall and per division) |

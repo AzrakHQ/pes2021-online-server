@@ -831,6 +831,7 @@ async def _admin(service, method, route, headers, body, peer="", secure=False, p
                 line = {"/admin/api/tourneys/save": f"The admin {'changed' if _int(req.get('compe_id')) in before else 'made'} the Online Tournament “{req.get('name') or name}”",
                         "/admin/api/tourneys/end": f"The admin ended the Online Tournament “{name}”",
                         "/admin/api/tourneys/delete": f"The admin deleted the Online Tournament “{name}”",
+                        "/admin/api/tourneys/undraw": f"The admin took back the draw of “{name}”",
                         "/admin/api/tourneys/monthly": "The admin turned the monthly Friends Cup " + ("on" if res.get("monthly_cup") else "off")}.get(route)
                 if line:
                     events.feed(service, line, "info")
