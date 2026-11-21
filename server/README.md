@@ -183,6 +183,16 @@ and AFC Champions League, with the teams PES 2021 has for them, in groups of fou
 settings there too (Save as ready-made). Clubs can be chosen as well as national teams; the game groups them by
 league on its team screen.
 
+**Trophy ceremony**: a cup final ends with Konami's own ceremony, as in the game's offline cups: the winners
+celebrate, the captain lifts the trophy under confetti, the team photo with the trophy, then the usual Full Time
+screens. After a shootout it starts with the deciding penalty. Both friends need mod 0.7.0 or newer (download
+the mod again from the admin page); with an older mod on either side the final ends as before.
+
+**Look** (`"look"`): the competition the game dresses the matches as: its loading screen, intro card,
+scoreboard and boards, and the trophy of the ceremony. UEFA EURO 2020 (33), or one of Konami's own cups:
+International Cup (27, a cup's default), American Cup (34), Asia-Oceanian Cup (35), African Cup (36), European
+Club Championship (2). Plain (0, a league's default) has no ceremony.
+
 A friend who never shows up: the host awards the tie to the opponent (3-0). A player the host deletes loses every
 tie they are in, now or later, and does not go through from a group.
 

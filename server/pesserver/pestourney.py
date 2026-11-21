@@ -25,6 +25,46 @@ MATCH_1VS1 = "PES_LEAGUE_MATCH_1VS1"
 TEAMS = [8, 9, 45, 14, 50, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13]   # national teams (pesdb.py), editable per competition
 
 
+# The look of a competition's matches: one of the game's own competitions (Competition.bin id), sent as COMPE_INFO
+# compe_db_id. The game dresses the match as that competition (live 2026-11-21, id 33: the UEFA EURO 2020 loading
+# screen, intro card, pitch art with the trophy, scoreboard and boards) and a cup final's trophy ceremony
+# (pesmod "trophy1") shows its trophy. Value: (name on the admin page, END demo group of the ceremony,
+# notes/re/functions/tourney.md "Trophy ceremony"). 0 = the game's plain online look, no ceremony (not seen live).
+# The others were seen live (2026-11-21): 33 the licensed EURO; 27/34/35/36/2 Konami's own cups (intro card at
+# KONAMI Stadium with the cup's logo). A cup without a chosen look has the International Cup's.
+END_CUP_CMN = 0x70007
+CUP_LOOK = 27
+LOOKS = {
+    0: ("Plain", 0),
+    27: ("International Cup", END_CUP_CMN),
+    33: ("UEFA EURO 2020", END_CUP_CMN),
+    34: ("American Cup", END_CUP_CMN),
+    35: ("Asia-Oceanian Cup", END_CUP_CMN),
+    36: ("African Cup", END_CUP_CMN),
+    2: ("European Club Championship", END_CUP_CMN),
+}
+
+
+def look(c):
+    r = (c or {}).get("rules") or {}
+    if "look" not in r:
+        return CUP_LOOK if pescup.is_cup(c) else 0
+    try:
+        v = int(r.get("look") or 0)
+    except (TypeError, ValueError):
+        return 0
+    return v if v in LOOKS else 0
+
+
+def ceremony(svc, room):
+    """The END group of the trophy ceremony when this room's match is a cup final, else 0."""
+    c = get(svc, room.get("compe"))
+    members = list(room.get("members") or [])
+    if not pescup.is_cup(c) or len(members) != 2 or pescup.final_of(svc, c, *members) is None:
+        return 0
+    return LOOKS[look(c)][1]
+
+
 def _pack(o):
     return msgpack.packb(o, use_bin_type=True)
 
@@ -144,7 +184,7 @@ def _fields(svc, c, pid=None):
     now = int(time.time())
     ended = c["end"] <= now
     joined = pid is not None and entry(svc, c["compe_id"], pid) is not None
-    return {"compe_id": c["compe_id"], "compe_db_id": c["compe_id"], "compe_name": c["name"], "is_myclub": "NO",
+    return {"compe_id": c["compe_id"], "compe_db_id": look(c), "compe_name": c["name"], "is_myclub": "NO",
             "match_type": c["match_type"], "start_date": c["start"], "end_date": c["end"],
             "match_end_date": c["end"], "entry_limit_date": c["end"], "entry_user_limit": "YES" if one_team(c) else "NO",
             "entry_user_max": max(len(set(c["teams"])), _entry_num(svc, c["compe_id"])) if one_team(c) else 1000,
@@ -528,6 +568,10 @@ def save(svc, d):
         if d["third_place"]:
             rules["third_place"] = True
     _group_rules(svc, cur, d, rules)
+    if d.get("look") is not None:
+        if isinstance(d["look"], bool) or not isinstance(d["look"], int) or d["look"] not in LOOKS:
+            raise ValueError("look must be one of " + ", ".join(map(str, sorted(LOOKS))))
+        rules["look"] = d["look"]            # (kept also when 0: a cup's default look is not plain)
     if d.get("one_team") is not None:
         if not isinstance(d["one_team"], bool):
             raise ValueError("one_team must be true or false")
@@ -641,7 +685,7 @@ def snapshot(svc):
                 plan = {"error": str(e)}
         out.append({**c, "state": state, "table": table, "format": "cup" if cup else "league", "cup": cup,
                     "third_place": pescup.third_place(c), "groups": size, "qualify": qualify, "fill": fill,
-                    "legs": legs, "one_team": one_team(c), "plan": plan})
+                    "legs": legs, "one_team": one_team(c), "plan": plan, "look": look(c)})
     return out
 
 
@@ -650,9 +694,9 @@ def snapshot(svc):
 # (groups of four; the best third-placed fill the knockout where the real one does that). One team per friend.
 # World Cup 2022, EURO 2024 and Copa América 2024: the real entrants the game has (all but Canada); the others
 # are the game's own entry lists (web/teams.json "tournaments", from its CompetitionEntry.bin, mkclublist.py).
-def _cup(key, name, teams, third=False, fill=False, legs=1):
+def _cup(key, name, teams, third=False, fill=False, legs=1, look=CUP_LOOK):
     return {"key": key, "name": name, "format": "cup", "third_place": third, "groups": 4, "qualify": 2,
-            "fill": fill, "legs": legs, "one_team": True, "teams": teams}
+            "fill": fill, "legs": legs, "one_team": True, "teams": teams, "look": look}
 
 
 def _game(key):
@@ -664,12 +708,13 @@ def builtin_presets():
     out = [
         _cup("world", "World Cup", [1026, 51, 38, 10, 5, 55, 39, 4, 50, 56, 40, 19, 8, 57, 15, 33, 7, 42, 14, 52,
                                     9, 32, 24, 45, 1550, 11, 36, 6, 1058, 49, 53], third=True),
-        _cup("euro", "European Championship", [14, 3, 22, 11, 7, 24, 12, 1165, 23, 15, 1550, 5, 19, 10, 21, 8, 9,
-                                                20, 26, 30, 29, 1174, 6, 13], fill=True),
-        _cup("copa", "Copa América", [50, 46, 47, 40, 51, 1129, 41, 39, 49, 1113, 1128, 45, 44, 48, 42], third=True),
-        _cup("africa", "Africa Cup of Nations", _game("africa"), third=True, fill=True),
-        _cup("asia", "Asian Cup", _game("asia"), fill=True),
-        _cup("ucl", "Champions League", _game("ucl"), legs=2),
+        _cup("euro", "European Championship", [14, 3, 22, 11, 7, 24, 12, 1165, 23, 15, 1550, 5, 19, 10, 21, 8,
+                                                9, 20, 26, 30, 29, 1174, 6, 13], fill=True, look=33),
+        _cup("copa", "Copa América", [50, 46, 47, 40, 51, 1129, 41, 39, 49, 1113, 1128, 45, 44, 48, 42], third=True,
+             look=34),
+        _cup("africa", "Africa Cup of Nations", _game("africa"), third=True, fill=True, look=36),
+        _cup("asia", "Asian Cup", _game("asia"), fill=True, look=35),
+        _cup("ucl", "Champions League", _game("ucl"), legs=2, look=2),
         _cup("uel", "Europa League", _game("uel"), legs=2),
         _cup("libertadores", "Copa Libertadores", _game("libertadores"), legs=2),
         _cup("afccl", "AFC Champions League", _game("afccl"), legs=2),
@@ -678,7 +723,7 @@ def builtin_presets():
 
 
 PRESET_KEYS = ("name", "format", "third_place", "groups", "qualify", "fill", "legs", "one_team", "teams",
-               "match_minutes")
+               "match_minutes", "look")
 MAX_PRESETS = 20
 
 
@@ -718,6 +763,10 @@ def save_preset(svc, d):
     if fmt not in ("league", "cup"):
         raise ValueError("format must be league or cup")
     p = {"name": name, "format": fmt, "teams": [], "one_team": d.get("one_team") is True}
+    if d.get("look") is not None:
+        if isinstance(d["look"], bool) or d["look"] not in LOOKS:
+            raise ValueError("look must be one of " + ", ".join(map(str, sorted(LOOKS))))
+        p["look"] = d["look"]
     try:
         p["teams"] = [int(t) for t in d.get("teams") or []][:200]
     except (TypeError, ValueError, OverflowError):
@@ -763,7 +812,8 @@ def admin_api(svc, route, method, body):
         return code, json.dumps({"error": msg}).encode(), "application/json"
 
     if route == "/admin/api/tourneys" and method == "GET":
-        return ok({"tourneys": snapshot(svc), "monthly_cup": monthly_cup(svc), "presets": presets(svc)})
+        return ok({"tourneys": snapshot(svc), "monthly_cup": monthly_cup(svc), "presets": presets(svc),
+                   "looks": [{"id": k, "name": v[0]} for k, v in LOOKS.items()]})
     if method != "POST":
         return bad("404 Not Found", "unknown")
     try:
@@ -835,7 +885,7 @@ def _result_entry(svc, c, pid):
     me = next((r for r in rows if r[1] == pid), None)
     name = me[2] if me else ""
     # layout from the parser 0x141c11b00 (2026-11-08)
-    return _pack({"compe_id": c["compe_id"], "compe_db_id": c["compe_id"], "compe_name": c["name"],
+    return _pack({"compe_id": c["compe_id"], "compe_db_id": look(c), "compe_name": c["name"],
                   "banner_file_info": _pack({"filename": "", "hash_str": ""}), "start_date": c["start"],
                   "end_date": c["end"], "player_rank": me[0] if me else 0, "entry_user_num": len(rows),
                   "clan_name": "", "clan_owner_pid": pid or 0, "clan_owner_name": _pname(name, pid),

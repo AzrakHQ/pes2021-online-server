@@ -58,7 +58,7 @@ def make_handler(service, stun_host, stun_port, gate_port):
                                  b"X-Frame-Options: DENY\r\nReferrer-Policy: no-referrer\r\nX-Content-Type-Options: nosniff\r\n")
                         out, enc = gzipped(out, ctype, headers)     # (setup scripts stay plain for curl/PowerShell)
                         extra += enc
-                elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll"):
+                elif method in ("GET", "HEAD") and route in ("/mod/note", "/mod/hello", "/mod/dinput8.dll", "/mod/final"):
                     status, out, ctype, extra = _mod(service, route, headers, writer, path)
                     if method == "GET" and route == "/mod/dinput8.dll" and status.startswith("200") and "from=admin" not in path:
                         note_download(service, (writer.get_extra_info("peername") or ("",))[0])
@@ -924,10 +924,49 @@ def _mod(service, route, headers, writer, path=""):
             return "200 OK", identity.hello(nonce, int(v) if v.isdigit() else 1).encode(), "text/plain; charset=utf-8", b""
         except ValueError:
             return "400 Bad Request", b"bad nonce", "text/plain", b""
+    if route == "/mod/final":
+        q = parse_qs(urlsplit(path).query)
+        grp = mod_final(service, q.get("id", [""])[0], q.get("over", [""])[0] == "1")
+        return "200 OK", f"group={grp:#x}\n".encode(), "text/plain", b""
     if not os.path.isfile(MOD_DLL):
         return "404 Not Found", b"This server was built without the mod.", "text/plain", b""
     return "200 OK", mod_bytes(mod_url(service, headers, writer)), "application/octet-stream", \
         b'Content-Disposition: attachment; filename="dinput8.dll"\r\n'
+
+
+def mod_final(service, mod_id, over=False):
+    """/mod/final?id=<install id>: the mod asks at half time whether its match is a cup final; the answer is
+    the END demo group of the trophy ceremony (pestourney.ceremony), 0 for none. Only when both players' mods
+    can play it ("trophy1"): otherwise one game would show a minute of ceremony the other skips.
+    over=1: the ceremony starts now, so the match is over for that game. After a shootout the game reports
+    the END phase only after its end steps, which the ceremony replaces (live 2026-11-21: no END, and the
+    games left the match a minute apart: DISCONN_P2P). It counts as that game's END report, so the server
+    settles the match and pushes the verdict as at a final whistle (pesmatch.change_gamephase)."""
+    from . import pesmatch, pestourney
+    if not mod_id:
+        return 0
+    import time
+    from . import pescmds
+    pid = next((p for p, s in list(service.online.items()) if getattr(s, "mod_id", None) == mod_id), None)
+    if pid is None:
+        return 0
+    _, room = pesmatch._room_of(service, pid)          # the player's newest match (older rounds stay in memory)
+    if (room is None or not room.get("compe") or "verdict" in room or "forfeit" in room
+            or time.time() - room.get("t", 0) > 4 * 3600):
+        return 0                                        # (not a match being played now)
+    members = list(room.get("members") or [])
+    if not all("trophy1" in getattr(service.online.get(m), "mod_features", ()) for m in members):
+        return 0
+    try:
+        grp = pestourney.ceremony(service, room)
+    except Exception:  # noqa: BLE001 - no ceremony is better than a broken answer
+        log.exception("mod final")
+        return 0
+    if grp and over and (room.get("phase") or {}).get(pid) != "END":
+        log.info("MOD final over: pid %s (trophy ceremony starts), counted as END", pid)
+        # through the dispatcher, so the activity feed, the live list and the replay see the END as well
+        pescmds._dispatch(service, service.online[pid], "CMD_CHANGE_GAMEPHASE", {"phase": "END"})
+    return grp
 
 
 def copy_name(path):

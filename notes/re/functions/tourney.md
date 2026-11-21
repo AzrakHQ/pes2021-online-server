@@ -162,17 +162,41 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
     6/6" (with "NO": "Off"); the card says "Participating" and A = Resume Competition. A friend already entered
     still gets in (team select with their own team only, JOIN NOERR): the game does not block a full competition
     by itself for them. Competition Details also offers "X Playable Teams".
-- **Trophy ceremony [static, 2026-11-21, not tested live]:** the trophy lift is an in-match end demo
-  (common/demo/fixdemo/end/table_end.bin, groups END_CUP_CMN 0x70007, END_CUP_INTER, END_CUPCLUBEUR_A …). At full
-  time the game picks it in 0x1404879b0 from the match's ModeInfo ([[0x1436f3dc8]+0x2ad0]: competition id +0x498,
-  the per-side "champion" event entries at +0xe708 / +0x10f0c), which only the offline modes fill; an online
-  match plays a timeup demo (0x6000x, END_ONLINE). No server reply field picks a demo or a trophy, and the verdict
-  push arrives after full time. The trophy models and cuts for every competition are in the game data. Ways left:
-  a mod DLL patch that sets those fields (or makes 0x1404879b0 return the cup group) on both copies when the
-  server says the match is a final; or a Live Update data file editing the timeup table (would play after every
-  match for whoever has that update). COMPE_INFO compe_db_id feeds Online/Quick/QuickProcessSetOriginalCompeId
-  (ball, stadium, entrance demo), not the trophy. Smallest live test: in a test match write the champion fields
-  on both copies before full time and watch for 0x70007 at 0x141f608f0.
+- **Trophy ceremony: works online [live 2026-11-21, mod 0.7.0 "trophy1"].** How the end of a match works:
+  - `[0x1436f3dc8]` = `match::registry`, a row of 0x28-byte Ref holders `{vtable, registered, +0x10 Pointer*,
+    +0x18 raw T*}`; the raw pointers are filled only while the match job runs (`match::BeginListener`) and read 0
+    from another thread. Stable: `[[reg+0x268]+0x10]+8` = MatchInfo (raw +0x270; phase at +0x1168: 4 half time,
+    8/9/10 the ends, 9 after a shootout), `[[reg+0x2ac8]+0x10]+8` = ModeInfo (raw +0x2ad0; competition id +0x498
+    reads 0 online), raw +0x310 = the score (side 0 / 1 goals at +0x18 / +0x1c, shootout goals included).
+  - The end of a match is a step program of the sequencer 0x14044c880 (opcodes at this+0x878, built by
+    0x1404505d0 / 0x140452260): time up = `[0x26, 3, 7, 0x45, 0x24]`. Event 7 = the full-time step 0x140447290
+    (states at this+0x8f2). In state 0 it calls `[[0x1434a2d40]]->vfunc+0x88`; the object is **match::Online**
+    (vtable 0x142bf1a28, +0x88 = 0x140ca1a50 `mov al,1; ret`; the offline base class
+    `match::online::registry::Interface` returns 0). True → **no end demo**: group 0x7002b ("none") and the short
+    online end (camera, stats). This one check is why online matches have no end scenes.
+  - False (offline) → dispatcher 0x140488470 → 0x140486b10 (phases 8/10) or 0x1404878f0 (9, shootout) → END group
+    picker 0x1404879b0 (rcx, rdx, r8 = result block, r9b = after a shootout). A non-zero group goes to
+    [r8+0x1fc] → MatchInfo+0x1364 (side at +0x1368 from [r8+0x200]), message 0x1050046 → match controller state
+    0x12 → FixDemoMatch plays the group (assets load then) → state 0x13 stats.
+  - Proven live (two copies, probe patches, then the mod): bypass the `je` at 0x1404473ef at the end only, picker
+    returns END_CUP_CMN 0x70007 with side → the full trophy ceremony online, both games: celebrations, the losers
+    down, "BELGIUM · UEFA EURO 2020™ Winners", the trophy lift with confetti, the team photo with the trophy,
+    then the stats (about 60 s). After a shootout (phase 9) the _PK group (0x70008) shows the deciding penalty
+    first. END_CMN 0x70001 is the champions' celebration without the trophy.
+  - The trophy and the look come from the original competition (COMPE_INFO compe_db_id → QuickProcessSetOriginal-
+    CompeId): 33 = the UEFA EURO 2020 presentation and the EURO trophy. Group ids = 0x70001 + the group's index in
+    table_end.bin (END_CMN, END_CMN_PK, END_LGCUP_LICENSE(_PK), END_CUP_INTER(_PK) 0x70005, END_CUP_CMN(_PK) 0x70007,
+    END_CUP_ICC, END_CUP_INTERCLUB(_PK), END_CUP_KONAMI(_PK) 0x7000c, END_CUPCLUBEUR_A(_PK) 0x7000e, _B 0x70010,
+    END_CUPCLUBSOUTH(_PK) 0x70012, END_ACL(_PK) 0x70014, ... END_2ND 0x7001f, END_3RD 0x70021, END_ONLINE 0x70028).
+  - **Do not open the offline end branch at half time or at a level end of extra time** (phase 4, or 8 before
+    penalties): the game crashes in a serializer (0x142153eef, a NULL+0x84 read). The mod opens it only when the
+    score is not level at phase 8..10.
+  - **After a shootout** the game reports the END phase only after its end steps, which the ceremony replaces: no
+    END, no verdict, and the games left a minute apart (DISCONN_P2P GNCX_0003 for the slower one). The mod tells
+    the server when the ceremony starts (/mod/final?over=1); that counts as the game's END report, so the server
+    settles the match (shootout winner from its penalty count) and pushes the verdict; both games then finish
+    together. (After a normal final whistle END is already in.)
+  - Tracing 0x1404472d8 (a chunk) crashed the games; MinHook refused 0x140447230 (MH_ERROR_UNSUPPORTED_FUNCTION).
 
 ## Not built / open
 
@@ -191,7 +215,8 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
   clan and 3-vs-3 (co-op) competitions, the "best N consecutive matches" ranking rule (regulation_match_num),
   rank_type values, the effects of condition.
 - Cups: two-legged knockout ties (the game reads extra time / penalties only when the competition is opened, so
-  a first leg would go to extra time too); a draw by pots; the trophy ceremony (above); the reverse of the owner-rules test (an owner with the longer match; with the same
+  a first leg would go to extra time too); a draw by pots; a decisive normal-time final with the mod's own hooks
+  (the probe version of the same path was seen; the mod's run went to penalties); the reverse of the owner-rules test (an owner with the longer match; with the same
   rules for every cup match it only matters after a league was changed into a cup); a third-place match and a
   knockout tie right after a group match in one sitting were not played live (unit tests only); showing the
   bracket inside the competition's menu (the game offers no text screen there).

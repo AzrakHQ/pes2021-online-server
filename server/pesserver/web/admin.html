@@ -702,6 +702,7 @@
               <div class="tn-dates" id="tn-grpopts"><div><label for="tn-q">Through to the knockout</label><select id="tn-q"><option value="2">Top 2 of each group</option><option value="2f">Top 2 and the best third-placed</option><option value="1">Group winners</option><option value="1f">Group winners and the best runners-up</option></select></div>
               <div><label for="tn-legs">Group matches</label><select id="tn-legs"><option value="1">Play each other once</option><option value="2">Play each other twice</option></select></div></div>
             </div>
+            <label for="tn-look">Look</label><select id="tn-look"><option value="0">Plain</option></select>
             <label for="tn-min">Match length</label><select id="tn-min"><option value="5">5 minutes</option><option value="6">6 minutes</option><option value="8">8 minutes</option><option value="10" selected>10 minutes</option><option value="12">12 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option></select>
             <fieldset class="tn-teams" id="tn-teams-f"><legend>Teams friends can enter with <span class="small muted" id="tn-tcount"></span></legend><div id="tn-teams"><div class="skel"></div></div><label class="check"><input type="checkbox" id="tn-one"> <span>One team per friend</span></label></fieldset>
             <label for="tn-info">Competition Outline <span class="small muted" style="font-weight:400">(optional)</span></label><textarea id="tn-info" maxlength="2000" placeholder="Shown under Competition Details in the game. Empty: written from the dates and rules." aria-describedby="tn-err"></textarea>
@@ -1862,7 +1863,7 @@ function tnReset(focus) {
   tn.edit = null; tn.teams = defaultTeams(); tn.extra = [];
   const t0 = Math.floor(Date.now() / 60000) * 60;
   $("tn-name").value = ""; $("tn-info").value = ""; $("tn-min").value = "10"; $("tn-fmt").value = "league"; $("tn-fmt").disabled = false;
-  $("tn-preset").value = ""; $("tn-preset").disabled = false; $("tn-pdel").hidden = true; $("tn-one").checked = false; tnGroups({}, false);
+  $("tn-preset").value = ""; $("tn-preset").disabled = false; $("tn-pdel").hidden = true; $("tn-one").checked = false; $("tn-look").value = "0"; tn.lookSet = false; tnGroups({}, false);
   $("tn-start").value = dtLocal(t0); $("tn-end").value = dtLocal(t0 + 7 * 86400);
   text("h-tnform", "New tournament"); text("tn-save", "Create tournament"); $("tn-cancel").hidden = true;
   text("tn-err", ""); document.querySelectorAll("#tnform [aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
@@ -1876,7 +1877,7 @@ function tnEdit(c) {
   $("tn-min").value = [...$("tn-min").options].some(o => +o.value === c.minutes) ? String(c.minutes) : "10";
   $("tn-fmt").value = c.format === "cup" ? (c.third_place ? "cup3" : "cup") : "league";
   $("tn-fmt").disabled = c.state !== "ended" && (c.cup ? c.cup.stage !== "entry" : c.matches > 0);     // the format stays once it's under way
-  $("tn-one").checked = !!c.one_team; $("tn-preset").value = ""; $("tn-pdel").hidden = true; $("tn-preset").disabled = true;   // (it would replace this one's settings)
+  $("tn-one").checked = !!c.one_team; $("tn-look").value = String(c.look || 0); tn.lookSet = true; $("tn-preset").value = ""; $("tn-pdel").hidden = true; $("tn-preset").disabled = true;   // (it would replace this one's settings)
   tnGroups(c, c.state !== "ended" && !!c.cup && c.cup.stage !== "entry");                                  // ... and the groups once drawn
   text("h-tnform", `Change “${c.name}”`); text("tn-save", "Save changes"); $("tn-cancel").hidden = false; text("tn-err", "");
   paintTnTeams();
@@ -1889,11 +1890,19 @@ function tnGroups(c, locked) {
 }
 function tnCupOpts() { $("tn-cupopts").hidden = $("tn-fmt").value === "league"; $("tn-grpopts").hidden = $("tn-grp").value === "0"; }
 function tnBody(all) {       // the form's format settings, as the server takes them; all: the locked ones too (ready-made)
-  const f = $("tn-fmt").value, b = {match_minutes: +$("tn-min").value, teams: [...tn.teams], one_team: $("tn-one").checked};
+  const f = $("tn-fmt").value, b = {match_minutes: +$("tn-min").value, teams: [...tn.teams], one_team: $("tn-one").checked, look: +$("tn-look").value};
   if ($("tn-fmt").disabled && !all) return b;
   b.format = f === "league" ? "league" : "cup"; b.third_place = f === "cup3";
   if (b.format === "cup" && (all || !$("tn-grp").disabled)) { const q = $("tn-q").value; Object.assign(b, {groups: +$("tn-grp").value, qualify: +q[0], fill: q.endsWith("f"), legs: +$("tn-legs").value}); }
   return b;
+}
+let tnLookSig = "";
+function tnLooks(list) {             // the game's own competitions a match can be dressed as (pestourney.LOOKS)
+  const sig = JSON.stringify(list);
+  if (!list.length || sig === tnLookSig) return;
+  tnLookSig = sig; const cur = $("tn-look").value;
+  $("tn-look").innerHTML = list.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join("");
+  $("tn-look").value = list.some(l => String(l.id) === cur) ? cur : "0";
 }
 let tnPresetList = [], tnPresetSig = "";
 function tnPresets(list) {
@@ -1910,11 +1919,13 @@ function tnApply(p) {
   $("tn-name").value = p.name; $("tn-name").removeAttribute("aria-invalid"); text("tn-err", "");
   if (!$("tn-fmt").disabled) $("tn-fmt").value = p.format === "cup" ? (p.third_place ? "cup3" : "cup") : "league";
   if (p.match_minutes) $("tn-min").value = String(p.match_minutes);
+  $("tn-look").value = String(p.look ?? (p.format === "cup" ? 27 : 0)); tn.lookSet = true;   // (ready-made cups saved before looks: a cup's default)
   tn.teams = new Set(p.teams); tn.extra = p.teams.filter(t => !nat.has(t)); $("tn-one").checked = !!p.one_team;
   if (!$("tn-grp").disabled) tnGroups(p, false); else tnCupOpts();
   paintTnTeams();
 }
-$("tn-fmt").onchange = tnCupOpts; $("tn-grp").onchange = tnCupOpts;
+$("tn-fmt").onchange = () => { tnCupOpts(); if (!tn.lookSet) $("tn-look").value = $("tn-fmt").value === "league" ? "0" : "27"; };
+$("tn-look").onchange = () => { tn.lookSet = true; }; $("tn-grp").onchange = tnCupOpts;
 $("tn-preset").onchange = () => { const p = tnPresetList.find(x => x.key === $("tn-preset").value); $("tn-pdel").hidden = !(p && p.own); if (p) tnApply(p); };
 $("tn-pdel").onclick = async () => { const p = tnPresetList.find(x => x.key === $("tn-preset").value); if (!p || !p.own) return;
   if (await ask({title: `Delete “${p.name}” from Start from?`, ok: "Delete", danger: true}) === null) return;
@@ -1980,7 +1991,7 @@ function tnCard(c, now) {
   const won = champ && top ? `<p class="small">${ICON.trophy.replace("<svg ", '<svg class="i" ')} Won by <b>${pname(top.name, top.pid, `tnw-${id}`)}</b>.</p>`
     : !c.cup && ended && top && top.points ? `<p class="small">${ICON.trophy.replace("<svg ", '<svg class="i" ')} Won by <b>${pname(top.name, top.pid, `tnw-${id}`)}</b> with ${plural(top.points, "point")}.</p>` : "";
   return `<section class="card tn" aria-labelledby="tn-h-${id}"><div class="card-h"><h2 id="tn-h-${id}" tabindex="-1">${esc(c.name)}</h2>${tnState(c, now)}</div>` +
-    `<p class="small muted meta">${esc(fmt.format(new Date(c.start * 1000)))} – ${esc(fmt.format(new Date(c.end * 1000)))} · ${c.cup ? ((c.cup.stage === "entry" ? c.groups : c.cup.groups.length) ? (c.groups ? `groups of ${c.groups}, then a knockout` : "groups, then a knockout") : "knockout cup") + (c.third_place ? " with a third-place match" : "") + " · " : ""}${c.one_team ? "one team per friend · " : ""}${c.minutes}-minute matches · ${plural(c.matches, "match", "matches")} played · ${plural(teams.length, "team")}: ${tlist}${c.auto ? " · monthly" : ""}</p>` +
+    `<p class="small muted meta">${esc(fmt.format(new Date(c.start * 1000)))} – ${esc(fmt.format(new Date(c.end * 1000)))} · ${c.cup ? ((c.cup.stage === "entry" ? c.groups : c.cup.groups.length) ? (c.groups ? `groups of ${c.groups}, then a knockout` : "groups, then a knockout") : "knockout cup") + (c.third_place ? " with a third-place match" : "") + " · " : ""}${c.one_team ? "one team per friend · " : ""}${c.look ? esc(((last && last.cup_looks || []).find(l => l.id === c.look) || {}).name || "") + " look · " : ""}${c.minutes}-minute matches · ${plural(c.matches, "match", "matches")} played · ${plural(teams.length, "team")}: ${tlist}${c.auto ? " · monthly" : ""}</p>` +
     won + (c.cup ? cupView(c) : table) +
     `<details class="keycheck" data-key="tno-${id}"><summary>What friends read in the game</summary><div class="pb">${esc(c.outline)}</div></details>` +
     `<div class="acts" style="margin-top:12px">${!ended ? `<button type="button" class="small needs-server" data-tntell="${id}" data-key="tnt-tell-${id}">Tell everyone</button>` : ""}<button type="button" class="small needs-server" data-tnedit="${id}" data-key="tnt-edit-${id}">${ended ? "Run it again" : "Change"}</button>` +
@@ -1991,6 +2002,7 @@ function renderTourneys(d) {
   if (!TEAMS) loadTeams();
   if (!tn.init && TEAMS) { tn.init = true; tnReset(false); }
   tnPresets(d.cup_presets || []);
+  tnLooks(d.cup_looks || []);
   const cur = ts.filter(c => c.state !== "ended").sort((a, b) => a.start - b.start), past = ts.filter(c => c.state === "ended");
   put("tn-list", (cur.length ? cur.map(c => tnCard(c, now)).join("") : `<section class="card tn"><p class="empty">No tournament running or planned.</p></section>`) +
     (past.length ? `<details class="keycheck tn" data-key="tnpast" style="margin-bottom:16px"><summary>Past tournaments (${past.length})</summary><div style="margin-top:12px">${past.map(c => tnCard(c, now)).join("")}</div></details>` : ""));

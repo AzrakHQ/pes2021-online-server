@@ -102,6 +102,7 @@ def augment(svc, snap):
     from . import pestourney
     snap["monthly_cup"] = _safe(lambda: pestourney.monthly_cup(svc), True)
     snap["cup_presets"] = _safe(lambda: pestourney.presets(svc), [])
+    snap["cup_looks"] = [{"id": k, "name": v[0]} for k, v in pestourney.LOOKS.items()]
     names = {c["compe_id"]: c["name"] for c in snap["tourneys"]}
     for lv in snap["live"]:                      # an Online Tournament match: which competition
         lv["competition"] = names.get((mm["rooms"].get(lv.get("room")) or {}).get("compe"))

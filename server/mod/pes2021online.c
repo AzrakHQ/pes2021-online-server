@@ -34,6 +34,8 @@
  *   - Online Co-op: the game forgets to give its P2P layer the opponent it was matched with, so co-op never
  *     connects. Two hooks on the game's co-op code add the step Quick Match has (see "Online Co-op" below);
  *     the id line then also says "coop1". Only on the exact 1.01.00 code.
+ *   - Cup finals end with Konami's trophy ceremony (mod 0.7.0): the server arms it through /mod/final and the
+ *     id line says "trophy1" (see "trophy ceremony" below). Only on the exact 1.01.00 code.
  *   - Invites: a copy the host made for one friend carries an invite code ("invite=" in the settings area);
  *     the id line then ends with " inv=<code>" so the server knows that friend on any PC. Sent only to the
  *     server whose key made the file, and only if its /mod/hello answers version 4.
@@ -60,7 +62,7 @@
 #include "monocypher/monocypher.h"
 #include "monocypher/monocypher-ed25519.h"
 
-#define MOD_VERSION "0.6.0"
+#define MOD_VERSION "0.7.0"
 
 /* Reserved settings area: the server overwrites everything after the 32-byte marker with
  * "key=...\nname=...\nurl=...\naddrs=a,b\nbook=...\n" (see server/pesserver/identity.py pack_mod). */
@@ -99,6 +101,7 @@ static FILE *g_log;
 static volatile LONG g_id_on;     /* the server in use reads the player-id line */
 static volatile LONG g_math_on;   /* the game gets our math functions (server pairs by them) */
 static volatile LONG g_coop_fix;  /* the co-op hooks are in (id line says coop1) */
+static volatile LONG g_trophy_on; /* the trophy-ceremony hooks are in (id line says trophy1) */
 static char g_id_hex[33];         /* this install's player id ("" = none) */
 static char g_id_line[128];       /* the line for the server in use */
 static char g_invite[33];         /* this copy's invite code from the host ("" = none) */
@@ -321,8 +324,9 @@ static void use_server(int hello_v)
     EnterCriticalSection(&g_slock);
     /* the invite code only to the server that made this file, and only if it reads it (version 4) */
     BOOL inv = hello_v >= 4 && g_invite[0] && !strcmp(g_srv.keyhex, g_invite_key);
-    if (hello_v >= 3) snprintf(g_id_line, sizeof g_id_line, "PESID2 %s math1%s%s%s\n", g_id_hex,
-                               g_coop_fix ? " coop1" : "", inv ? " inv=" : "", inv ? g_invite : "");
+    if (hello_v >= 3) snprintf(g_id_line, sizeof g_id_line, "PESID2 %s math1%s%s%s%s\n", g_id_hex,
+                               g_coop_fix ? " coop1" : "", g_trophy_on ? " trophy1" : "", inv ? " inv=" : "",
+                               inv ? g_invite : "");
     else snprintf(g_id_line, sizeof g_id_line, "PESID1 %s\n", g_id_hex);
     LeaveCriticalSection(&g_slock);
     InterlockedExchange(&g_id_on, hello_v >= 2 && g_id_hex[0]);
@@ -1010,6 +1014,146 @@ static void hook_coop(void)
     logf_("co-op fix ready (1 vs 1)");
 }
 
+/* ------------------------------------------------------------------ trophy ceremony ("trophy1")
+ * An offline cup final ends with Konami's trophy ceremony (an END demo group of
+ * common/demo/fixdemo/end/table_end.bin: celebration, trophy lift, team photo). Online the game skips every
+ * end demo: the full-time step of the match sequencer (0x140447290) asks match::Online whether the match is
+ * online (vfunc +0x88, true) and then plays none (notes/re/functions/tourney.md, "Trophy ceremony").
+ * For a cup final the server arms the ceremony: at half time the mod asks /mod/final which END group to play
+ * (0 = none). At full time (match phase 8..10, also after a shootout) the full-time step then takes the
+ * offline branch, and the END group picker (0x1404879b0) returns that group (its _PK variant after a
+ * shootout) with the winner's side from the match score. Both players' games do the same from the same
+ * score, so they show the same ceremony; the server arms a final only when both mods say "trophy1".
+ * Half time and every other match stay as they were. */
+static uintptr_t (*o_end_step)(void *, uintptr_t, void *, void *);   /* 0x140447290 full-time step */
+static uint32_t (*o_end_pick)(void *, void *, void *, uintptr_t);   /* 0x1404879b0 END group picker */
+static volatile LONG g_final_group;           /* the END group the server armed for this match (0 = none) */
+static volatile LONGLONG g_final_asked;       /* GetTickCount64 of the last question */
+
+/* [0x1436f3dc8] = match::registry; its Ref holders keep a raw pointer at +0x18 while the match job runs:
+   +0x270 MatchInfo (phase at +0x1168: 4 half time, 8..10 the end), +0x310 the score (side 0 / 1 goals at
+   +0x18 / +0x1c, shootout goals included: the shootout end compares them the same way). */
+static uint8_t *match_ref(size_t off)
+{
+    uint8_t *reg = *(uint8_t **)game_va(0x1436f3dc8);
+    return reg ? *(uint8_t **)(reg + off) : NULL;
+}
+static int match_phase(void) { uint8_t *mi = match_ref(0x270); return mi ? *(int32_t *)(mi + 0x1168) : 0; }
+
+/* The game's own question at the full-time step: [0x1434a2d40] -> vfunc +0x88 (match::Online: true). An offline
+   match keeps its own end demos whatever the server said. */
+static BOOL match_online(void)
+{
+    void **obj = *(void ***)game_va(0x1434a2d40);
+    if (!obj || !*obj) return FALSE;
+    char (*is_online)(void *) = (char (*)(void *))((void **)*obj)[0x88 / 8];
+    return is_online(obj) != 0;
+}
+
+/* The winner's side (0 / 1) once the match is decided, else -1: phase 8..10 (the end of normal time, of extra
+   time, of a shootout) with goals that are not level. A level end of extra time goes on to penalties; the
+   offline end branch there (or at half time) crashes an online game (live 2026-11-21), so it stays closed. */
+static int match_winner(void)
+{
+    int ph = match_phase();
+    uint8_t *score = match_ref(0x310);
+    if (ph < 8 || ph > 10 || !score) return -1;
+    int32_t g0 = *(int32_t *)(score + 0x18), g1 = *(int32_t *)(score + 0x1c);
+    return g0 == g1 ? -1 : g0 > g1 ? 0 : 1;
+}
+
+/* The full-time step's "online: no end demo" branch (je at 0x1404473ef): 0x74 = the game's own; 0xeb = go on
+   to the END group picker, as offline. */
+static void end_branch(uint8_t op)
+{
+    uint8_t *p = game_va(0x1404473ef);
+    DWORD old;
+    if (*p == op || !VirtualProtect(p, 1, PAGE_EXECUTE_READWRITE, &old)) return;
+    *p = op;
+    VirtualProtect(p, 1, old, &old);
+    FlushInstructionCache(GetCurrentProcess(), p, 1);
+}
+
+static DWORD WINAPI final_thread(LPVOID over)
+{
+    char ip[64], url[256], body[256];
+    snprintf(ip, sizeof ip, "%s", g_ip);        /* (a copy: the address changes only when the server moves) */
+    long grp = 0;
+    if (ip[0] && g_id_hex[0]) {
+        snprintf(url, sizeof url, "http://%s:8080/mod/final?id=%s%s", ip, g_id_hex, over ? "&over=1" : "");
+        if (http_get(url, body, sizeof body, 4000)) {
+            const char *g = strstr(body, "group=");
+            if (g) grp = strtol(g + 6, NULL, 0);
+        }
+    }
+    if (over) return 0;                          /* (the server has been told; the ceremony is under way) */
+    if (grp < 0x70001 || grp > 0x70028) grp = 0;
+    InterlockedExchange(&g_final_group, grp);
+    if (grp) logf_("cup final: the trophy ceremony is ready (END group %lx)", grp);
+    return 0;
+}
+
+static uintptr_t hk_end_step(void *self, uintptr_t flag, void *a, void *b)
+{
+    int ph = match_phase();
+    ULONGLONG now = GetTickCount64();
+    if (ph > 0 && ph < 8 && now - (ULONGLONG)g_final_asked > 60000 && match_online()) {   /* half time: ask once */
+        InterlockedExchange64(&g_final_asked, (LONGLONG)now);
+        InterlockedExchange(&g_final_group, 0);
+        HANDLE t = CreateThread(NULL, 0, final_thread, NULL, 0, NULL);
+        if (t) CloseHandle(t);
+    }
+    BOOL armed = g_final_group && match_winner() >= 0 && match_online();
+    end_branch(armed ? 0xeb : 0x74);
+    uintptr_t r = o_end_step(self, flag, a, b);
+    if (armed && (r & 0xff)) {                     /* the full-time step is over: disarm */
+        InterlockedExchange(&g_final_group, 0);
+        end_branch(0x74);
+    }
+    return r;
+}
+
+static uint32_t hk_end_pick(void *a, void *b, void *res, uintptr_t pk)
+{
+    LONG grp = g_final_group;
+    int side = match_winner();
+    if (grp && side >= 0 && res && match_online()) {
+        *(int32_t *)((uint8_t *)res + 0x200) = side;                /* the side the ceremony is about */
+        logf_("cup final over (phase %d%s): trophy ceremony for side %d", match_phase(), (pk & 0xff) ? ", shootout" : "", side);
+        /* the match is over for this game: tell the server, which settles it as at a final whistle */
+        HANDLE t = CreateThread(NULL, 0, final_thread, (LPVOID)1, 0, NULL);
+        if (t) CloseHandle(t);
+        return (uint32_t)grp + ((pk & 0xff) ? 1 : 0);                /* each END group's _PK variant follows it */
+    }
+    return o_end_pick(a, b, res, pk);
+}
+
+/* The exact 1.01.00 bytes: a different build gets no trophy hooks (and no "trophy1"). */
+static const struct { uint64_t va; const char *hex; } trophy_code[] = {
+    { 0x140447290, "48896c24104889742418574881ec9000" },  /* full-time step */
+    { 0x1404473e7, "ff9088000000" "84c0746a" },          /* call [rax+0x88] (online?); test al,al; je no-demo */
+    { 0x1404879b0, "40555657415441554156415748" },        /* END group picker */
+    { 0x140446445, "4c8bc5400fb6d6488bcbe83c0e0000" },    /* sequencer event 7 -> the full-time step */
+};
+
+static void hook_trophy(void)
+{
+    if (!g_exe) g_exe = (uint8_t *)GetModuleHandleW(NULL);
+    const IMAGE_NT_HEADERS *nt = (const IMAGE_NT_HEADERS *)(g_exe + ((const IMAGE_DOS_HEADER *)g_exe)->e_lfanew);
+    if (PES_BASE + nt->OptionalHeader.SizeOfImage <= 0x1436f3dc8 + 8) { logf_("trophy ceremony: not PES 2021 1.01.00, off"); return; }
+    for (size_t i = 0; i < sizeof trophy_code / sizeof trophy_code[0]; i++)
+        if (!code_is(trophy_code[i].va, trophy_code[i].hex)) {
+            logf_("trophy ceremony: game code at %llx is not 1.01.00, off", (unsigned long long)trophy_code[i].va);
+            return;
+        }
+    if (MH_CreateHook(game_va(0x140447290), (void *)hk_end_step, (void **)&o_end_step) != MH_OK ||
+        MH_CreateHook(game_va(0x1404879b0), (void *)hk_end_pick, (void **)&o_end_pick) != MH_OK) {
+        logf_("ERROR: trophy ceremony hooks"); return;
+    }
+    InterlockedExchange(&g_trophy_on, 1);
+    logf_("trophy ceremony for cup finals ready");
+}
+
 static void maybe_start(HWND parent, DWORD style)
 {
     if (!parent && !(style & WS_CHILD) && !InterlockedCompareExchange(&g_started, 1, 0)) startup();
@@ -1046,6 +1190,7 @@ static void install_hooks(void)
     hook(L"ws2_32.dll", "gethostbyname", hk_gethostbyname, (void **)&o_gethostbyname);
     hook_math();
     hook_coop();
+    hook_trophy();
     if (g_id_hex[0]) {
         hook(L"ws2_32.dll", "send", hk_send, (void **)&o_send);
         hook(L"ws2_32.dll", "WSASend", hk_WSASend, (void **)&o_WSASend);

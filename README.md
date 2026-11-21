@@ -23,7 +23,7 @@
 - **Matchday**: one standing event; pick Home or Away and every match adds points for your side.
 - **Friendly Match Lobby**: make a room (with a password if you like), your friend picks it, and you stay in the room for a rematch.
 - **Friends Cup**: a new tournament every month, with its own table under Rankings.
-- **Knockout cups**: World Cup, EURO, Champions League and more ready-made, or your own: groups first, a third-place match, one team per friend, national teams or clubs; level matches go to extra time and penalties.
+- **Knockout cups**: World Cup, EURO, Champions League and more ready-made, or your own: groups first, a third-place match, one team per friend, national teams or clubs; level matches go to extra time and penalties; the final ends with Konami's trophy ceremony.
 - **Match replays**: every online match is recorded; watch the newest 20 from Online Tournament → Match Replays.
 - **Profiles and stats**: your avatar, favourite team and comment, Last 20 results, and a ranking of everyone on your server.
 - **Fair play**: leaving a match early counts as a 3–0 loss, and anyone can block an opponent so they're never matched again.

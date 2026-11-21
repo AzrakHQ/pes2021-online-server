@@ -573,6 +573,18 @@ def _score(f):
     return s + (" (awarded)" if f["how"] == "walkover" else "")
 
 
+def final_of(svc, c, a, b):
+    """The open tie between a and b, when it is the cup's final (else None)."""
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        f = _open_tie(db, c["compe_id"], a, b)
+        if f is None or f["stage"] != "K":
+            return None
+        last = db.execute("SELECT MAX(round) FROM pes_cup_fixture WHERE compe_id=? AND stage='K'", (c["compe_id"],)).fetchone()[0]
+    return f if f["round"] == last else None
+
+
 def snapshot(svc, c):
     """For the admin page: the stage, the group tables and every tie by round."""
     fx = fixtures(svc, c["compe_id"])
