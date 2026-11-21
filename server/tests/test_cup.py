@@ -148,7 +148,9 @@ def test_host_calls_draw_award_undraw(svc):
         cid = c["compe_id"]
         api = lambda route, **body: pestourney.admin_api(svc, "/admin/api/tourneys/" + route, "POST",   # noqa: E731
                                                          json.dumps({"compe_id": cid, **body}).encode())
-        assert api("draw", groups=True)[0] == "400 Bad Request"           # groups need 6
+        assert api("draw", groups=True)[0] == "200 OK"                    # 4: one group, the top two in the final
+        assert len(_ties(svc, c, "G")) == 6
+        assert api("undraw")[0] == "200 OK"
         assert api("draw")[0] == "200 OK" and api("draw")[0] == "400 Bad Request"
         assert api("undraw")[0] == "200 OK" and pescup.stage(svc, cid) == "entry"
         assert api("draw")[0] == "200 OK"
@@ -447,10 +449,21 @@ def test_random_cups_always_finish_with_one_winner(svc, seed):
     async def go():
         rng = random.Random(1000 + seed)
         n = rng.randint(2, 26)
-        groups = n >= pescup.GROUPS_FROM and rng.random() < 0.5
+        groups = n >= 3 and rng.random() < 0.6
         third = rng.random() < 0.5
         c, sess = (_cup3 if third else _cup)(svc, n, name=f"Random {seed}")
         cid = c["compe_id"]
+        through = None
+        if groups:                                                     # random group rules (groups of 3-6, ...)
+            rules = {"groups": rng.choice(pescup.GROUP_SIZES), "qualify": rng.choice((1, 2)),
+                     "fill": rng.random() < 0.5, "legs": rng.choice((1, 2))}
+            try:
+                through = pescup.plan(n, rules["groups"], rules["qualify"], rules["fill"], rules["legs"])["through"]
+            except ValueError:
+                groups = False
+            else:
+                pestourney.save(svc, {"compe_id": cid, **rules})
+                c = pestourney.get(svc, cid)
         pescup.draw(svc, c, groups=groups, rng=rng)
         gone, steps = set(), 0
         while pescup.stage(svc, cid) != "done":
@@ -486,6 +499,8 @@ def test_random_cups_always_finish_with_one_winner(svc, seed):
         ko = [f for f in fx if f["stage"] == "K"]
         final = max(ko, key=lambda f: f["round"])
         qualified = {p for f in ko for p in (f["a"], f["b"]) if p is not None}
+        if through is not None:                                        # as planned (fewer when players were deleted)
+            assert len(qualified) <= through and (gone or len(qualified) == through)
         size = 2
         while size < len(qualified):
             size *= 2

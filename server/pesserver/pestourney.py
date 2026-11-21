@@ -146,8 +146,9 @@ def _fields(svc, c, pid=None):
     joined = pid is not None and entry(svc, c["compe_id"], pid) is not None
     return {"compe_id": c["compe_id"], "compe_db_id": c["compe_id"], "compe_name": c["name"], "is_myclub": "NO",
             "match_type": c["match_type"], "start_date": c["start"], "end_date": c["end"],
-            "match_end_date": c["end"], "entry_limit_date": c["end"], "entry_user_limit": "NO",
-            "entry_user_max": 1000, "entry_user_num": _entry_num(svc, c["compe_id"]), "entry_limit_division": "NO",
+            "match_end_date": c["end"], "entry_limit_date": c["end"], "entry_user_limit": "YES" if one_team(c) else "NO",
+            "entry_user_max": max(len(set(c["teams"])), _entry_num(svc, c["compe_id"])) if one_team(c) else 1000,
+            "entry_user_num": _entry_num(svc, c["compe_id"]), "entry_limit_division": "NO",
             "entry_limit_division_min": 1, "entry_limit_division_max": 10, "is_end": "YES" if ended else "NO",
             "is_entry": "YES" if joined else "NO", "is_gm_account": "NO", "is_no_check": "NO", "mode": "PESLEAGUE"}
 
@@ -213,7 +214,25 @@ def compe_team_list(svc, sess, req):
     c = get(svc, req.get("compe_id"))
     if c is None:
         return pesreplay.peslg_team_list(svc, sess, req)
-    return {"result": NOERR, "team_list": c["teams"], "team_list_num": len(c["teams"])}
+    teams = free_teams(svc, c, _pid(sess, req)) or c["teams"]       # (all taken: JOIN says the cup is full)
+    return {"result": NOERR, "team_list": teams, "team_list_num": len(teams)}
+
+
+def one_team(c):
+    return bool((c.get("rules") or {}).get("one_team"))
+
+
+def free_teams(svc, c, pid):
+    """The teams `pid` can enter with: with one_team, not those another friend entered with."""
+    if not one_team(c):
+        return list(c["teams"])
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        rows = db.execute("SELECT pid, team_id FROM pes_tourney_entry WHERE compe_id=?", (c["compe_id"],)).fetchall()
+    mine = {t for p, t in rows if p == pid}              # (their own team is always theirs, even if shared)
+    taken = {t for p, t in rows if p != pid} - mine
+    return [t for t in c["teams"] if t not in taken]
 
 
 @cmd("CMD_JOIN_PESLEAGUE_COMPE")
@@ -226,9 +245,21 @@ def join_compe(svc, sess, req):
         team = int(req.get("team_id") or 0)
     except (TypeError, ValueError):
         team = 0
-    if team not in c["teams"]:
-        team = c["teams"][0]
     closed = pescup.is_cup(c) and pescup.stage(svc, c["compe_id"]) != "entry"
+    mine = entry(svc, c["compe_id"], pid)
+    free = free_teams(svc, c, pid)
+    if team not in c["teams"]:
+        team = (free or c["teams"])[0]
+    if team not in free and not (mine is None and closed):
+        if mine is not None:
+            # a friend already in keeps their team (never locked out): another friend has the one they picked
+            log.info("TOURNEY pid %s keeps team %d in %d (%d is taken)", pid, mine["team_id"], c["compe_id"], team)
+            team = mine["team_id"]
+        else:
+            # one team per friend and another friend has it (they entered meanwhile), or every team is taken: the
+            # game says "Unable to enter Competition as maximum capacity has been reached." and goes back to the list
+            log.info("TOURNEY pid %s can't enter %d with team %d (taken)", pid, c["compe_id"], team)
+            return {"result": "ERR_COMPE_FULL"}
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
@@ -443,7 +474,9 @@ def _when(v, default):
 def save(svc, d):
     """Create (no compe_id) or change a competition. Keys: name, start, end, teams [ids], info (overview text),
     match_minutes (5-30, default 10), format ("league", the default: a points table; "cup": a knockout, pescup),
-    third_place (a cup: the beaten semi-finalists play a third-place match; fixed once the draw is made)."""
+    third_place (a cup: the beaten semi-finalists play a third-place match; fixed once the draw is made),
+    groups / qualify / fill / legs (a cup's group stage, pescup.group_rules; fixed once the draw is made),
+    one_team (each team can be entered by one friend only)."""
     now = time.time()
     cur = get(svc, d.get("compe_id")) if d.get("compe_id") not in (None, "") else None
     if d.get("compe_id") not in (None, "") and cur is None:
@@ -458,8 +491,8 @@ def save(svc, d):
         raise ValueError("the end must be after the start")
     teams = d.get("teams", cur["teams"] if cur else TEAMS)
     try:
-        teams = [int(t) for t in teams][:200]
-    except (TypeError, ValueError):
+        teams = list(dict.fromkeys(int(t) for t in teams))[:200]
+    except (TypeError, ValueError, OverflowError):
         raise ValueError("teams must be a list of team ids")
     if not teams:
         raise ValueError("a competition needs at least one team")
@@ -494,6 +527,13 @@ def save(svc, d):
         rules.pop("third_place", None)
         if d["third_place"]:
             rules["third_place"] = True
+    _group_rules(svc, cur, d, rules)
+    if d.get("one_team") is not None:
+        if not isinstance(d["one_team"], bool):
+            raise ValueError("one_team must be true or false")
+        rules.pop("one_team", None)
+        if d["one_team"]:
+            rules["one_team"] = True
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
@@ -508,6 +548,38 @@ def save(svc, d):
                        (cid, name, MATCH_1VS1, start, end, json.dumps(teams), info, json.dumps(rules), now))
     log.info("TOURNEY saved competition %d: %s", cid, name)
     return cid
+
+
+GROUP_KEYS = {"groups": (0, *pescup.GROUP_SIZES), "qualify": (1, 2), "fill": (False, True), "legs": (1, 2)}
+GROUP_DEFAULT = {"groups": 0, "qualify": pescup.QUALIFY, "fill": False, "legs": 1}
+
+
+def _group_rules(svc, cur, d, rules):
+    """A cup's group stage settings into rules (dropped for a league; fixed once the draw is made)."""
+    if rules.get("format") != "cup":
+        for k in GROUP_KEYS:
+            rules.pop(k, None)
+        return
+    new = dict(rules)
+    for k, allowed in GROUP_KEYS.items():
+        v = d.get(k)
+        if v is None:
+            continue
+        if isinstance(allowed[0], bool):
+            if not isinstance(v, bool):
+                raise ValueError(f"{k} must be true or false")
+        elif isinstance(v, bool) or not isinstance(v, int) or v not in allowed:
+            raise ValueError(f"{k} must be one of {', '.join(map(str, allowed))}")
+        new.pop(k, None)
+        if v != GROUP_DEFAULT[k]:
+            new[k] = v
+    if not new.get("groups"):
+        for k in ("qualify", "fill", "legs"):
+            new.pop(k, None)
+    if new != rules and cur and pescup.fixtures(svc, cur["compe_id"]):
+        raise ValueError("the draw is made: the group stage stays as it is")
+    rules.clear()
+    rules.update(new)
 
 
 def end_now(svc, cid):
@@ -560,9 +632,127 @@ def snapshot(svc):
         table = [{"rank": r[0], "pid": r[1], "name": r[2], "team_id": r[3], "points": r[4], "win": r[5], "draw": r[6],
                   "lose": r[7], "goals_for": r[8], "goals_against": r[9]} for r in standings(svc, c["compe_id"])]
         cup = pescup.snapshot(svc, c) if pescup.is_cup(c) else None
+        size, qualify, fill, legs = pescup.group_rules(c)
+        plan = None
+        if cup and cup["stage"] == "entry":
+            try:
+                plan = pescup.plan(len(table), size or 4, qualify, fill, legs)
+            except ValueError as e:
+                plan = {"error": str(e)}
         out.append({**c, "state": state, "table": table, "format": "cup" if cup else "league", "cup": cup,
-                    "third_place": pescup.third_place(c)})
+                    "third_place": pescup.third_place(c), "groups": size, "qualify": qualify, "fill": fill,
+                    "legs": legs, "one_team": one_team(c), "plan": plan})
     return out
+
+
+# ---- ready-made cups ----------------------------------------------------------------------------------------
+# Real tournaments with the teams PES 2021 has for them, in their own format scaled to the friends who enter
+# (groups of four; the best third-placed fill the knockout where the real one does that). One team per friend.
+# World Cup 2022, EURO 2024 and Copa América 2024: the real entrants the game has (all but Canada); the others
+# are the game's own entry lists (web/teams.json "tournaments", from its CompetitionEntry.bin, mkclublist.py).
+def _cup(key, name, teams, third=False, fill=False, legs=1):
+    return {"key": key, "name": name, "format": "cup", "third_place": third, "groups": 4, "qualify": 2,
+            "fill": fill, "legs": legs, "one_team": True, "teams": teams}
+
+
+def _game(key):
+    from . import adminextra
+    return list((adminextra.teams().get("tournaments") or {}).get(key) or [])
+
+
+def builtin_presets():
+    out = [
+        _cup("world", "World Cup", [1026, 51, 38, 10, 5, 55, 39, 4, 50, 56, 40, 19, 8, 57, 15, 33, 7, 42, 14, 52,
+                                    9, 32, 24, 45, 1550, 11, 36, 6, 1058, 49, 53], third=True),
+        _cup("euro", "European Championship", [14, 3, 22, 11, 7, 24, 12, 1165, 23, 15, 1550, 5, 19, 10, 21, 8, 9,
+                                                20, 26, 30, 29, 1174, 6, 13], fill=True),
+        _cup("copa", "Copa América", [50, 46, 47, 40, 51, 1129, 41, 39, 49, 1113, 1128, 45, 44, 48, 42], third=True),
+        _cup("africa", "Africa Cup of Nations", _game("africa"), third=True, fill=True),
+        _cup("asia", "Asian Cup", _game("asia"), fill=True),
+        _cup("ucl", "Champions League", _game("ucl"), legs=2),
+        _cup("uel", "Europa League", _game("uel"), legs=2),
+        _cup("libertadores", "Copa Libertadores", _game("libertadores"), legs=2),
+        _cup("afccl", "AFC Champions League", _game("afccl"), legs=2),
+    ]
+    return [p for p in out if p["teams"]]
+
+
+PRESET_KEYS = ("name", "format", "third_place", "groups", "qualify", "fill", "legs", "one_team", "teams",
+               "match_minutes")
+MAX_PRESETS = 20
+
+
+def presets(svc):
+    """The ready-made cups, then the host's own (saved from the admin page's form)."""
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        r = db.execute("SELECT value FROM pes_tourney_cfg WHERE key='presets'").fetchone()
+    try:
+        own = json.loads(r[0]) if r else []
+    except ValueError:
+        own = []
+    return [dict(p, own=False) for p in builtin_presets()] + [dict(p, own=True) for p in own if isinstance(p, dict)]
+
+
+def _own_presets(svc, change):
+    db = _db(svc)
+    with svc.accounts.lock, db:
+        _setup(db)
+        r = db.execute("SELECT value FROM pes_tourney_cfg WHERE key='presets'").fetchone()
+        try:
+            own = [p for p in (json.loads(r[0]) if r else []) if isinstance(p, dict)]
+        except ValueError:
+            own = []
+        out = change(own)
+        db.execute("INSERT OR REPLACE INTO pes_tourney_cfg (key, value) VALUES ('presets', ?)", (json.dumps(own),))
+    return out
+
+
+def save_preset(svc, d):
+    """The host's own ready-made cup: the form's settings under a name (the same name replaces it)."""
+    name = str(d.get("name") or "").strip()[:60]
+    if not name:
+        raise ValueError("a ready-made cup needs a name")
+    fmt = str(d.get("format") or "league").lower()
+    if fmt not in ("league", "cup"):
+        raise ValueError("format must be league or cup")
+    p = {"name": name, "format": fmt, "teams": [], "one_team": d.get("one_team") is True}
+    try:
+        p["teams"] = [int(t) for t in d.get("teams") or []][:200]
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError("teams must be a list of team ids")
+    if not p["teams"]:
+        raise ValueError("a ready-made cup needs at least one team")
+    if d.get("match_minutes") not in (None, ""):
+        if not isinstance(d["match_minutes"], int) or isinstance(d["match_minutes"], bool) or not 5 <= d["match_minutes"] <= 30:
+            raise ValueError("match_minutes must be 5 to 30")
+        p["match_minutes"] = d["match_minutes"]
+    if fmt == "cup":
+        p["third_place"] = d.get("third_place") is True
+        rules = {"format": "cup"}
+        _group_rules(svc, None, d, rules)
+        p.update({k: rules.get(k, GROUP_DEFAULT[k]) for k in GROUP_KEYS})
+
+    def put(own):
+        key = next((x["key"] for x in own if x.get("name", "").lower() == name.lower()), None)
+        if key is None:
+            if len(own) >= MAX_PRESETS:
+                raise ValueError(f"there are already {MAX_PRESETS} of your own: delete one first")
+            n = max([int(str(x.get("key", "own-0"))[4:] or 0) for x in own if str(x.get("key", "")).startswith("own-")
+                     and str(x["key"])[4:].isdigit()] + [0]) + 1
+            key = f"own-{n}"
+        own[:] = [x for x in own if x.get("key") != key] + [{"key": key, **p}]
+        return key
+    return _own_presets(svc, put)
+
+
+def delete_preset(svc, key):
+    def drop(own):
+        if not any(x.get("key") == key for x in own):
+            raise KeyError("no such ready-made cup")
+        own[:] = [x for x in own if x.get("key") != key]
+    _own_presets(svc, drop)
 
 
 def admin_api(svc, route, method, body):
@@ -573,7 +763,7 @@ def admin_api(svc, route, method, body):
         return code, json.dumps({"error": msg}).encode(), "application/json"
 
     if route == "/admin/api/tourneys" and method == "GET":
-        return ok({"tourneys": snapshot(svc), "monthly_cup": monthly_cup(svc)})
+        return ok({"tourneys": snapshot(svc), "monthly_cup": monthly_cup(svc), "presets": presets(svc)})
     if method != "POST":
         return bad("404 Not Found", "unknown")
     try:
@@ -582,6 +772,11 @@ def admin_api(svc, route, method, body):
             raise ValueError("bad request")
         if route == "/admin/api/tourneys/save":
             return ok({"compe_id": save(svc, req)})
+        if route == "/admin/api/tourneys/preset":
+            return ok({"key": save_preset(svc, req)})
+        if route == "/admin/api/tourneys/preset/delete":
+            delete_preset(svc, str(req.get("key") or ""))
+            return ok({"ok": True})
         if route == "/admin/api/tourneys/end":
             end_now(svc, req.get("compe_id"))
             return ok({"ok": True})
@@ -601,7 +796,7 @@ def admin_api(svc, route, method, body):
             elif time.time() >= c["end"]:
                 raise ValueError("that cup has ended")
             elif route.endswith("/draw"):
-                pescup.draw(svc, c, groups=bool(req.get("groups")))
+                pescup.draw(svc, c, groups=None if req.get("groups") is None else bool(req.get("groups")))
             else:
                 pescup.walkover(svc, c, req.get("fid"), req.get("winner"))
             return ok({"ok": True})

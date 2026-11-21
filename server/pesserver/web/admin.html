@@ -475,11 +475,16 @@
   @media (max-width: 420px) { .kv.modes { grid-template-columns:minmax(0,1fr); gap:2px; } .kv.modes dt { margin-top:8px; font-size:13px; } }
   h3.rooms-h { margin-top:16px; }
   .pill.mode { margin-left:6px; }
+  .msgf .tn-prow { margin-top:0; flex-wrap:nowrap; } .msgf .tn-prow select { flex:1; min-width:0; }
   .tn-dates { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:0 12px; }
   @media (max-width: 420px) { .tn-dates { grid-template-columns:minmax(0,1fr); } }
   .msgf fieldset { border:1px solid var(--line); border-radius:10px; margin:14px 0 0; padding:8px 12px 12px; min-width:0; }
   .msgf legend { font-weight:600; font-size:14px; padding:0 4px; }
   .tn-reg { margin-top:8px; }
+  .tn-sec { font-size:13px; margin:14px 0 2px; }
+  .tn-club > summary { cursor:pointer; list-style:none; }
+  .tn-club > summary::-webkit-details-marker { display:none; }
+  .tn-club > summary::before { content:"▸"; margin-right:2px; } .tn-club[open] > summary::before { content:"▾"; }
   .tn-pick > summary { display:flex; gap:10px; align-items:baseline; cursor:pointer; font-size:14px; padding:4px 0; list-style:none; }
   .tn-pick > summary::-webkit-details-marker { display:none; }
   .tn-pick > summary .grow { flex:1; min-width:0; }
@@ -688,14 +693,20 @@
       <div class="grid2 row-gap">
         <section class="card msgf" aria-labelledby="h-tnform"><h2 id="h-tnform" tabindex="-1">New tournament</h2>
           <form id="tnform" novalidate>
+            <label for="tn-preset">Start from</label><div class="row tn-prow"><select id="tn-preset"></select><button type="button" class="small danger needs-server" id="tn-pdel" hidden>Delete</button></div>
             <label for="tn-name">Name</label><input id="tn-name" maxlength="60" autocomplete="off" placeholder="e.g. Saturday Cup">
             <div class="tn-dates"><div><label for="tn-start">Starts</label><input type="datetime-local" id="tn-start"></div><div><label for="tn-end">Ends</label><input type="datetime-local" id="tn-end"></div></div>
             <label for="tn-fmt">Format</label><select id="tn-fmt"><option value="league" selected>League table</option><option value="cup">Knockout cup</option><option value="cup3">Knockout cup with a third-place match</option></select>
+            <div id="tn-cupopts" hidden>
+              <label for="tn-grp">Groups first</label><select id="tn-grp"><option value="0">No groups: knockout only</option><option value="3">Groups of 3</option><option value="4">Groups of 4</option><option value="5">Groups of 5</option><option value="6">Groups of 6</option></select>
+              <div class="tn-dates" id="tn-grpopts"><div><label for="tn-q">Through to the knockout</label><select id="tn-q"><option value="2">Top 2 of each group</option><option value="2f">Top 2 and the best third-placed</option><option value="1">Group winners</option><option value="1f">Group winners and the best runners-up</option></select></div>
+              <div><label for="tn-legs">Group matches</label><select id="tn-legs"><option value="1">Play each other once</option><option value="2">Play each other twice</option></select></div></div>
+            </div>
             <label for="tn-min">Match length</label><select id="tn-min"><option value="5">5 minutes</option><option value="6">6 minutes</option><option value="8">8 minutes</option><option value="10" selected>10 minutes</option><option value="12">12 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option></select>
-            <fieldset class="tn-teams" id="tn-teams-f"><legend>Teams friends can enter with <span class="small muted" id="tn-tcount"></span></legend><div id="tn-teams"><div class="skel"></div></div></fieldset>
+            <fieldset class="tn-teams" id="tn-teams-f"><legend>Teams friends can enter with <span class="small muted" id="tn-tcount"></span></legend><div id="tn-teams"><div class="skel"></div></div><label class="check"><input type="checkbox" id="tn-one"> <span>One team per friend</span></label></fieldset>
             <label for="tn-info">Competition Outline <span class="small muted" style="font-weight:400">(optional)</span></label><textarea id="tn-info" maxlength="2000" placeholder="Shown under Competition Details in the game. Empty: written from the dates and rules." aria-describedby="tn-err"></textarea>
             <div id="tn-err" class="small" aria-live="polite"></div>
-            <div class="row"><button class="primary needs-server" type="submit" id="tn-save">Create tournament</button><button type="button" id="tn-cancel" hidden>Cancel editing</button></div>
+            <div class="row"><button class="primary needs-server" type="submit" id="tn-save">Create tournament</button><button type="button" class="needs-server" id="tn-psave">Save as ready-made</button><button type="button" id="tn-cancel" hidden>Cancel editing</button></div>
           </form>
         </section>
         <div class="stack">
@@ -1827,9 +1838,9 @@ const defaultTeams = () => new Set((TEAMS && TEAMS.default) || []);      // the 
 const tn = {edit: null, teams: defaultTeams(), extra: [], init: false};
 const dtLocal = t => { const d = new Date(t * 1000); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
 const fromLocal = v => { const t = v ? new Date(v).getTime() : NaN; return isNaN(t) ? null : Math.floor(t / 1000); };   // "YYYY-MM-DDTHH:MM" is local time
-function tnRegions() {
-  const regs = TEAMS ? TEAMS.national.map(r => ({name: r.region, ids: r.teams})) : [];
-  const nat = new Set(regs.flatMap(r => r.ids)), extra = [...new Set([...tn.extra, ...[...tn.teams].filter(t => !nat.has(t))])];
+function tnRegions() {          // national teams by region, then clubs by league (as the game's team select groups them)
+  const regs = TEAMS ? [...TEAMS.national.map(r => ({name: r.region, ids: r.teams})), ...(TEAMS.clubs || []).map(r => ({name: r.region, ids: r.teams, club: true}))] : [];
+  const known = new Set(regs.flatMap(r => r.ids)), extra = [...new Set([...tn.extra, ...[...tn.teams].filter(t => !known.has(t))])];
   if (extra.length) regs.push({name: "Other teams", ids: extra});
   return regs;
 }
@@ -1837,16 +1848,21 @@ function paintTnTeams() {
   if (!TEAMS) return;
   const chosen = [...tn.teams].map(teamName).sort((a, b) => a.localeCompare(b));
   const sum = !chosen.length ? `<span class="err">None chosen yet</span>` : esc(chosen.length <= 5 ? andList(chosen) : chosen.slice(0, 4).join(", ") + ` and ${chosen.length - 4} more`);
-  put("tn-teams", `<details class="tn-pick" data-key="tnpick"${tn.open ? " open" : ""}><summary><span class="grow">${sum}</span><span class="linkbtn">Choose teams</span></summary>` + tnRegions().map(r => { const n = r.ids.filter(t => tn.teams.has(t)).length, rid = "tnr-" + r.name.replace(/\W/g, "");
-    return `<div class="tn-reg" role="group" aria-labelledby="${rid}"><div class="rh"><span id="${rid}">${esc(r.name)} · ${n} of ${r.ids.length}</span>` +
-      `<button type="button" class="linkbtn" data-tnreg="${esc(r.name)}" data-on="1" data-key="tnra-${rid}" aria-label="Choose every team in ${esc(r.name)}">All</button><button type="button" class="linkbtn" data-tnreg="${esc(r.name)}" data-on="0" data-key="tnrn-${rid}" aria-label="Clear ${esc(r.name)}">None</button></div><div class="tn-grid">` +
-      [...r.ids].sort((a, b) => teamName(a).localeCompare(teamName(b))).map(t => `<label><input type="checkbox" data-tnteam="${t}" data-key="tnt-${t}"${tn.teams.has(t) ? " checked" : ""}><span>${esc(teamName(t))}</span></label>`).join("") + `</div></div>`; }).join("") + `</details>`);
+  const regs = tnRegions(), grp = r => { const n = r.ids.filter(t => tn.teams.has(t)).length, rid = "tnr-" + r.name.replace(/\W/g, "");
+    const btns = `<button type="button" class="linkbtn" data-tnreg="${esc(r.name)}" data-on="1" data-key="tnra-${rid}" aria-label="Choose every team in ${esc(r.name)}">All</button><button type="button" class="linkbtn" data-tnreg="${esc(r.name)}" data-on="0" data-key="tnrn-${rid}" aria-label="Clear ${esc(r.name)}">None</button>`;
+    const grid = `<div class="tn-grid">` + [...r.ids].sort((a, b) => teamName(a).localeCompare(teamName(b))).map(t => `<label><input type="checkbox" data-tnteam="${t}" data-key="tnt-${t}"${tn.teams.has(t) ? " checked" : ""}><span>${esc(teamName(t))}</span></label>`).join("") + `</div>`;
+    return `<details class="tn-reg tn-club" data-key="tnc-${rid}"><summary class="rh"><span id="${rid}">${esc(r.name)} · ${n} of ${r.ids.length}</span></summary><div class="rh">${btns}</div>${grid}</details>`; };
+  const clubs = regs.filter(r => r.club);
+  put("tn-teams", `<details class="tn-pick" data-key="tnpick"${tn.open ? " open" : ""}><summary><span class="grow">${sum}</span><span class="linkbtn">Choose teams</span></summary>` +
+    (clubs.length ? `<h4 class="tn-sec">National teams</h4>` : "") + regs.filter(r => !r.club).map(grp).join("") +
+    (clubs.length ? `<h4 class="tn-sec">Clubs</h4>` + clubs.map(grp).join("") : "") + `</details>`);
   text("tn-tcount", `(${tn.teams.size} chosen)`);
 }
 function tnReset(focus) {
   tn.edit = null; tn.teams = defaultTeams(); tn.extra = [];
   const t0 = Math.floor(Date.now() / 60000) * 60;
   $("tn-name").value = ""; $("tn-info").value = ""; $("tn-min").value = "10"; $("tn-fmt").value = "league"; $("tn-fmt").disabled = false;
+  $("tn-preset").value = ""; $("tn-preset").disabled = false; $("tn-pdel").hidden = true; $("tn-one").checked = false; tnGroups({}, false);
   $("tn-start").value = dtLocal(t0); $("tn-end").value = dtLocal(t0 + 7 * 86400);
   text("h-tnform", "New tournament"); text("tn-save", "Create tournament"); $("tn-cancel").hidden = true;
   text("tn-err", ""); document.querySelectorAll("#tnform [aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
@@ -1854,16 +1870,69 @@ function tnReset(focus) {
   if (focus) $("tn-name").focus();
 }
 function tnEdit(c) {
-  const nat = new Set(TEAMS ? TEAMS.national.flatMap(r => r.teams) : []);
+  const nat = new Set(TEAMS ? [...TEAMS.national, ...(TEAMS.clubs || [])].flatMap(r => r.teams) : []);     // (the rest: "Other teams")
   tn.edit = c.compe_id; tn.teams = new Set(c.teams); tn.extra = c.teams.filter(t => !nat.has(t));
   $("tn-name").value = c.name; $("tn-info").value = c.info || ""; $("tn-start").value = dtLocal(c.start); $("tn-end").value = dtLocal(c.end);
   $("tn-min").value = [...$("tn-min").options].some(o => +o.value === c.minutes) ? String(c.minutes) : "10";
   $("tn-fmt").value = c.format === "cup" ? (c.third_place ? "cup3" : "cup") : "league";
   $("tn-fmt").disabled = c.state !== "ended" && (c.cup ? c.cup.stage !== "entry" : c.matches > 0);     // the format stays once it's under way
+  $("tn-one").checked = !!c.one_team; $("tn-preset").value = ""; $("tn-pdel").hidden = true; $("tn-preset").disabled = true;   // (it would replace this one's settings)
+  tnGroups(c, c.state !== "ended" && !!c.cup && c.cup.stage !== "entry");                                  // ... and the groups once drawn
   text("h-tnform", `Change “${c.name}”`); text("tn-save", "Save changes"); $("tn-cancel").hidden = false; text("tn-err", "");
   paintTnTeams();
   $("h-tnform").scrollIntoView({block: "start"}); $("tn-name").focus({preventScroll: true});
 }
+function tnGroups(c, locked) {
+  $("tn-grp").value = String(c.groups || 0); $("tn-q").value = String(c.qualify || 2) + (c.fill ? "f" : ""); $("tn-legs").value = String(c.legs || 1);
+  ["tn-grp", "tn-q", "tn-legs"].forEach(id => $(id).disabled = locked);
+  tnCupOpts();
+}
+function tnCupOpts() { $("tn-cupopts").hidden = $("tn-fmt").value === "league"; $("tn-grpopts").hidden = $("tn-grp").value === "0"; }
+function tnBody(all) {       // the form's format settings, as the server takes them; all: the locked ones too (ready-made)
+  const f = $("tn-fmt").value, b = {match_minutes: +$("tn-min").value, teams: [...tn.teams], one_team: $("tn-one").checked};
+  if ($("tn-fmt").disabled && !all) return b;
+  b.format = f === "league" ? "league" : "cup"; b.third_place = f === "cup3";
+  if (b.format === "cup" && (all || !$("tn-grp").disabled)) { const q = $("tn-q").value; Object.assign(b, {groups: +$("tn-grp").value, qualify: +q[0], fill: q.endsWith("f"), legs: +$("tn-legs").value}); }
+  return b;
+}
+let tnPresetList = [], tnPresetSig = "";
+function tnPresets(list) {
+  const sig = JSON.stringify(list);
+  if (sig === tnPresetSig) return;
+  tnPresetSig = sig; tnPresetList = list;
+  const cur = $("tn-preset").value, opt = p => `<option value="${esc(p.key)}">${esc(p.name)}</option>`, own = list.filter(p => p.own);
+  $("tn-preset").innerHTML = `<option value="">Nothing</option><optgroup label="Ready-made">${list.filter(p => !p.own).map(opt).join("")}</optgroup>` + (own.length ? `<optgroup label="Your own">${own.map(opt).join("")}</optgroup>` : "");
+  $("tn-preset").value = list.some(p => p.key === cur) ? cur : "";
+  $("tn-pdel").hidden = !(tnPresetList.find(p => p.key === $("tn-preset").value) || {}).own;
+}
+function tnApply(p) {
+  const nat = new Set(TEAMS ? [...TEAMS.national, ...(TEAMS.clubs || [])].flatMap(r => r.teams) : []);     // (the rest: "Other teams")
+  $("tn-name").value = p.name; $("tn-name").removeAttribute("aria-invalid"); text("tn-err", "");
+  if (!$("tn-fmt").disabled) $("tn-fmt").value = p.format === "cup" ? (p.third_place ? "cup3" : "cup") : "league";
+  if (p.match_minutes) $("tn-min").value = String(p.match_minutes);
+  tn.teams = new Set(p.teams); tn.extra = p.teams.filter(t => !nat.has(t)); $("tn-one").checked = !!p.one_team;
+  if (!$("tn-grp").disabled) tnGroups(p, false); else tnCupOpts();
+  paintTnTeams();
+}
+$("tn-fmt").onchange = tnCupOpts; $("tn-grp").onchange = tnCupOpts;
+$("tn-preset").onchange = () => { const p = tnPresetList.find(x => x.key === $("tn-preset").value); $("tn-pdel").hidden = !(p && p.own); if (p) tnApply(p); };
+$("tn-pdel").onclick = async () => { const p = tnPresetList.find(x => x.key === $("tn-preset").value); if (!p || !p.own) return;
+  if (await ask({title: `Delete “${p.name}” from Start from?`, ok: "Delete", danger: true}) === null) return;
+  try { await api("/admin/api/tourneys/preset/delete", {method: "POST", body: JSON.stringify({key: p.key})}); }
+  catch (e) { if (e.status === 401) return signedOut(); if (e.status !== 404) return toast("Couldn't reach the server. Try again."); }
+  $("tn-preset").value = ""; $("tn-pdel").hidden = true; toast(`“${p.name}” was deleted.`); await refreshNow(); $("tn-preset").focus(); };
+$("tn-psave").onclick = async () => {
+  const name = $("tn-name").value.trim();
+  if (!name) { text("tn-err", "Give it a name first."); $("tn-err").className = "small err"; $("tn-name").setAttribute("aria-invalid", "true"); return $("tn-name").focus(); }
+  if (!tn.teams.size) { tn.open = true; paintTnTeams(); text("tn-err", "Choose at least one team friends can enter with."); $("tn-err").className = "small err"; return; }
+  const same = tnPresetList.find(p => p.own && p.name.toLowerCase() === name.toLowerCase());
+  if (same && await ask({title: `Replace your “${same.name}”?`, ok: "Replace"}) === null) return;
+  const b = {...tnBody(true), name};
+  $("tn-psave").disabled = true;
+  try { const r = await api("/admin/api/tourneys/preset", {method: "POST", body: JSON.stringify(b)}); toast(`“${name}” is under Start from.`); await refreshNow(); $("tn-preset").value = r.key; $("tn-pdel").hidden = false; }
+  catch (e) { if (e.status === 401) return signedOut(); text("tn-err", e.status === 400 ? e.message.charAt(0).toUpperCase() + e.message.slice(1) + "." : "Couldn't reach the server. Try again."); $("tn-err").className = "small err"; }
+  finally { $("tn-psave").disabled = false; }
+};
 function tnState(c, now) {
   if (c.state === "running") return `<span class="pill live"><span class="dot"></span>Running</span><span class="small muted">ends in ${dur(c.end - now)}</span>`;
   if (c.state === "upcoming") return `<span class="pill neutral">Starts in ${dur(c.start - now)}</span>`;
@@ -1885,12 +1954,15 @@ function cupView(c) {
   if (k.stage === "entry") {
     const who = c.table.map(r => pname(r.name, r.pid, `cupe-${id}-${r.pid}`));
     return `<div class="cup">` + (n ? `<p class="small">${plural(n, "player")} entered: ${who.join(", ")}</p>` : `<p class="empty">${c.state === "ended" ? "Nobody played in it." : "Nobody has entered yet."}</p>`) +
-      (live ? `<div class="acts"><button type="button" class="small primary needs-server" data-tndraw="${id}" data-groups="0" data-key="cupd-${id}"${n < 2 ? " disabled" : ""}>Draw the knockout</button>` +
-        (n >= 6 ? `<button type="button" class="small needs-server" data-tndraw="${id}" data-groups="1" data-key="cupg-${id}">Draw groups first</button>` : "") + `</div>` : "") + `</div>`;
+      (live && c.groups && n >= 2 && c.plan && c.plan.error ? `<p class="small err">${esc(c.plan.error.charAt(0).toUpperCase() + c.plan.error.slice(1))}.</p>` : "") +
+      (live ? `<div class="acts">` + (c.groups
+        ? `<button type="button" class="small primary needs-server" data-tndraw="${id}" data-groups="1" data-key="cupg-${id}"${!c.plan || c.plan.error ? " disabled" : ""}>Draw the groups</button><button type="button" class="small needs-server" data-tndraw="${id}" data-groups="0" data-key="cupd-${id}"${n < 2 ? " disabled" : ""}>Knockout only</button>`
+        : `<button type="button" class="small primary needs-server" data-tndraw="${id}" data-groups="0" data-key="cupd-${id}"${n < 2 ? " disabled" : ""}>Draw the knockout</button>` +
+          (n >= 6 ? `<button type="button" class="small needs-server" data-tndraw="${id}" data-groups="1" data-key="cupg-${id}">Draw groups of 4 first</button>` : "")) + `</div>` : "") + `</div>`;
   }
   const th = (l, t, cls) => `<th scope="col" class="${cls || ""}">${t ? `<abbr title="${t}">${l}</abbr>` : l}</th>`;
   const groups = k.groups.map(g => `<div class="grp"><h3>${esc(g.name)}</h3><div class="tablewrap"><table><caption class="sr">${esc(c.name)}: ${esc(g.name)}</caption><thead><tr>${th("#", "", "num")}${th("Player")}${th("P", "Played", "num")}${th("W", "Won", "num hide-sm")}${th("D", "Drawn", "num hide-sm")}${th("L", "Lost", "num hide-sm")}${th("Goals", "", "num hide-sm")}${th("Pts", "Points", "num")}</tr></thead><tbody>` +
-    g.table.map((r, i) => `<tr${i < 2 ? ' class="win1"' : ""}><td class="num muted">${i + 1}</td><td class="name">${pname(r.name, r.pid, `cupg-${id}-${r.pid}`)}</td><td class="num">${r.played}</td><td class="num hide-sm">${r.win}</td><td class="num hide-sm">${r.draw}</td><td class="num hide-sm">${r.lose}</td><td class="num hide-sm">${r.gf}:${r.ga}</td><td class="num"><b>${r.pts}</b></td></tr>`).join("") +
+    g.table.map((r, i) => `<tr${(k.through || []).includes(r.pid) ? ' class="win1"' : ""}><td class="num muted">${i + 1}</td><td class="name">${pname(r.name, r.pid, `cupg-${id}-${r.pid}`)}</td><td class="num">${r.played}</td><td class="num hide-sm">${r.win}</td><td class="num hide-sm">${r.draw}</td><td class="num hide-sm">${r.lose}</td><td class="num hide-sm">${r.gf}:${r.ga}</td><td class="num"><b>${r.pts}</b></td></tr>`).join("") +
     `</tbody></table></div><ul>${g.ties.map(t => cupTie(c, t)).join("")}</ul></div>`).join("");
   const rounds = k.rounds.map(r => `<h3>${esc(r.name)}</h3><ul>${r.ties.map(t => cupTie(c, t)).join("")}</ul>`).join("");
   const played = [...k.groups.flatMap(g => g.ties), ...k.rounds.flatMap(r => r.ties)].some(t => t.how === "played" || t.how === "walkover" || t.replays);
@@ -1908,7 +1980,7 @@ function tnCard(c, now) {
   const won = champ && top ? `<p class="small">${ICON.trophy.replace("<svg ", '<svg class="i" ')} Won by <b>${pname(top.name, top.pid, `tnw-${id}`)}</b>.</p>`
     : !c.cup && ended && top && top.points ? `<p class="small">${ICON.trophy.replace("<svg ", '<svg class="i" ')} Won by <b>${pname(top.name, top.pid, `tnw-${id}`)}</b> with ${plural(top.points, "point")}.</p>` : "";
   return `<section class="card tn" aria-labelledby="tn-h-${id}"><div class="card-h"><h2 id="tn-h-${id}" tabindex="-1">${esc(c.name)}</h2>${tnState(c, now)}</div>` +
-    `<p class="small muted meta">${esc(fmt.format(new Date(c.start * 1000)))} – ${esc(fmt.format(new Date(c.end * 1000)))} · ${c.cup ? "knockout cup · " : ""}${c.minutes}-minute matches · ${plural(c.matches, "match", "matches")} played · ${plural(teams.length, "team")}: ${tlist}${c.auto ? " · monthly" : ""}</p>` +
+    `<p class="small muted meta">${esc(fmt.format(new Date(c.start * 1000)))} – ${esc(fmt.format(new Date(c.end * 1000)))} · ${c.cup ? ((c.cup.stage === "entry" ? c.groups : c.cup.groups.length) ? (c.groups ? `groups of ${c.groups}, then a knockout` : "groups, then a knockout") : "knockout cup") + (c.third_place ? " with a third-place match" : "") + " · " : ""}${c.one_team ? "one team per friend · " : ""}${c.minutes}-minute matches · ${plural(c.matches, "match", "matches")} played · ${plural(teams.length, "team")}: ${tlist}${c.auto ? " · monthly" : ""}</p>` +
     won + (c.cup ? cupView(c) : table) +
     `<details class="keycheck" data-key="tno-${id}"><summary>What friends read in the game</summary><div class="pb">${esc(c.outline)}</div></details>` +
     `<div class="acts" style="margin-top:12px">${!ended ? `<button type="button" class="small needs-server" data-tntell="${id}" data-key="tnt-tell-${id}">Tell everyone</button>` : ""}<button type="button" class="small needs-server" data-tnedit="${id}" data-key="tnt-edit-${id}">${ended ? "Run it again" : "Change"}</button>` +
@@ -1918,6 +1990,7 @@ function renderTourneys(d) {
   const now = d.now, ts = d.tourneys || [];
   if (!TEAMS) loadTeams();
   if (!tn.init && TEAMS) { tn.init = true; tnReset(false); }
+  tnPresets(d.cup_presets || []);
   const cur = ts.filter(c => c.state !== "ended").sort((a, b) => a.start - b.start), past = ts.filter(c => c.state === "ended");
   put("tn-list", (cur.length ? cur.map(c => tnCard(c, now)).join("") : `<section class="card tn"><p class="empty">No tournament running or planned.</p></section>`) +
     (past.length ? `<details class="keycheck tn" data-key="tnpast" style="margin-bottom:16px"><summary>Past tournaments (${past.length})</summary><div style="margin-top:12px">${past.map(c => tnCard(c, now)).join("")}</div></details>` : ""));
@@ -1949,8 +2022,7 @@ $("tnform").onsubmit = async e => {
   if (end <= start) return bad("The end must be after the start.", $("tn-end"));
   if (end <= now) return bad("That end time has already passed.", $("tn-end"));
   if (!tn.teams.size) { tn.open = true; paintTnTeams(); return bad("Choose at least one team friends can enter with.", $("tn-teams-f")); }
-  const editing = tn.edit, body = {name, start, end, match_minutes: +$("tn-min").value, teams: [...tn.teams], info: $("tn-info").value.trim()};
-  if (!$("tn-fmt").disabled) { const f = $("tn-fmt").value; body.format = f === "league" ? "league" : "cup"; body.third_place = f === "cup3"; }
+  const editing = tn.edit, body = {name, start, end, info: $("tn-info").value.trim(), ...tnBody()};
   if (editing) body.compe_id = editing;
   $("tn-save").disabled = true;
   try { await api("/admin/api/tourneys/save", {method: "POST", body: JSON.stringify(body)}); }
@@ -1964,7 +2036,8 @@ $("tnform").onsubmit = async e => {
 };
 function tnTell(c) {
   const at = t => fmt.format(new Date(t * 1000)), up = c.state === "upcoming";
-  const body = c.cup ? (c.cup.stage === "entry" ? `${c.name} is a knockout cup${up ? `, open from ${at(c.start)}` : ""}. In eFootball → Online Tournament, enter with a team. The draw is made when everyone is in. ${c.minutes}-minute matches.`
+  const one = c.one_team ? " Each team can be taken by one friend only." : "";
+  const body = c.cup ? (c.cup.stage === "entry" ? `${c.name} is a ${c.groups ? "cup with groups first" : "knockout cup"}${up ? `, open from ${at(c.start)}` : ""}. In eFootball → Online Tournament, enter with a team.${one} The draw is made when everyone is in. ${c.minutes}-minute matches.`
       : `${c.name}: the draw is made. In eFootball → Online Tournament, open Competition Details on it and read Competition Outline to see who you play. Then enter it and both choose Start Match at the same time. ${c.minutes}-minute matches.`)
     : `${c.name} ${up ? `starts ${at(c.start)} and runs` : "is on"} until ${at(c.end)}. In eFootball → Online Tournament, enter with a team, then choose Match to play friends who entered. ${c.minutes}-minute matches, 3 points a win.`;
   return [c.name.slice(0, 60), body.slice(0, 600)];
@@ -2453,7 +2526,7 @@ document.addEventListener("click", async e => {
   if (tg) { const r = tnRegions().find(x => x.name === tg.dataset.tnreg); if (r) r.ids.forEach(t => tn.teams[tg.dataset.on === "1" ? "add" : "delete"](t)); paintTnTeams(); return; }
   const te = e.target.closest("[data-tnedit]");
   if (te) { const c = tnOf(te.dataset.tnedit); if (!c) return;
-    if (c.state === "ended") { tnEdit(c); tn.edit = null; text("h-tnform", "New tournament"); text("tn-save", "Create tournament"); $("tn-cancel").hidden = false; $("tn-name").value = c.name.slice(0, 54) + " (2)"; $("tn-fmt").disabled = false;
+    if (c.state === "ended") { tnEdit(c); tn.edit = null; $("tn-preset").disabled = false; text("h-tnform", "New tournament"); text("tn-save", "Create tournament"); $("tn-cancel").hidden = false; $("tn-name").value = c.name.slice(0, 54) + " (2)"; $("tn-fmt").disabled = false;
       const t0 = Math.floor(Date.now() / 60000) * 60; $("tn-start").value = dtLocal(t0); $("tn-end").value = dtLocal(t0 + Math.max(3600, c.end - c.start)); }
     else tnEdit(c);
     return; }
@@ -2462,8 +2535,10 @@ document.addEventListener("click", async e => {
     if (($("msg-title").value.trim() || $("msg-body").value.trim()) && await ask({title: "Replace what you wrote?", body: "The tournament's text replaces the title and message in the Messages form.", ok: "Replace"}) === null) return;
     $("msg-title").value = t; $("msg-body").value = b; msgCount(); location.hash = "#messages/msg-body"; return; }
   const tdr = e.target.closest("[data-tndraw]");
-  if (tdr) { const c = tnOf(tdr.dataset.tndraw); if (!c) return; const groups = tdr.dataset.groups === "1", n = c.table.length, g = Math.floor((n + 3) / 4);
-    if (await ask({title: `Make the draw for “${c.name}”?`, body: `${plural(n, "player")}. Nobody else can enter after the draw.` + (groups ? `\n\n${g} groups: everyone plays the others in their group once, and the top two of each go to the knockout.` : ""), ok: "Make the draw"}) === null) return;
+  if (tdr) { const c = tnOf(tdr.dataset.tndraw); if (!c) return; const groups = tdr.dataset.groups === "1", n = c.table.length, p = c.plan || {};
+    const who = p.qualify === 1 ? "The winners" : "The top two", nx = p.qualify === 1 ? (p.extra === 1 ? "runner-up" : "runners-up") : "third-placed";
+    const gtext = !groups || p.error ? "" : `\n\n${plural(p.groups, "group")}, ${plural(p.matches, "group match", "group matches")}. ${who}${p.extra ? ` and the best ${p.extra > 1 ? p.extra + " " : ""}${nx}` : ""} go to the knockout.`;
+    if (await ask({title: `Make the draw for “${c.name}”?`, body: `${plural(n, "player")}. Nobody else can enter after the draw.` + gtext, ok: "Make the draw"}) === null) return;
     return tnCall("/admin/api/tourneys/draw", {compe_id: c.compe_id, groups}, `The draw for “${c.name}” is made.`); }
   const tud = e.target.closest("[data-tnundraw]");
   if (tud) { const c = tnOf(tud.dataset.tnundraw); if (!c) return;

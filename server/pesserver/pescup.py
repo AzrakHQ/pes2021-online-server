@@ -8,7 +8,9 @@ belong to the offline modes; notes/re/functions/tourney.md), so the server keeps
 - ends the competition when the final is decided, which brings up the game's own Competition Results notice.
 
 Stages: entry (friends enter with a team) -> the host makes the draw on the admin page -> groups (optional:
-everyone plays everyone in their group once, the top two go through) -> knockout -> done.
+everyone plays everyone in their group once or twice, the top one or two go through, and with rules fill the
+best of the next place too, up to a full knockout of 4, 8, 16 ...) -> knockout -> done.
+Group rules (pestourney.save): groups (the group size, 0 = a knockout only), qualify (1 or 2), fill, legs (1 or 2).
 With rules third_place the two beaten semi-finalists play a third-place match (stage "T"); the cup is done when
 that and the final are both decided.
 Every cup match goes to extra time and penalties when it is level (pestourney.regulation; room["pk"] is the
@@ -24,8 +26,9 @@ from .accounts import once
 from .pescmds import _db
 
 log = logging.getLogger("pesserver.cup")
-GROUPS_FROM = 6                     # fewer players than this: a knockout only
-QUALIFY = 2                         # per group
+GROUPS_FROM = 6                     # a cup without group rules offers groups (of 4) from this many players
+QUALIFY = 2                         # per group, unless the rules say 1
+GROUP_SIZES = (3, 4, 5, 6)
 WALKOVER = (3, 0)
 COLS = ("fid", "stage", "grp", "round", "slot", "a", "b", "a_goals", "b_goals", "a_pk", "b_pk", "winner", "how",
         "match_id", "t", "replays")
@@ -75,6 +78,37 @@ def _stage(fx):
 
 def stage(svc, cid):
     return _stage(fixtures(svc, cid))
+
+
+def group_rules(c):
+    """(size, qualify, fill, legs) from the competition's rules; size 0: no group stage planned."""
+    r = (c or {}).get("rules") or {}
+    return int(r.get("groups") or 0), int(r.get("qualify") or QUALIFY), bool(r.get("fill")), int(r.get("legs") or 1)
+
+
+def _pow2(n):
+    size = 2
+    while size < n:
+        size *= 2
+    return size
+
+
+def plan(n, size, qualify=QUALIFY, fill=False, legs=1):
+    """How n players split into groups of about `size`: {groups, sizes, qualify, extra (the best of the next
+    place who go through too), through, matches}. Fewer groups when a group would be too small to leave anyone
+    out; ValueError when there are too few players for groups at all."""
+    g = max(1, -(-n // size))
+    while g > 1 and n // g <= qualify:
+        g -= 1
+    if n // g <= qualify:
+        raise ValueError(f"groups need at least {qualify + 1} players")
+    base = g * qualify
+    extra = min(_pow2(base) - base, g) if fill else 0
+    if base + extra < 2:
+        raise ValueError("only one player would go through: let the best two go through, or no groups")
+    sizes = [len(range(i, n, g)) for i in range(g)]
+    return {"groups": g, "sizes": sizes, "qualify": qualify, "extra": extra, "through": base + extra,
+            "matches": sum(k * (k - 1) // 2 for k in sizes) * legs, "legs": legs}
 
 
 def round_name(ties):
@@ -145,12 +179,13 @@ def _make_knockout(db, cid, seeds, groups=None, third=False):
             _advance(db, cid, f, w)
 
 
-def group_count(n):
-    return (n + 3) // 4
+def group_count(n, size=4, qualify=QUALIFY):
+    return plan(n, size, qualify)["groups"]
 
 
-def draw(svc, c, groups=False, rng=None):
-    """Close the entry and make the draw. groups: a group stage first (6 players or more)."""
+def draw(svc, c, groups=None, rng=None):
+    """Close the entry and make the draw. groups: None = as the rules say; True = a group stage first (the rules'
+    group size, or 4); False = a knockout only."""
     cid = c["compe_id"]
     rng = rng or random.Random()
     db = _db(svc)
@@ -161,20 +196,24 @@ def draw(svc, c, groups=False, rng=None):
         pids = [r[0] for r in db.execute("SELECT pid FROM pes_tourney_entry WHERE compe_id=? ORDER BY joined, pid", (cid,))]
         if len(pids) < 2:
             raise ValueError("a cup needs at least 2 players")
-        if groups and len(pids) < GROUPS_FROM:
-            raise ValueError(f"groups need at least {GROUPS_FROM} players")
+        size, qualify, fill, legs = group_rules(c)
+        if groups is None:
+            groups = size > 0
+        if groups:
+            g = plan(len(pids), size or 4, qualify, fill, legs)["groups"]
         rng.shuffle(pids)
         if groups:
-            g = group_count(len(pids))
             fid = 1
             for i in range(g):
                 members = pids[i::g]
                 slot = 0
-                for x in range(len(members)):
-                    for y in range(x + 1, len(members)):
-                        db.execute("INSERT INTO pes_cup_fixture (compe_id, fid, stage, grp, slot, a, b) "
-                                   "VALUES (?,?,'G',?,?,?,?)", (cid, fid, i, slot, members[x], members[y]))
-                        fid, slot = fid + 1, slot + 1
+                for leg in range(legs):                    # the second time round, the other way round
+                    for x in range(len(members)):
+                        for y in range(x + 1, len(members)):
+                            a, b = (members[x], members[y]) if leg == 0 else (members[y], members[x])
+                            db.execute("INSERT INTO pes_cup_fixture (compe_id, fid, stage, grp, slot, a, b) "
+                                       "VALUES (?,?,'G',?,?,?,?)", (cid, fid, i, slot, a, b))
+                            fid, slot = fid + 1, slot + 1
         else:
             _make_knockout(db, cid, pids, third=third_place(c))
     log.info("CUP %d drawn: %d players, %s", cid, len(pids), "groups" if groups else "knockout")
@@ -268,17 +307,34 @@ def _tables(fx):
     return [(g, sorted(t.values(), key=key)) for g, t in sorted(groups.items())]
 
 
-def _qualifiers(fx):
-    """(seeds best first, {pid: group}): group winners in order of their records, then the runners-up."""
+def _across(r):
+    """Players of different groups compared (seeding, the best third-placed): per match played, as groups may
+    differ in size."""
+    p = max(r["played"], 1)
+    return (-r["pts"] / p, -(r["gf"] - r["ga"]) / p, -r["gf"] / p, r["pid"])
+
+
+def _extra(fx, qualify, fill):
+    """How many of the next place go through as well (plan's extra, from the groups as drawn)."""
+    if not fill:
+        return 0
+    g = len({f["grp"] for f in fx if f["stage"] == "G"})
+    return min(_pow2(g * qualify) - g * qualify, g)
+
+
+def _qualifiers(fx, qualify=QUALIFY, fill=False):
+    """(seeds best first, {pid: group}): group winners in order of their records, then the runners-up, then the
+    best of the next place (fill)."""
     tables = [(g, [r for r in t if r["pid"] > 0]) for g, t in _tables(fx)]     # (a deleted player: the next one)
-    key = lambda r: (-r["pts"], -(r["gf"] - r["ga"]), -r["gf"], r["pid"])     # noqa: E731
     seeds, groups = [], {}
-    for place in range(QUALIFY):
-        rows = [t[place] for _, t in tables if len(t) > place]
-        seeds += [r["pid"] for r in sorted(rows, key=key)]
-        for g, t in tables:
-            if len(t) > place:
-                groups[t[place]["pid"]] = g
+    extra = _extra(fx, qualify, fill)
+    for place in range(qualify + (1 if extra else 0)):
+        rows = sorted([t[place] for _, t in tables if len(t) > place], key=_across)
+        if place == qualify:
+            rows = rows[:extra]
+        seeds += [r["pid"] for r in rows]
+        for r in rows:
+            groups[r["pid"]] = next(g for g, t in tables if r in t)
     return seeds, groups
 
 
@@ -340,7 +396,8 @@ def _progress(db, c, f, winner, lines, names):
         return False
     fx = _rows(db, cid)
     if all(x["winner"] is not None for x in fx if x["stage"] == "G") and not any(x["stage"] == "K" for x in fx):
-        seeds, groups = _qualifiers(fx)
+        _, qualify, fill, _ = group_rules(c)
+        seeds, groups = _qualifiers(fx, qualify, fill)
         if seeds:
             _make_knockout(db, cid, seeds, groups, third=third_place(c))
             lines.append((f"{c['name']}: the groups are finished. Through to the knockout: "
@@ -459,39 +516,41 @@ def walkover(svc, c, fid, winner):
 
 
 def forget(svc, pid):
-    """A deleted player (pestourney.forget calls this first): their open ties go to the opponents, and in every
-    draw they become -pid, so ties they would reach later go to the opponents too (_after) and the number, which a
-    new player may get, no longer points at them."""
+    """A deleted player (pestourney.forget calls this first): in every draw they become -pid at once, so they do
+    not go through from a group and the number, which a new player may get, no longer points at them; then every
+    open tie with a deleted player goes to the opponent (_after: also ties they would reach later)."""
     from . import pestourney
     if not isinstance(pid, int) or pid <= 0:
         return
     db = _db(svc)
     with svc.accounts.lock, db:
         _setup(db)
-        rows = db.execute("SELECT compe_id, fid, a, b FROM pes_cup_fixture WHERE winner IS NULL AND a IS NOT NULL "
-                          "AND b IS NOT NULL AND (a=? OR b=?)", (pid, pid)).fetchall()
-        cids = [r[0] for r in db.execute("SELECT DISTINCT compe_id FROM pes_cup_fixture WHERE a=? OR b=?", (pid, pid))]
-    for cid, fid, a, b in rows:
-        c = pestourney.get(svc, cid)
-        if c is not None:
-            try:
-                walkover(svc, c, fid, b if a == pid else a)
-            except (KeyError, ValueError):
-                pass
-    now = time.time()
+        cids = [r[0] for r in db.execute("SELECT DISTINCT compe_id FROM pes_cup_fixture WHERE a=? OR b=? OR winner=?",
+                                         (pid, pid, pid))]
+        for col in ("a", "b", "winner"):          # (before any walkover: a group it finishes must not seed them)
+            db.execute(f"UPDATE pes_cup_fixture SET {col}=? WHERE {col}=?", (-pid, pid))
+    names = _names(svc)
     for cid in cids:
         c = pestourney.get(svc, cid)
         lines, done = [], False
         with svc.accounts.lock, db:
-            for col in ("a", "b", "winner"):
-                db.execute(f"UPDATE pes_cup_fixture SET {col}=? WHERE compe_id=? AND {col}=?", (-pid, cid, pid))
-            if c is not None and c["end"] > now and _stage(_rows(db, cid)) != "done":
-                # a tie they were waiting in (the final after their semi-final, the third-place match)
-                for g in _rows(db, cid, "AND winner IS NULL AND a IS NOT NULL AND b IS NOT NULL AND (a<0 OR b<0)")[:1]:
-                    w = g["a"] if g["b"] < 0 else g["b"]
-                    _award(db, cid, g, w)
-                    done = _after(db, c, g, w, lines, _names(svc))
-        if c is not None and (lines or done):
+            if c is None or _stage(_rows(db, cid)) == "done":
+                continue
+            g = _rows(db, cid, "AND winner IS NULL AND a IS NOT NULL AND b IS NOT NULL AND (a=? OR b=?)", (-pid, -pid))
+            for f in g:
+                w = f["b"] if f["a"] == -pid else f["a"]
+                if w is not None and w > 0:
+                    lines.append((f"{c['name']}: {names(w)} was given the tie against a deleted player", "info", [w]))
+            if g:
+                w = g[0]["b"] if g[0]["a"] == -pid else g[0]["a"]
+                _award(db, cid, g[0], w)
+                done = _after(db, c, g[0], w, lines, names)       # (the other ties with a deleted player too)
+            else:                                 # nothing open: a tie they were waiting in (the final, third place)
+                for x in _rows(db, cid, "AND winner IS NULL AND a IS NOT NULL AND b IS NOT NULL AND (a<0 OR b<0)")[:1]:
+                    w = x["a"] if x["b"] < 0 else x["b"]
+                    _award(db, cid, x, w)
+                    done = _after(db, c, x, w, lines, names)
+        if lines or done:
             _finish(svc, c, lines, done)
 
 
@@ -531,7 +590,12 @@ def snapshot(svc, c):
         if f["stage"] == "K":
             rounds.setdefault(f["round"], []).append(f)
     third = [tie(f) for f in fx if f["stage"] == "T"]
-    return {"stage": _stage(fx), "groups": groups,
+    _, qualify, fill, _ = group_rules(c)
+    ko_seeds = {p for f in fx if f["stage"] == "K" and f["round"] == 1 for p in (f["a"], f["b"]) if p is not None}
+    started = any(f["stage"] == "G" and f["winner"] is not None for f in fx)
+    through = sorted(ko_seeds if ko_seeds and groups else _qualifiers(fx, qualify, fill)[0] if started else [])
+    return {"stage": _stage(fx), "groups": groups, "qualify": qualify, "extra": _extra(fx, qualify, fill),
+            "through": through,                       # the groups' qualifiers (as the tables stand, until the knockout)
             "rounds": [{"name": round_name(len(v)), "ties": [tie(f) for f in v]} for _, v in sorted(rounds.items())]
                       + ([{"name": "Third place", "ties": third}] if third else [])}
 
@@ -548,7 +612,8 @@ def outline(svc, c, limit=1900):
         with svc.accounts.lock, db:
             pids = [r[0] for r in db.execute("SELECT pid FROM pes_tourney_entry WHERE compe_id=? ORDER BY joined", (c["compe_id"],))]
         who = ", ".join(name(p) for p in pids) if pids else "nobody yet"
-        return (f"{c['name']} is a knockout cup. Enter with a team; the draw is made when everyone is in.\n"
+        kind = "a cup with groups first" if group_rules(c)[0] else "a knockout cup"
+        return (f"{c['name']} is {kind}. Enter with a team; the draw is made when everyone is in.\n"
                 f"Entered: {who}.\n{rules}")
     out = []
     ko = [f for f in fx if f["stage"] == "K"]
@@ -586,7 +651,13 @@ def outline(svc, c, limit=1900):
     elif c["end"] > time.time():
         out.append("To play a match, both players enter the cup and choose Start Match at the same time.")
         if st == "groups":
-            out.append(f"The top {QUALIFY} of each group go to the knockout.")
+            _, qualify, fill, _ = group_rules(c)
+            extra = _extra(fx, qualify, fill)
+            top = "The winner" if qualify == 1 else f"The top {qualify}"
+            nxt = {1: "second", 2: "third"}.get(qualify, "next")
+            out.append(f"{top} of each group {'goes' if qualify == 1 else 'go'} to the knockout"
+                       + (f", with the best {extra} {nxt}-placed." if extra > 1 else
+                          f", with the best {nxt}-placed." if extra else "."))
         out.append(rules)
     text = "\n".join(out).strip()
     while len(text) > limit and "\n" in text:                     # a big cup: drop lines from the end

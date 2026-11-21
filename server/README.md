@@ -154,9 +154,8 @@ third place:
 
 1. Friends enter it with a team, as for any competition.
 2. When everyone is in, the host makes the draw (admin page, or `tourneys/draw`). Nobody can enter after it: the
-   game tells a late friend "Entries for this Competition are currently closed." With 6 players or more the host
-   can draw groups first: everyone plays the others in their group once, and the top two of each group go to the
-   knockout. Any number of players works; spare places in the first round are byes.
+   game tells a late friend "Entries for this Competition are currently closed." Any number of players works;
+   spare places in the first round are byes.
 3. To play a tie, both players enter the cup and choose Start Match at the same time. The server pairs a player
    only with their opponent. A friend who chooses Start Match before their opponent is known just waits. A friend
    with nothing left to play (knocked out, or the cup is over) is not left searching: the game says "Unable to
@@ -166,6 +165,23 @@ third place:
    rules as the knockout because a game reads a competition's rules only when the player opens it.
 5. The final's winner wins the cup. It ends by itself (after the third-place match too, when there is one) and
    everyone sees their final position.
+
+**Groups first** (`"groups": 3`–`6`, the group size): everyone plays the others in their group once, or twice
+with `"legs": 2`. The top two of each group go to the knockout (`"qualify": 1`: the winners only). With
+`"fill": true` the best of the next place go through as well, enough for a knockout of 4, 8, 16 … (the EURO way:
+six groups, twelve places and the four best third-placed). With few players the server makes fewer, bigger groups
+so that every group leaves someone out. A cup without group settings can still draw groups of four from 6 players.
+
+**One team per friend** (`"one_team": true`, any competition): a team another friend entered with is left out of
+the game's team list. If two friends pick the same team at the same moment, the second one is told "Unable to
+enter Competition as maximum capacity has been reached." and chooses again. The game's Capacity line shows how
+many teams are taken.
+
+**Ready-made cups**: the admin page's Start from list fills in a real tournament: World Cup, European
+Championship, Copa América, Africa Cup of Nations, Asian Cup, Champions League, Europa League, Copa Libertadores
+and AFC Champions League, with the teams PES 2021 has for them, in groups of four. The host can save their own
+settings there too (Save as ready-made). Clubs can be chosen as well as national teams; the game groups them by
+league on its team screen.
 
 A friend who never shows up: the host awards the tie to the opponent (3-0). A player the host deletes loses every
 tie they are in, now or later, and does not go through from a group.
@@ -178,7 +194,12 @@ results list.
 
 ```bash
 curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/save -d '{"name": "Winter Cup", "format": "cup"}'
-curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/draw -d '{"compe_id": 102, "groups": false}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/save -d '{"name": "EURO Night", "format": "cup",
+  "groups": 4, "qualify": 2, "fill": true, "legs": 1, "one_team": true, "teams": [14, 7, 8, 5, 12, 6]}'
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/draw -d '{"compe_id": 102}'      # as its rules say
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/draw -d '{"compe_id": 102, "groups": false}'   # knockout only
+curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/preset -d '{"name": "Office Cup", "format": "cup",
+  "groups": 3, "teams": [8, 9, 45]}'                                    # a ready-made cup of your own
 curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/award -d '{"compe_id": 102, "fid": 3, "winner": 7}'  # a no-show: 3-0
 curl -s -H "Authorization: Bearer $T" -X POST $A/tourneys/undraw -d '{"compe_id": 102}'   # before any tie is played
 ```

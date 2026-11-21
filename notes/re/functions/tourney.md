@@ -148,6 +148,32 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
   - The cup ended by the host's award of the final while the winner was searching: the search ended (TIMEOUT), and
     on the next visit to Online Tournament the Competition Results notice showed Final Position 1ST, User Numbers 6.
 
+- **[live 2026-11-21, third session] team lists and capacity (one copy):**
+  - TEAM_LIST may hold clubs, national teams or both: the team select groups clubs by league ("English League",
+    "Ligue 1 Uber Eats", "Serie A TIM", "PEU League", "Other European Teams", "Other Latin American Teams",
+    "Classic Teams") and national teams by region (Europe, Africa, Asia-Oceania …), each with its real squad. All
+    102 national teams of the online team list show, not only the 57 the admin page had (Albania, Serbia, Iraq
+    checked). The game's league and tournament entry lists are in Competition.bin / CompetitionEntry.bin
+    (tools/mkclublist.py).
+  - The list may differ per player (pestourney.free_teams, one team per friend): the game shows what it gets.
+  - JOIN_PESLEAGUE_COMPE **ERR_COMPE_FULL**: "Unable to enter Competition as maximum capacity has been reached.",
+    OK → back to the competition list; entering again asks TEAM_LIST again.
+  - COMPE_INFO **entry_user_limit "YES"** + entry_user_max 6 with 6 entries: Competition Details shows "Capacity
+    6/6" (with "NO": "Off"); the card says "Participating" and A = Resume Competition. A friend already entered
+    still gets in (team select with their own team only, JOIN NOERR): the game does not block a full competition
+    by itself for them. Competition Details also offers "X Playable Teams".
+- **Trophy ceremony [static, 2026-11-21, not tested live]:** the trophy lift is an in-match end demo
+  (common/demo/fixdemo/end/table_end.bin, groups END_CUP_CMN 0x70007, END_CUP_INTER, END_CUPCLUBEUR_A …). At full
+  time the game picks it in 0x1404879b0 from the match's ModeInfo ([[0x1436f3dc8]+0x2ad0]: competition id +0x498,
+  the per-side "champion" event entries at +0xe708 / +0x10f0c), which only the offline modes fill; an online
+  match plays a timeup demo (0x6000x, END_ONLINE). No server reply field picks a demo or a trophy, and the verdict
+  push arrives after full time. The trophy models and cuts for every competition are in the game data. Ways left:
+  a mod DLL patch that sets those fields (or makes 0x1404879b0 return the cup group) on both copies when the
+  server says the match is a final; or a Live Update data file editing the timeup table (would play after every
+  match for whoever has that update). COMPE_INFO compe_db_id feeds Online/Quick/QuickProcessSetOriginalCompeId
+  (ball, stadium, entrance demo), not the trophy. Smallest live test: in a test match write the champion fields
+  on both copies before full time and watch for 0x70007 at 0x141f608f0.
+
 ## Not built / open
 
 - **Random Selection competitions** [static, 2026-11-08]: `match_type "PES_LEAGUE_MATCH_1VS1_RANDOM"` (enum 1) takes
@@ -164,7 +190,8 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
 - Rewards (REWARD_INFO/REWARD_LIST/present box), participation rights (PARTICIPATION_RIGHT), the member list,
   clan and 3-vs-3 (co-op) competitions, the "best N consecutive matches" ranking rule (regulation_match_num),
   rank_type values, the effects of condition.
-- Cups: two-legged ties; the reverse of the owner-rules test (an owner with the longer match; with the same
+- Cups: two-legged knockout ties (the game reads extra time / penalties only when the competition is opened, so
+  a first leg would go to extra time too); a draw by pots; the trophy ceremony (above); the reverse of the owner-rules test (an owner with the longer match; with the same
   rules for every cup match it only matters after a league was changed into a cup); a third-place match and a
   knockout tie right after a group match in one sitting were not played live (unit tests only); showing the
   bracket inside the competition's menu (the game offers no text screen there).
