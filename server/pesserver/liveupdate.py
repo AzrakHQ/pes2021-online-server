@@ -160,6 +160,11 @@ def start(svc):
                 pesoption.refresh(folder(svc))       # an option file in the folder -> its Live Update CPK
             except Exception:  # noqa: BLE001
                 log.exception("option file")
+            try:
+                from . import gamedb
+                gamedb.refresh(folder(svc))          # the admin's changes on top of a new update under them
+            except Exception:  # noqa: BLE001
+                log.exception("game data changes")
             for kind in KINDS:
                 try:
                     current(svc, wait=True, kind=kind)
@@ -170,6 +175,11 @@ def start(svc):
     t = threading.Thread(target=loop, name="liveupdate", daemon=True)
     t.start()
     return t
+
+
+def wake():
+    """Look at the folder now (a new file was just made)."""
+    _WAKE.set()
 
 
 def file_for(svc, name):

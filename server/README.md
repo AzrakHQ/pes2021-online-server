@@ -255,6 +255,18 @@ two: its database tables (`common/etc/pesdb/*.bin`, unpacked if the patch compre
 Live Update makes the game reload all its tables); all its other files (faces, kits, emblems...) are copied as they
 are into `extra-<its name>`, offered as the Extra Update below. Removing the patch removes both.
 
+## Editing the game data on the admin page
+
+The admin page's **Game data** view edits what friends get: find a player (name, name on shirt, nationality, age,
+height, weight, position, stronger foot, playing style, the 13 positions, all abilities, skills and AI playing
+styles) or a team (name, short name, squad: players, shirt numbers and order, the first 11 starting; a player added
+to a club leaves his other club). Saved changes wait in `<data>/liveupdate/edits.json` until **Send to everyone**
+builds `edits.cpk`: the Live Update offered until then (an option file's or a patch's, or the game's own data when
+there is none) with the changes on top, at a higher version, so every game downloads it. When that update changes
+(a new option file or patch), `edits.cpk` is built again on top of it with the changes that were sent
+(`pesserver/gamedb.py`). Player ids are whole 32-bit numbers (0x32f and 0x4032f are two different players). Like
+any Live Update it needs PES 2021 on the server's computer.
+
 ## Graphics: the Extra Update
 
 A CPK with `common/etc/version/version_xu.bin` in the same folder is offered as the game's **Extra Update**

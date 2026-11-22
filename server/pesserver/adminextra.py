@@ -340,6 +340,10 @@ def server(svc):
                           "cpk": liveupdate.safe_name(o["cpk"]),
                           **({} if pesoption.is_option_file(o["file"]) else
                              {"xcpk": liveupdate.safe_name(pesoption.extra_name(o["file"]))})} for o in opts]
+    from . import gamedb
+    ed = _safe(lambda: gamedb.status(liveupdate.folder(svc)), None)
+    if ed and (ed["changes"] or ed["sent"]):  # the Game data page's changes (edits.cpk)
+        lu["edits"] = {**ed, "cpk": gamedb.OUT}
     from . import pesreplay
     rp = {"on": pesreplay.enabled(), "keep": pesreplay.KEEP,
           "folder": _safe(lambda: pesreplay.folder(svc), None)}

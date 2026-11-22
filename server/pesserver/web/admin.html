@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
-<script>try { if (localStorage.getItem("pes-admin-theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}</script>
 <title>PES 2021 Server · Admin</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Ccircle%20cx='16'%20cy='16'%20r='15'%20fill='%230c4a37'/%3E%3Cpolygon%20points='16,9%2022.7,13.9%2020.1,21.8%2011.9,21.8%209.3,13.9'%20fill='%23fff'/%3E%3C/svg%3E">
 <style>
@@ -12,13 +11,9 @@
   :root { color-scheme:dark; --bg:#0d1014; --fg:#e7eaee; --muted:#a3adbc; --card:#161a20; --line:#2a313b; --field:#6b7585;
           --accent:#3ccf8e; --accent-fill:#2fb97c; --accent2:#12261d; --on-accent:#04241a; --live:#ff7b6b; --on-live:#2a0a05; --warn:#f5b041; --warnbg:#2a2110;
           --code:#1e232b; --skel:#232a33; --side:#12161b; --hover:#1c2129; --bar:#6b7a8f; --bar-dim:#343d4a; --bar-now:#3ccf8e; --bar-now-dim:#24533f; --shadow:none; --input:#0d1014; }
-  :root[data-theme="light"] { color-scheme:light; --bg:#f3f5f7; --fg:#14171c; --muted:#5a6371; --card:#fff; --line:#e1e5ea; --field:#7c8696; --accent:#0a7d4f; --accent-fill:#0a7d4f; --accent2:#e6f5ee;
-          --on-accent:#fff; --live:#c4320a; --on-live:#fff; --warn:#8f4400; --warnbg:#fff4e0; --code:#eef1f4; --skel:#e8ebef; --side:#fff; --hover:#f0f3f6;
-          --bar:#8794a6; --bar-dim:#d5dbe3; --bar-now:#0a7d4f; --bar-now-dim:#b9d9c9; --shadow:0 1px 2px rgba(16,24,40,.06); --input:#fff; }
   .iconbtn { display:inline-grid; place-items:center; width:34px; height:34px; min-height:34px; padding:0; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--muted); flex:none; }
   .iconbtn:hover { color:var(--fg); border-color:var(--field); }
   .iconbtn svg { width:17px; height:17px; }
-  .theme-login { position:fixed; top:12px; right:12px; }
   * { box-sizing:border-box; }
   [hidden] { display:none !important; }
   html { scroll-padding-top:16px; }
@@ -174,9 +169,10 @@
 
   /* tiles */
   .tiles { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin-bottom:16px; }
-  .tile { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow); display:block; color:inherit; text-decoration:none; min-width:0; }
+  .tile { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow); color:inherit; text-decoration:none; min-width:0; }
   a.tile:hover { border-color:var(--accent); }
-  .tile .k { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+  .tile .k { font-size:13px; color:var(--muted); display:flex; align-items:flex-start; gap:6px; flex:1 0 auto; }
+  .tile { display:flex; flex-direction:column; }
   .tile .k svg { width:15px; height:15px; }
   .tile b { display:block; font-size:26px; line-height:1.2; font-variant-numeric:tabular-nums; margin-top:2px; }
   .tile .s { font-size:12px; color:var(--muted); display:block; overflow-wrap:anywhere; }
@@ -343,7 +339,7 @@
   .feed li:last-child { border-bottom:0; }
   .feed li time { flex:none; min-width:58px; white-space:nowrap; color:var(--muted); font-size:13px; }
   .feed li > span:last-child { min-width:0; overflow-wrap:break-word; }
-  .feed .ico { flex:none; width:22px; height:22px; border-radius:6px; display:grid; place-items:center; background:var(--code); color:var(--muted); align-self:center; }
+  .feed .ico { flex:none; width:22px; height:22px; border-radius:6px; display:grid; place-items:center; background:var(--code); color:var(--muted); align-self:flex-start; }
   .feed .ico svg { width:13px; height:13px; }
   .feed .ico.k-goal, .feed .ico.k-result { background:var(--accent2); color:var(--accent); }
   .feed .ico.k-warn { background:var(--warnbg); color:var(--warn); }
@@ -387,9 +383,9 @@
 
   /* invite */
   .dl { display:flex; align-items:center; justify-content:center; gap:8px; text-align:center; border-radius:10px; padding:13px 16px; font-size:16px; text-decoration:none; max-width:440px; }
-  .linkrow { display:flex; gap:8px; align-items:stretch; margin-top:6px; max-width:640px; }
+  .linkrow { display:flex; gap:8px; align-items:flex-start; margin-top:6px; max-width:640px; }
   .linkrow code { flex:1; min-width:0; padding:9px 12px; user-select:all; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; overflow-wrap:normal; display:block; }
-  @media (max-width: 520px) { .linkrow { flex-direction:column; } .linkrow button { align-self:flex-start; } .linkrow code { white-space:normal; overflow-wrap:anywhere; } }
+  @media (max-width: 520px) { .linkrow { flex-direction:column; align-items:stretch; } .linkrow button { align-self:flex-start; } .linkrow code { white-space:normal; overflow-wrap:anywhere; } }
   .plog { max-height:260px; overflow:auto; font-size:12px; white-space:pre-wrap; overflow-wrap:anywhere; background:var(--code); padding:8px 10px; border-radius:8px; }
   #cmds .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
   #update .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
@@ -476,8 +472,8 @@
   h3.rooms-h { margin-top:16px; }
   .pill.mode { margin-left:6px; }
   .msgf .tn-prow { margin-top:0; flex-wrap:nowrap; } .msgf .tn-prow select { flex:1; min-width:0; }
-  .tn-dates { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:0 12px; }
-  @media (max-width: 420px) { .tn-dates { grid-template-columns:minmax(0,1fr); } }
+  .tn-dates { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0 12px; }
+  #v-tourneys .msgf select { width:100%; }
   .msgf fieldset { border:1px solid var(--line); border-radius:10px; margin:14px 0 0; padding:8px 12px 12px; min-width:0; }
   .msgf legend { font-weight:600; font-size:14px; padding:0 4px; }
   .tn-reg { margin-top:8px; }
@@ -562,11 +558,64 @@
   #err:empty { min-height:0; margin:0; }
   #err.info { color:var(--muted); }
   #err.blocked { margin:12px 0 0; min-height:0; color:var(--fg); }
+  .gd { display:grid; grid-template-columns:minmax(230px, 330px) minmax(0, 1fr); gap:16px; align-items:start; }
+  .gd > .card { margin-bottom:0; }
+  @media (max-width: 700px) { .gd { grid-template-columns:minmax(0, 1fr); } }
+  @media (min-width: 701px) { .gd-find { position:sticky; top:12px; max-height:calc(100vh - 24px); overflow:auto; } }
+  @media (min-width: 701px) and (max-width: 960px) { .gd-find { max-height:calc(100vh - 96px); } }
+  .gd-cols > div:last-child:nth-child(odd):not(:first-child) { grid-column:1 / -1; }
+  .gd-bar.unsent { position:sticky; top:8px; z-index:3; border-color:var(--warn); }
+  .gd-pick { color:var(--muted); }
+  .gd-find input[type=search] { width:100%; }
+  .gd-list { list-style:none; margin:6px 0 0; padding:0; }
+  .gd-list button { width:100%; text-align:left; display:flex; gap:8px; align-items:baseline; padding:7px 8px; border:0; background:none; color:var(--fg); border-radius:8px; font-size:14px; }
+  .gd-list button:hover, .gd-list button[aria-current="true"] { background:var(--hover); color:var(--fg); }
+  .gd-list button[aria-current="true"] { box-shadow:inset 3px 0 0 var(--accent); }
+  .gd-list .sub { color:var(--muted); font-size:12px; margin-left:auto; text-align:right; flex:none; max-width:55%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gd-list .nmx { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gd-dot { width:7px; height:7px; border-radius:50%; background:var(--warn); flex:none; align-self:center; }
+  .gd-find details { margin-top:6px; } .gd-find summary { cursor:pointer; padding:6px 8px; border-radius:8px; font-size:14px; font-weight:600; }
+  .gd-find summary:hover { background:var(--hover); } .gd-find summary .muted { font-weight:400; }
+  .gd-find h3 { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:14px 8px 2px; }
+  .gd-bar { display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; }
+  .gd-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:0 12px; }
+  .gd-cols.two { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+  .msgf .gd-cols select { width:100%; }
+  .gd-teams { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 4px; }
+  .gd-pitch { display:grid; grid-template-columns:repeat(5, minmax(0, 52px)); gap:6px; justify-content:center; padding:10px; margin:6px auto 0; max-width:340px; border-radius:10px; background:var(--accent2); }
+  .gd-pitch button { padding:6px 0; font-size:12px; font-weight:700; border-radius:6px; }
+  .gd-pitch .lv0 { background:var(--card); color:var(--muted); border-color:var(--line); }
+  .gd-pitch .lv1 { background:var(--card); color:var(--accent); border-color:var(--accent); }
+  .gd-pitch .lv2 { background:var(--accent-fill); color:var(--on-accent); border-color:var(--accent-fill); }
+  .gd-key { display:flex; gap:14px; justify-content:center; margin-top:6px; font-size:12px; color:var(--muted); }
+  .gd-key i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; border:1px solid var(--accent); }
+  .gd-key .k2 { background:var(--accent-fill); }
+  .gd-ab { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:4px 18px; }
+  .msgf .gd-ab label { display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:400; margin:0; padding:2px 0; }
+  .msgf .gd-ab input { width:4.6em; text-align:right; font-variant-numeric:tabular-nums; padding:5px 8px; }
+  .gd-ab input.hi { color:var(--accent); font-weight:700; } .gd-ab input.lo { color:var(--muted); }
+  .gd-checks { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:0 12px; }
+  .msgf .gd-checks label.check { margin-top:0; min-height:36px; font-size:14px; }
+  .gd-save { position:sticky; bottom:0; background:var(--card); padding:10px 0 2px; margin-top:14px; border-top:1px solid var(--line); z-index:1; }
+  .msgf .gd-save.row { margin-top:14px; }
+  .gd-sq td, .gd-sq th { padding:5px 6px; }
+  .msgf .gd-sq input { width:3.6em; padding:4px 6px; text-align:right; font-variant-numeric:tabular-nums; }
+  .gd-sq input, .gd-ab input { -moz-appearance:textfield; appearance:textfield; }
+  .gd-sq input::-webkit-inner-spin-button, .gd-ab input::-webkit-inner-spin-button, .gd-sq input::-webkit-outer-spin-button, .gd-ab input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+  .gd-sq .gd-sep td { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); padding-top:12px; }
+  .gd-sq .acts { display:flex; gap:4px; justify-content:flex-end; }
+  .gd-sq .acts button { padding:2px 8px; }
+  .gd-sq .pn { border:0; background:none; padding:0; color:var(--fg); text-align:left; font-weight:600; }
+  .gd-sq .pn:hover { color:var(--accent); }
+  .gd-sq tr.new td { background:var(--accent2); }
+  .msgf .gd-cols input, .msgf .gd-cols select { margin-bottom:2px; }
+  @media (max-width: 960px) { .gd-save { bottom:calc(60px + env(safe-area-inset-bottom)); } }
+  @media (max-width: 560px) { .gd-ed fieldset { padding:6px 8px 10px; margin-left:-6px; margin-right:-6px; } .gd-sq td, .gd-sq th { padding:5px 3px; }
+    .gd-sq .acts { gap:2px; } .gd-sq .acts button { padding:2px 6px; min-height:34px; } .msgf .gd-sq input { width:3em; } }
 </style>
 </head>
 <body>
 <main class="login" id="login" hidden>
-  <button type="button" class="iconbtn theme-btn theme-login" aria-pressed="false"></button>
   <div class="card">
     <h1><span aria-hidden="true">⚽ </span>PES 2021 Server</h1>
     <p class="muted" style="margin:0" id="lsub">Sign in to your PES 2021 server.</p>
@@ -596,6 +645,7 @@
       <button type="button" class="more-btn" id="nav-more" aria-expanded="false" aria-controls="nav-sec"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="12.5" cy="8" r="1" fill="currentColor"/></svg>More<span class="badge warn" id="nb-more" hidden></span></button>
       <div class="sec" id="nav-sec">
       <a href="#tourneys" data-view="tourneys"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5h6v3.5a3 3 0 01-6 0zM5 3.5H2.5a2.5 2.5 0 002.7 3M11 3.5h2.5a2.5 2.5 0 01-2.7 3M8 9v2.5M5.5 13.5h5M6.5 11.5h3v2h-3z"/></svg><span class="lbl">Tournaments</span></a>
+      <a href="#data" data-view="data"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 2L2 4l1.2 3 1.3-.6V14h7V6.4l1.3.6L14 4l-3.5-2c-.4 1-1.4 1.6-2.5 1.6S5.9 3 5.5 2z"/></svg><span class="lbl">Game data</span><span class="badge warn" id="nb-data" hidden></span></a>
       <a href="#activity" data-view="activity"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg><span class="lbl">Activity</span></a>
       <a href="#invite" id="nav-invite" title="Invite friends"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"/><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4 1.2 0 2.3.4 3 1.2M12.5 8.5v5M10 11h5"/></svg><span class="lbl"><span class="lg">Invite friends</span><span class="st">Invite</span></span></a>
       <a href="#server" data-view="server"><svg class="i" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.01M4.5 11.25h.01"/></svg><span class="lbl">Server</span><span class="badge warn" id="nb-server" hidden></span></a>
@@ -615,7 +665,6 @@
       <a class="pill warn m-only" id="attn-pill" href="#overview" hidden></a>
       <span class="grow"></span>
       <span class="until" id="upd" title="This page asks the server for news every 3 seconds"></span>
-      <button type="button" class="iconbtn theme-btn" aria-pressed="false"></button>
       <button class="linkbtn" id="logout" type="button" style="color:var(--muted)">Sign out</button>
     </header>
 
@@ -781,6 +830,17 @@
     </section>
 
     <!-- SERVER -->
+    <section class="view" id="v-data" aria-labelledby="t-data" hidden>
+      <h1 id="t-data" tabindex="-1">Game data</h1>
+      <div id="gd-bar"></div>
+      <div class="gd">
+        <section class="card gd-find" aria-labelledby="h-gdfind"><h2 id="h-gdfind" class="sr">Players and teams</h2>
+          <input type="search" id="gd-q" placeholder="Find a player or team" aria-label="Find a player or team" autocomplete="off" spellcheck="false">
+          <div id="gd-res"><div class="skel"></div></div>
+        </section>
+        <section class="card msgf gd-ed" id="gd-ed" aria-labelledby="h-gded"><h2 id="h-gded" class="sr" tabindex="-1">Editor</h2><p class="empty gd-pick">Pick a player or team.</p></section>
+      </div>
+    </section>
     <section class="view" id="v-server" aria-labelledby="t-server" hidden>
       <h1 id="t-server" tabindex="-1">Server</h1>
       <div class="grid2 eq row-gap">
@@ -860,23 +920,6 @@
 
 <script>
 const $ = id => document.getElementById(id);
-// ---- theme: dark unless this browser chose light
-const SUN = '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/></svg>';
-const MOON = '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.5A5.5 5.5 0 016.5 2.5a5.5 5.5 0 107 7z"/></svg>';
-function paintThemeButtons() {
-  const light = document.documentElement.dataset.theme === "light";
-  document.querySelectorAll(".theme-btn").forEach(b => {
-    b.innerHTML = light ? MOON : SUN;
-    b.setAttribute("aria-pressed", String(!light)); b.setAttribute("aria-label", "Dark mode"); b.title = light ? "Switch to dark mode" : "Switch to light mode";
-  });
-}
-function setTheme(light) {
-  if (light) document.documentElement.dataset.theme = "light"; else delete document.documentElement.dataset.theme;
-  try { localStorage.setItem("pes-admin-theme", light ? "light" : "dark"); } catch (e) {}
-  paintThemeButtons();
-}
-document.querySelectorAll(".theme-btn").forEach(b => b.addEventListener("click", () => setTheme(document.documentElement.dataset.theme !== "light")));
-paintThemeButtons();
 document.querySelectorAll(".nav a[data-view]").forEach(a => { a.title = a.querySelector(".lbl").textContent.trim(); });
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const store = {
@@ -1002,8 +1045,8 @@ async function api(path, opts = {}) {
 }
 
 // ---- views ----------------------------------------------------------------------------------------
-const VIEWS = ["overview", "players", "matches", "tourneys", "activity", "messages", "server"];
-const TITLES = {overview: "Overview", players: "Players", matches: "Matches", tourneys: "Tournaments", activity: "Activity", messages: "Messages", server: "Server"};
+const VIEWS = ["overview", "players", "matches", "tourneys", "data", "activity", "messages", "server"];
+const TITLES = {overview: "Overview", players: "Players", matches: "Matches", tourneys: "Tournaments", data: "Game data", activity: "Activity", messages: "Messages", server: "Server"};
 function route(focus) {
   if (focus && $("sheet").open) { sheetBack = null; closeSheet(); }
   const invite = location.hash.slice(1).split("/")[0] === "invite";      // a panel, not a page: stay where you are
@@ -1017,9 +1060,10 @@ function route(focus) {
   VIEWS.forEach(x => { $("v-" + x).hidden = x !== v; });
   document.querySelectorAll(".nav a").forEach(a => a.dataset.view === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   document.title = TITLES[v] + " · PES 2021 Server";
-  $("nav-more").classList.toggle("cur", ["tourneys", "activity", "server"].includes(v)); setMore(false);
+  $("nav-more").classList.toggle("cur", ["tourneys", "data", "activity", "server"].includes(v)); setMore(false);
   if (last) render(last);
   if (v === "server" && changed) loadGames();
+  if (v === "data") gdOpen();
   if (invite) return openInvite();
   if (!focus) return;
   const t = target && $(target);
@@ -1083,7 +1127,7 @@ function setDown(on) {
 }
 
 function reachInfo(s) {
-  const bad = {ok: false, short: "Home network only", long: `<span class="warn">${I.warn} <b>Only friends on your Wi-Fi can join right now.</b></span> <a href="#server/h-net">Fix this</a>`};
+  const bad = {ok: false, short: "Home network only", long: `<span class="warn">${I.warn} <b>Only friends on your Wi-Fi can join right now.</b></span> <a href="#server/h-net" class="nw">Fix this</a>`};
   if (s.pinned && isTs(s.pinned)) return {ok: true, neutral: true, short: "Tailscale address", long: `<span class="muted">Friends' mod uses your Tailscale address <b>${esc(s.pinned)}</b>; friends must join your Tailscale network.</span>`};
   if (s.cgnat) return bad;
   if (s.pinned) return {ok: true, neutral: true, short: "Friends use " + s.pinned, long: `<span class="muted">Friends' mod uses your fixed address <b>${esc(s.pinned)}</b>.</span>`};
@@ -1311,6 +1355,8 @@ function render(d) {
   badge("nb-messages", d.announce && (d.announce.news || d.announce.restart) ? "on" : 0, "a message or restart warning is active");
   renderDmTo(d);
   badge("nb-server", srvIssues, `${plural(srvIssues, "thing needs", "things need")} attention`);
+  const gdu = s.liveupdate && s.liveupdate.edits && s.liveupdate.edits.unsent;
+  badge("nb-data", gdu ? "on" : 0, "changes not sent yet");
   badge("nb-more", srvIssues || 0, `Server: ${plural(srvIssues, "thing needs", "things need")} attention`);
   $("attn-pill").hidden = !srvIssues || ui.view === "overview";
   put("attn-pill", `${I.warn} ${plural(srvIssues, "thing", "things")} to fix`);
@@ -1559,9 +1605,9 @@ function renderPlayers(d) {
     `<th scope="col"><span class="sr">Actions</span></th></tr></thead><tbody>` +
     list.map(p => { const o = onlineBy.get(p.pid);
       return `<tr><td class="num muted">${rankOf.get(p.pid) || "–"}</td>
-      <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}${handleTag(p)}${courtTag(p)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"} · <span class="nw">${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
+      <td class="name"><span class="who">${avatar(p)}<span>${pname(p.name, p.pid)}${handleTag(p)}${courtTag(p)}<small class="show-sm">${o ? statusOf(d, o) : p.last_login ? "seen " + ago(p.last_login, now) : "never signed in"}<span class="nw"> · ${p.won}W ${p.drawn}D ${p.lost}L</span></small></span></span></td>
       <td class="hide-md st-cell">${o && downSince ? `<span class="muted">Was online at ${hm.format(new Date(lastOkAt))}</span>` : o ? `<span class="odot" aria-hidden="true"></span><span class="sr">Online: </span>` + statusOf(d, o)
-          : p.last_login ? `<span class="muted" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
+          : p.last_login ? `<span class="muted nw" title="${fmt.format(new Date(p.last_login * 1000))}">Last seen ${ago(p.last_login, now)}</span>` : `<span class="muted">Never signed in</span>`}</td>
       <td class="num hide-lg">${p.rating ?? "–"}</td><td class="num hide-sm">${p.played}</td><td class="num hide-sm">${p.won}</td><td class="num hide-sm">${p.drawn}</td><td class="num hide-sm">${p.lost}</td>
       <td class="num hide-md">${p.played ? signed(gd(p)) : "–"}</td><td class="num">${ui.rank === "ppg" ? pts(p) : `<b>${pts(p)}</b>`}</td><td class="num hide-sm">${!p.played ? "–" : ui.rank === "ppg" ? `<b>${ppg(p).toFixed(2)}</b>` : ppg(p).toFixed(2)}</td><td class="hide-lg">${formHtml(p.form || [])}</td>
       <td class="act"><button type="button" class="small needs-server" data-dm="${p.pid}" data-key="dm-${p.pid}" aria-label="Message ${esc(p.name)}">Message</button> ${o ? `<button type="button" class="danger small needs-server" data-kick="${p.pid}" data-key="kick-${p.pid}" data-name="${esc(p.name)}" data-vs="${esc(opponent(d, p.name))}" aria-label="Kick ${esc(p.name)}">Kick</button>` : `<span class="slot" aria-hidden="true"></span>`}</td></tr>`; }).join("") +
@@ -2280,7 +2326,7 @@ function luHtml(lu) {
   if (!lu) return "";
   const folder = lu.folder ? copyRow(lu.folder, "Folder path", tilde(lu.folder), "wrap") : "";
   const src = (lu.options || []).find(o => !o.error && o.cpk === lu.name);   // made from an option file or a patch
-  const x = lu.extra;                                                        // the Extra Update (graphics)
+  const x = lu.extra, ed = lu.edits;                                         // the Extra Update (graphics); Game data's changes
   const xsrc = x && (lu.options || []).find(o => !o.error && o.xcpk === x.name);   // made from a patch
   const xtra = x ? `<div class="ok">${I.ok} Offering <b>${esc(x.name)}</b> as the Extra Update (version ${esc(x.version)}, ${Math.max(1, Math.round(x.size / 1048576))} MB)</div><div class="small muted">${x.sent ? `${plural(x.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it yet."} Remove ${xsrc ? esc(xsrc.file) : "the file"} to stop.</div>` : "";
   const opt = (lu.options || []).map(o => { const m = o.summary;
@@ -2290,6 +2336,7 @@ function luHtml(lu) {
           m.tables ? `its database${m.db_players != null ? ` (${plural(m.db_players, "player")}${m.db_teams != null ? `, ${plural(m.db_teams, "team")}` : ""})` : ""}` : "",
           m.graphics ? `${plural(m.graphics, "graphics file")} (Extra Update)` : ""].filter(Boolean).join(" and ")}</div>` : ""; }).join("");
   if (lu.name) return `<div class="ok">${I.ok} Offering <b>${esc(lu.name)}</b> (version ${esc(lu.version)}, ${Math.max(1, Math.round(lu.size / 1048576))} MB)${lu.since ? ` since ${esc(dShort.format(new Date(lu.since * 1000)))}` : ""}</div>` + opt +
+    (ed && lu.name === ed.cpk ? `<div class="small muted">Your changes on <a href="#data">Game data</a> (${plural(ed.sent ? ed.sent.changes : ed.changes, "change")})${ed.base ? ` on top of ${esc(ed.base)}` : ""}</div>` : "") +
     `<div class="small muted">${lu.sent ? `${plural(lu.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it yet."} Remove ${src ? esc(src.file) : "the file"} to stop.</div>${xtra}${folder}`;
   return `<div>Not offering one.</div>${opt}${xtra}<div class="small muted">Put a roster update (<code>.cpk</code>) or an option file (<code>EDIT00000000</code>) here and every game downloads it, so everyone has the same player data.</div>${folder}`;
 }
@@ -2907,6 +2954,245 @@ function opponent(d, name) {
   const m = d.live.find(m => m.kickoff && m.phase !== "Full time" && (m.home_name === name || m.away_name === name));
   return m ? (m.home_name === name ? m.away_name : m.home_name) : "";
 }
+// ---- Game data (players, teams, squads -> a Live Update for everyone; gamedb.py) ------------------------------
+const ged = {info: null, st: null, err: "", kind: null, id: null, data: null, squad: null, dirty: false, q: "", seq: 0, addSeq: 0, loading: false};
+const PITCH = [[null, null, "CF", null, null], ["LWF", null, "SS", null, "RWF"], ["LMF", null, "AMF", null, "RMF"],
+               [null, null, "CMF", null, null], [null, null, "DMF", null, null], ["LB", null, "CB", null, "RB"], [null, null, "GK", null, null]];
+const LV = ["can't play there", "can play there", "best position"];
+async function gdCall(path, body, timeout) {
+  const r = await api("/admin/api/data" + path, {method: "POST", body: JSON.stringify(body || {}), timeout: timeout || 20000});
+  if (r.st) ged.st = r.st;
+  return r;
+}
+const gdFail = err => { if (err.status === 401) { signedOut(); return; } toast(err.status === 400 || err.status === 404 ? err.message.charAt(0).toUpperCase() + err.message.slice(1) + "." : "Couldn't reach the server. Try again.", true); };
+async function gdOpen() {
+  if (ged.info || ged.loading) { gdBar(); return; }
+  ged.loading = true;
+  try { ged.info = await gdCall("/info", {}, 60000); ged.err = ""; }
+  catch (err) { if (err.status === 401) { ged.loading = false; return signedOut(); } ged.err = err.status === 400 ? err.message : "Couldn't reach the server."; }
+  ged.loading = false;
+  gdBar(); gdResults();
+}
+const gdEdited = (kind, id) => !!(ged.st && ged.st.edited && ged.st.edited[kind === "player" ? "players" : "teams"].some(x => x[0] === id));
+function gdBar() {
+  const st = ged.st;
+  if (ged.err) return put("gd-bar", `<section class="card"><b class="warn">${I.warn} ${esc(ged.err.charAt(0).toUpperCase() + ged.err.slice(1))}</b> <button type="button" class="small" id="gd-retry">Try again</button></section>`);
+  if (!st) return put("gd-bar", "");
+  const src = st.base ? `<span class="small muted">On top of ${esc(st.base)}</span>` : "";
+  if (st.unsent) return put("gd-bar", `<section class="card gd-bar unsent"><span><b>${st.changes ? plural(st.changes, "change") + " not sent yet" : "All changes undone, not sent yet"}</b></span>${src}<span class="grow"></span>` +
+    `<button type="button" class="${st.sent ? "" : "danger "}needs-server" id="gd-back">${st.sent ? "Back to what was sent" : "Undo all"}</button><button type="button" class="primary needs-server" id="gd-send">Send to everyone</button></section>`);
+  if (st.sent) return put("gd-bar", `<section class="card gd-bar"><span class="ok">${I.ok} Friends get ${plural(st.sent.changes, "change")}</span><span class="small muted">version ${esc(st.sent.version)} · sent ${esc(when(st.sent.t, Date.now() / 1000))}</span>${src}</section>`);
+  put("gd-bar", "");
+}
+function gdItem(kind, id, name, sub) {
+  const cur = ged.kind === kind && ged.id === id;
+  return `<li><button type="button" data-gd${kind}="${id}" data-key="gd-${kind}-${id}"${cur ? ' aria-current="true"' : ""}>${gdEdited(kind, id) ? '<span class="gd-dot" title="Changed"></span>' : ""}<span class="nmx">${esc(name)}</span>${sub ? `<span class="sub">${esc(sub)}</span>` : ""}</button></li>`;
+}
+function gdResults(found) {
+  if (!ged.info) return;
+  if (ged.q.trim() && found) {
+    const ps = found.players.map(p => gdItem("player", p.id, p.name, [p.pos, p.age && "age " + p.age, (p.teams.find(t => !gdNational(t.id)) || p.teams[0] || {}).name || "Free agent"].filter(Boolean).join(" · ")));
+    const grp = {}; ged.info.groups.forEach(g => g.teams.forEach(t => { grp[t[0]] = g.name; }));
+    const ts = found.teams.map(([id, n, c]) => gdItem("team", id, n, `${grp[id] ? grp[id] + " · " : ""}${plural(c, "player")}`));
+    return put("gd-res", (ts.length ? `<h3>Teams</h3><ul class="gd-list">${ts.join("")}</ul>` : "") + (ps.length ? `<h3>Players</h3><ul class="gd-list">${ps.join("")}</ul>` : "") +
+      (!ps.length && !ts.length ? `<p class="empty">Nothing found.</p>` : ""));
+  }
+  if (ged.q.trim()) return;
+  const ed = ged.st && ged.st.edited, mine = ed && (ed.players.length || ed.teams.length);
+  const changed = mine ? `<details data-key="gd-changed" open><summary>Changed <span class="muted">(${ed.players.length + ed.teams.length})</span></summary><ul class="gd-list">${ed.teams.map(([id, n]) => gdItem("team", id, n, "team")).join("")}${ed.players.map(([id, n]) => gdItem("player", id, n, "player")).join("")}</ul></details>` : "";
+  let kind = "";
+  put("gd-res", changed + ged.info.groups.map((g, i) => {
+    const h = g.kind !== kind ? `<h3>${g.kind === "club" ? "Clubs" : g.kind === "national" ? "National teams" : "Other"}</h3>` : ""; kind = g.kind;
+    return h + `<details data-key="gd-g${i}"><summary>${esc(g.name)} <span class="muted">(${g.teams.length})</span></summary><ul class="gd-list">${g.teams.map(([id, n, c]) => gdItem("team", id, n, String(c))).join("")}</ul></details>`;
+  }).join(""));
+}
+const gdNational = id => !!(ged.info && ged.info.groups.some(g => g.kind === "national" && g.teams.some(t => t[0] === id)));
+let gdQT = 0;
+$("gd-q").addEventListener("input", () => {
+  clearTimeout(gdQT); ged.q = $("gd-q").value;
+  if (!ged.q.trim()) { shown["gd-res"] = null; return gdResults(); }
+  gdQT = setTimeout(async () => {
+    const seq = ++ged.seq;
+    try { const r = await gdCall("/find", {q: ged.q}); if (seq !== ged.seq) return; ged.found = r; gdResults(r); gdBar(); }
+    catch (err) { gdFail(err); }
+  }, 180);
+});
+async function gdLeave() {
+  if (!ged.dirty) return true;
+  return (await ask({title: "Leave without saving?", body: "The changes on this sheet are lost.", ok: "Leave", danger: true})) !== null;
+}
+async function gdSelect(kind, id) {
+  if (!(await gdLeave())) return;
+  try {
+    const r = await gdCall("/" + kind, {id});
+    ged.kind = kind; ged.id = id; ged.data = r[kind]; ged.dirty = false;
+    gdPaint(); gdRefreshList();
+    $("gd-ed").hidden = false;
+    if (matchMedia("(max-width: 700px)").matches) $("gd-ed").scrollIntoView({block: "start"});
+    $("h-gded").focus({preventScroll: !matchMedia("(max-width: 700px)").matches});
+  } catch (err) { gdFail(err); }
+}
+function gdRefreshList() { shown["gd-res"] = null; gdResults(ged.q.trim() ? ged.found : null); gdBar(); }
+function gdPaint() { ged.kind === "player" ? gdPlayer(ged.data) : gdTeam(ged.data); }
+const gdNum = (id, label, v, lo, hi, unit) => `<div><label for="${id}">${label}${unit ? ` <span class="muted" style="font-weight:400">(${unit})</span>` : ""}</label><input id="${id}" type="number" inputmode="numeric" min="${lo}" max="${hi}" value="${v}" required></div>`;
+const gdSel = (id, label, opts, v) => `<div><label for="${id}">${label}</label><select id="${id}">${opts.map(([k, n]) => `<option value="${k}"${String(k) === String(v) ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></div>`;
+function gdPlayer(p) {
+  const m = ged.info.meta, P = p.p;
+  const teams = p.teams.map(t => `<button type="button" class="small" data-gdteam="${t.id}">${esc(t.name)}${t.shirt ? ` · ${t.shirt}` : ""}</button>`).join("") || `<span class="small muted">Free agent</span>`;
+  const pitch = PITCH.map(row => row.map(pos => pos ? `<button type="button" class="lv${P[m.pos_param[pos]]}" data-gdpos="${pos}" aria-label="${pos}: ${LV[P[m.pos_param[pos]]]}" title="${pos}: ${LV[P[m.pos_param[pos]]]}">${pos}</button>` : "<span></span>").join("")).join("");
+  const ab = m.abilities.map(a => { const v = P[a.p]; return `<label>${esc(a.name)}<input type="number" inputmode="numeric" min="${a.min}" max="${a.max}" value="${v}" data-gdp="${a.p}" class="${v >= 85 ? "hi" : v < 60 ? "lo" : ""}" required></label>`; }).join("");
+  const checks = lst => lst.map(s => `<label class="check"><input type="checkbox" data-gdp="${s.p}"${P[s.p] ? " checked" : ""}> <span>${esc(s.name)}</span></label>`).join("");
+  put("gd-ed", `<div class="card-h"><h2 id="h-gded" tabindex="-1">${esc(p.name)}</h2><span class="grow"></span>${gdEdited("player", p.id) ? `<button type="button" class="small needs-server" id="gd-undo">Undo changes</button>` : ""}</div>
+    <div class="gd-teams">${teams}</div>
+    <form id="gd-f" novalidate>
+      <div class="gd-cols two"><div><label for="gd-name">Name</label><input id="gd-name" maxlength="60" value="${esc(p.name)}" spellcheck="false" required></div>
+        <div><label for="gd-shirt">Name on shirt</label><input id="gd-shirt" maxlength="60" value="${esc(p.shirt)}" spellcheck="false" required></div></div>
+      <div class="gd-cols">${gdSel("gd-nat", "Nationality", ged.info.countries, p.nat)}${gdNum("gd-p45", "Age", P[45], 15, 50)}${gdNum("gd-p46", "Height", P[46], 150, 210, "cm")}${gdNum("gd-p47", "Weight", P[47], 40, 120, "kg")}</div>
+      <div class="gd-cols">${gdSel("gd-p0", "Position", m.positions.map((x, i) => [i, x]), P[0])}${gdSel("gd-p42", "Stronger foot", [[0, "Right"], [1, "Left"]], P[42])}${gdSel("gd-p59", "Playing style", m.styles.map((x, i) => [i, x]), P[59])}</div>
+      <fieldset><legend>Positions</legend><div class="gd-pitch" role="group" aria-label="Positions">${pitch}</div><div class="gd-key" aria-hidden="true"><span><i></i>Can play</span><span><i class="k2"></i>Best</span></div></fieldset>
+      <fieldset><legend>Abilities</legend><div class="gd-ab">${ab}</div></fieldset>
+      <fieldset><legend>Skills</legend><div class="gd-checks">${checks(m.skills)}</div></fieldset>
+      <fieldset><legend>AI playing styles</legend><div class="gd-checks">${checks(m.com)}</div></fieldset>
+      <div class="row gd-save"><button type="submit" class="primary needs-server">Save</button><button type="button" id="gd-reset">Reset</button><span class="small err" id="gd-err" aria-live="polite"></span></div>
+    </form>`, true);
+}
+function gdSquadHtml() {
+  const rows = ged.squad.map((s, i) => (i === 11 ? `<tr class="gd-sep"><td colspan="5">Substitutes</td></tr>` : "") +
+    `<tr${s.from !== undefined ? ' class="new"' : ""}><td><input type="number" min="1" max="99" value="${s.shirt}" data-gdshirt="${i}" aria-label="${esc(s.name)}: shirt number"></td>` +
+    `<td><button type="button" class="pn" data-gdplayer="${s.id}">${esc(s.name)}</button>${s.from ? `<br><span class="small muted">from ${esc(s.from)}</span>` : ""}</td><td class="small">${esc(s.pos || "")}</td><td class="small num hide-sm">${s.age || ""}</td>` +
+    `<td><div class="acts"><button type="button" class="small" data-gdup="${i}" aria-label="Move ${esc(s.name)} up"${i ? "" : " disabled"}>↑</button><button type="button" class="small" data-gddown="${i}" aria-label="Move ${esc(s.name)} down"${i < ged.squad.length - 1 ? "" : " disabled"}>↓</button><button type="button" class="small danger" data-gdrm="${i}" aria-label="Remove ${esc(s.name)}">✕</button></div></td></tr>`).join("");
+  return `<div class="tablewrap"><table class="gd-sq"><caption class="sr">Squad: the first 11 start</caption><thead><tr><th scope="col">No.</th><th scope="col">Player</th><th scope="col">Pos.</th><th scope="col" class="num hide-sm">Age</th><th scope="col"><span class="sr">Order</span></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function gdTeam(t) {
+  ged.squad = t.squad.map(s => ({...s}));
+  put("gd-ed", `<div class="card-h"><h2 id="h-gded" tabindex="-1">${esc(t.name)}</h2><span class="grow"></span>${gdEdited("team", t.id) ? `<button type="button" class="small needs-server" id="gd-undo">Undo changes</button>` : ""}</div>
+    <form id="gd-f" novalidate>
+      <div class="gd-cols two"><div><label for="gd-tname">Name</label><input id="gd-tname" maxlength="69" value="${esc(t.name)}" spellcheck="false" required></div>
+        <div><label for="gd-tshort">Short name</label><input id="gd-tshort" maxlength="9" value="${esc(t.short)}" spellcheck="false" style="max-width:9em" required></div></div>
+      <fieldset><legend>Squad <span class="muted" id="gd-count" style="font-weight:400"></span></legend><div id="gd-sq"></div>
+        <label for="gd-add">Add a player</label><input type="search" id="gd-add" placeholder="Name" autocomplete="off" spellcheck="false"><div id="gd-addres"></div></fieldset>
+      <div class="row gd-save"><button type="submit" class="primary needs-server">Save</button><button type="button" id="gd-reset">Reset</button><span class="small err" id="gd-err" aria-live="polite"></span></div>
+    </form>`, true);
+  gdSquad();
+}
+function gdSquad() {
+  const top = gdNational(ged.id) ? ged.info.meta.max_national : ged.info.meta.max_squad, n = ged.squad.length;
+  put("gd-sq", gdSquadHtml(), true);
+  text("gd-count", `(${n} of ${ged.info.meta.min_squad}–${top})`);
+}
+function gdFree() { const used = new Set(ged.squad.map(s => +s.shirt)); for (let i = 1; i < 100; i++) if (!used.has(i)) return i; return 99; }
+let gdAT = 0;
+$("gd-ed").addEventListener("input", e => {
+  if (e.target.id === "gd-add") {
+    clearTimeout(gdAT); const q = e.target.value;
+    if (!q.trim()) return put("gd-addres", "");
+    gdAT = setTimeout(async () => {
+      const seq = ++ged.addSeq;
+      try { const r = await gdCall("/find", {q}); if (seq !== ged.addSeq) return;
+        const here = new Set(ged.squad.map(s => s.id)), nat = gdNational(ged.id);
+        ged.addFound = r.players.filter(p => !here.has(p.id));
+        put("gd-addres", ged.addFound.length ? `<ul class="gd-list">${ged.addFound.slice(0, 12).map(p => { const from = p.teams.find(t => gdNational(t.id) === nat);
+          return `<li><button type="button" data-gdadd="${p.id}"><span class="nmx">${esc(p.name)}</span><span class="sub">${esc([p.pos, from ? from.name : nat ? "" : "Free agent"].filter(Boolean).join(" · "))}</span></button></li>`; }).join("")}</ul>` : `<p class="empty">Nothing found.</p>`);
+      } catch (err) { gdFail(err); }
+    }, 180);
+    return;
+  }
+  if (e.target.dataset.gdshirt !== undefined) { ged.squad[+e.target.dataset.gdshirt].shirt = e.target.value; ged.dirty = true; return; }
+  if (e.target.dataset.gdp !== undefined && e.target.type === "number") { const v = +e.target.value; e.target.className = v >= 85 ? "hi" : v < 60 ? "lo" : ""; }
+  if (e.target.closest("#gd-f")) ged.dirty = true;
+});
+$("gd-ed").addEventListener("change", e => {
+  if (e.target.closest("#gd-f")) ged.dirty = true;
+  if (e.target.id === "gd-p0") {                    // the registered position is always a best one
+    const b = $("gd-ed").querySelector(`[data-gdpos="${ged.info.meta.positions[+e.target.value]}"]`);
+    if (b) gdSetPos(b, 2);
+  }
+});
+function gdSetPos(b, lv) { b.className = "lv" + lv; b.setAttribute("aria-label", `${b.dataset.gdpos}: ${LV[lv]}`); b.title = b.getAttribute("aria-label"); }
+$("gd-ed").addEventListener("click", async e => {
+  const t = e.target.closest("button"); if (!t) return;
+  const ds = t.dataset;
+  if (ds.gdpos) { const lv = (+t.className.slice(2) + 1) % 3, reg = ged.info.meta.positions[+$("gd-p0").value];
+    if (ds.gdpos === reg) return toast("The main position is always a best one.");
+    gdSetPos(t, lv); ged.dirty = true; return; }
+  if (ds.gdteam) return gdSelect("team", +ds.gdteam);
+  if (ds.gdplayer) return gdSelect("player", +ds.gdplayer);
+  const sq = ged.squad;
+  if (ds.gdup || ds.gddown) { const i = +(ds.gdup || ds.gddown), j = ds.gdup ? i - 1 : i + 1; [sq[i], sq[j]] = [sq[j], sq[i]]; ged.dirty = true; gdSquad();
+    const n = $("gd-sq").querySelector(`[data-gd${ds.gdup ? "up" : "down"}="${j}"]`); (n && !n.disabled ? n : $("gd-sq").querySelector(`[data-gdrm="${j}"]`)).focus(); return; }
+  if (ds.gdrm) { const i = +ds.gdrm; sq.splice(i, 1); ged.dirty = true; gdSquad(); const n = $("gd-sq").querySelector(`[data-gdrm="${Math.min(i, sq.length - 1)}"]`); (n || $("gd-add")).focus(); return; }
+  if (ds.gdadd) { const p = ged.addFound.find(x => x.id === +ds.gdadd); if (!p) return;
+    const nat = gdNational(ged.id), from = p.teams.find(x => gdNational(x.id) === nat);
+    sq.push({id: p.id, name: p.name, pos: p.pos, age: p.age, shirt: gdFree(), from: from ? from.name : ""}); ged.dirty = true;
+    $("gd-add").value = ""; put("gd-addres", ""); gdSquad(); $("gd-add").focus(); return; }
+  if (t.id === "gd-reset") { ged.dirty = false; gdPaint(); return; }
+  if (t.id === "gd-undo") {
+    if ((await ask({title: `Undo the changes to ${ged.data.name}?`, ok: "Undo changes", danger: true})) === null) return;
+    try { await gdCall("/undo", {kind: ged.kind, id: ged.id}); ged.dirty = false; const k = ged.kind, id = ged.id; ged.kind = null; await gdSelect(k, id); toast("Changes undone."); }
+    catch (err) { gdFail(err); }
+  }
+});
+$("gd-ed").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, bad = (msg, el) => { text("gd-err", msg); if (el) { el.setAttribute("aria-invalid", "true"); el.focus(); } };
+  f.querySelectorAll("[aria-invalid]").forEach(x => x.removeAttribute("aria-invalid")); text("gd-err", "");
+  for (const el of f.querySelectorAll("input[type=number]")) {
+    if (el.id === "gd-add") continue;
+    const v = el.value === "" ? NaN : +el.value;
+    if (!Number.isInteger(v) || v < +el.min || v > +el.max) return bad(`${el.closest("label") ? el.closest("label").firstChild.textContent.trim() : el.getAttribute("aria-label") || (f.querySelector(`label[for="${el.id}"]`) || {}).textContent || "A number"}: ${el.min} to ${el.max}.`, el);
+  }
+  let body;
+  if (ged.kind === "player") {
+    const p = {};
+    f.querySelectorAll("[data-gdp]").forEach(el => { p[el.dataset.gdp] = el.type === "checkbox" ? +el.checked : +el.value; });
+    ["0", "42", "45", "46", "47", "59"].forEach(k => { p[k] = +$("gd-p" + k).value; });
+    f.querySelectorAll("[data-gdpos]").forEach(b => { p[ged.info.meta.pos_param[b.dataset.gdpos]] = +b.className.slice(2); });
+    const name = $("gd-name").value.trim(), shirt = $("gd-shirt").value.trim();
+    if (!name) return bad("Give the player a name.", $("gd-name"));
+    if (!shirt) return bad("Give the shirt a name.", $("gd-shirt"));
+    body = {id: ged.id, name, shirt, nat: +$("gd-nat").value, p};
+  } else {
+    const name = $("gd-tname").value.trim(), short = $("gd-tshort").value.trim();
+    if (!name) return bad("Give the team a name.", $("gd-tname"));
+    if (!short) return bad("Give the team a short name.", $("gd-tshort"));
+    const nums = ged.squad.map(s => +s.shirt), dup = nums.find((n, i) => nums.indexOf(n) !== i);
+    if (dup) return bad(`Two players have number ${dup}.`, $("gd-sq").querySelectorAll("[data-gdshirt]")[nums.lastIndexOf(dup)]);
+    body = {id: ged.id, name, short, squad: ged.squad.map(s => [s.id, +s.shirt])};
+  }
+  const btn = f.querySelector("[type=submit]"); btn.disabled = true;
+  try {
+    const r = await gdCall(ged.kind === "player" ? "/player/save" : "/team/save", body);
+    ged.data = r[ged.kind]; ged.dirty = false;
+    const moved = ged.kind === "team" ? ged.squad.filter(s => s.from).map(s => s.name) : [];
+    gdPaint(); gdRefreshList();
+    toast(moved.length ? `Saved. ${andList(moved)} ${moved.length === 1 ? "moves" : "move"} here.` : "Saved.", false, {label: "Send to everyone", run: () => $("gd-send") && $("gd-send").click()});
+    if (ged.kind === "team" && ged.info) { const g = await gdCall("/info", {}); ged.info = g; gdRefreshList(); }
+  } catch (err) { if (err.status === 400) bad(err.message.charAt(0).toUpperCase() + err.message.slice(1) + "."); else gdFail(err); }
+  btn.disabled = false;
+});
+$("gd-res").addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.gdplayer) gdSelect("player", +t.dataset.gdplayer);
+  if (t.dataset.gdteam) gdSelect("team", +t.dataset.gdteam);
+});
+$("gd-bar").addEventListener("click", async e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.id === "gd-retry") { ged.err = ""; return gdOpen(); }
+  if (t.id === "gd-send") {
+    if ((await ask({title: "Send the changes to everyone?", body: "Each friend's game downloads them the next time it goes online. Until then, friends with the old data can't play friends with the new.", ok: "Send"})) === null) return;
+    t.disabled = true;
+    try { const r = await gdCall("/send", {}, 120000); toast(`Sent as version ${r.sent.version}.`); refreshNow(); }
+    catch (err) { gdFail(err); }
+    gdBar(); return;
+  }
+  if (t.id === "gd-back") {
+    const sent = ged.st && ged.st.sent;
+    if ((await ask({title: sent ? "Go back to what was sent?" : "Undo all changes?", body: "Changes not sent yet are lost.", ok: sent ? "Go back" : "Undo all", danger: true})) === null) return;
+    try { await gdCall(sent ? "/take-back" : "/undo", sent ? {} : {kind: "all"}); ged.dirty = false; if (ged.kind) { const k = ged.kind, id = ged.id; ged.kind = null; await gdSelect(k, id); } gdRefreshList(); toast("Changes undone."); }
+    catch (err) { gdFail(err); }
+  }
+});
+addEventListener("beforeunload", e => { if (ged.dirty) e.preventDefault(); });
 function start(focus) {
   clearInterval(timer); clearInterval(gamesTimer);
   $("login").hidden = true; $("app").hidden = false;

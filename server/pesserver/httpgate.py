@@ -856,6 +856,16 @@ async def _admin(service, method, route, headers, body, peer="", secure=False, p
             except Exception:  # noqa: BLE001 - the change itself is done
                 log.exception("tourney feed line")
         return status, out, ctype
+    if route.startswith("/admin/api/data") and method == "POST":
+        from . import gamedb, liveupdate            # the game data editor (players, teams, squads)
+        try:
+            status, res = await asyncio.to_thread(gamedb.admin_api, liveupdate.folder(service), route, body)
+        except (ValueError, TypeError) as e:
+            return "400 Bad Request", json.dumps({"error": str(e) or "bad request"}).encode(), "application/json"
+        if route == "/admin/api/data/send" and status.startswith("200"):
+            events.feed(service, f"The admin sent game data changes to everyone (version {res['sent']['version']})", "info")
+            liveupdate.wake()
+        return status, json.dumps(res).encode(), "application/json"
     if route == "/admin/api/teams" and method == "GET":
         from . import adminextra, pestourney        # team names for the tournament form (the game's own list)
         return "200 OK", json.dumps({**adminextra.teams(), "default": pestourney.TEAMS}).encode(), "application/json"

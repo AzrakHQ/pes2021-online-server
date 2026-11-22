@@ -211,11 +211,12 @@ def game_cpks():
 def apply(tables, ed):
     """The game's tables with the option file applied: (Player.bin, Team.bin, PlayerAssignment.bin, summary)."""
     praw = bytearray(tables["Player.bin"])
-    index = {struct.unpack_from("<I", praw, o + 8)[0] & 0x3ffff: o for o in range(0, len(praw) - 311, 312)}
+    # Player ids are whole u32s: 0x32f (D. Beckham) and 0x4032f (R. Meale) are two players (637 such pairs).
+    index = {struct.unpack_from("<I", praw, o + 8)[0]: o for o in range(0, len(praw) - 311, 312)}
     added = 0
     for r in ed["players"]:
         full = _field(r, 0) or _field(r, 11)
-        pid = full & 0x3ffff                       # (bit 18 is a flag, as in Player.bin)
+        pid = full
         if not pid:
             continue
         if pid not in index:                       # a player the option file made: a new record
@@ -434,9 +435,10 @@ def build_patch(patch_path, out_path, previous=0, extra_path=None):
     return summary
 
 
-def _write(out_path, files, summary, label, extra=None):
+def _write(out_path, files, summary, label, extra=None, slices=None):
     """A CPK of ours: the summary, the version file (version_xu.bin for an Extra Update: extra = [(path in the
-    CPK, (source file, offset, size), unpacked size)]) and the files {path: bytes}."""
+    CPK, (source file, offset, size), unpacked size)]) and the files {path: bytes} (+ slices: files of another
+    CPK copied as they are, like extra, in a Live Update)."""
     if extra is None:
         version = {VERSION_FILE: b"".join(f.encode().ljust(10, b"\0") for f in (summary["version"], "1.01.00", label))}
     else:                      # + the data pack it needs: 1.00 (else the game drops it at start; update.md)
@@ -452,7 +454,7 @@ def _write(out_path, files, summary, label, extra=None):
                 f.write(blob)
             lst.append((name, p))
         names = {n.upper() for n, _ in lst}
-        lst += [e for e in (extra or []) if e[0].upper() not in names]
+        lst += [e for e in (extra or []) + (slices or []) if e[0].upper() not in names]
         part = out_path + ".part"
         try:
             write_cpk(part, lst)
@@ -487,7 +489,7 @@ def extra_name(source_name):
 
 def _maybe_patch(name):
     low = name.lower()
-    return low.endswith(".cpk") and not low.startswith(("option-", "patch-", "extra-"))
+    return low.endswith(".cpk") and not low.startswith(("option-", "patch-", "extra-")) and low != "edits.cpk"
 
 
 _PATCHES = {}              # path -> ((mtime, size), is a patch): a CPK's table of contents is read once

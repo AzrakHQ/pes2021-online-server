@@ -192,3 +192,17 @@ as shown in the game (no +40). Table `EDIT_TO_PARAM` in pesedit.py:
    builds the Live Update with pesedit.py from the host's own game data (dt80) and offers it to every friend.
 2. Patch CPK → Live Update: CRILAYLA decompression in cpkread (patches compress), copy common/etc/pesdb/*.bin.
 3. Faces / kits through a Live Update: test with a file read only in a match.
+
+## Game data editor (2026-11-22, gamedb.py)
+- The admin page edits Player.bin (PMAP parameters, names +0xfb / shirt +0x81 and +0xbe, nationality +0x1c bits
+  9..17), Team.bin (names +0x170 and +0x5b6, short +0x372 / +0x566 when set) and PlayerAssignment.bin (row = shirt-1
+  | slot << 10 | role bits 16..21; a kept player keeps row id and roles) on top of the offered Live Update and sends
+  edits.cpk (that update's other files copied raw, version above all). **Proven live 2026-11-22:** Messi renamed
+  "EDITOR MESSI", Speed 99, moved FCB → Arsenal no. 4 with the editor → copy 2 downloaded edits.cpk (165.75) at
+  login → CHECK_CHEAT 25D6E9E6…60E7 / 1E218ACE1DFF1E24… on entering Online Tournament, exactly pesdb.py's
+  prediction for the edited tables.
+- **Player ids are full u32s.** 637 pairs share the low 18 bits (0x32f D. BECKHAM, 0x4032f R. MEALE); 1000 ids have
+  bit 30 set (0x40021727). Masking with 0x3ffff (as db.md's "bit 18 is a flag" suggested) mixes players up; the
+  option-file conversion did that and now uses the full id.
+- Real data: 18452 players, 669 teams, squads 20..40 (national teams 23), 2093 players without a team (free agents,
+  legends), 906 in two teams (club + national).
