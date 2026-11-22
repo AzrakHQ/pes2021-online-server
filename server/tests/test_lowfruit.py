@@ -75,3 +75,30 @@ def test_live_update_from_the_data_folder(svc, tmp_path):
     open(os.path.join(liveupdate.folder(svc), "broken.cpk"), "wb").write(b"CPK junk")
     os.utime(os.path.join(liveupdate.folder(svc), "broken.cpk"), None)
     assert pescmds._dispatch(svc, sess, "CMD_GET_DLC_FILELIST", {})["dlcfile_list"][0]["name"] == "Roster_Nov.cpk"
+
+
+def test_extra_update_from_the_data_folder(svc, monkeypatch):
+    """A CPK with version_xu.bin is the Extra Update: listed in extra_file_list with an https address on the game's
+    own NTL name (its downloader only does HTTPS; live 2026-11-22), next to the Live Update and served the same."""
+    from pesserver.cpkwrite import write_cpk
+    monkeypatch.setattr(liveupdate, "_CACHE", {})
+    monkeypatch.setattr(liveupdate, "_LAST", {})
+    monkeypatch.delenv("PESSERVER_HTTP_PORT", raising=False)
+    sess = Sess(1)
+    r = pescmds._dispatch(svc, sess, "CMD_GET_DLC_FILELIST", {"pid": "0"})
+    assert "extra_file_list" not in r                        # (count and list must agree: none sent at all)
+    d = liveupdate.folder(svc)
+    os.makedirs(d)
+    tmp = tempfile.mkdtemp()
+    xu, flag = os.path.join(tmp, "xu"), os.path.join(tmp, "flag")
+    open(xu, "wb").write(b"".join(f.encode().ljust(10, b"\0") for f in ("1.02", "1.01.00", "1.00", "test")))
+    open(flag, "wb").write(b"\x89PNG")
+    write_cpk(os.path.join(d, "Flags 2026.cpk"), [("common/etc/version/version_xu.bin", xu),
+                                                 ("common/render/symbol/flag/e_100.png", flag)])
+    r = pescmds._dispatch(svc, sess, "CMD_GET_DLC_FILELIST", {"pid": "0"})
+    (x,) = r["extra_file_list"]
+    assert r["extra_file_list_count"] == 1 and x["dlc_version"] == "102" and x["name"] == "Flags_2026.cpk"
+    assert x["url"] == "https://ntl.service.konami.net:8080/liveupdate/Flags_2026.cpk"
+    assert all(e["name"] != "Flags_2026.cpk" for e in (r["dlcfile_list"] or []))    # not a Live Update
+    assert liveupdate.file_for(svc, "flags_2026.cpk") == os.path.join(d, "Flags 2026.cpk")
+    shutil.rmtree(tmp)

@@ -251,6 +251,16 @@ def test_live_update_download_is_streamed_whole(tmp_path, monkeypatch):
         assert b"Content-Length: 700000" in head and head.endswith(b"\r\n\r\n")
         r, w = await asyncio.open_connection("127.0.0.1", port)
         assert (await _req(r, w, "GET", "/liveupdate/other.cpk"))[0] == 404
+        # the Extra Update's downloader: Range from 0 = the whole file, 200 (as seen live); from n = the rest, 206
+        r, w = await asyncio.open_connection("127.0.0.1", port)
+        code, hdr, out = await _req(r, w, "GET", "/liveupdate/Roster.cpk", [("Range", f"bytes=0-{len(blob) - 1}")])
+        assert code == 200 and out == blob
+        r, w = await asyncio.open_connection("127.0.0.1", port)
+        code, hdr, out = await _req(r, w, "GET", "/liveupdate/Roster.cpk", [("Range", f"bytes=300000-{len(blob) - 1}")])
+        assert code == 206 and out == blob[300000:] and hdr["content-range"] == f"bytes 300000-699999/{len(blob)}"
+        r, w = await asyncio.open_connection("127.0.0.1", port)
+        code, hdr, out = await _req(r, w, "GET", "/liveupdate/Roster.cpk", [("Range", "bytes=700000-")])
+        assert code == 416 and out == b"" and hdr["content-range"] == "bytes */700000"
     _serve(svc, test)
 
 

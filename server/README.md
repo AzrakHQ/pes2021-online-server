@@ -233,19 +233,39 @@ curl -s -H "Authorization: Bearer $T" -X POST $A/players/block -d '{"pid": 3, "o
 curl -s -H "Authorization: Bearer $T" -X POST $A/players/move -d '{"pid": 3, "copy": "m:<install id>"}'   # copy: from the player's "claims"
 ```
 
-## Current squads: a Live Update from an option file
+## Current squads: a Live Update from an option file or a patch
 
 Online modes reload the player database from the game files and the server's Live Update; they never use edit
 data (an option file changes offline modes only; `notes/re/functions/update.md`). So the server turns an option file
 into a Live Update: put a community option file (`EDIT00000000`, as it comes, from the
 `Documents/KONAMI/eFootball PES 2021 SEASON UPDATE/…/save` folder of any PC) into `<data>/liveupdate/`. Within half a
 minute `pesserver/pesoption.py` applies its edited players (abilities, skills, positions, names, nationality), team
-names, squads (players, shirt numbers, order, captain, set-piece takers) and formations to the game's own tables and writes
+names, squads (players, shirt numbers, order, captain, set-piece takers), formations and team tactics (attacking and
+defensive styles, support range, defensive line, compactness) to the game's own tables and writes
 `option-EDIT00000000.cpk` next to it, which every game then downloads, so all friends have the same squads online.
 It needs PES 2021 (season update data pack) on the server's computer: the tables come from that copy's
 `download/dt80_100E_x64.cpk`. Not carried over: kits, emblems and faces of the option file, coach and stadium
 edits. Removing the option file removes its update (games keep what they downloaded until a newer one).
-Proven live: a converted option file gave exactly the CHECK_CHEAT sums the model predicts.
+Proven live: a converted option file gave exactly the CHECK_CHEAT sums the model predicts. Offline Kick Off → Local
+Match loads the Live Update too, so the same squads show there.
+
+A community patch's CPK (no `version_wu.bin` or `version_xu.bin` of its own) put in the same folder is split in
+two: its database tables (`common/etc/pesdb/*.bin`, unpacked if the patch compresses them, CRILAYLA,
+`cpkread.crilayla`) become the Live Update `patch-<its name>`, so its players, teams and squads reach online play (a
+Live Update makes the game reload all its tables); all its other files (faces, kits, emblems...) are copied as they
+are into `extra-<its name>`, offered as the Extra Update below. Removing the patch removes both.
+
+## Graphics: the Extra Update
+
+A CPK with `common/etc/version/version_xu.bin` in the same folder is offered as the game's **Extra Update**
+(`extra_file_list` of CMD_GET_DLC_FILELIST): the game downloads it at login into `download/ExtraUpdate.bin` and binds
+it above all its data, at once and at every start. Unlike the Live Update it changes graphics: flags in the team
+select turned to the update's pictures without a restart, and replaced kit textures were worn in a match (live
+2026-11-22, `notes/re/functions/update.md`). Its
+version file has four 10-byte fields: version (`1.02`; a game downloads only a higher one), `1.01.00`, the data pack
+it needs (`1.00`: anything else and the game drops it) and a label. The game fetches it only over HTTPS, so it is
+listed as `https://ntl.service.konami.net:8080/liveupdate/<name>`: the mod sends that name to this server, whose
+certificate is made for it. Menu text (`eng/string/all.str`) did not change this way.
 
 ## The mod in PES 2021 on the server's own computer
 
@@ -317,7 +337,7 @@ can't work.
 | `pesserver/httpgate.py` | HTTP/HTTPS web API, `GateInfo.php`, `/ca.crt` |
 | `pesserver/stun.py` | STUN responder |
 | `pesserver/liveupdate.py`, `cpkread.py` | the host's Live Update: the newest CPK in `<data>/liveupdate/` is offered to every game (CMD_GET_DLC_FILELIST) and served at `/liveupdate/<name>`; build one with `notes/re/functions/tools/mklivedata.py` |
-| `pesserver/pesoption.py`, `savefile.py`, `cpkwrite.py` | an option file in the Live Update folder → its Live Update CPK (edit data layout, the save container, a CPK writer) |
+| `pesserver/pesoption.py`, `savefile.py`, `cpkwrite.py` | an option file or a patch CPK in the Live Update folder → its Live Update CPK (edit data layout, the save container, a CPK writer) |
 | `pesserver/turn.py`, `turnrelay.py`, `turndtls.py` | the relay: TURN list and credentials; TURN over TLS (first leg, sends the dual-route directive); TURN over DTLS with the game's framing (second leg, the one the match uses). Details: `notes/re/functions/ktcdtls.md`, `turncycle.md`, `turnlinkup.md` |
 | `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner; a keeper thread follows a network that comes up late, a new address or a restarted router (the relay then starts again with the new addresses) |
 | `pesserver/identity.py` | the server's Ed25519 identity, signed notes and hellos for the mod, writing settings into the mod DLL |

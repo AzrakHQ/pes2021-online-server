@@ -85,20 +85,23 @@ def align(x, a=ALIGN):
 
 
 def write_cpk(out_path, files, tvers='CPKMC2.49.32, DLL3.24.00'):
-    """files: list of (cpk_path, local_path)."""
+    """files: list of (cpk_path, source) or (cpk_path, source, unpacked size) for a file stored compressed
+    (CRILAYLA, as it is in another CPK). source = a local path, or (path, offset, size): a piece of a file (a file
+    inside another CPK, copied without unpacking)."""
     files = sorted(files, key=lambda f: f[0].upper())
     names = [f[0] for f in files]
     assert len(set(n.upper() for n in names)) == len(names), 'duplicate paths'
-    sizes = [os.path.getsize(f[1]) for f in files]
+    sizes = [f[1][2] if isinstance(f[1], tuple) else os.path.getsize(f[1]) for f in files]
+    unpacked = [f[2] if len(f) > 2 else sz for f, sz in zip(files, sizes)]
     toc_cols = [('DirName', ROW, STR, None), ('FileName', ROW, STR, None), ('FileSize', ROW, U32, None),
                 ('ExtractSize', ROW, U32, None), ('FileOffset', ROW, U64, None), ('ID', ROW, U32, None),
                 ('UserString', CONST, STR, '<NULL>')]
 
     def toc_rows(content_off):
         rows, pos = [], content_off
-        for i, (p, sz) in enumerate(zip(names, sizes)):
+        for i, (p, sz, usz) in enumerate(zip(names, sizes, unpacked)):
             d, _, f = p.rpartition('/')
-            rows.append(dict(DirName=d, FileName=f, FileSize=sz, ExtractSize=sz, FileOffset=pos - ALIGN, ID=i))
+            rows.append(dict(DirName=d, FileName=f, FileSize=sz, ExtractSize=usz, FileOffset=pos - ALIGN, ID=i))
             pos = align(pos + sz)
         return rows, pos
 
@@ -134,14 +137,17 @@ def write_cpk(out_path, files, tvers='CPKMC2.49.32, DLL3.24.00'):
         o.write(hdr + bytes(ALIGN - 6 - len(hdr)) + b'(c)CRI')
         o.write(toc_bytes)
         o.write(bytes(content_off - ALIGN - toc_size))
-        for (p, local), sz, r in zip(files, sizes, rows):
+        for (p, local, *_), sz, r in zip(files, sizes, rows):
             assert o.tell() == r['FileOffset'] + ALIGN
-            with open(local, 'rb') as f:
-                while True:
-                    b = f.read(1 << 20)
+            path, start, left = local if isinstance(local, tuple) else (local, 0, sz)
+            with open(path, 'rb') as f:
+                f.seek(start)
+                while left:
+                    b = f.read(min(left, 1 << 20))
                     if not b:
-                        break
+                        raise ValueError(f'{p}: its source is shorter than {sz} bytes')
                     o.write(b)
+                    left -= len(b)
             o.write(bytes(align(o.tell()) - o.tell()))
     return out_path
 

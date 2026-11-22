@@ -207,3 +207,156 @@ def test_ids_with_the_flag_bit_are_kept():
     out, _ = pesoption.apply(_tables(), ed)
     rows = [struct.unpack_from("<IIII", out["PlayerAssignment.bin"], o) for o in range(0, len(out["PlayerAssignment.bin"]), 16)]
     assert (flagged, 2) in {(p, t) for _, p, t, _ in rows}
+
+
+def test_tactic_settings_follow_the_game_plan_order():
+    """A tactic's settings (after its formation sets) go into Tactics.bin's word; the option file's tactic 1 is the
+    game plan without bit 24, whatever the file order (37 real teams list their second plan first)."""
+    tables = _tables()
+    keep = (0x15 << 12) | (1 << 24)                              # bits 12..18 aren't in the option file: kept
+    tables["Tactics.bin"] = struct.pack("<III", 11, 1, keep) + struct.pack("<III", 12, 1, 0) + \
+        struct.pack("<III", 21, 2, 0)
+    ed = pesoption.read_edit(_edit_data())
+    rec = bytearray(ed["forms"][1])
+    s = 4 + 0x63                                                 # tactic 1's settings
+    rec[s:s + 7] = bytes([1, 0, 1, 0, 0, 0, 1])                  # toggles -> bits 25, 28, 26
+    rec[s + 41], rec[s + 42], rec[s + 43], rec[s + 44], rec[s + 45] = 7, 2, 4, 10, 3
+    rec[4 + 0xa0 + 0x63 + 41] = 0                                # tactic 2: a broken level stays in range
+    for k in range(11):                                          # tactic 2's formation: role 9
+        rec[4 + 0xa0 + k] = 9
+    ed["forms"][1] = bytes(rec)
+    out, _ = pesoption.apply(tables, ed)
+    words = {tac: w for tac, _, w in (struct.unpack_from("<III", out["Tactics.bin"], q) for q in range(0, 36, 12))}
+    want = (1 << 25) | (1 << 28) | (1 << 26) | (9 << 0) | (6 << 4) | (3 << 8) | (1 << 19) | (2 << 21)
+    assert words[12] == want                                     # tactic 12 (no bit 24) = the option file's tactic 1
+    assert words[11] & keep == keep and (words[11] >> 4) & 15 == 0
+    tf = out["TacticsFormation.bin"]
+    roles = {}
+    for q in range(0, len(tf), 12):
+        tac, role, v = struct.unpack_from("<III", tf, q)
+        if v >> 20 == 0:                                         # formation set 0
+            roles.setdefault(tac, set()).add(role)
+    assert roles[11] == {9} and roles[12] == {5}
+
+
+def test_a_fresh_option_file_changes_nothing():
+    """Names the game keeps in another field (a language's, the unlicensed short name) aren't renames; rows keep
+    their ids and order."""
+    tables = _tables()
+    t = bytearray(tables["Team.bin"])
+    t[0x5fc + 0x170:0x5fc + 0x176] = b"TWO\0\0\0"
+    t[0x5fc + 0x5b6:0x5fc + 0x5bc] = b"TWO FC"                   # the option file's name, in another field
+    tables["Team.bin"] = bytes(t)
+    pa = b"".join(struct.pack("<IIII", rid, p, tid, f) for rid, p, tid, f in
+                  ((900, 300, 1, 6 | 1 << 10), (901, 100, 1, 9), (902, 200, 2, 8), (903, 400, 2, 21 | 1 << 10)))
+    tables["PlayerAssignment.bin"] = pa
+    ed = pesoption.read_edit(_edit_data())
+    ed["forms"] = {}
+    out, summary = pesoption.apply(tables, ed)
+    assert summary["teams_renamed"] == 0 and out["Team.bin"] == tables["Team.bin"]
+    assert out["PlayerAssignment.bin"] == pa
+
+
+def _crilayla(data, copy_at=None):
+    """CRILAYLA-compress data (literals only, plus one 3-byte copy ending at output index copy_at), the way
+    cpkread.crilayla reads it: bits backwards from the end, output written backwards, the first 0x100 bytes kept."""
+    head, body = data[:0x100], data[0x100:]
+    bits = []
+    w = len(data) - 1
+    while w >= 0x100:
+        if copy_at is not None and w == copy_at:
+            dist = 18                                            # copies data[w + 21], [w + 20], [w + 19]: the repeat
+            assert data[w:w - 3:-1] == data[w + dist + 3:w + dist:-1]
+            bits += [1] + [int(b) for b in f"{dist:013b}"] + [0, 0]
+            w -= 3
+        else:
+            bits += [0] + [int(b) for b in f"{data[w]:08b}"]
+            w -= 1
+    bits += [0] * (-len(bits) % 8)
+    stream = bytes(int("".join(map(str, bits[i:i + 8])), 2) for i in range(0, len(bits), 8))[::-1]
+    return b"CRILAYLA" + struct.pack("<II", len(body), len(stream)) + stream + head
+
+
+def test_crilayla():
+    data = bytes(range(256)) + b"0123456789ABCabcdefgh" * 3 + b"XYZ"
+    at = 0x100 + 30
+    packed = _crilayla(data, copy_at=at)
+    assert cpkread.crilayla(packed) == data
+    with pytest.raises(ValueError):
+        cpkread.crilayla(packed[:-0x101])
+    huge = packed[:8] + struct.pack("<I", 0xffffffff) + packed[12:]     # a damaged size: refused, nothing reserved
+    with pytest.raises(ValueError):
+        cpkread.crilayla(huge)
+    with pytest.raises(ValueError):
+        cpkread.crilayla(packed, expect=len(data) + 1)
+
+
+def test_graphics_only_patch_survives_a_restart(tmp_path):
+    """A patch with no database makes only extra-<name>; after a restart its note comes back from that file
+    (reviewer: getmtime of the missing patch-<name> made every pass fail)."""
+    folder = tmp_path / "lu"
+    folder.mkdir()
+    flag = tmp_path / "flag"
+    flag.write_bytes(b"\x89PNG flag")
+    write_cpk(str(folder / "flags.cpk"), [("common/render/symbol/flag/e_100.png", str(flag))])
+    pesoption.refresh(str(folder))
+    assert (folder / "extra-flags.cpk").is_file() and not (folder / "patch-flags.cpk").exists()
+    pesoption.STATE.clear()
+    pesoption.refresh(str(folder))
+    assert pesoption.STATE[str(folder)]["flags.cpk"]["summary"]["graphics"] == 1
+
+
+def _patch_cpk(path, tmp, with_version=False):
+    player = pesoption.wrap(_player(100) + _player(500, speed=99))
+    team = pesoption.wrap(_team(1, b"ONE") * 3)
+    p1, p2, p3 = tmp / "pl", tmp / "tm", tmp / "face"
+    packed = _crilayla(player.ljust(0x180, b"\0") if len(player) < 0x180 else player)
+    p1.write_bytes(packed)
+    p2.write_bytes(team)
+    face = b"DDS " + bytes(range(256)) + b"face" * 40
+    p3.write_bytes(_crilayla(face))
+    files = [(pesoption.PDB + "Player.bin", str(p1), 0x180 if len(player) < 0x180 else len(player)),
+             (pesoption.PDB + "Team.bin", str(p2)), ("Asset/model/character/face/real/1/face.dds", str(p3), len(face))]
+    if with_version:
+        files.append((pesoption.VERSION_FILE, str(p3)))
+    write_cpk(str(path), files)
+    return player
+
+
+def test_patch_cpk_becomes_a_live_update(tmp_path):
+    work = tmp_path / "work"
+    work.mkdir()
+    folder = tmp_path / "lu"
+    folder.mkdir()
+    player = _patch_cpk(folder / "SmokePatch 2026.cpk", work)
+    _patch_cpk(folder / "already-a-live-update.cpk", work, with_version=True)
+    (folder / "kits only.cpk").write_bytes(b"not a cpk")
+    pesoption.refresh(str(folder))
+    out = folder / "patch-SmokePatch 2026.cpk"
+    st = pesoption.STATE[str(folder)]
+    assert out.is_file() and set(st) == {"SmokePatch 2026.cpk"}
+    assert st["SmokePatch 2026.cpk"]["summary"]["kind"] == "patch"
+    assert st["SmokePatch 2026.cpk"]["summary"]["db_teams"] == 3
+    got = cpkread.read_file(str(out), pesoption.PDB + "Player.bin")
+    assert got[:len(player)] == player                           # the patch's table as it was (unpacked)
+    assert cpkread.read_file(str(out), "Asset/model/character/face/real/1/face.dds") is None
+    assert int(liveupdate._version(str(out))) > 199
+    # ... and its other files (graphics) become the Extra Update, copied still compressed
+    extra = folder / "extra-SmokePatch 2026.cpk"
+    assert st["SmokePatch 2026.cpk"]["summary"]["graphics"] == 1
+    assert cpkread.read_file(str(extra), "Asset/model/character/face/real/1/face.dds") == b"DDS " + bytes(range(256)) + b"face" * 40
+    assert cpkread.read_file(str(extra), pesoption.PDB + "Player.bin") is None
+    assert liveupdate._version(str(extra), "xu") == liveupdate._version(str(out)) and liveupdate._version(str(extra)) is None
+    xu = cpkread.read_file(str(extra), liveupdate.EXTRA_VERSION_FILE)
+    assert xu[20:30].rstrip(b"\0") == b"1.00"                    # the data pack it needs (else dropped at start)
+    assert not (folder / "patch-already-a-live-update.cpk").exists()
+    mtime = out.stat().st_mtime
+    pesoption.refresh(str(folder))                               # unchanged: not built again
+    assert out.stat().st_mtime == mtime
+    extra.unlink()                                               # one half gone: made again
+    pesoption.refresh(str(folder))
+    assert extra.exists()
+    (folder / "SmokePatch 2026.cpk").unlink()
+    pesoption.refresh(str(folder))
+    assert not out.exists() and not extra.exists()
+    assert str(folder) in pesoption.STATE and not pesoption.STATE[str(folder)]

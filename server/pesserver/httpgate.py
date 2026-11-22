@@ -1,7 +1,7 @@
 """HTTP side of the server: the game's web API (form-urlencoded POST with msgid=CMD_… → raw msgpack
 reply), the NTL GateInfo.php text reply used by the network test, and /ca.crt for players.
 Every request is logged in full (method, path, headers, body)."""
-import asyncio, sys, json, logging, os, sqlite3
+import asyncio, sys, json, logging, os, re, sqlite3
 
 log = logging.getLogger("pesserver.http")
 
@@ -84,6 +84,8 @@ def make_handler(service, stun_host, stun_port, gate_port):
                             send_file, out = (f, os.path.getsize(f)), b""
                         except OSError:
                             status, out, ctype = "404 Not Found", b"not found", "text/plain"
+                        if send_file:                   # the Extra Update's downloader asks with Range and can
+                            status, send_file, extra = _range(headers.get("range"), *send_file)   # resume
                     if send_file:
                         ctype = "application/octet-stream"
                         offered = liveupdate.safe_name(os.path.basename(f))
@@ -165,11 +167,27 @@ def make_handler(service, stun_host, stun_port, gate_port):
     return on_conn
 
 
-async def _send_file(writer, path, size, piece=1 << 18):
-    """Send exactly `size` bytes of a file without holding it in memory or stopping the server while the disk
-    reads: other players' games keep being answered during a long download."""
+def _range(spec, path, size):
+    """(status, send_file, extra headers) for a file and the request's Range header. The game asks for
+    "bytes=0-<size-1>" (the whole file; answered 200 as it was seen to accept, live 2026-11-22) and, resuming a
+    broken download, "bytes=<n>-": answered 206 with the rest. Anything else: the whole file."""
+    m = re.fullmatch(r"\s*bytes=(\d+)-(\d*)\s*", spec or "")
+    if not m or int(m.group(1)) == 0:
+        return "200 OK", (path, size), b"Accept-Ranges: bytes\r\n"
+    start = int(m.group(1))
+    end = min(int(m.group(2)) if m.group(2) else size - 1, size - 1)
+    if start >= size or end < start:
+        return "416 Range Not Satisfiable", (path, 0), b"Content-Range: bytes */%d\r\n" % size
+    return ("206 Partial Content", (path, end - start + 1, start),
+            b"Accept-Ranges: bytes\r\nContent-Range: bytes %d-%d/%d\r\n" % (start, end, size))
+
+
+async def _send_file(writer, path, size, start=0, piece=1 << 18):
+    """Send exactly `size` bytes of a file (from `start`) without holding it in memory or stopping the server
+    while the disk reads: other players' games keep being answered during a long download."""
     left = size
     with open(path, "rb") as fh:
+        fh.seek(start)
         while left > 0:
             data = await asyncio.to_thread(fh.read, min(piece, left))
             if not data:

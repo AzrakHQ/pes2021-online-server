@@ -2279,12 +2279,19 @@ $("dc-off").onclick = async () => {
 function luHtml(lu) {
   if (!lu) return "";
   const folder = lu.folder ? copyRow(lu.folder, "Folder path", tilde(lu.folder), "wrap") : "";
+  const src = (lu.options || []).find(o => !o.error && o.cpk === lu.name);   // made from an option file or a patch
+  const x = lu.extra;                                                        // the Extra Update (graphics)
+  const xsrc = x && (lu.options || []).find(o => !o.error && o.xcpk === x.name);   // made from a patch
+  const xtra = x ? `<div class="ok">${I.ok} Offering <b>${esc(x.name)}</b> as the Extra Update (version ${esc(x.version)}, ${Math.max(1, Math.round(x.size / 1048576))} MB)</div><div class="small muted">${x.sent ? `${plural(x.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it yet."} Remove ${xsrc ? esc(xsrc.file) : "the file"} to stop.</div>` : "";
   const opt = (lu.options || []).map(o => { const m = o.summary;
     return o.error ? `<div><b class="warn">${I.warn} ${esc(o.file)} couldn't be used:</b> ${esc(o.error)}</div>`
-      : lu.name === o.cpk && m && m.players != null ? `<div class="small muted">From ${esc(o.file)}: ${plural(m.players, "edited player")}${m.new_players ? ` (${m.new_players} new)` : ""}, ${plural(m.squads_changed, "squad")} changed${m.teams_renamed ? `, ${plural(m.teams_renamed, "team")} renamed` : ""}</div>` : ""; }).join("");
+      : lu.name === o.cpk && m && m.players != null ? `<div class="small muted">From ${esc(o.file)}: ${plural(m.players, "edited player")}${m.new_players ? ` (${m.new_players} new)` : ""}, ${plural(m.squads_changed, "squad")} changed${m.teams_renamed ? `, ${plural(m.teams_renamed, "team")} renamed` : ""}</div>`
+      : m && m.kind === "patch" && (lu.name === o.cpk || (x && x.name === o.xcpk)) ? `<div class="small muted">From ${esc(o.file)}: ${[
+          m.tables ? `its database${m.db_players != null ? ` (${plural(m.db_players, "player")}${m.db_teams != null ? `, ${plural(m.db_teams, "team")}` : ""})` : ""}` : "",
+          m.graphics ? `${plural(m.graphics, "graphics file")} (Extra Update)` : ""].filter(Boolean).join(" and ")}</div>` : ""; }).join("");
   if (lu.name) return `<div class="ok">${I.ok} Offering <b>${esc(lu.name)}</b> (version ${esc(lu.version)}, ${Math.max(1, Math.round(lu.size / 1048576))} MB)${lu.since ? ` since ${esc(dShort.format(new Date(lu.since * 1000)))}` : ""}</div>` + opt +
-    `<div class="small muted">${lu.sent ? `${plural(lu.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it yet."} Remove the file to stop.</div>${folder}`;
-  return `<div>Not offering one.</div>${opt}<div class="small muted">Put a roster update (<code>.cpk</code>) or an option file (<code>EDIT00000000</code>) here and every game downloads it, so everyone has the same player data.</div>${folder}`;
+    `<div class="small muted">${lu.sent ? `${plural(lu.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it yet."} Remove ${src ? esc(src.file) : "the file"} to stop.</div>${xtra}${folder}`;
+  return `<div>Not offering one.</div>${opt}${xtra}<div class="small muted">Put a roster update (<code>.cpk</code>) or an option file (<code>EDIT00000000</code>) here and every game downloads it, so everyone has the same player data.</div>${folder}`;
 }
 function remoteHtml(s) {
   const fp = (s.admin_fp || "").split(":").slice(0, 8).join(":");

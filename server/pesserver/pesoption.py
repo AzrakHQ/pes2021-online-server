@@ -5,7 +5,11 @@ Why: online modes reload the player database from the game files and the Live Up
 play only as a Live Update. The conversion applies the option file to the game's own tables (Player.bin,
 Team.bin, PlayerAssignment.bin from download/dt80_100E_x64.cpk of a PES 2021 copy on this computer) and writes
 them into a CPK next to it; liveupdate.py offers the newest CPK. Proven live: a converted file gave CHECK_CHEAT
-sums equal to the model's.
+sums equal to the model's. Self-check: a fresh option file rebuilds all five tables (with Tactics.bin and
+TacticsFormation.bin) byte for byte.
+
+A patch's CPK in the folder (common/etc/pesdb/*.bin, no version_wu.bin) becomes patch-<name>: its tables as they
+are (a Live Update makes the game reload all 28 tables; dbgaps.md §5).
 
 The option file's layout (update.md; edit player fields proven on 60 players with the game's own converter):
 - data = 80-byte header + counts at 0x50 (u16: players 0x60, teams 0x64, squads 0x70, formations 0x74) +
@@ -35,7 +39,15 @@ TEAMS_AT, TREC, SREC, FREC = 0x8ed2fc, 0x24c, 0x11c, 0x274
 # sets of 11 role codes + 11 x/y pairs = TacticsFormation.bin), +0x20c 10 squad indexes: set-piece takers and
 # captain -> PlayerAssignment bits (index: bit). Both rebuild the game's own files byte for byte from a fresh file.
 TAKER_BITS = {0: 19, 1: 17, 3: 18, 4: 16, 5: 20, 9: 21}
+# a tactic's settings, after its 3 formation sets (tactic block +0x63): byte -> Tactics.bin word bits. Toggles
+# (attacking style, build up, ...): byte p -> bit; levels 1..: byte p -> (shift, width), stored minus 1. Bits 12..18
+# aren't in the option file (kept); bit 24 = the team's second game plan (the option file's tactic 2).
+TACTIC_FLAGS = {0: 25, 1: 30, 2: 28, 3: 23, 4: 29, 5: 27, 6: 26}
+TACTIC_LEVELS = {44: (0, 4), 41: (4, 4), 43: (8, 4), 42: (19, 2), 45: (21, 2)}
+TACTIC_KEEP = (0x7f << 12) | (1 << 24) | (1 << 31)
 PDB = "common/etc/pesdb/"
+VERSION_FILE = "common/etc/version/version_wu.bin"
+EXTRA_VERSION_FILE = "common/etc/version/version_xu.bin"
 SUMMARY = "pesserver/option.json"      # inside the CPK: what the conversion did (the game ignores the file)
 
 # edit field -> (byte offset, size, shift, mask, Player.bin parameter index or None)  [the game's getters,
@@ -231,24 +243,29 @@ def apply(tables, ed):
         name = _cstr(r[0x68:0xae])
         if o is None or name in ("", "-"):         # ("-": no name of its own in the file)
             continue
-        if _cstr(traw[o + 0x170:o + 0x170 + 70]) != name:
+        # Team.bin has a name in several fields (languages, the unlicensed short name +0x566); the game fills the
+        # option file from one of them. Only a name none of them has is a rename (a fresh file changes nothing).
+        if name not in (_cstr(traw[o + 0x170:o + 0x170 + 70]), _cstr(traw[o + 0x5b6:o + 0x5fc])):
             renamed += 1
-        traw[o + 0x170:o + 0x170 + 70] = r[0x68:0x68 + 70]       # the English name, the short name
-        traw[o + 0x372:o + 0x372 + 10] = r[0xae:0xae + 10]
+            traw[o + 0x170:o + 0x170 + 70] = r[0x68:0x68 + 70]   # the English name
+        short = _cstr(r[0xae:0xae + 10])
+        if short not in ("", "-", _cstr(traw[o + 0x372:o + 0x372 + 10]), _cstr(traw[o + 0x566:o + 0x566 + 10])):
+            traw[o + 0x372:o + 0x372 + 10] = r[0xae:0xae + 10]   # the short name
         struct.pack_into("<I", traw, o, struct.unpack_from("<I", r, 4)[0])      # the coach
     pa = tables["PlayerAssignment.bin"]
-    old, base = {}, {}
+    old, base, ids = {}, {}, {}                     # (team, player) -> flags / row id; team -> its rows in file order
     for o in range(0, len(pa) - 15, 16):
-        _, pid, tid, f = struct.unpack_from("<IIII", pa, o)
-        old[(tid, pid)] = f
-        base.setdefault(tid, set()).add(pid)
+        rid, pid, tid, f = struct.unpack_from("<IIII", pa, o)
+        old[(tid, pid)], ids[(tid, pid)] = f, rid
+        base.setdefault(tid, []).append(pid)
     squads, forms = ed["squads"] or {}, ed.get("forms") or {}
     rows, changed = [], 0
-    for tid in [t for t in base if t not in squads] + list(squads):    # teams the file has no squad for: as they were
+    for tid in list(base) + [t for t in squads if t not in base]:     # (the game's order; teams without a squad: as they were)
         if tid in squads:
             lst = squads[tid]
-            changed += {p for p, _ in lst} != base.get(tid, set())
+            changed += {p for p, _ in lst} != set(base.get(tid, ()))
             takers = forms[tid][0x20c:0x216] if tid in forms else None
+            team = []
             for slot, (pid, shirt) in enumerate(lst):
                 if not pid:                                                # (ids above 0x3ffff are real: a flag bit)
                     continue
@@ -256,33 +273,74 @@ def apply(tables, ed):
                     roles = sum(1 << b for i, b in TAKER_BITS.items() if takers[i] == slot)
                 else:
                     roles = old.get((tid, pid), 0) & ~0xffff
-                rows.append((pid, tid, roles | ((slot & 0x3f) << 10) | ((shirt - 1) & 0x3ff)))
+                team.append((pid, tid, roles | ((slot & 0x3f) << 10) | ((shirt - 1) & 0x3ff)))
+            at = {p: i for i, p in enumerate(base.get(tid, ()))}         # players already there keep their row's place
+            rows += sorted(team, key=lambda row: at.get(row[0], len(at)))
         else:
-            rows += [(pid, tid, f) for (t, pid), f in old.items() if t == tid]
-    pa_out = b"".join(struct.pack("<IIII", i + 1, p, t, f) for i, (p, t, f) in enumerate(rows))
+            rows += [(pid, tid, old[(tid, pid)]) for pid in base[tid]]
+    fresh = max(ids.values(), default=0)                               # row ids: kept; a new row takes the next one
+    pa_out = bytearray()
+    for p, t, f in rows:
+        rid = ids.get((t, p))
+        if rid is None:
+            fresh += 1
+            rid = fresh
+        pa_out += struct.pack("<IIII", rid, p, t, f)
+    pa_out = bytes(pa_out)
     out = {"Player.bin": bytes(praw), "Team.bin": bytes(traw), "PlayerAssignment.bin": pa_out}
-    tf = _formations(tables, forms)
-    if tf is not None:
-        out["TacticsFormation.bin"] = tf
+    tactics = _tactics(tables, forms)
+    if tactics is not None:
+        out["Tactics.bin"] = tactics
+        tf = _formations(tables, forms)
+        if tf is not None:
+            out["TacticsFormation.bin"] = tf
     return out, {"players": len(ed["players"]), "new_players": added, "teams_renamed": renamed,
                  "squads_changed": changed}
 
 
+def _plans(t):
+    """{team id: [(tactic id, Tactics.bin offset), ...]} in the option file's order: a team's first game plan,
+    then the one with bit 24 (not always Tactics.bin order)."""
+    plans = {}
+    for q in range(0, len(t) - 11, 12):
+        tac, tid, w = struct.unpack_from("<III", t, q)
+        plans.setdefault(tid, []).append((w >> 24 & 1, q, tac))
+    return {tid: [(tac, q) for _, q, tac in sorted(lst)] for tid, lst in plans.items()}
+
+
+def _tactics(tables, forms):
+    """Tactics.bin with the option file's team settings (styles, support range, defensive line, compactness...)."""
+    t = tables.get("Tactics.bin")
+    if not forms or t is None:
+        return None
+    out = bytearray(t)
+    for tid, plans in _plans(t).items():
+        r = forms.get(tid)
+        if r is None:
+            continue
+        for j, (_, q) in enumerate(plans[:3]):
+            b = r[4 + j * 0xa0 + 0x63:4 + (j + 1) * 0xa0]
+            w = struct.unpack_from("<I", t, q + 8)[0] & TACTIC_KEEP
+            for p, bit in TACTIC_FLAGS.items():
+                w |= (1 if b[p] else 0) << bit
+            for p, (sh, width) in TACTIC_LEVELS.items():
+                w |= (min(max(b[p], 1), 1 << width) - 1) << sh
+            struct.pack_into("<I", out, q + 8, w)
+    return bytes(out)
+
+
 def _formations(tables, forms):
-    """TacticsFormation.bin with the option file's formations: a team's tactics, in Tactics.bin order, take the
+    """TacticsFormation.bin with the option file's formations: a team's game plans (_plans order) take the
     option file's tactics 1..3 (3 sets x 11 rows {tactic, role, set<<20 | slot<<16 | y<<8 | x})."""
     t, tf = tables.get("Tactics.bin"), tables.get("TacticsFormation.bin")
     if not forms or t is None or tf is None:
         return None
-    team_tactics, new = {}, {}
-    for q in range(0, len(t) - 11, 12):
-        tac, tid, _ = struct.unpack_from("<III", t, q)
-        team_tactics.setdefault(tid, []).append(tac)
-    for tid, tacs in team_tactics.items():
+    new = {}
+    for tid, plans in _plans(t).items():
         r = forms.get(tid)
         if r is None:
             continue
-        for j, tac in enumerate(tacs[:3]):
+        for j, (tac, _) in enumerate(plans[:3]):
             b = r[4 + j * 0xa0:4 + (j + 1) * 0xa0]
             new[tac] = [(b[s * 33 + k], (s << 20) | (k << 16) | (b[s * 33 + 12 + 2 * k] << 8) | b[s * 33 + 11 + 2 * k])
                         for s in range(3) for k in range(11)]
@@ -317,21 +375,91 @@ def build(option_path, out_path, cpks=None, previous=0):
     out, summary = apply(tables, ed)
     ver = version_for(time.time(), previous)
     summary = {**summary, "version": ver, "source": [st.st_mtime, st.st_size]}
-    files = {SUMMARY: json.dumps(summary).encode(), "common/etc/version/version_wu.bin":
-             b"".join(f.encode().ljust(10, b"\0") for f in (ver, "1.01.00", "option"))}
-    files.update({PDB + n: wrap(blob) for n, blob in out.items()})
+    _write(out_path, {PDB + n: wrap(blob) for n, blob in out.items()}, summary, "option")
+    return summary
+
+
+def patch_contents(path):
+    """(database tables {name: TOC row}, other files [TOC rows]) of a community patch's CPK, or None when it is
+    empty or already an update (has version_wu.bin or version_xu.bin: offered as it is)."""
+    _, rows = cpkread.toc(path)
+    tables, other = {}, []
+    for r in rows:
+        n = cpkread.name(r)
+        if n.lower() in (VERSION_FILE, EXTRA_VERSION_FILE):
+            return None
+        if n.lower().startswith(PDB) and n.lower().endswith(".bin") and "/" not in n[len(PDB):]:
+            tables[n[len(PDB):]] = r
+        elif n and r.get("FileSize"):
+            other.append(r)
+    return (tables, other) if tables or other else None
+
+
+MAX_EXTRA = 0xffffffff     # the game's download size is a u32
+
+
+def build_patch(patch_path, out_path, previous=0, extra_path=None):
+    """A patch's CPK -> a Live Update at out_path with its database tables (a Live Update reloads all of them) and
+    an Extra Update at extra_path with all its other files, copied as they are (faces, kits, emblems...: the
+    Extra Update is bound above the game's data at every start). Returns the summary (+ version, source)."""
+    st = os.stat(patch_path)
+    found = patch_contents(patch_path)
+    if not found:
+        raise ValueError("nothing in it")
+    rows, other = found
+    if other and not extra_path:
+        other = []
+    if not rows and not other:
+        raise ValueError("no player database (common/etc/pesdb) in it")
+    files = {}
+    for n, r in sorted(rows.items()):
+        blob = cpkread.read_entry(patch_path, r)
+        unwrap(blob)                                   # (a damaged table fails here, not in the games)
+        files[PDB + n] = blob
+    counts = {}
+    for n, size, key in (("Player.bin", 312, "db_players"), ("Team.bin", 0x5fc, "db_teams")):
+        if PDB + n in files:
+            counts[key] = len(unwrap(files[PDB + n])) // size
+    ver = version_for(time.time(), previous)
+    summary = {"kind": "patch", "tables": len(files), **counts, "graphics": len(other), "version": ver,
+               "source": [st.st_mtime, st.st_size]}
+    if other:
+        total = sum(r["FileSize"] for r in other)
+        if total + (len(other) + 64) * 0x800 > MAX_EXTRA:
+            raise ValueError(f"its graphics are too big for the game's download ({total >> 20} MB, 4 GB at most)")
+        lst = [(cpkread.name(r), (patch_path, r["_abs"], r["FileSize"]), r["ExtractSize"]) for r in other]
+        _write(extra_path, {}, summary, "patch", extra=lst)
+    if files:
+        _write(out_path, files, summary, "patch")
+    return summary
+
+
+def _write(out_path, files, summary, label, extra=None):
+    """A CPK of ours: the summary, the version file (version_xu.bin for an Extra Update: extra = [(path in the
+    CPK, (source file, offset, size), unpacked size)]) and the files {path: bytes}."""
+    if extra is None:
+        version = {VERSION_FILE: b"".join(f.encode().ljust(10, b"\0") for f in (summary["version"], "1.01.00", label))}
+    else:                      # + the data pack it needs: 1.00 (else the game drops it at start; update.md)
+        version = {EXTRA_VERSION_FILE: b"".join(f.encode().ljust(10, b"\0")
+                                               for f in (summary["version"], "1.01.00", "1.00", label))}
+    files = {SUMMARY: json.dumps(summary).encode(), **version, **files}
     from .cpkwrite import write_cpk
     with tempfile.TemporaryDirectory() as tmp:
         lst = []
-        for name, blob in files.items():
-            p = os.path.join(tmp, name.replace("/", "_"))
+        for i, (name, blob) in enumerate(files.items()):
+            p = os.path.join(tmp, str(i))
             with open(p, "wb") as f:
                 f.write(blob)
             lst.append((name, p))
+        names = {n.upper() for n, _ in lst}
+        lst += [e for e in (extra or []) if e[0].upper() not in names]
         part = out_path + ".part"
-        write_cpk(part, lst)
-        os.replace(part, out_path)
-    return summary
+        try:
+            write_cpk(part, lst)
+            os.replace(part, out_path)
+        finally:
+            if os.path.exists(part):
+                os.remove(part)
 
 
 # ---- the Live Update folder --------------------------------------------------------------------------------
@@ -347,8 +475,33 @@ def is_option_file(name):
     return bool(_NAME.fullmatch(name))
 
 
-def out_name(option_name):
-    return f"option-{option_name}.cpk"
+def out_name(source_name):
+    """The Live Update made from a source in the folder: option-EDIT00000000.cpk, patch-<patch name>."""
+    return f"option-{source_name}.cpk" if is_option_file(source_name) else f"patch-{source_name}"
+
+
+def extra_name(source_name):
+    """The Extra Update (graphics) made from a patch: extra-<patch name>."""
+    return f"extra-{source_name}"
+
+
+def _maybe_patch(name):
+    low = name.lower()
+    return low.endswith(".cpk") and not low.startswith(("option-", "patch-", "extra-"))
+
+
+_PATCHES = {}              # path -> ((mtime, size), is a patch): a CPK's table of contents is read once
+
+
+def _is_patch(path, key):
+    c = _PATCHES.get(path)
+    if c is None or c[0] != key:
+        try:
+            yes = patch_contents(path) is not None
+        except Exception:  # noqa: BLE001 - not a CPK, or a damaged one: liveupdate.py says so
+            yes = False
+        c = _PATCHES[path] = (key, yes)
+    return c[1]
 
 
 def _summary_of(cpk):
@@ -369,27 +522,42 @@ def _high(folder):
 
 
 def refresh(folder):
-    """Convert each option file in the folder whose CPK is missing or was made from another file; drop the CPKs
-    (and the page's notes) of option files that are gone. Called by liveupdate's thread."""
+    """Turn each option file (EDIT00000000) and each patch CPK (database tables, no version_wu.bin) in the folder
+    into its Live Update when that is missing or was made from another file; drop the Live Updates (and the
+    page's notes) of sources that are gone. Called by liveupdate's thread."""
     try:
         names = os.listdir(folder)
     except OSError:
         return
     states = STATE.setdefault(folder, {})
+    sources = set()
     for n in names:
         src = os.path.join(folder, n)
-        if not is_option_file(n) or not os.path.isfile(src):
+        if not (is_option_file(n) or _maybe_patch(n)) or not os.path.isfile(src):
             continue
-        dst = os.path.join(folder, out_name(n))
         try:
             st = os.stat(src)
         except OSError:
             continue
         key = [st.st_mtime, st.st_size]
+        if not is_option_file(n) and not _is_patch(src, tuple(key)):
+            continue
+        sources.add(n)
+        dst = os.path.join(folder, out_name(n))
+        xdst = None if is_option_file(n) else os.path.join(folder, extra_name(n))
         made = _summary_of(dst) if os.path.isfile(dst) else None
+        if made is None and xdst and os.path.isfile(xdst):            # (a patch with graphics only)
+            made = _summary_of(xdst)
+        if made is not None and xdst and (made.get("graphics") and not os.path.isfile(xdst)
+                                          or made.get("tables") and not os.path.isfile(dst)):
+            made = None                                                # one of the two went missing: again
         if made is not None and made.get("source") == key:
             if n not in states:                    # (made before this run: its summary is inside)
-                states[n] = {"file": n, "cpk": out_name(n), "summary": made, "t": os.path.getmtime(dst)}
+                try:                                   # (a patch with graphics only has no dst)
+                    t = os.path.getmtime(dst if os.path.isfile(dst) else xdst)
+                except (OSError, TypeError):
+                    t = time.time()
+                states[n] = {"file": n, "cpk": out_name(n), "summary": made, "t": t}
             continue
         failed = _FAILED.get((folder, n))
         if failed and failed[0] == tuple(key) and time.time() - failed[1] < RETRY:
@@ -397,26 +565,39 @@ def refresh(folder):
         with _LOCK:
             t = time.time()
             try:
-                summary = build(src, dst, previous=_high(folder))
+                if is_option_file(n):
+                    summary = build(src, dst, previous=_high(folder))
+                else:
+                    for old_out in (dst, xdst):                        # (what an older version of it made)
+                        if os.path.isfile(old_out) and _summary_of(old_out) is not None:
+                            os.remove(old_out)
+                    summary = build_patch(src, dst, previous=_high(folder), extra_path=xdst)
                 v = int(summary["version"].replace(".", ""))
                 with open(os.path.join(folder, HIGH), "w") as f:
                     f.write(str(v))
                 states[n] = {"file": n, "cpk": out_name(n), "summary": summary, "t": t}
                 _FAILED.pop((folder, n), None)
-                log.info("option file %s -> %s: %s", n, os.path.basename(dst), summary)
+                log.info("%s -> %s: %s", n, os.path.basename(dst), summary)
             except Exception as e:  # noqa: BLE001 - a broken or foreign file: say so on the admin page
                 states[n] = {"file": n, "cpk": out_name(n), "error": str(e) or e.__class__.__name__, "t": t}
                 _FAILED[(folder, n)] = (tuple(key), t)
-                log.warning("option file %s not converted: %s", n, e)
-    for n in list(states):                         # an option file that went away: its note goes too
-        if n not in names:
+                log.warning("%s not turned into a Live Update: %s", n, e)
+    for n in list(states):                         # a source that went away: its note goes too
+        if n not in sources:
             states.pop(n, None)
-    for n in names:                                # ... and its CPK (only ours: named for one, with our summary)
-        if n.startswith("option-") and n.endswith(".cpk") and is_option_file(n[7:-4]) and n[7:-4] not in names:
-            path = os.path.join(folder, n)
-            if _summary_of(path) is not None:
-                try:
-                    os.remove(path)
-                    log.info("option file %s removed: %s removed", n[7:-4], n)
-                except OSError:
-                    pass
+    for n in names:                                # ... and its Live Update (only ours: named for one, our summary)
+        if n.startswith("option-") and n.endswith(".cpk") and is_option_file(n[7:-4]):
+            src = n[7:-4]
+        elif n.startswith(("patch-", "extra-")) and _maybe_patch(n[6:]):
+            src = n[6:]
+        else:
+            continue
+        if src in sources or src in names:
+            continue
+        path = os.path.join(folder, n)
+        if _summary_of(path) is not None:
+            try:
+                os.remove(path)
+                log.info("%s removed: %s removed", src, n)
+            except OSError:
+                pass

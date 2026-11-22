@@ -297,10 +297,15 @@ def get_dlc_filelist(svc, sess, req):
     viewer = req.get("_http") or sess
     e = liveupdate.entry(svc, f"http://{_addr(svc, viewer)}:{os.environ.get('PESSERVER_HTTP_PORT', '8080')}")
     if e is not None:
-        return {"result": NOERR, "dlc_version": "1.00", "dlcfile_list_count": 1, "dlcfile_list": [e],
-                "variation_file_list_count": 0, "variation_file_list": []}
-    return {"result": NOERR, "dlc_version": "1.00", "dlcfile_list_count": 0, "dlcfile_list": "",
-            "variation_file_list_count": 0, "variation_file_list": ""}
+        out = {"result": NOERR, "dlc_version": "1.00", "dlcfile_list_count": 1, "dlcfile_list": [e],
+               "variation_file_list_count": 0, "variation_file_list": []}
+    else:
+        out = {"result": NOERR, "dlc_version": "1.00", "dlcfile_list_count": 0, "dlcfile_list": "",
+               "variation_file_list_count": 0, "variation_file_list": ""}
+    x = liveupdate.entry(svc, liveupdate.extra_base(), kind="xu")   # graphics: saved as download/ExtraUpdate.bin
+    if x is not None:                                               # (listed only when there is one: count and
+        out.update(extra_file_list_count=1, extra_file_list=[x])   # list must agree; live.md)
+    return out
 
 
 # Real team ids from Team.bin (internal DB ids). team_class drives class-based matching only.

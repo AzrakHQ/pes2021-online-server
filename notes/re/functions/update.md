@@ -30,11 +30,55 @@ test server (probe), 2026-11-22.
   menu after login; "EDIT MESSI" only inside Online Tournament. The stored update is bound and the DB reloaded
   with it only on entering an online mode (LiveDataSetFlow); offline modes keep the game data + the player's own
   option file. (The handler's bind is vfunc +0x10 of the vtable at 0x1429429c8, 0x1413f8e10.)
+- **Graphics DO reach the game through the Extra Update [live 2026-11-22].** The Extra Update
+  (`download/ExtraUpdate.bin`, a CPK with `common/etc/version/version_xu.bin`) is bound at every boot with
+  priority 6 (above the data packs and the Live Update) and right after a download:
+  1. A CPK with 2,910 magenta flags (`common/render/symbol/flag/*.png`) + an edited `eng/string/all.str` put by
+     hand at copy 2's `download/ExtraUpdate.bin` → after boot the version table had xu 101 / required DP 100
+     (probe: 0x141989390(0x1414a0b00(), 0x13), 0x1414a0be0(…, 0x13)), and Kick Off → Local Match team select
+     showed **magenta flags**. The menu text did not change (all.str is loaded before, or from another place).
+  2. The test server listed a second one (1.02, green flags) as `extra_file_list` in CMD_GET_DLC_FILELIST: the
+     game fetched it at login — **only over HTTPS** (a plain http:// address got a TLS handshake and "New data
+     asset download unsuccessful"); with `https://ntl.service.konami.net:8080/liveupdate/xu2.cpk` (the mod sends
+     the NTL names to our server, whose certificate is for them) it sent `GET /liveupdate/xu2.cpk` with
+     `Range: bytes=0-6094847`, saved the file byte for byte as `download/ExtraUpdate.bin`, version table xu 102,
+     and the team select showed **green flags without a restart**. Screenshots: scratchpad
+     extra-update-magenta-flags-boot.png, extra-update-green-flags-proof.png.
+  - version_xu.bin (40 B, four 10-byte fields): content version ("1.02" → compared with the entry's
+    `dlc_version` "102"), program version "1.01.00", **required data pack version** (must be ≤ the installed one
+    and the same major: "1.00"; else unbound at boot, 0x140404449 / 0x1404068e6), build label.
+  - **No overall time limit** [static]: the Extra Update downloader (UtilHttpDownloadFile → its own thread
+    "HttpDLThread", 0x1421b05b0) sets only WinHTTP per-step timeouts (0x1421b1e00: WinHttpSetTimeouts(resolve 0,
+    connect [+0x10], send 60 s, receive [+0xc])), unlike the Live Update's HttpsTransaction with one 120 s limit
+    for the whole transfer (default 60 s, 0x14116fa3b; checked at 0x141170480). So a big graphics pack can
+    download as long as data keeps coming. It asks with `Range: bytes=0-<size-1>` and resumes with
+    `bytes=<n>-` (dlData.bin + ".unverified"): the server answers 200 for the whole file (as seen live) and 206
+    for the rest (httpgate._range).
+- **Kits change in a match through the Extra Update [live 2026-11-22].** An Extra Update (1.03) put at copy 2's
+  `download/ExtraUpdate.bin` with all 836 other `Asset/model/character/uniform/texture/#windx11/u<team>p1/p2.ftex`
+  holding Arsenal's u0101p1.ftex (1 GB, every entry a copy): offline Local Match Anderlecht v Anderlecht → at kick
+  off all 20 outfield players wore Arsenal's red home kit (goalkeepers, not swapped, as usual); fans in the stands
+  wore it too. Screenshot: scratchpad extra-update-kits-proof.png. So in-match 3D textures (and very likely faces,
+  boots, balls, stadium files) come from the Extra Update. Audio (common/sound/menu, eng/sound/acb|awb commentary,
+  common/sound/match) not heard, but:
+- **The menu music list comes from the Extra Update [live 2026-11-22].** `common/sound/menu/playlist/Playlist.xml`
+  (dt40; `<CueList Num="25">` of `<Label CueName="BGM0_LIC_MENU_01" Id="19000" Title=… Artist=… Offset=…/>`, cues
+  in `common/sound/menu/acb|awb/BGM_P2P` 191 MB and `BGM` 35 MB) with every Title set to "XU TEST n", put in an
+  Extra Update → Option/OpSoundTrack ("Menu BGM", flow jump 0x14149b790(mgr, 0x1030008, 0x14265a730)) listed
+  "XU TEST 1…". So new menu music = a Playlist.xml entry + its cue in a rebuilt ACB/AWB (CRI ADX2: HCA audio;
+  community tools exist, none in the repo). Commentary banks: `eng/sound/acb|awb` (dt41_eng_all, 861 MB); other
+  languages' sound configs ship in dt80 (ara, bra, can…), their audio isn't installed here.
+- **The Live Update applies offline too [live 2026-11-22].** Kick Off → Local Match runs LiveDataSetFlow
+  (CMD_GET_DLC_FILELIST; with no update: "No new Live Update available"). With the converted option file
+  (EDIT.test2) offered by the test server and downloaded at login: Messi was "L. MESSI" in the DB at the main menu,
+  then after entering Local Match the dialog read "No Live Update changes to Condition Rating…" and the DB had
+  **"EDIT MESSI"**. So the server's squads also reach offline Local Match (the team select's RS button switches
+  "Live Update Data/Uniform Ratings"). The earlier "online modes only" holds for the title/main menu.
 - **Save files can be read and written** (tools/pessave.py): every save type round-trips byte for byte
   (SYSTEM00000000, LIVE00000000, EDIT00000000), the game accepted our re-packed EDIT00000000.
 - **Live Update limits** (live.md): one Live Update + 16 Variation files + the Extra Update, 120 s per download,
   `size` = exact file length; the server already serves `<data>/liveupdate/*.cpk` (liveupdate.py).
-- **Graphics through a Live Update: not shown so far** [live, inconclusive]. A Live Update replacing all 2,911
+- **Graphics through a Live Update (not the Extra one): not shown** [live]. A Live Update replacing all 2,911
   team emblems / flags (`common/render/symbol/flag/*.png`, every one in dt15 + dt80) downloaded and bound, but the
   Online Tournament team select still showed the real flags, also after a restart. The stored Live Update is bound
   only when entering online mode (LiveDataSetFlow), after boot; flags may be preloaded at boot. A text change in
@@ -102,14 +146,28 @@ Apply loop 0x141ef7c60 (record sizes): players 0x138 → 0x141ef8660; teams 0x24
 
 ## Formations, captain and set-piece takers (kind 8, 0x274 per team)
 After the squads (fresh file: 0xa09880, count at data 0x74), records in team order:
-- +0 team id; three tactics of 0xa0 bytes from +4 (the team's Tactics.bin entries in file order take 1, 2, …);
-  each tactic = 3 formation sets × (11 role codes + 11 x/y byte pairs) = TacticsFormation.bin rows
-  `{tactic, role, set<<20 | slot<<16 | y<<8 | x}`, then settings bytes (Tactics.bin's packed word: not mapped).
+- +0 team id; three tactics of 0xa0 bytes from +4 = the team's game plans: **tactic 1 = the Tactics.bin entry
+  without bit 24, tactic 2 = the one with it** (37 teams list the bit-24 plan first in Tactics.bin; their two
+  formations happen to be equal in the stock data, so file order looked right at first); tactic 3 = a copy of 1.
+  Each tactic = 3 formation sets × (11 role codes + 11 x/y byte pairs) = TacticsFormation.bin rows
+  `{tactic, role, set<<20 | slot<<16 | y<<8 | x}`, then 61 settings bytes (+0x63) = Tactics.bin's packed word
+  (`{tactic id, team id, word}`, 12 B; 2 per team), **all 1,338 match**:
+  - toggles (0/1) byte 0 → bit 25, 1 → 30, 2 → 28, 3 → 23, 4 → 29, 5 → 27, 6 → 26 (the 7 two-way settings:
+    attacking style, build up, attacking area, positioning, defensive style, containment area, pressuring; which
+    is which not checked in the menu);
+  - levels, stored minus 1: byte 44 → bits 0..3, 41 → 4..7, 43 → 8..11 (1..10: support range, defensive line,
+    compactness by range; names unchecked), 42 → bits 19..20 and 45 → 21..22 (1..3);
+  - bits 12..18 aren't in the option file (no byte or Team.bin field matches; kept from the game), bit 31 never set;
+  - bytes 9, 14, 25, 30 are per team (equal in all 3 tactics): 9 = 0..9, 25 = 0/11/12/13/16, 14/30 = 0/127
+    (advanced instructions + targets?); not in Tactics.bin or Team.bin [unknown source].
 - +0x1e4: 40 bytes 1..39 (an order list, unused here); +0x20c: 10 squad-list indexes (0xff = none) = the
   PlayerAssignment role bits: index 0 → bit 19, 1 → bit 17, 3 → bit 18, 4 → bit 16, 5 → bit 20, **9 → bit 21
   captain** (2 has no PA bit).
-- Proof: from a fresh option file all 18,582 PlayerAssignment rows (shirt, order, roles, captain) and all 1,338
-  tactics' TacticsFormation rows rebuild **byte for byte** equal to the game's files.
+- Proof: from a fresh option file Player.bin, Team.bin, PlayerAssignment.bin (row ids and order kept),
+  Tactics.bin and TacticsFormation.bin all rebuild **byte for byte** equal to the game's files (2026-11-22).
+- Team names: Team.bin has the name in several fields (languages; +0x5b6 holds e.g. "UNITED STATES" where +0x170
+  has "USA"; +0x566 = the unlicensed short name "WHA" where +0x372 has "WHU"). The game fills the option file from
+  one of them, so a name found in any of these fields is not a rename.
 - Player ids in squads can exceed 0x3ffff (bit 18 = a flag): keep them (dropping them changed entry_check_sum).
 
 ## Edit player field → pesdb parameter (proven on 60 players)
