@@ -13,6 +13,8 @@ Rules found live (2026-11-05/06):
 - the CPK must contain common/etc/version/version_wu.bin (three 10-byte fields: live data version, game
   version, label); notes/re/functions/tools/mklivedata.py builds one.
 The newest *.cpk in the folder wins. Remove the file to stop offering it (games keep what they saved).
+An option file (EDIT00000000) put in the folder is converted into option-EDIT00000000.cpk first (pesoption.py):
+online modes never use edit data, so that is how its squads reach online play.
 
 The file's SHA-256 is worked out by a background thread (start), at startup and when the folder changes, so a
 game's request doesn't wait for hundreds of MB to be read. A name with spaces or other characters that don't
@@ -130,6 +132,11 @@ def start(svc):
 
     def loop():
         while True:
+            try:
+                from . import pesoption
+                pesoption.refresh(folder(svc))       # an option file in the folder -> its Live Update CPK
+            except Exception:  # noqa: BLE001
+                log.exception("option file")
             try:
                 current(svc, wait=True)
             except Exception:  # noqa: BLE001

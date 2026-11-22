@@ -2279,9 +2279,12 @@ $("dc-off").onclick = async () => {
 function luHtml(lu) {
   if (!lu) return "";
   const folder = lu.folder ? copyRow(lu.folder, "Folder path", tilde(lu.folder), "wrap") : "";
-  if (lu.name) return `<div class="ok">${I.ok} Offering <b>${esc(lu.name)}</b> (version ${esc(lu.version)}, ${Math.max(1, Math.round(lu.size / 1048576))} MB)${lu.since ? ` since ${esc(dShort.format(new Date(lu.since * 1000)))}` : ""}</div>` +
+  const opt = (lu.options || []).map(o => { const m = o.summary;
+    return o.error ? `<div><b class="warn">${I.warn} ${esc(o.file)} couldn't be used:</b> ${esc(o.error)}</div>`
+      : lu.name === o.cpk && m && m.players != null ? `<div class="small muted">From ${esc(o.file)}: ${plural(m.players, "edited player")}${m.new_players ? ` (${m.new_players} new)` : ""}, ${plural(m.squads_changed, "squad")} changed${m.teams_renamed ? `, ${plural(m.teams_renamed, "team")} renamed` : ""}</div>` : ""; }).join("");
+  if (lu.name) return `<div class="ok">${I.ok} Offering <b>${esc(lu.name)}</b> (version ${esc(lu.version)}, ${Math.max(1, Math.round(lu.size / 1048576))} MB)${lu.since ? ` since ${esc(dShort.format(new Date(lu.since * 1000)))}` : ""}</div>` + opt +
     `<div class="small muted">${lu.sent ? `${plural(lu.sent, "game has", "games have")} downloaded it since the server started.` : "No game has downloaded it yet."} Remove the file to stop.</div>${folder}`;
-  return `<div>Not offering one.</div><div class="small muted">Put a roster update (<code>.cpk</code>) here and every game downloads it, so everyone has the same player data.</div>${folder}`;
+  return `<div>Not offering one.</div>${opt}<div class="small muted">Put a roster update (<code>.cpk</code>) or an option file (<code>EDIT00000000</code>) here and every game downloads it, so everyone has the same player data.</div>${folder}`;
 }
 function remoteHtml(s) {
   const fp = (s.admin_fp || "").split(":").slice(0, 8).join(":");

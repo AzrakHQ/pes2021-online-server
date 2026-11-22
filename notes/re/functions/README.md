@@ -37,6 +37,7 @@ summary is [docs/functions.html](../../../docs/functions.html); these files keep
 | [ktcdtls.md](ktcdtls.md) | the TURN client's DTLS framing (2-byte trailer, type byte) and what a relay must send |
 | [misc.md](misc.md) | co-op group rules and 1v1 co-op recipe, spectating data format, dialog macros, match datagram header decoding |
 | [survey.md](survey.md) | catalogue counts, error codes, myClub / clans / PES League / Matchday / events |
+| [update.md](update.md) | current squads online: only the Live Update reaches online play (edit data never does); the option file (EDIT00000000) layout, its player fields ↔ Player.bin parameters, option file → Live Update (proven by CHECK_CHEAT); graphics through a Live Update (open) |
 
 Tags in the reports: **[static]** read in code at the cited address, **[log]** seen in our traffic,
 **[inferred]**, **[guess]**.
@@ -55,6 +56,8 @@ Tags in the reports: **[static]** read in code at the cited address, **[log]** s
   `cmd CMD_X` (request keys, reply fields, users of the command), `fn`, `refs`, `callers`, `str`, `rtti`,
   `disp 0xOFF [w]` (instructions using a struct offset). References are decoded from the function start, so
   instruction boundaries are always right.
+- `pessave.py` — PES 2021 save files (SYSTEM / EDIT / LIVE …): `info`, `data` (the data section), `pack` (write one back).
+- `pesedit.py` — option file → `info`, or `livedata OUT.cpk` (a Live Update with its players, team names and squads + the expected CHECK_CHEAT sums).
 - `cpkwrite.py` — writes an uncompressed CPK shaped like the game's own. `mklivedata.py OUT.cpk --player ID:PARAM:DELTA --team-short TEAM:TXT --shirt TEAM:PLAYER:N` — a test Live Update plus the CHECK_CHEAT sums it should give.
 - `testserver/` — the runtime add-ons used for the live tests (lobby handlers, TURN-over-DTLS leg, switchable Live Update); see its README.
 - `probe.py` — client for the mod's **debug probe** (`server/mod/probe.c`, built only with `PROBE=1 sh build.sh`,

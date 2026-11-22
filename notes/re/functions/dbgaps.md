@@ -1,5 +1,10 @@
 # DB / Live Update gaps (db.md "Still unknown", live.md §6), static pass 2026-11-06
 
+## Corrections from later findings (2026-11-22)
+- §3c is wrong for online play [live, update.md]: entering an online mode reloads the database without edit data,
+  and edit data is **not** re-applied after a Live Update is bound (DB live mode 1, CHECK_CHEAT = the plain Live
+  Update sums). Option files only change offline modes.
+
 ## Corrections from later findings (2026-11-06)
 - **Live 2026-11-06:** the Team.bin override test passed (scoreboard "BRX", entry sum `1E21A8301DFF…746A` as predicted).
 

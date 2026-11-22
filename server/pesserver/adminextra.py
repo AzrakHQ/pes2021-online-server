@@ -326,6 +326,11 @@ def server(svc):
         lu.update(name=info["name"], size=info["size"], version=f"{v[:-2]}.{v[-2:]}" if len(v) >= 3 else v,
                   since=_safe(lambda: os.path.getmtime(path), None),
                   sent=len({ip for ip, n in _SENT.get(liveupdate.folder(svc), set()) if n == info["name"]}))
+    from . import pesoption
+    opts = list((pesoption.STATE.get(liveupdate.folder(svc)) or {}).values())
+    if opts:                                  # option files in the folder and what became of them (pesoption.py)
+        lu["options"] = [{**{k: o[k] for k in ("file", "error", "summary", "t") if k in o},
+                          "cpk": liveupdate.safe_name(o["cpk"])} for o in opts]
     from . import pesreplay
     rp = {"on": pesreplay.enabled(), "keep": pesreplay.KEEP,
           "folder": _safe(lambda: pesreplay.folder(svc), None)}

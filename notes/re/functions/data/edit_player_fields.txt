@@ -1,0 +1,122 @@
+0 0x141408410 range (4294967295, 32) (2, 0) | mov eax, dword ptr [rcx]; mov dword ptr [rdx], eax; mov al, 1; ret 
+1 0x141402540 range (1, 1) (2, 0) | mov eax, dword ptr [rcx + 0x1c]; shr eax, 0x1f; mov dword ptr [rdx], eax; mov al, 1; ret 
+2 0x1414022d0 range (1, 1) (2, 0) | mov eax, dword ptr [rcx + 0x20]; shr eax, 0x1f; mov dword ptr [rdx], eax; mov al, 1; ret 
+3 0x141402660 range (1, 1) (2, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0x1f; mov dword ptr [rdx], eax; mov al, 1; ret 
+4 0x141402670 range (1, 1) (2, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x16; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+5 0x141402270 range (1, 1) (2, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x17; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+6 0x141402a10 range (1, 1) (2, 0) | movzx eax, byte ptr [rcx + 0x2f]; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+7 0x141402640 range (1, 1) (2, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x19; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+8 0x141402360 range (1, 1) (2, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x1a; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+9 0x1414024e0 range (1, 1) (2, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x1b; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+10 0x141402490 range (1, 1) (2, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x1c; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+11 0x1414096f0 range (4294967295, 32) (2, 0) | mov eax, dword ptr [rcx + 4]; mov dword ptr [rdx], eax; mov al, 1; ret 
+12 0x1414086f0 range (65535, 16) (2, 0) | movzx eax, word ptr [rcx + 8]; mov dword ptr [rdx], eax; mov al, 1; ret 
+13 0x141402280 range (50, 6) (0, 0) | mov eax, dword ptr [rcx + 0x20]; shr eax, 7; and eax, 0x3f; mov dword ptr [rdx], eax; mov al, 1; ret 
+14 0x141402650 range (31, 5) (0, 0) | mov eax, dword ptr [rcx + 0x20]; shr eax, 0xd; and eax, 0x1f; mov dword ptr [rdx], eax; mov al, 1; ret 
+15 0x141402a70 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x1d; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+16 0x141402450 range (250, 8) (0, 0) | movzx eax, byte ptr [rcx + 0xa]; mov dword ptr [rdx], eax; mov al, 1; ret 
+17 0x141402b40 range (150, 8) (0, 0) | movzx eax, byte ptr [rcx + 0xb]; mov dword ptr [rdx], eax; mov al, 1; ret 
+18 0x141402550 range (99, 7) (0, 0) | movzx eax, word ptr [rcx + 0xe]; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+19 0x141402a90 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0xc]; shr eax, 0x17; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+20 0x1414023c0 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x28]; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+21 0x1414022c0 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x10]; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+22 0x1414029f0 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x10]; shr eax, 7; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+23 0x1414024b0 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x10]; shr eax, 0xe; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+24 0x141402a00 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x10]; shr eax, 0x15; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+25 0x141402440 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x24]; shr eax, 0xe; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+26 0x141402620 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x14]; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+27 0x1414022b0 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x14]; shr eax, 7; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+28 0x141402a20 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x14]; shr eax, 0xe; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+29 0x1414022a0 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x14]; shr eax, 0x15; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+30 0x141402480 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0xd; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+31 0x141402470 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x18]; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+32 0x1414022e0 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x18]; shr eax, 7; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+33 0x1414022f0 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x18]; shr eax, 0xe; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+34 0x141402a50 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x18]; shr eax, 0x15; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+35 0x141402390 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x24]; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+36 0x141402460 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x1c]; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+37 0x141402290 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x1c]; shr eax, 7; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+38 0x141402420 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x1c]; shr eax, 0xe; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+39 0x141402300 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x1c]; shr eax, 0x15; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+40 0x141402330 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x24]; shr eax, 7; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+41 0x141402350 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 6; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+42 0x1414023a0 range (99, 7) (0, 0) | mov eax, dword ptr [rcx + 0x20]; and eax, 0x7f; mov dword ptr [rdx], eax; mov al, 1; ret 
+43 0x141402700 range (3, 2) (0, 0) | mov eax, dword ptr [rcx + 0xc]; shr eax, 0x1e; mov dword ptr [rdx], eax; mov al, 1; ret 
+44 0x1414026f0 range (3, 2) (0, 0) | mov eax, dword ptr [rcx + 0x24]; shr eax, 0x1e; mov dword ptr [rdx], eax; mov al, 1; ret 
+45 0x141402a40 range (7, 3) (0, 0) | mov eax, dword ptr [rcx + 0x1c]; shr eax, 0x1c; and eax, 7; mov dword ptr [rdx], eax; mov al, 1; ret 
+46 0x1414023f0 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 7; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+47 0x141402a60 range (7, 3) (0, 0) | mov eax, dword ptr [rcx + 0x20]; shr eax, 0x1c; and eax, 7; mov dword ptr [rdx], eax; mov al, 1; ret 
+48 0x141402370 range (3, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 9; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+49 0x141402a80 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x1e; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+50 0x1414023d0 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0xb; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+51 0x141402410 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0xd; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+52 0x141402310 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0xf; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+53 0x1414024c0 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0x11; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+54 0x141402720 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0x13; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+55 0x1414023b0 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0x15; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+56 0x141402340 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0x17; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+57 0x1414024a0 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0x19; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+58 0x141402710 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0x1b; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+59 0x141402560 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x28]; shr eax, 0x1d; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+60 0x1414024d0 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x14; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+61 0x141402750 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x2c]; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+62 0x141402a30 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 2; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+63 0x141402320 range (2, 2) (0, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 4; and eax, 3; mov dword ptr [rdx], eax; mov al, 1; ret 
+64 0x141402630 range (31, 5) (0, 0) | mov eax, dword ptr [rcx + 0x20]; shr eax, 0x12; and eax, 0x1f; mov dword ptr [rdx], eax; mov al, 1; ret 
+65 0x1414026a0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x2c]; shr eax, 0x1f; mov dword ptr [rdx], eax; mov al, 1; ret 
+66 0x1414026e0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+67 0x141402680 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 1; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+68 0x1414026b0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 2; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+69 0x1414026c0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 3; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+70 0x141402690 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 4; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+71 0x1414026d0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 5; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+72 0x1414029b0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 6; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+73 0x141402800 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 7; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+74 0x141402830 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 8; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+75 0x1414028e0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 9; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+76 0x1414027a0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0xa; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+77 0x141402820 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0xb; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+78 0x141402980 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0xc; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+79 0x141402950 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0xd; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+80 0x1414029c0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0xe; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+81 0x141402850 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0xf; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+82 0x1414027d0 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x32]; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+83 0x1414027e0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x11; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+84 0x1414028f0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x12; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+85 0x141402910 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x13; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+86 0x141402810 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x14; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+87 0x1414029a0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x15; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+88 0x141402770 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x16; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+89 0x141402860 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x17; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+90 0x141402920 range (1, 1) (0, 0) | movzx eax, byte ptr [rcx + 0x33]; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+91 0x1414027f0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x19; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+92 0x1414029e0 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x1a; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+93 0x141402780 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x1b; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+94 0x141402940 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x1c; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+95 0x141402930 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x1d; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+96 0x141402990 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x1e; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+97 0x141402900 range (1, 1) (0, 0) | mov eax, dword ptr [rcx + 0x30]; shr eax, 0x1f; mov dword ptr [rdx], eax; mov al, 1; ret 
+98 0x1414028a0 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+99 0x1414028b0 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 1; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+100 0x141402870 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 2; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+101 0x141402890 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 3; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+102 0x141402840 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 4; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+103 0x141402960 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 5; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+104 0x141402970 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 6; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+105 0x1414028c0 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 7; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+106 0x1414028d0 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 8; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+107 0x1414027b0 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 9; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+108 0x141402880 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 0xa; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+109 0x141402760 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 0xb; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+110 0x141402790 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 0xc; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+111 0x1414029d0 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 0xd; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+112 0x1414027c0 range (1, 1) (0, 0) | movzx eax, word ptr [rcx + 0x34]; shr eax, 0xe; and eax, 1; mov dword ptr [rdx], eax; mov al, 1; ret 
+113 0x1414023e0 range (7, 3) (0, 0) | mov eax, dword ptr [rcx + 0x24]; shr eax, 0x15; and eax, 7; mov dword ptr [rdx], eax; mov al, 1; ret 
+114 0x1414087d0 range (15, 4) (0, 0) | mov eax, dword ptr [rcx + 0x10]; shr eax, 0x1c; mov dword ptr [rdx], eax; mov al, 1; ret 
+115 0x141402740 range (7, 3) (0, 0) | movzx eax, byte ptr [rcx + 0x27]; and eax, 7; mov dword ptr [rdx], eax; mov al, 1; ret 
+116 0x141402730 range (15, 4) (0, 0) | mov eax, dword ptr [rcx + 0x14]; shr eax, 0x1c; mov dword ptr [rdx], eax; mov al, 1; ret 
+117 0x141402380 range (15, 4) (0, 0) | mov eax, dword ptr [rcx + 0x18]; shr eax, 0x1c; mov dword ptr [rdx], eax; mov al, 1; ret 
+118 0x141402400 range (31, 5) (0, 0) | mov eax, dword ptr [rcx + 0x20]; shr eax, 0x17; and eax, 0x1f; mov dword ptr [rdx], eax; mov al, 1; ret 
+119 0x141402610 range (7, 3) (0, 0) | mov eax, dword ptr [rcx + 0x24]; shr eax, 0x1b; and eax, 7; mov dword ptr [rdx], eax; mov al, 1; ret 
+120 0x141e59c20 range (255, 8) (0, 0) | movzx eax, byte ptr [rcx + 0xc]; mov dword ptr [rdx], eax; mov al, 1; ret 
+121 0x141402430 range (255, 8) (2, 0) | movzx eax, byte ptr [rcx + 0xd]; mov dword ptr [rdx], eax; mov al, 1; ret 

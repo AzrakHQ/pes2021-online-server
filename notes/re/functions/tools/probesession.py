@@ -247,7 +247,8 @@ def down(_args):
             shutil.copy2(src, dll); print(f"copy {i}: release DLL restored")
         saves = os.path.join(game(i), "proton", "pfx", SAVE_REL)
         if os.path.exists(saves) and st.get("had_liveupdate", {}).get(str(i)) is False:
-            shutil.rmtree(saves); print(f"copy {i}: test Live Update save deleted")
+            (shutil.rmtree if os.path.isdir(saves) else os.remove)(saves)       # (LIVE00000000 is a file)
+            print(f"copy {i}: test Live Update save deleted")
     if os.path.islink(SERVER_LOG):
         os.unlink(SERVER_LOG)
         if st.get("server_log_moved"):
