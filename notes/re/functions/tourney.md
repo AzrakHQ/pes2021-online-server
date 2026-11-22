@@ -167,7 +167,13 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
     +0x18 raw T*}`; the raw pointers are filled only while the match job runs (`match::BeginListener`) and read 0
     from another thread. Stable: `[[reg+0x268]+0x10]+8` = MatchInfo (raw +0x270; phase at +0x1168: 4 half time,
     8/9/10 the ends, 9 after a shootout), `[[reg+0x2ac8]+0x10]+8` = ModeInfo (raw +0x2ad0; competition id +0x498
-    reads 0 online), raw +0x310 = the score (side 0 / 1 goals at +0x18 / +0x1c, shootout goals included).
+    reads 0 online), raw +0x310 = the penalty shootout (side 0 / 1 kicks scored at +0x18 / +0x1c, kicking side
+    +0x164; 0-0 when there was none). **Not the match score** (mod 0.7/0.8 read it at every end, so finals won
+    in normal or extra time had no ceremony: live 2026-11-22, fixed in 0.8.1).
+  - The winner, as the game's end works it out (dispatcher 0x140488470 by phase: 4 → 0x6000d, 6 → none, 8 / 10 →
+    0x140486b10, 9 → 0x1404878f0): at 8 / 10 0x140486b10 calls 0x1404882a0 (0x140488350 when ModeInfo+0xc319 is
+    1) with rdx = the sequencer's `[[step+0x17860]]` → 0 / 1, 2 = level. The goals: 0x140a80ef0 → 0x140a80d10,
+    stat 0x1408c9df0(`[x+0xe0]`+0x750d0 + side × 0x59650, 5) per side (+ the first leg when two-legged).
   - The end of a match is a step program of the sequencer 0x14044c880 (opcodes at this+0x878, built by
     0x1404505d0 / 0x140452260): time up = `[0x26, 3, 7, 0x45, 0x24]`. Event 7 = the full-time step 0x140447290
     (states at this+0x8f2). In state 0 it calls `[[0x1434a2d40]]->vfunc+0x88`; the object is **match::Online**

@@ -64,7 +64,7 @@
 #include "monocypher/monocypher.h"
 #include "monocypher/monocypher-ed25519.h"
 
-#define MOD_VERSION "0.8.0"
+#define MOD_VERSION "0.8.1"
 
 /* Reserved settings area: the server overwrites everything after the 32-byte marker with
  * "key=...\nname=...\nurl=...\naddrs=a,b\nbook=...\n" (see server/pesserver/identity.py pack_mod). */
@@ -1032,10 +1032,11 @@ static uintptr_t (*o_end_step)(void *, uintptr_t, void *, void *);   /* 0x140447
 static uint32_t (*o_end_pick)(void *, void *, void *, uintptr_t);   /* 0x1404879b0 END group picker */
 static volatile LONG g_final_group;           /* the END group the server armed for this match (0 = none) */
 static volatile LONGLONG g_final_asked;       /* GetTickCount64 of the last question */
+static volatile LONG g_final_side = -1;       /* the winner's side at this full-time step, -1 = not decided */
 
 /* [0x1436f3dc8] = match::registry; its Ref holders keep a raw pointer at +0x18 while the match job runs:
-   +0x270 MatchInfo (phase at +0x1168: 4 half time, 8..10 the end), +0x310 the score (side 0 / 1 goals at
-   +0x18 / +0x1c, shootout goals included: the shootout end compares them the same way). */
+   +0x270 MatchInfo (phase at +0x1168: 4 half time, 8 / 10 the end of extra / normal time, 9 of a shootout),
+   +0x2ad0 ModeInfo, +0x310 the penalty shootout (side 0 / 1 kicks scored at +0x18 / +0x1c; 0 before one). */
 static uint8_t *match_ref(size_t off)
 {
     uint8_t *reg = *(uint8_t **)game_va(0x1436f3dc8);
@@ -1053,16 +1054,29 @@ static BOOL match_online(void)
     return is_online(obj) != 0;
 }
 
-/* The winner's side (0 / 1) once the match is decided, else -1: phase 8..10 (the end of normal time, of extra
-   time, of a shootout) with goals that are not level. A level end of extra time goes on to penalties; the
-   offline end branch there (or at half time) crashes an online game (live 2026-11-21), so it stays closed. */
-static int match_winner(void)
+/* The winner's side (0 / 1) once the match is decided, else -1, the way the game's own end does it (dispatcher
+   0x140488470): after a shootout (phase 9) from the kicks; at the end of normal or extra time (10 / 8) from the
+   goals, through the game's winner function (0x140486b10 calls 0x1404882a0, or 0x140488350 when ModeInfo+0xc319
+   is 1; both take the sequencer's [[step+0x17860]] in rdx and return 0 / 1, 2 = level). A level end of extra time
+   goes on to penalties; the offline end branch there (or at half time) crashes an online game (live 2026-11-21),
+   so it stays closed. (Mod 0.7/0.8 read the shootout kicks at every end: 0-0 after a normal-time win, so finals
+   won in normal or extra time had no ceremony, live 2026-11-22.) */
+static int match_winner(void *step)
 {
     int ph = match_phase();
-    uint8_t *score = match_ref(0x310);
-    if (ph < 8 || ph > 10 || !score) return -1;
-    int32_t g0 = *(int32_t *)(score + 0x18), g1 = *(int32_t *)(score + 0x1c);
-    return g0 == g1 ? -1 : g0 > g1 ? 0 : 1;
+    if (ph == 9) {
+        uint8_t *pk = match_ref(0x310);
+        if (!pk) return -1;
+        int32_t g0 = *(int32_t *)(pk + 0x18), g1 = *(int32_t *)(pk + 0x1c);
+        return g0 == g1 ? -1 : g0 > g1 ? 0 : 1;
+    }
+    if ((ph != 8 && ph != 10) || !step) return -1;
+    uint8_t **seq = *(uint8_t ***)((uint8_t *)step + 0x17860), *mode = match_ref(0x2ad0);
+    if (!seq || !*seq || !*(void **)(*seq + 0xe0) || !mode || !match_ref(0x270)) return -1;
+    uint32_t (*winner)(void *, void *) =
+        (uint32_t (*)(void *, void *))game_va(mode[0xc319] == 1 ? 0x140488350 : 0x1404882a0);
+    uint32_t w = winner(NULL, *seq);
+    return w == 0 ? 0 : w == 1 ? 1 : -1;
 }
 
 /* The full-time step's "online: no end demo" branch (je at 0x1404473ef): 0x74 = the game's own; 0xeb = go on
@@ -1106,7 +1120,9 @@ static uintptr_t hk_end_step(void *self, uintptr_t flag, void *a, void *b)
         HANDLE t = CreateThread(NULL, 0, final_thread, NULL, 0, NULL);
         if (t) CloseHandle(t);
     }
-    BOOL armed = g_final_group && match_winner() >= 0 && match_online();
+    int side = g_final_group ? match_winner(self) : -1;
+    BOOL armed = side >= 0 && match_online();
+    InterlockedExchange(&g_final_side, side);
     end_branch(armed ? 0xeb : 0x74);
     uintptr_t r = o_end_step(self, flag, a, b);
     if (armed && (r & 0xff)) {                     /* the full-time step is over: disarm */
@@ -1119,7 +1135,7 @@ static uintptr_t hk_end_step(void *self, uintptr_t flag, void *a, void *b)
 static uint32_t hk_end_pick(void *a, void *b, void *res, uintptr_t pk)
 {
     LONG grp = g_final_group;
-    int side = match_winner();
+    int side = g_final_side;                         /* (the full-time step around this call worked it out) */
     if (grp && side >= 0 && res && match_online()) {
         *(int32_t *)((uint8_t *)res + 0x200) = side;                /* the side the ceremony is about */
         logf_("cup final over (phase %d%s): trophy ceremony for side %d", match_phase(), (pk & 0xff) ? ", shootout" : "", side);
@@ -1137,6 +1153,10 @@ static const struct { uint64_t va; const char *hex; } trophy_code[] = {
     { 0x1404473e7, "ff9088000000" "84c0746a" },          /* call [rax+0x88] (online?); test al,al; je no-demo */
     { 0x1404879b0, "40555657415441554156415748" },        /* END group picker */
     { 0x140446445, "4c8bc5400fb6d6488bcbe83c0e0000" },    /* sequencer event 7 -> the full-time step */
+    { 0x14044745b, "488b96607801004c8d8690270000488d8e700700004c8bce" },   /* the step's [[this+0x17860]] */
+    { 0x140486cb2, "488b88d02a00004885c975084c8b658f8bdfeb22e8b5885f004c8b658f488b4d97498bd484c07407" },
+    { 0x1404882a0, "48895c2408574883ec20488b0517bb" },    /* winner from the goals */
+    { 0x140488350, "48895c2420574883ec20488b0d67ba" },    /* winner (ModeInfo+0xc319 = 1) */
 };
 
 static void hook_trophy(void)
