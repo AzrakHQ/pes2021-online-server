@@ -1766,7 +1766,7 @@ async function loadPlayer() {
   const list = sheetAll ? all : all.slice(0, 10);
   let body =
     `<p class="small muted" style="margin:0 0 12px">${p.online ? `<span class="pill tag"><span class="dot"></span>online</span> ${(o => o ? statusOf(last, o) + (o.status === "Searching" && o.searching_since ? ` for ${inMin(now - o.searching_since)}` : "") + " · " : "")(last && last.online.find(x => x.pid === pid))}connected ${dur(now - p.since)} · <span title="Address ${esc(p.ip)}">${where(p.ip)}</span>` : p.last_login ? "Last seen " + esc(ago(p.last_login, now)) : "Never signed in"}` +
-      ` · joined ${esc(dShort.format(new Date(p.created * 1000)))} · rating ${esc(p.rating ?? "–")}${rank ? ` · #${rank} in the table` : ""}${p.streak > 1 ? ` · ${p.streak} wins in a row` : ""}</p>` +
+      ` · joined ${esc(dShort.format(new Date(p.created * 1000)))} · rating ${esc(p.rating ?? "–")}${rank ? ` · #${rank} in the table` : ""}${p.streak > 1 ? ` · ${p.streak} wins in a row` : ""}${modVer(p)}</p>` +
     `<div class="mstats"><div><b>${ms.length}</b><span>played</span></div><div><b>${w}–${dr}–${l}</b><span>won–drawn–lost</span></div><div><b>${gf}:${ga}</b><span>goals for:against</span></div><div><b>${ms.length ? Math.round(100 * w / ms.length) + "%" : "–"}</b><span>win rate</span></div></div>` +
     modesHtml(p, now) +
     `<h3>Form <span class="small muted" style="font-weight:400">last ${Math.min(10, ms.length)}, oldest → newest</span></h3>${formHtml(ms.slice(0, 10).map(m => m.res).reverse())}` +
@@ -1979,6 +1979,13 @@ function cupView(c) {
   const played = [...k.groups.flatMap(g => g.ties), ...k.rounds.flatMap(r => r.ties)].some(t => t.how === "played" || t.how === "walkover" || t.replays);
   return `<div class="cup">${rounds}${groups}` + (live && !played ? `<div class="acts" style="margin-top:12px"><button type="button" class="small needs-server" data-tnundraw="${id}" data-key="cupu-${id}">Take back the draw</button></div>` : "") + `</div>`;
 }
+function modVer(p) {
+  if (!p.mod_version) return "";
+  const k = v => String(v).split(".").map(Number), a = k(p.mod_version), b = p.mod_latest ? k(p.mod_latest) : [];
+  const older = b.length && (a[0] - b[0] || a[1] - b[1] || a[2] - b[2]) < 0;
+  return ` · mod ${esc(p.mod_version)}` + (older ? ` <span class="warn">${I.warn} older than ${esc(p.mod_latest)}</span>` : "");
+}
+
 function tnCard(c, now) {
   const teams = c.teams.map(t => c.team_names[String(t)] || teamName(t)), id = c.compe_id;
   const tlist = teams.length <= 6 ? andList(teams.map(esc)) : esc(teams.slice(0, 5).join(", ")) + ` and ${teams.length - 5} more`;

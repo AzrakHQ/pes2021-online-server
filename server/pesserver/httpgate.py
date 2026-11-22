@@ -913,8 +913,16 @@ def _mod(service, route, headers, writer, path=""):
     and addresses written in, for the host to send to friends.
     Returns (status, body, content type, extra header bytes)."""
     from urllib.parse import parse_qs, urlsplit
-    from . import identity, netsetup
+    from . import identity, modversion, netsetup
     host, server, scheme, addrs = _origin(service, headers, writer)
+    ver = modversion.from_headers(headers)
+    if ver and route == "/mod/hello":
+        modversion.hello((writer.get_extra_info("peername") or ("",))[0], ver)
+    elif ver and route in ("/mod/final", "/mod/bracket"):
+        mid = parse_qs(urlsplit(path).query).get("id", [""])[0]
+        if mid:
+            modversion.seen(service, next((s for s in list(service.online.values())
+                                           if getattr(s, "mod_id", None) == mid), None), ver)
     if route == "/mod/note":
         return "200 OK", identity.current_note().encode(), "text/plain; charset=utf-8", b""
     if route == "/mod/hello":

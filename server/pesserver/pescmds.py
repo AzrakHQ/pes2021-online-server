@@ -138,8 +138,9 @@ def _db(svc):
                 pid INTEGER PRIMARY KEY, username TEXT UNIQUE NOT NULL, name TEXT,
                 steamid TEXT, psid INTEGER, created REAL NOT NULL, last_login REAL);""")
             cols = {r[1] for r in db.execute("PRAGMA table_info(pes_players)")}
-            for col, decl in (("rating", "INTEGER NOT NULL DEFAULT 1000"), ("win_streak", "INTEGER NOT NULL DEFAULT 0")):
-                if col not in cols:                     # databases made before ratings existed
+            for col, decl in (("rating", "INTEGER NOT NULL DEFAULT 1000"), ("win_streak", "INTEGER NOT NULL DEFAULT 0"),
+                              ("mod_version", "TEXT")):
+                if col not in cols:                     # databases made before ratings (or mod versions) existed
                     db.execute(f"ALTER TABLE pes_players ADD COLUMN {col} {decl}")
         svc._pes_schema = True
     return db
@@ -225,6 +226,8 @@ def login(svc, sess, req):
         sess.pes_username = username
         sess.pes_pid = p["pid"]
         svc.online[p["pid"]] = sess
+        from . import modversion
+        modversion.save(svc, getattr(sess, "mod_id", None), getattr(sess, "mod_version", None))
     who = f" install={username[2:10]}…" if username != game_user else ""
     log.info("LOGIN username=%s%s pid=%s platform=%s sku=%s", game_user, who, p["pid"], req.get("platform"), req.get("sku"))
     return {"result": NOERR}
@@ -423,7 +426,7 @@ def reconnect(svc, sess, req):
         log.warning("RECONNECT refused: pid %s belongs to another install", pid)
         return {"result": "ERR_LOGIN_FAILED"}
     sess.pes_username, sess.pes_pid = r[0], pid
-    for attr in ("pes_versions", "pes_sums", "pes_match_req", "pes_compe", "pes_reg", "mod_id", "mod_features"):
+    for attr in ("pes_versions", "pes_sums", "pes_match_req", "pes_compe", "pes_reg", "mod_id", "mod_features", "mod_version"):
         if old is not None and hasattr(old, attr) and not hasattr(sess, attr):
             setattr(sess, attr, getattr(old, attr))
     sess.pes_reconnected = True                         # (pesmanner: a blip, not the player quitting)

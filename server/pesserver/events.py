@@ -512,7 +512,7 @@ def player_detail(svc, pid):
     """One player for the admin page's side panel: every match they played (all time) and their activity lines."""
     from . import pescmds
     db = pescmds._db(svc)
-    r = db.execute("SELECT pid, name, created, last_login, rating, win_streak FROM pes_players WHERE pid=?", (pid,)).fetchone()
+    r = db.execute("SELECT pid, name, created, last_login, rating, win_streak, mod_version FROM pes_players WHERE pid=?", (pid,)).fetchone()
     if r is None:
         return None
     _st(svc)
@@ -521,10 +521,12 @@ def player_detail(svc, pid):
         "SELECT " + ", ".join(keys) + " FROM pes_matches WHERE home_pid=? OR away_pid=? ORDER BY id DESC", (pid, pid))]
     name = r[1] or f"Player {pid}"
     sess = svc.online.get(pid)
-    from . import pesnames
+    from . import httpgate, modversion, pesnames
     return {"pid": pid, "name": name, "handle": pesnames.handle_of(svc, pid), "created": r[2], "last_login": r[3], "rating": r[4], "streak": r[5],
             "online": sess is not None, "ip": getattr(sess, "peer_ip", "") if sess else "",
             "since": getattr(sess, "connected_at", None) if sess else None, "matches": matches,
+            "mod_version": (getattr(sess, "mod_version", None) if sess else None) or r[6],
+            "mod_latest": modversion.server_version(httpgate.MOD_DLL),
             "feed": [f for f in _st(svc)["feed"] if about(f, pid, name)][:40]}
 
 

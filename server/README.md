@@ -307,6 +307,7 @@ can't work.
 | `pesserver/netsetup.py` | address detection, UPnP port mapping, per-client advertised address, startup banner; a keeper thread follows a network that comes up late, a new address or a restarted router (the relay then starts again with the new addresses) |
 | `pesserver/identity.py` | the server's Ed25519 identity, signed notes and hellos for the mod, writing settings into the mod DLL |
 | `pesserver/gamesetup.py` | PES 2021 on the server's own computer: finds the copies, keeps the mod in them up to date by itself (and the admin page's buttons) |
+| `pesserver/modversion.py` | each player's mod version (from the mod's user agent on /mod/hello, /mod/final, /mod/bracket), shown in the admin page's player panel with a warning when it is older than the mod this server hands out |
 | `pesserver/certs.py`, `updates.py` | the server's CA and TLS certificate; the "newer version is out" check |
 | `pesserver/__main__.py` | command line: `host` (the program), `serve` (development) |
 | `mod/` | the mod (`dinput8.dll`): MinHook hooks, Monocypher signatures, same-math functions from musl (`mod/musl-math/`, checked by `mod/test/mathcheck.c`), built by `mod/build.sh` (MinGW) |

@@ -68,6 +68,10 @@ async def take_player_id(reader, sess):
     feats = m.group(2) if m.re.groups >= 2 else None
     sess.mod_features = frozenset(feats.decode().split()) if feats else frozenset()
     sess.mod_invite = m.group(3).decode() if m.re.groups >= 3 and m.group(3) else None
+    from . import modversion
+    ver = modversion.of_ip(getattr(sess, "peer_ip", ""))  # (its /mod/hello, seconds ago; saved at login)
+    if ver:
+        sess.mod_version = ver
     log.info("mod install id %s… from %s%s%s", sess.mod_id[:8], sess.peer_ip,
              f" ({' '.join(sorted(sess.mod_features))})" if sess.mod_features else "",
              " with an invite" if sess.mod_invite else "")
