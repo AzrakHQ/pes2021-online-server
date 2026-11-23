@@ -169,7 +169,11 @@ The lobby-type competition (Match Replays) is in peslg_path.md / spectate2.md.
     8/9/10 the ends, 9 after a shootout), `[[reg+0x2ac8]+0x10]+8` = ModeInfo (raw +0x2ad0; competition id +0x498
     reads 0 online), raw +0x310 = the penalty shootout (side 0 / 1 kicks scored at +0x18 / +0x1c, kicking side
     +0x164; 0-0 when there was none). **Not the match score** (mod 0.7/0.8 read it at every end, so finals won
-    in normal or extra time had no ceremony: live 2026-11-22, fixed in 0.8.1).
+    in normal or extra time had no ceremony: live 2026-11-22, fixed in 0.8.1). **But 0.8.1 read the kicks only
+    at phase 9, and a real shootout final (0-0, 3-1 on penalties, both on 0.8.1, 2026-11-23) had no ceremony and
+    no "cup final over" line, where 0.7.0 (kicks at 8..10) had one: the step after a shootout apparently comes at
+    phase 8 or 10. Mod 0.8.2: kicks that are not level decide at 8..10, else the goals at 8 / 10; it logs every
+    end step of an armed final ("cup final end step: phase …") so the next final shows the phase.**
   - The winner, as the game's end works it out (dispatcher 0x140488470 by phase: 4 → 0x6000d, 6 → none, 8 / 10 →
     0x140486b10, 9 → 0x1404878f0): at 8 / 10 0x140486b10 calls 0x1404882a0 (0x140488350 when ModeInfo+0xc319 is
     1) with rdx = the sequencer's `[[step+0x17860]]` → 0 / 1, 2 = level. The goals: 0x140a80ef0 → 0x140a80d10,

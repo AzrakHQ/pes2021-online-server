@@ -64,7 +64,7 @@
 #include "monocypher/monocypher.h"
 #include "monocypher/monocypher-ed25519.h"
 
-#define MOD_VERSION "0.8.1"
+#define MOD_VERSION "0.8.2"
 
 /* Reserved settings area: the server overwrites everything after the 32-byte marker with
  * "key=...\nname=...\nurl=...\naddrs=a,b\nbook=...\n" (see server/pesserver/identity.py pack_mod). */
@@ -1054,23 +1054,27 @@ static BOOL match_online(void)
     return is_online(obj) != 0;
 }
 
-/* The winner's side (0 / 1) once the match is decided, else -1, the way the game's own end does it (dispatcher
-   0x140488470): after a shootout (phase 9) from the kicks; at the end of normal or extra time (10 / 8) from the
-   goals, through the game's winner function (0x140486b10 calls 0x1404882a0, or 0x140488350 when ModeInfo+0xc319
-   is 1; both take the sequencer's [[step+0x17860]] in rdx and return 0 / 1, 2 = level). A level end of extra time
-   goes on to penalties; the offline end branch there (or at half time) crashes an online game (live 2026-11-21),
-   so it stays closed. (Mod 0.7/0.8 read the shootout kicks at every end: 0-0 after a normal-time win, so finals
-   won in normal or extra time had no ceremony, live 2026-11-22.) */
-static int match_winner(void *step)
+/* The winner's side (0 / 1) once the match is decided, else -1, at an end of the match (phase 8..10).
+   A shootout's kicks that are not level decide it, as mod 0.7.0 did (its live shootout final had a ceremony,
+   2026-11-21); the step after a shootout can come at phase 8 rather than 9: mod 0.8.1 read the kicks only at
+   9 and a real shootout final had none (live 2026-11-23). Otherwise, at the end of normal or extra time (10 / 8),
+   the goals decide, through the game's own winner function (dispatcher 0x140488470: 0x140486b10 calls
+   0x1404882a0, or 0x140488350 when ModeInfo+0xc319 is 1; both take the sequencer's [[step+0x17860]] in rdx,
+   only read, and return 0 / 1, 2 = level). A level end of extra time goes on to penalties; the offline end
+   branch there (or at half time) crashes an online game (live 2026-11-21), so it stays closed. (Mod 0.7/0.8
+   read only the kicks: 0-0 after a normal-time win, so finals won in normal or extra time had no ceremony,
+   live 2026-11-22.) */
+static int match_winner(void *step, int *k0, int *k1)
 {
     int ph = match_phase();
-    if (ph == 9) {
-        uint8_t *pk = match_ref(0x310);
-        if (!pk) return -1;
-        int32_t g0 = *(int32_t *)(pk + 0x18), g1 = *(int32_t *)(pk + 0x1c);
-        return g0 == g1 ? -1 : g0 > g1 ? 0 : 1;
+    *k0 = *k1 = -1;
+    if (ph < 8 || ph > 10) return -1;
+    uint8_t *pk = match_ref(0x310);
+    if (pk) {
+        *k0 = *(int32_t *)(pk + 0x18); *k1 = *(int32_t *)(pk + 0x1c);
+        if (*k0 != *k1) return *k0 > *k1 ? 0 : 1;
     }
-    if ((ph != 8 && ph != 10) || !step) return -1;
+    if (ph == 9 || !step) return -1;
     uint8_t **seq = *(uint8_t ***)((uint8_t *)step + 0x17860), *mode = match_ref(0x2ad0);
     if (!seq || !*seq || !*(void **)(*seq + 0xe0) || !mode || !match_ref(0x270)) return -1;
     uint32_t (*winner)(void *, void *) =
@@ -1120,8 +1124,17 @@ static uintptr_t hk_end_step(void *self, uintptr_t flag, void *a, void *b)
         HANDLE t = CreateThread(NULL, 0, final_thread, NULL, 0, NULL);
         if (t) CloseHandle(t);
     }
-    int side = g_final_group ? match_winner(self) : -1;
+    int k0 = -1, k1 = -1, side = g_final_group ? match_winner(self, &k0, &k1) : -1;
     BOOL armed = side >= 0 && match_online();
+    if (g_final_group && ph >= 8) {                /* every end step of an armed final, once per change */
+        static int last = -99;
+        int key = ((ph * 128 + (k0 & 0x7f)) * 128 + (k1 & 0x7f)) * 4 + side + 1;
+        if (key != last) {
+            last = key;
+            logf_("cup final end step: phase %d, shootout %d-%d, winner side %d%s", ph, k0, k1, side,
+                  armed ? " (ceremony)" : "");
+        }
+    }
     InterlockedExchange(&g_final_side, side);
     end_branch(armed ? 0xeb : 0x74);
     uintptr_t r = o_end_step(self, flag, a, b);
